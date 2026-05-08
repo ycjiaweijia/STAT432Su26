@@ -1,0 +1,429 @@
+---
+jupyter: stats
+---
+
+# Logistic Regression
+
+## Modeling Binary Outcomes
+
+In linear regression, we model a continuous response by
+$$
+Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon.
+$$
+
+This framework is not appropriate when the response is binary, for example $Y \in \{0,1\}$.  
+For a binary response, the main target is the conditional probability
+$$
+P(Y=1 \mid X=\mathbf{x}).
+$$
+
+A logistic regression models this probability by
+$$
+P(Y=1 \mid X=\mathbf{x}) = \pi(\mathbf{x})
+= \frac{\exp(\beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p)}
+{1+\exp(\beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p)}.
+$$
+
+Equivalently, if we write the linear predictor as
+$$
+\eta(\mathbf{x}) = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p,
+$$
+then
+$$
+\pi(\mathbf{x}) = \frac{e^{\eta(\mathbf{x})}}{1+e^{\eta(\mathbf{x})}}.
+$$
+
+This guarantees that the fitted probability always stays between $0$ and $1$.
+
+::: {.callout-note}
+## Logistic regression is a GLM
+
+Logistic regression is a special case of a generalized linear model.
+
+- The response distribution is Bernoulli (or Binomial).
+- The mean is the probability $\pi(\mathbf{x}) = P(Y=1\mid X=\mathbf{x})$.
+- The link function is the **logit** link.
+
+So the model is linear in the **log-odds**, not in the probability itself.
+:::
+
+## The Logit Link and Odds
+
+Starting from
+$$
+\pi(\mathbf{x}) = \frac{e^{\eta(\mathbf{x})}}{1+e^{\eta(\mathbf{x})}},
+$$
+we obtain
+$$
+1-\pi(\mathbf{x}) = \frac{1}{1+e^{\eta(\mathbf{x})}}.
+$$
+
+Therefore the odds are
+$$
+\frac{\pi(\mathbf{x})}{1-\pi(\mathbf{x})} = e^{\eta(\mathbf{x})},
+$$
+and taking logarithm gives
+$$
+\log\left(\frac{\pi(\mathbf{x})}{1-\pi(\mathbf{x})}\right)
+= \eta(\mathbf{x})
+= \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p.
+$$
+
+Hence logistic regression can be written as
+$$
+\log\left(\frac{P(Y=1\mid X=\mathbf{x})}{P(Y=0\mid X=\mathbf{x})}\right)
+=
+\beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p.
+$$
+
+This is why the coefficients are interpreted through **log-odds** and **odds ratios**.
+
+## Interpreting the Coefficients
+
+Suppose all predictors except $x_j$ are fixed, and $x_j$ increases by one unit. Then the linear predictor increases by $\beta_j$, so the log-odds increase by $\beta_j$:
+$$
+\Delta \log(\text{odds}) = \beta_j.
+$$
+
+Exponentiating both sides, we get
+$$
+\text{odds ratio} = e^{\beta_j}.
+$$
+
+Therefore:
+
+- $\beta_j$ is the change in **log-odds** associated with a one-unit increase in $x_j$.
+- $e^{\beta_j}$ is the corresponding **odds ratio**.
+
+::: {.callout-note}
+## Interpretation of a coefficient
+
+In logistic regression, the coefficient $\beta_j$ does **not** represent the change in probability.
+
+Instead:
+
+- $\beta_j$ is the change in **log-odds**
+- $e^{\beta_j}$ is the multiplicative change in **odds**
+
+for a one-unit increase in $x_j$, with all other variables held fixed.
+:::
+
+## Why Not Use Linear Regression?
+
+If we fit a linear regression model to a binary response, several problems arise.
+
+First, the fitted values are not restricted to the interval $[0,1]$, so they cannot always be interpreted as probabilities.
+
+Second, the variance of a binary response depends on the mean:
+$$
+\Var(Y\mid X=\mathbf{x}) = \pi(\mathbf{x})(1-\pi(\mathbf{x})),
+$$
+which violates the constant-variance assumption of ordinary linear regression.
+
+Third, the relationship between predictors and probability is often nonlinear, especially near probability $0$ or $1$. Logistic regression addresses these issues by modeling the log-odds linearly instead of the probability directly.
+
+## Prediction and Classification
+
+After fitting the model, we may compute the estimated probability
+$$
+\hat{\pi}(\mathbf{x}) = P(Y=1\mid X=\mathbf{x}).
+$$
+
+If we want a class prediction, a common rule is
+
+$$
+\hat{Y} =
+\begin{cases}
+1, & \hat{\pi}(\mathbf{x}) > 0.5,\\
+0, & \hat{\pi}(\mathbf{x}) \le 0.5.
+\end{cases}
+$$
+
+The cutoff $0.5$ is common, but it is not mandatory. In practice, the threshold may be adjusted depending on the application and the relative cost of false positives and false negatives.
+
+## Estimation by Maximum Likelihood
+
+For binary data, each $Y_i$ follows a Bernoulli distribution with parameter $\pi_i$:
+$$
+Y_i \mid X_i \sim \text{Bernoulli}(\pi_i).
+$$
+
+Thus
+$$
+P(Y_i = y_i \mid X_i)
+=
+\pi_i^{y_i}(1-\pi_i)^{1-y_i},
+\qquad y_i \in \{0,1\}.
+$$
+
+For $n$ independent observations, the likelihood is
+$$
+L(\boldsymbol\beta)
+=
+\prod_{i=1}^n
+\pi_i^{y_i}(1-\pi_i)^{1-y_i}.
+$$
+
+Taking logarithm, the log-likelihood is
+$$
+\ell(\boldsymbol\beta)
+=
+\sum_{i=1}^n
+\left[
+y_i \log(\pi_i) + (1-y_i)\log(1-\pi_i)
+\right].
+$$
+
+Using the logistic form of $\pi_i$, this becomes
+$$
+\ell(\boldsymbol\beta)
+=
+\sum_{i=1}^n
+\left[
+y_i \mathbf{x}_i^\top \boldsymbol\beta
+-
+\log\bigl(1+\exp(\mathbf{x}_i^\top \boldsymbol\beta)\bigr)
+\right].
+$$
+
+Unlike OLS, logistic regression does not have a closed-form solution.  
+The coefficients are obtained numerically by maximizing the log-likelihood.
+
+::: {.callout-note}
+## Deviance
+
+In generalized linear models, model fit is often summarized by the **deviance**. For logistic regression, a smaller deviance indicates a better fit.
+
+Two common quantities are
+
+- **Null deviance**: the deviance from a model with only an intercept
+- **Residual deviance**: the deviance from the fitted model
+
+A large reduction from null deviance to residual deviance suggests that the predictors provide useful information about the response.
+:::
+
+## A Simple One-Variable Example
+
+Suppose the fitted model is
+$$
+\log\left(\frac{\pi(x)}{1-\pi(x)}\right)
+=
+-3.006 + 0.052x.
+$$
+
+For a subject with $x=55$, the linear predictor is
+$$
+-3.006 + 0.052(55) = -0.146.
+$$
+
+Hence the estimated probability is
+$$
+\pi(55)
+=
+\frac{e^{-0.146}}{1+e^{-0.146}}
+\approx 0.463.
+$$
+
+So the model predicts a probability of about $46.3\%$ for class $1$.
+
+## Python Implementation with `statsmodels`
+
+For classical logistic regression, `statsmodels` is often the most natural Python choice.
+
+```{python}
+#| eval: false
+import pandas as pd
+import statsmodels.api as sm
+
+heart = pd.read_csv("processed_cleveland.csv")
+
+# create a binary response:
+# 1 = presence of heart disease, 0 = no heart disease
+heart["Y"] = (heart["num"] > 0).astype(int)
+
+X = sm.add_constant(heart[["age"]])
+y = heart["Y"]
+
+model = sm.GLM(y, X, family=sm.families.Binomial())
+result = model.fit()
+
+print(result.summary())
+```
+
+To predict at `age = 55`:
+
+```{python}
+#| eval: false
+newX = pd.DataFrame({"const": [1], "age": [55]})
+result.predict(newX)
+```
+
+The returned value is the estimated probability $P(Y=1\mid X)$.
+
+::: {.callout-note}
+## `statsmodels` and the intercept
+
+When using matrix input with `statsmodels.GLM`, an intercept is **not** added automatically.  
+Therefore we usually add it explicitly by `sm.add_constant()`.
+
+If a formula interface is used, the intercept is included by default unless we remove it explicitly.
+:::
+
+## Python Implementation with `sklearn`
+
+In `sklearn`, logistic regression is treated mainly as a **classification** method.
+
+```{python}
+#| eval: false
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+
+heart = pd.read_csv("processed_cleveland.csv")
+heart["Y"] = (heart["num"] > 0).astype(int)
+
+X = heart[["age"]]
+y = heart["Y"]
+
+clf = LogisticRegression(penalty=None, max_iter=1000)
+clf.fit(X, y)
+
+# predicted probability of class 1
+clf.predict_proba(pd.DataFrame({"age": [55]}))
+```
+
+The second column of `predict_proba()` is the estimated probability of class $1$.
+
+To generate class predictions:
+
+```{python}
+#| eval: false
+clf.predict(pd.DataFrame({"age": [55]}))
+```
+
+::: {.callout-warning}
+## A practical difference between `statsmodels` and `sklearn`
+
+In `sklearn`, logistic regression is regularized by default.
+
+So if you want a model closer to the classical unpenalized logistic regression from statistics, you should explicitly remove the penalty, for example by using `penalty=None`.
+
+In contrast, `statsmodels` fits the usual likelihood-based GLM by default.
+:::
+
+## Example: Multiple Predictors
+
+A multivariable logistic regression has the form
+$$
+\log\left(\frac{\pi(\mathbf{x})}{1-\pi(\mathbf{x})}\right)
+=
+\beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p.
+$$
+
+For example, we may fit
+
+```{python}
+#| eval: false
+import pandas as pd
+import statsmodels.api as sm
+
+heart = pd.read_csv("SAheart.csv")
+
+# suppose famhist is coded as a string category such as Present / Absent
+heart["famhist"] = (heart["famhist"] == "Present").astype(int)
+
+X = heart[["sbp", "tobacco", "ldl", "adiposity", "famhist", "typea", "obesity", "alcohol", "age"]]
+X = sm.add_constant(X)
+y = heart["chd"]
+
+model = sm.GLM(y, X, family=sm.families.Binomial())
+result = model.fit()
+
+print(result.summary())
+```
+
+For a coefficient such as `age`, if the estimate is $\hat\beta_{\text{age}} = 0.045$, then
+$$
+e^{0.045} \approx 1.046.
+$$
+
+This means that, holding all other predictors fixed, a one-year increase in age multiplies the odds of coronary heart disease by about $1.046$, or increases the odds by about $4.6\%$.
+
+## Logistic Regression with a Pipeline
+
+In statistical learning, logistic regression is often used together with preprocessing inside a pipeline.
+
+```{python}
+#| eval: false
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+
+num_features = ["age", "chol", "thalach"]
+cat_features = ["sex", "cp"]
+
+pre = ColumnTransformer(
+    transformers=[
+        ("num", StandardScaler(), num_features),
+        ("cat", OneHotEncoder(drop="first", handle_unknown="ignore"), cat_features),
+    ]
+)
+
+pipe = Pipeline([
+    ("preprocessor", pre),
+    ("model", LogisticRegression(max_iter=1000))
+])
+
+pipe.fit(X_train, y_train)
+pipe.predict(X_test)
+pipe.predict_proba(X_test)
+```
+
+This is usually the preferred workflow in `sklearn`, because the preprocessing steps and the model are trained together inside a single object.
+
+## Writing the Log-Likelihood Directly
+
+It is also possible to write the log-likelihood directly and optimize it numerically.
+
+```{python}
+#| eval: false
+import numpy as np
+from scipy.optimize import minimize
+
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+
+def neg_loglik(beta, X, y):
+    z = X @ beta
+    p = sigmoid(z)
+
+    # small clipping for numerical stability
+    eps = 1e-12
+    p = np.clip(p, eps, 1 - eps)
+
+    return -np.sum(y * np.log(p) + (1 - y) * np.log(1 - p))
+
+
+# Example usage:
+# X should already include a constant column
+# beta0 = np.zeros(X.shape[1])
+# out = minimize(neg_loglik, beta0, args=(X, y), method="BFGS")
+# out.x
+```
+
+This reproduces the same optimization idea behind logistic regression: maximize the log-likelihood, or equivalently minimize the negative log-likelihood.
+
+## Summary
+
+::: {.callout-tip}
+## Key points
+
+- Logistic regression is used for binary outcomes.
+- It models the **log-odds** as a linear function of the predictors.
+- The fitted probabilities are always between $0$ and $1$.
+- A coefficient $\beta_j$ is interpreted through the odds ratio $e^{\beta_j}$.
+- The model is estimated by maximum likelihood rather than least squares.
+- In Python, `statsmodels` is convenient for classical statistical output, while `sklearn` is convenient for prediction pipelines and classification workflows.
+:::

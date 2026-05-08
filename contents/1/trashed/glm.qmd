@@ -1,0 +1,290 @@
+
+
+# Generalized linear models
+
+
+{{< include ../math.qmd >}}
+
+
+## Strengths and Limitations
+
+Linear regression is often the first model to try because it is transparent and effective in many settings. However, it has limits.
+
+Strengths:
+
+- simple interpretation;
+- fast computation;
+- useful baseline;
+- strong connection to statistical inference.
+
+Limitations:
+
+- assumes a linear mean structure unless we add transformed terms;
+- can be unstable under multicollinearity;
+- may overfit when many predictors are included;
+- may perform poorly when relationships are strongly nonlinear.
+
+These limitations motivate later methods such as GLMs, GAMs, ridge regression, and LASSO.
+
+## What Is a GLM?
+
+A **generalized linear model (GLM)** extends ordinary linear regression in two ways:
+
+- the response variable does not need to be normally distributed;
+- the mean of the response is connected to the predictors through a **link function**.
+
+A GLM has three components:
+
+1. A response distribution from the exponential family, such as Gaussian, Binomial, or Poisson.
+2. A linear predictor
+
+$$
+\eta = X\beta.
+$$
+
+3. A link function relating the mean $\mu = \mathbb{E}(Y \mid X)$ to the linear predictor:
+
+$$
+g(\mu) = \eta = X\beta.
+$$
+
+Thus, a GLM keeps the predictor linear in the coefficients, but it allows the response distribution and the mean-response relationship to be more flexible than in ordinary linear regression.
+
+::: {.callout-note}
+## Main Idea
+
+Linear regression models the response directly under a Gaussian error assumption. A GLM models the mean of the response through a link function and can handle binary, count, and other non-Gaussian outcomes.
+:::
+
+
+## Why Do We Need GLMs?
+
+Ordinary linear regression is not always appropriate.
+
+- For binary outcomes, fitted values from linear regression may fall outside $[0,1]$.
+- For count data, the response is nonnegative and often right-skewed.
+- The variance may depend on the mean, which violates the constant-variance assumption of linear regression.
+
+GLMs address these issues by choosing a distribution and a link function suited to the data.
+
+
+## Common Examples
+
+### Linear Regression
+
+For a Gaussian response with the identity link,
+
+$$
+\mu = X\beta.
+$$
+
+This is the ordinary linear model.
+
+### Logistic Regression
+
+For binary data, logistic regression uses
+
+$$
+\log\left(\frac{\mu}{1-\mu}\right) = X\beta,
+$$
+
+where $\mu = \mathbb{P}(Y=1 \mid X)$.
+
+### Poisson Regression
+
+For count data, Poisson regression uses
+
+$$
+\log(\mu) = X\beta,
+$$
+
+where $\mu = \mathbb{E}(Y \mid X)$.
+
+
+## Relation to Linear Regression
+
+A GLM is not the same as transforming the response and then applying ordinary least squares.
+
+For example,
+
+$$
+\log(Y) = X\beta + \varepsilon
+$$
+
+is a transformed linear model, whereas
+
+$$
+\log(\mathbb{E}[Y \mid X]) = X\beta
+$$
+
+is a GLM with a log link.
+
+These models may look similar algebraically, but they differ in assumptions, interpretation, and estimation.
+
+
+## Estimation
+
+Unlike ordinary least squares, GLMs are usually estimated by **maximum likelihood**, often using **iteratively reweighted least squares (IRLS)**.
+
+The details of the algorithm are usually less important than the modeling idea:
+
+- choose a suitable distribution;
+- choose a suitable link function;
+- interpret the fitted model on the correct scale.
+
+
+## Interpretation
+
+The coefficients in a GLM are interpreted through the link function.
+
+- In logistic regression, coefficients describe changes in log-odds.
+- In Poisson regression, coefficients describe changes in the log mean count.
+- In linear regression, coefficients describe direct changes in the mean response.
+
+Therefore, interpretation depends on both the response distribution and the link.
+
+
+## Relation to GAMs and Regularization
+
+GLMs still assume that the predictor enters through the linear form $X\beta$. A **generalized additive model (GAM)** relaxes this by replacing linear terms with smooth functions:
+
+$$
+g(\mu) = \beta_0 + f_1(x_1) + \cdots + f_p(x_p).
+$$
+
+Regularization methods such as ridge regression and LASSO can also be combined with GLMs, producing penalized logistic regression, penalized Poisson regression, and related models.
+
+
+## Python Example
+
+The following example fits a logistic regression model in Python using the public `titanic` dataset from `seaborn`. It includes coefficient tables, fitted probabilities, a classification table, and standard residual and influence diagnostics.
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+import sys
+
+print(sys.executable)
+
+titanic = sns.load_dataset("titanic").dropna(subset=["survived", "fare", "age", "sex", "pclass"])
+
+fit = smf.glm(
+    "survived ~ fare + age + C(sex) + C(pclass)",
+    data=titanic,
+    family=sm.families.Binomial(),
+).fit()
+
+# Main GLM table
+print(fit.summary())
+
+# Coefficient table with confidence intervals
+coef_table = fit.summary2().tables[1]
+coef_table["odds_ratio"] = np.exp(coef_table["Coef."])
+print(coef_table)
+
+# Fitted probabilities and residual diagnostics
+diagnostics = titanic[["survived", "fare", "age", "sex", "pclass"]].copy()
+diagnostics["fitted_prob"] = fit.fittedvalues
+diagnostics["pearson_resid"] = fit.resid_pearson
+diagnostics["deviance_resid"] = fit.resid_deviance
+diagnostics["response_resid"] = fit.resid_response
+print(diagnostics.head())
+
+# Simple classification table at cutoff 0.5
+diagnostics["pred_class"] = (diagnostics["fitted_prob"] >= 0.5).astype(int)
+print(pd.crosstab(diagnostics["survived"], diagnostics["pred_class"], margins=True))
+
+# Influence summary
+influence = fit.get_influence(observed=True)
+print(influence.summary_frame().head())
+
+# Diagnostic plots
+fig, ax = plt.subplots(figsize=(6, 4))
+ax.scatter(diagnostics["fitted_prob"], diagnostics["deviance_resid"], alpha=0.6)
+ax.axhline(0, color="black", linestyle="--")
+ax.set_xlabel("Fitted probability")
+ax.set_ylabel("Deviance residual")
+ax.set_title("Residuals vs fitted")
+plt.tight_layout()
+
+fig = plt.figure(figsize=(6, 4))
+sm.qqplot(diagnostics["deviance_resid"], line="45", fit=True, ax=plt.gca())
+plt.tight_layout()
+
+fig, ax = plt.subplots(figsize=(6, 4))
+ax.scatter(influence.hat_matrix_diag, diagnostics["deviance_resid"], alpha=0.6)
+ax.set_xlabel("Leverage")
+ax.set_ylabel("Deviance residual")
+ax.set_title("Residuals vs leverage")
+plt.tight_layout()
+plt.show()
+```
+
+Here the response `survived` is binary, so a binomial GLM with a logit link is appropriate. The terms `C(sex)` and `C(pclass)` tell `statsmodels` to treat those variables as categorical predictors.
+
+
+## Similarities and Differences Between LM and GLM
+
+A linear model (LM) and a generalized linear model (GLM) are closely related. In fact, the ordinary linear regression model can be viewed as a special case of a GLM.
+
+They are similar in several important ways:
+
+- both relate a response variable to predictors;
+- both use a linear predictor of the form $X\beta$;
+- both allow categorical variables, interactions, and transformed predictors;
+- both produce coefficient estimates, fitted values, residuals, and model summaries.
+
+However, they differ in the way the response is modeled.
+
+In a linear model, we write
+
+$$
+Y = X\beta + \varepsilon,
+$$
+
+with a Gaussian error assumption and constant variance.
+
+In a GLM, we model the mean of the response through a link function:
+
+$$
+g(\mu) = X\beta, \qquad \mu = \mathbb{E}(Y \mid X).
+$$
+
+Thus, the major differences are:
+
+- an LM models the response directly;
+- a GLM models the mean of the response through a link function;
+- an LM usually assumes Gaussian errors with constant variance;
+- a GLM allows other response distributions such as Binomial or Poisson;
+- an LM is usually estimated by ordinary least squares;
+- a GLM is usually estimated by maximum likelihood.
+
+::: {.callout-note}
+## A Useful Way to Think About It
+
+An LM is appropriate when the response is quantitative and approximately normal with constant variance. A GLM is appropriate when the response has a different distributional form, such as binary outcomes or counts, but we still want a regression model built from the linear predictor $X\beta$.
+:::
+
+The two models can also look algebraically similar. For example,
+
+$$
+\log(Y) = X\beta + \varepsilon
+$$
+
+is a transformed linear model, whereas
+
+$$
+\log(\mathbb{E}[Y \mid X]) = X\beta
+$$
+
+is a GLM with a log link. These are not the same model, even though the equations look similar. They differ in interpretation, assumptions, and estimation.
+
+So the main relationship is:
+
+- an LM is a special case of a GLM;
+- a GLM keeps the linear predictor but generalizes the response distribution and the mean-response relationship.

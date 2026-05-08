@@ -1,0 +1,126 @@
+# Generalized additive models
+
+
+{{< include ../math.qmd >}}
+
+
+## What Is a GAM?
+
+A **generalized additive model (GAM)** extends a generalized linear model by allowing the effect of a predictor to be a smooth function rather than a fixed linear term.
+
+Instead of writing
+
+$$
+g(\mu) = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p,
+$$
+
+a GAM writes
+
+$$
+g(\mu) = \beta_0 + f_1(x_1) + \cdots + f_p(x_p),
+$$
+
+where each $f_j$ is a smooth function estimated from the data.
+
+Here $\mu = \mathbb{E}(Y \mid X)$ and $g$ is a link function, just as in a GLM.
+
+::: {.callout-note}
+## Main Idea
+
+A GLM assumes a specific parametric form for each predictor effect. A GAM allows the shape of the effect to be learned from the data, subject to a smoothness constraint.
+:::
+
+
+## Why Do We Need GAMs?
+
+In practice, relationships between predictors and response are often nonlinear.
+
+In ordinary linear regression, one may try transformations such as:
+
+- $\log(x)$,
+- $\sqrt{x}$,
+- $x^2$.
+
+These are still parametric choices made by the analyst. A GAM provides a more flexible alternative by estimating a smooth curve directly from the data.
+
+This is useful when:
+
+- the true relationship is nonlinear;
+- the correct transformation is not known in advance;
+- we want flexibility without giving up interpretability completely.
+
+
+## Relation to Linear Regression and GLMs
+
+The progression is:
+
+- **Linear regression**: linear mean function with Gaussian errors;
+- **GLM**: linear predictor with a general response distribution and link function;
+- **GAM**: additive smooth functions with a general response distribution and link function.
+
+So a GAM is best viewed as a flexible extension of a GLM.
+
+
+## Smooth Functions
+
+The functions $f_j$ are not arbitrary. They are usually represented by basis expansions, such as splines, and are estimated with a **smoothness penalty**.
+
+The purpose of the penalty is to prevent the fitted curve from becoming too wiggly.
+
+Thus, a GAM balances:
+
+- fidelity to the data,
+- smoothness of the fitted functions.
+
+
+## GAM Versus Manual Transformations
+
+Suppose in a linear model you try
+
+$$
+Y = \beta_0 + \beta_1 \log(x) + \varepsilon
+$$
+
+or
+
+$$
+Y = \beta_0 + \beta_1 x + \beta_2 x^2 + \varepsilon.
+$$
+
+These are still linear models with chosen transformations.
+
+In a GAM, by contrast, we write
+
+$$
+Y = \beta_0 + f(x) + \varepsilon
+$$
+
+or, more generally,
+
+$$
+g(\mu) = \beta_0 + f(x).
+$$
+
+The difference is that the shape of $f$ is estimated from the data rather than fixed in advance as $\log(x)$ or $x^2$.
+
+
+## Estimation and Inference
+
+GAMs are usually fitted by penalized likelihood methods. The amount of smoothness is controlled by smoothing parameters, which are often selected automatically by criteria such as:
+
+- generalized cross-validation (GCV),
+- restricted maximum likelihood (REML),
+- cross-validation.
+
+Because the model learns functional form from the data, inference should still be interpreted with care, especially if the analyst repeatedly changes the model after inspecting diagnostic plots.
+
+
+## Relation to Ridge and LASSO
+
+GAMs already use regularization through smoothness penalties. This is a different kind of regularization from ridge regression and LASSO:
+
+- ridge shrinks coefficients with an $L_2$ penalty;
+- LASSO shrinks coefficients with an $L_1$ penalty and can set some exactly to zero;
+- GAMs penalize the roughness of smooth functions.
+
+There are also sparse versions of GAMs that combine smooth modeling with variable selection.

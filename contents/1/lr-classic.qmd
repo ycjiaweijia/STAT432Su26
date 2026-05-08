@@ -1,0 +1,687 @@
+
+
+# Linear Regression
+
+
+{{< include ../math.qmd >}}
+
+
+This section offers a brief review of linear regression, with the main emphasis on its Python implementation through examples.
+
+## Quick Overview
+
+Linear regression is the fundamental supervised learning method for a quantitative response. It models the conditional mean of the response as a linear function of the predictors:
+$$
+y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon.
+$$
+
+In matrix notation, this can be written as
+$$
+\vb y = \vb X\beta + \varepsilon.
+$$
+Here, $\vb X$ is the design matrix, whose first column is a column of ones representing the intercept.
+
+## The Ordinary Least Squares Estimator
+
+The most common fitting method is ordinary least squares (OLS). It chooses the coefficient vector $\beta$ that minimizes the residual sum of squares:
+
+$$
+\rss(\beta) = \sum_{i=1}^n (y_i - \hat{y}_i)^2
+= \norm{\vb y - \vb X\beta }_2^2.
+$$
+
+The OLS estimator is
+
+$$
+\hat{\beta}_{\ols} = (\vb X^\top \vb X)^{-1}\vb X^\top \vb y,
+$$
+
+provided that $\vb X^\top \vb X$ is invertible.
+
+Once the coefficients are estimated, the fitted value for observation $i$ is
+
+$$
+\hat{y}_i = \hat{\beta}_0 + \hat{\beta}_1 x_{i1} + \cdots + \hat{\beta}_p x_{ip}.
+$$
+
+
+
+Interpretation is one of the main strengths of linear regression.
+
+1. The coefficient $\beta_j$ represents the change in the mean response associated with a one-unit increase in $x_j$, holding the other predictors fixed.
+2. When interactions are present, a main effect should not be interpreted in isolation. Its meaning depends on the values of the interacting variables.
+3. If the predictors are centered so that a value of 0 corresponds to the average of the original variable, then the main-effect coefficient can be interpreted as the change in the mean response associated with a one-unit increase in $x_j$, while holding the other predictors at their average levels.
+4. A confidence interval gives a range of plausible values for a coefficient or for the mean response at a given combination of predictors.
+5. A prediction interval is wider than a confidence interval because it must account for both uncertainty in the estimated mean response, and random variation in a future observation.
+
+
+## Assessing Model Fit
+
+The classical assumptions of a linear regression model are:
+
+1. The random errors are independent.
+2. The errors follow a normal distribution.
+3. The mean of the error distribution is $0$.
+4. The variance of the error distribution is constant across observations.
+
+Several tools are commonly used to assess a linear regression fit. These diagnostics do not prove that a model is correct, but they help identify potential problems.
+
+- residual plots and partial residual plots,
+- Q-Q plots,
+- leverage and influence diagnostics,
+- summary measures such as $R^2$, adjusted $R^2$, and the residual standard error.
+
+
+
+
+## Formula language
+
+The formula language was developed based on the Wilkinson-Rogers notations introduced in @wilkinson1973symbolic, and was later implemented in the S language at Bell Labs by John Chambers and colleagues in the 1980s @chambers1992statistical. It has since become the standard way to specify linear models in statistical software such as R and Python (`statsmodels`).
+
+The following table summarizes the basic syntax and provides examples. Note that it differs slightly from the R version because Python and R use different syntax.
+
+
+| Formula | Meaning |
+|---|---|
+| `y ~ x` | Response $y$ regressed on predictor $x$ |
+| `y ~ x1 + x2` | Include predictors $x_1$ and $x_2$ |
+| `y ~ .` | Include all available predictors in the dataset |
+| `y ~ x1:x2` | Interaction between $x_1$ and $x_2$ only |
+| `y ~ x1 * x2` | Main effects and interaction (`x1 + x2 + x1:x2`) |
+| `y ~ x1 + x2 + x3 - x2` | Include all listed variables except `x2` |
+| `y ~ (x1 + x2 + x3)^2` | All main effects and two-way interactions |
+| `y ~ I(x**2)` | Include a mathematical transformation of $x$ |
+| `y ~ C(group)` | Treat `group` as a categorical variable |
+| `y ~ np.log(x)` | Include the transformation $\log(x)$ using a Python function |
+| `y ~ 1` | Model with intercept only |
+| `y ~ x - 1` | Remove the intercept |
+
+
+::: {.callout-note}
+## Categorical Predictors
+
+Categorical predictors are represented through indicator (dummy) variables. If a factor has $k$ levels, the model usually includes $k-1$ dummy variables.
+
+In Python when using `statsmodels` to fit linear regression models, categorical variables are automatically converted into dummy variables. To indicate that a variable is categorical, you may either:
+
+- explicitly convert the variable in the dataset to a categorical type using `.astype("category")`, or
+- use the `C()` function in the formula language.
+
+:::
+
+
+
+## Model Selection
+
+In traditional multiple regression, several competing sets of predictors may be plausible. Model selection compares these models using criteria that balance goodness of fit with model complexity.
+
+
+
+### Some Criteria
+
+These criteria reward good fit but penalize model complexity.
+
+- AIC tends to prefer somewhat larger models.
+- BIC penalizes complexity more strongly and often prefers smaller models.
+- Mallows' $C_p$ compares a candidate model to a larger reference model.
+- PRESS uses leave-one-out data to measure test performance.
+  
+The first three methods use training results to estimate test performance, whereas PRESS directly approximates the test error through leave-one-out validation. These tools are useful for comparing models, but they should not replace subject-matter reasoning.
+
+
+### Traditional variable selection methods
+
+
+- Best Subset Selection: Best subset selection compares all models of a given size and then chooses the best one according to a criterion such as AIC, BIC, adjusted $R^2$, $C_p$, or PRESS. It is conceptually simple, but it becomes computationally expensive when the number of predictors is large.
+- Stepwise Selection: Stepwise procedures add or remove variables sequentially rather than searching all possible models. These methods are faster than best subset selection, but they are greedy procedures and do not guarantee the globally best model.
+
+
+
+
+## Python Code
+
+
+The main library for linear regression is `statsmodels`. We will also use `pandas` to deal with dataset and `seaborn` to deal with data visualization.
+
+
+### Setup
+
+As an example we use the public `mpg` dataset from `seaborn` to demonstrate the workflow of the standard linear regression. 
+
+This is a dataset for cars manufactured between 1970-82 in USA, Europe., and Japan. It was taken from the StatLib library which is maintained at Carnegie Mellon University. The dataset was used in the 1983 American Statistical Association Exposition. More info can be found [here](https://data.world/dataman-udit/cars-data). 
+
+
+
+```{python}
+import seaborn as sns
+sns.set_theme() # <1>
+
+mpg = sns.load_dataset("mpg")
+mpg.head()
+```
+1. We use the `sns` theme to obtain cleaner and more visually appealing plots compared to the default `matplotlib` style.
+
+```{python}
+mpg.shape
+```
+
+```{python}
+mpg.columns
+```
+
+
+There are 9 variables and 398 observations in the dataset: 
+
+- `mpg`  :   continuous
+- `cylinders`  :  multi-valued discrete
+- `displacement`  :   continuous
+- `horsepower`  :   continuous
+- `weight`  :   continuous
+- `acceleration`  :  continuous
+- `model_year`  :   multi-valued discrete
+- `origin`  :   multi-valued discrete
+- `name`  :   string (Unique values)
+
+```{python}
+mpg.info()
+```
+This table shows that `horsepower` contains some missing values. We would like to drop them.
+
+```{python}
+mpg = mpg.dropna()
+```
+
+
+The goal is to predict `mpg` using the other features of the car. We remove `name` because it does not provide meaningful information about vehicle performance. We also treat `cylinders` and `origin` as categorical variables.
+
+For `model_year`, it could reasonably be treated as either a numerical or a categorical variable. For simplicity, we treat it as numerical here, since it has 13 unique values and using 13 categories would make the model less parsimonious.
+
+```{python}
+mpg["cylinders"] = mpg["cylinders"].astype("category")
+mpg["origin"] = mpg["origin"].astype("category") # <1>
+mpg = mpg.drop(columns=["name"])
+```
+1. Like mentioned before, we could also indicate categorical variables in the formula using `C()`.
+
+
+Now we could see the summary of the cleaned dataset. The default `describe()` will only show the distribution of numerical values. If we want to see categorical variables, we need to add the argument `include="category"'. 
+
+```{python}
+mpg.describe()
+```
+```{python}
+mpg.describe(include="category")
+```
+
+### EDA
+
+We mainly use three types of plots for exploratory data analysis.
+
+
+```{python}
+# | column: page
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.pairplot(mpg)
+plt.gcf().set_size_inches(14, 9)  # <1>
+```
+1. `plt.gcf()` returns the current figure object. Once we have the figure object, we can modify its properties, such as resizing the figure or setting the DPI.
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
+
+We can use hue to visualize the effect of categorical variables.
+```{python}
+sns.pairplot(mpg, hue = "cylinders")
+```
+
+
+```{python}
+sns.pairplot(mpg, hue = "origin")
+```
+
+</details>
+
+---
+
+
+To display the correlation matrix heatmap, we first compute the correlation matrix and then use `sns.heatmap()` to visualize it.
+
+```{python}
+corr = mpg.corr(numeric_only=True)
+sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f")
+plt.gcf().set_size_inches(8, 8)  
+```
+
+---
+
+Finally, we may also want to examine the histogram of each variable, although this information is already reflected in the pair plot.
+
+```{python}
+mpg.hist(
+    bins=20,  
+    figsize=(10, 8), # <1>
+);   # <2>
+```
+1. The `hist()` method provides a built-in `figsize` argument, so there is no need to call `plt.gcf()` in this case.
+2. The `hist()` method returns an array of axes objects, which would normally produce text output. The `;` suppresses this output.
+
+
+
+
+### Fit a Basic Model
+
+
+
+```{python}
+import statsmodels.formula.api as smf
+```
+
+We use `smf.ols(formula).fit()` to fit a linear model described by the formula, and use `.summary()` to get the summary table for the model. 
+
+
+
+```{python}
+import statsmodels.formula.api as smf
+
+fit_linear = smf.ols(
+    "mpg ~ horsepower + weight + acceleration",
+    data=mpg,
+).fit()
+
+print(fit_linear.summary())
+```
+
+### More complicated models
+
+We could write more complicated formulas to get more complicated models.
+
+```{python}
+fit_poly = smf.ols(
+    "mpg ~ horsepower + I(horsepower**2) + weight + I(weight**2) + acceleration",
+    data=mpg,
+).fit() # <1>
+
+fit_interaction = smf.ols(
+    "mpg ~ horsepower * weight + acceleration",
+    data=mpg,
+).fit() # <2>
+
+fit_categorical = smf.ols(
+    "mpg ~ horsepower + weight + acceleration + C(origin) + C(cylinders)",
+    data=mpg,
+).fit() # <3>
+
+```
+1. Higher degree models
+2. Interaction models
+3. Models with categorical variables. Note that since we already turn `origin` and `cylinders` into categorical variables, we don't have to add `C()` here.
+
+### Generate a Summary Table
+
+To see the summary table, you can use `.summary()` or `.summary2()`. They provide the same infomortion but in different format. 
+
+- `.summary()` is the standard R/SAS style direct output, which is fixed, and easier for human to read directly. 
+- `.summary2()` is stated as "experimental summary function to summarize the regression results" in the official document. It uses DataFrames that are easier for machines to extract data and also provide some optional features that are more flexible than `.summary()`.
+
+Both of them consist of three tables that can be accessed through `.tables`. For example this is the second table from `fit_linear.summary()`.
+
+```{python}
+print(fit_linear.summary().tables[1])
+```
+
+This is the second table from `fit_linear.summary2()`.
+
+```{python}
+fit_linear.summary2().tables[1]
+```
+
+Their types are different.
+```{python}
+print(type(fit_linear.summary().tables[1]))
+print(type(fit_linear.summary2().tables[1]))
+```
+
+Since `.summary2()` provides a DataFrame, it is easier to extract results.
+
+```{python}
+fit_linear.summary2().tables[1].loc['Intercept', 't']
+```
+
+You can also modify the table slightly in both `.summary()` and `.summary2()`.
+
+- You may specify the names of variables by setting `xname` and `yname`.
+- You may change the confidence level by setting `alpha`.
+
+
+```{python}
+print(fit_linear.summary(yname="y", xname=["b0", "b1", "b2", "b3"], alpha=0.1))
+```
+
+```{python}
+fit_linear.summary2(yname="y", xname=["b0", "b1", "b2", "b3"], alpha=0.2)
+```
+
+
+
+### Generate ANOVA Tables: Type I, II, and III
+
+
+```{python}
+from statsmodels.stats.anova import anova_lm
+```
+
+
+The `anova_lm()` is usded to generate ANOVA tables.
+
+```{python}
+# | tbl-cap: "Type I ANOVA"
+anova_lm(fit_categorical, typ=1)
+```
+
+
+```{python}
+# | tbl-cap: "Type II ANOVA"
+anova_lm(fit_categorical, typ=2)
+```
+
+```{python}
+# | tbl-cap: "Type III ANOVA"
+anova_lm(fit_categorical, typ=3)
+```
+
+Nested ANOVA compares a smaller model with a larger model that contains all of its terms plus additional predictors. Note that by default the information of the two models won't be shown. Therefore it is recommended to print out the model information.
+
+```{python}
+# | tbl-cap: "Nested ANOVA"
+fit_nested_small = smf.ols("mpg ~ horsepower + weight", data=mpg).fit()
+fit_nested_large = smf.ols(
+    "mpg ~ horsepower + weight + acceleration + C(origin)",
+    data=mpg,
+).fit()
+
+print(f"Reduced model: {fit_nested_small.model.formula}")
+print(f"Full model:    {fit_nested_large.model.formula}")
+
+anova_lm(fit_nested_small, fit_nested_large)
+```
+
+
+
+
+### Residual Plots
+
+Residual plots are a set of diagnotic tools to verify models. Doesn't like `plot(fit)` in R, `statsmodels` in Python provides several functions for residual analysis.
+
+
+```{python}
+import statsmodels.api as sm
+
+fig = sm.graphics.plot_ccpr_grid(fit_linear)
+# fig = sm.graphics.plot_ccpr_grid(fit)
+
+for i, ax in enumerate(fig.axes):
+    print(i, len(ax.lines), len(ax.collections))
+
+plt.show()
+```
+
+
+
+
+
+```{python}
+diagnostics = mpg[["mpg", "horsepower", "weight", "acceleration", "origin"]].copy()
+diagnostics["fitted"] = fit_categorical.fittedvalues
+diagnostics["resid"] = fit_categorical.resid
+diagnostics["student_resid"] = fit_categorical.get_influence().resid_studentized_internal
+
+fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+
+axes[0].scatter(diagnostics["fitted"], diagnostics["resid"], alpha=0.6)
+axes[0].axhline(0, color="black", linestyle="--")
+axes[0].set_xlabel("Fitted values")
+axes[0].set_ylabel("Residuals")
+axes[0].set_title("Residuals vs fitted")
+
+sm.qqplot(diagnostics["resid"], line="45", fit=True, ax=axes[1])
+axes[1].set_title("Normal Q-Q plot")
+
+plt.tight_layout()
+plt.show()
+```
+
+### Partial Residual Plots
+
+Component-plus-residual plots help assess whether the linear contribution of a predictor is adequate after controlling for the other variables.
+
+```{python}
+fig = plt.figure(figsize=(10, 8))
+sm.graphics.plot_ccpr_grid(fit_categorical, fig=fig)
+plt.tight_layout()
+plt.show()
+```
+
+### Pair Plots
+
+```{python}
+pair_data = mpg[
+    ["mpg", "horsepower", "weight", "acceleration", "origin"]
+].sample(n=min(120, len(mpg)), random_state=1)
+
+sns.pairplot(pair_data, hue="origin", diag_kind="hist")
+plt.show()
+```
+
+### Leverage and Cook's Distance Plots
+
+```{python}
+import numpy as np
+
+
+
+influence = fit_categorical.get_influence()
+influence_frame = influence.summary_frame()
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+axes[0].scatter(influence_frame["hat_diag"], diagnostics["student_resid"], alpha=0.6)
+axes[0].axhline(0, color="black", linestyle="--")
+axes[0].set_xlabel("Leverage")
+axes[0].set_ylabel("Studentized residual")
+axes[0].set_title("Residuals vs leverage")
+
+axes[1].stem(
+    np.arange(len(influence_frame)),
+    influence_frame["cooks_d"],
+    basefmt=" ",
+)
+axes[1].set_xlabel("Observation")
+axes[1].set_ylabel("Cook's distance")
+axes[1].set_title("Cook's distance")
+
+plt.tight_layout()
+plt.show()
+```
+
+### Stepwise Selection
+
+The following simple forward-selection routine uses AIC as the selection criterion. It is easy to implement, but it is still a greedy search rather than a global optimum.
+
+```{python}
+import pandas as pd
+
+def forward_selection(data, response, candidates):
+    remaining = list(candidates)
+    selected = []
+    current_aic = np.inf
+    history = []
+
+    while remaining:
+        scored = []
+        for term in remaining:
+            formula = f"{response} ~ {' + '.join(selected + [term])}"
+            fit = smf.ols(formula, data=data).fit()
+            scored.append((fit.aic, term, fit))
+        scored.sort(key=lambda x: x[0])
+        best_aic, best_term, best_fit = scored[0]
+        if best_aic + 1e-8 < current_aic:
+            selected.append(best_term)
+            remaining.remove(best_term)
+            current_aic = best_aic
+            history.append((best_term, best_aic))
+        else:
+            break
+
+    return selected, current_aic, pd.DataFrame(history, columns=["added_term", "aic"])
+
+
+candidate_terms = [
+    "horsepower",
+    "weight",
+    "acceleration",
+    "C(origin)",
+    "C(cylinders)",
+]
+
+selected_terms, selected_aic, stepwise_path = forward_selection(mpg, "mpg", candidate_terms)
+
+print("Selected terms:", selected_terms)
+print("Final AIC:", selected_aic)
+stepwise_path
+```
+
+### Best Subset Selection
+
+Best subset selection fits every model of a given size and records the best one according to a chosen criterion.
+
+```{python}
+import itertools
+
+def model_diagnostics(fit):
+    y = fit.model.endog
+    n = fit.nobs
+    p = fit.df_model + 1
+    sse = np.sum(fit.resid ** 2)
+    mse = sse / fit.df_resid
+    press = np.sum((fit.resid / (1 - fit.get_influence().hat_matrix_diag)) ** 2)
+    return {
+        "r2": fit.rsquared,
+        "adj_r2": fit.rsquared_adj,
+        "sse": sse,
+        "mse": mse,
+        "aic": fit.aic,
+        "bic": fit.bic,
+        "press": press,
+        "n": n,
+        "p": p,
+    }
+
+
+full_formula = "mpg ~ horsepower + weight + acceleration + C(origin) + C(cylinders)"
+full_fit = smf.ols(full_formula, data=mpg).fit()
+sigma2_full = np.sum(full_fit.resid ** 2) / full_fit.df_resid
+
+
+def mallows_cp(fit, sigma2_full):
+    sse = np.sum(fit.resid ** 2)
+    p = fit.df_model + 1
+    n = fit.nobs
+    return sse / sigma2_full - (n - 2 * p)
+
+
+subset_terms = [
+    "horsepower",
+    "weight",
+    "acceleration",
+    "C(origin)",
+]
+
+subset_rows = []
+for k in range(1, len(subset_terms) + 1):
+    for combo in itertools.combinations(subset_terms, k):
+        formula = "mpg ~ " + " + ".join(combo)
+        fit = smf.ols(formula, data=mpg).fit()
+        row = {"terms": " + ".join(combo), "size": k}
+        row.update(model_diagnostics(fit))
+        row["cp"] = mallows_cp(fit, sigma2_full)
+        subset_rows.append(row)
+
+subset_table = pd.DataFrame(subset_rows).sort_values(["size", "aic"])
+best_subsets = subset_table.groupby("size", as_index=False).first()
+best_subsets[
+    ["size", "terms", "r2", "adj_r2", "aic", "bic", "cp", "press"]
+]
+```
+
+### Computing $R^2$, Adjusted $R^2$, SSE, MSE, AIC, BIC, $C_p$, and PRESS
+
+These quantities can be read from a fitted model, but it is useful to compute them directly from the residuals and leverage values.
+
+```{python}
+fit_metrics = fit_categorical
+y = fit_metrics.model.endog
+n = fit_metrics.nobs
+p = fit_metrics.df_model + 1
+
+sse = np.sum(fit_metrics.resid ** 2)
+sst = np.sum((y - y.mean()) ** 2)
+mse = sse / fit_metrics.df_resid
+r2 = 1 - sse / sst
+adj_r2 = 1 - (sse / fit_metrics.df_resid) / (sst / (n - 1))
+aic = fit_metrics.aic
+bic = fit_metrics.bic
+cp = mallows_cp(fit_metrics, sigma2_full)
+press = np.sum(
+    (fit_metrics.resid / (1 - fit_metrics.get_influence().hat_matrix_diag)) ** 2
+)
+
+pd.Series(
+    {
+        "R^2": r2,
+        "Adjusted R^2": adj_r2,
+        "SSE": sse,
+        "MSE": mse,
+        "AIC": aic,
+        "BIC": bic,
+        "Cp": cp,
+        "PRESS": press,
+    }
+)
+```
+
+These examples show how the same regression problem can be examined from several angles: fitting increasingly flexible models, testing nested terms, diagnosing influential observations, and comparing candidate models with both classical and predictive criteria.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+### Transformed Terms
+
+We may also include nonlinear transformations such as:
+
+- $x^2$,
+- $\log(x)$,
+- $\sqrt{x}$.
+
+The model remains a linear model because it remains linear in the coefficients $\beta$.
+
+These transformations can be created in two ways:
+
+- Explicitly in the dataset, by defining a new variable;
+- Directly in the formula language using functions. -->

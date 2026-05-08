@@ -1,0 +1,395 @@
+---
+title: "Homework 3"
+# author: "Type Your Name Here"
+# date: today
+jupyter: stats
+format: pdf
+show_solution: true
+---
+
+
+
+PCR PLS
+
+
+
+::: {#exm-}
+ISRL 9
+:::
+
+
+
+
+
+
+
+::: {#exm-}
+
+## PCR vs PLS
+
+Consider a regression problem with centered data matrix $X \in \mathbb{R}^{n \times p}$ and response $y \in \mathbb{R}^n$.
+
+**a. Bias–Variance Tradeoff**
+
+Discuss how PCR and PLS differ in terms of bias and variance.
+
+- When might PCR have higher bias than PLS?
+- When might PLS have higher variance than PCR?
+
+
+**b. When PCR Fails**
+
+Construct (or describe) a situation where PCR performs way worse than PLS. Explain why PCR may perform poorly in this setting.
+<!-- 
+**c. When PLS Fails**
+
+Construct (or describe) a situation where PLS performs way worse than PCR. Explain why PLS may perform poorly in this setting. -->
+
+**c. Code examples**
+
+Write Python code to generate the datasets to implement the above two cases. A dataset is a pair $(X,y)$ with both are `numpy.array`.
+
+Ensure there is a performance difference. You can get a bonus if there is at least 1% difference in $R^2$. You may fix random seeds or adjust noise levels to achieve this.
+
+You code should look like this.
+
+```{python}
+#| eval: false
+import numpy as np
+
+rng = np.random.default_rng(0)
+
+## Write your data generating code here to replace the code below
+n, p = 100, 100
+X = rng.normal(size=(n, p))
+y = rng.normal(size=n)
+```
+
+I will test the dataset using the following setting:
+
+1. Split the dataset into trainning and test set with `test_size=0.3`, `random_state=0`.
+2. Use `cv=5` and `neg_mean_squared_error` to pick `n_components`. You may set the maximal search cap to be `20` for simplicity.
+3. Train the model on the training set, and test the model on the test set.
+4. For performance I only look at `r2_score`.
+
+
+```{python}
+#| eval: false
+#| echo: false
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.cross_decomposition import PLSRegression
+from sklearn.decomposition import PCA
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, r2_score
+
+
+def compare_pcr_pls(X, y, max_components=20):
+
+    X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, random_state=0)
+
+    max_components = min(max_components, X_tr.shape[0], X_tr.shape[1])
+    param_range = list(range(1, max_components + 1))
+
+    pcr_pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            ("pca", PCA()),
+            ("ols", LinearRegression()),
+        ]
+    )
+
+    pcr_grid = GridSearchCV(
+        pcr_pipe,
+        {"pca__n_components": param_range},
+        cv=5,
+        scoring="neg_mean_squared_error",
+    )
+
+    pls_pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            ("pls", PLSRegression()),
+        ]
+    )
+
+    pls_grid = GridSearchCV(
+        pls_pipe,
+        {"pls__n_components": param_range},
+        cv=5,
+        scoring="neg_mean_squared_error",
+    )
+
+    pcr_grid.fit(X_tr, y_tr)
+    pls_grid.fit(X_tr, y_tr)
+
+    pcr_mse = mean_squared_error(y_te, pcr_grid.predict(X_te))
+    pls_mse = mean_squared_error(y_te, pls_grid.predict(X_te))
+    pcr_r2 = r2_score(y_te, pcr_grid.predict(X_te))
+    pls_r2 = r2_score(y_te, pls_grid.predict(X_te))
+
+    print(f"PCR test MSE: {pcr_mse}, PCR test R2: {pcr_r2}")
+    print(f"PLS test MSE: {pls_mse}, PLS test R2: {pls_r2}")
+
+
+compare_pcr_pls(X, y)
+
+```
+
+
+:::
+
+::: {.content-visible when-meta="show_solution"}
+
+::: {.solution}
+ **(a) Bias–Variance Tradeoff**
+
+PCR and PLS differ in how they construct components, which leads to different bias–variance behavior.
+
+- **PCR** selects components based only on the variance of $X$, ignoring $y$.
+- **PLS** selects components based on their covariance with $y$.
+
+**Bias**
+
+- PCR may have **higher bias** when the directions that are most predictive of $y$ correspond to **low-variance directions in $X$**.  
+  In this case, PCR may discard these directions when truncating components.
+
+- PLS tends to have **lower bias for prediction**, since it uses $y$ to identify directions that are directly relevant for predicting $y$.
+
+**Variance**
+
+- PLS may have **higher variance**, because it uses $y$ to construct components.  
+  This makes it more sensitive to noise in $y$, especially in small samples or low signal-to-noise settings.
+
+- PCR often has **lower variance**, since it relies only on the covariance structure of $X$, which is typically more stable than $X^\top y$.
+
+**Summary:**
+
+- PCR: potentially higher bias, lower variance  
+- PLS: potentially lower bias, higher variance  
+
+**(b) When PCR Fails**
+
+PCR performs poorly when the directions with large variance in $X$ are not predictive of $y$, while the predictive signal lies in low-variance directions.
+
+A typical construction is:
+
+- $X$ contains:
+  - high-variance noise directions
+  - low-variance signal directions
+- $y$ depends primarily on the low-variance signal
+
+In this case:
+
+- PCA identifies the high-variance directions (noise-dominated)
+- PCR keeps these directions and may discard the low-variance signal
+- As a result, PCR fails to capture the relationship between $X$ and $y$
+
+**(c) code example**
+```{python}
+#| eval: false
+import numpy as np
+
+rng = np.random.default_rng(0)
+
+n, p = 200, 100
+
+Z_noise = rng.normal(size=(n, 5))
+A_noise = rng.normal(size=(5, p))
+X_noise = Z_noise @ A_noise * 10
+
+z_signal = rng.normal(size=(n, 1))
+a_signal = rng.normal(size=(1, p))
+X_signal = z_signal @ a_signal * 0.2
+
+X = X_noise + X_signal +rng.normal(size=(n, p))
+y = z_signal.ravel() + 0.5*rng.normal(size=n)
+
+```
+
+
+:::
+:::
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Week 3: Flexible and Nonparametric Models
+
+## Theory Problems
+
+1. Describe the KNN regression algorithm.
+
+2. Explain how $K$ controls model flexibility.
+
+3. Discuss the bias–variance tradeoff in KNN.
+
+4. Explain the curse of dimensionality.
+
+5. Explain why KNN performs poorly in high dimensions.
+
+6. Compare parametric vs nonparametric regression.
+
+7. Explain how kernel smoothing works.
+
+8. Explain the role of distance metrics in KNN.
+
+9. Explain why larger datasets benefit KNN.
+
+10. Discuss advantages and disadvantages of KNN.
+
+---
+
+
+
+
+
+# Week 3: KNN, Flexible Regression, and Nonparametric Methods
+
+## Problem 1: KNN Regression Estimator
+
+The KNN regression estimator at $x_0$ is
+
+$$
+\hat f(x_0)
+=
+\frac{1}{K}
+\sum_{i \in N_K(x_0)} y_i,
+$$
+
+where $N_K(x_0)$ is the set of indices of the $K$ nearest training points.
+
+1. Explain how this estimator works.
+2. Explain why $K=1$ gives a very flexible fit.
+3. Explain why large $K$ gives a smoother fit.
+
+---
+
+## Problem 2: Bias-Variance in KNN
+
+1. Explain how increasing $K$ changes bias.
+2. Explain how increasing $K$ changes variance.
+3. Explain why there is usually an optimal value of $K$.
+
+---
+
+## Problem 3: Curse of Dimensionality
+
+1. Explain why nearest neighbors become less meaningful in high dimensions.
+2. Explain why nonparametric methods often require more data than parametric methods.
+
+---
+
+## Problem 4: Distance Metrics
+
+1. Explain why standardization matters in KNN.
+2. Explain how one predictor with a much larger scale can distort the neighborhood structure.
+
+---
+
+## Problem 5: Comparison with Linear Regression
+
+1. Give an example where linear regression is preferable to KNN.
+2. Give an example where KNN is preferable to linear regression.
+
+---
+
+## Problem 6: Simulated Nonlinear Regression
+
+Generate data from
+
+$$
+y = \sin(2\pi x) + \varepsilon,
+\qquad
+\varepsilon \sim N(0, 0.2^2).
+$$
+
+1. Fit linear regression.
+2. Fit polynomial regression of degree 5.
+3. Fit KNN regression for several values of $K$.
+4. Compare test MSE.
+
+```{r}
+set.seed(432)
+# Your code here
+```
+
+---
+
+## Problem 7: KNN on the Bike Sharing Data
+
+Use the Bike Sharing dataset.
+
+1. Select a response variable related to rental counts.
+2. Split the data into training and testing sets.
+3. Fit KNN regression for $K=1,3,5,10,20,50$.
+4. Plot test MSE versus $K$.
+5. Identify the best $K$.
+
+```{r}
+# Your code here
+```
+
+---
+
+## Problem 8: Effect of Standardization in KNN
+
+Using the same data:
+
+1. Fit KNN without standardization.
+2. Fit KNN with standardization.
+3. Compare the results and explain the difference.
+
+```{r}
+# Your code here
+```
+
+---
+
+## Problem 9: KNN versus Linear Regression
+
+Using the same train/test split:
+
+1. Fit a linear regression model.
+2. Compare its test MSE with the best KNN model.
+3. Explain which model appears more suitable and why.
+
+```{r}
+# Your code here
+```
+
+---
+
+## Problem 10: Smoothing Interpretation
+
+Use a one-dimensional predictor/response pair from any open dataset.
+
+1. Fit KNN or another smoother.
+2. Plot the fitted curve.
+3. Explain how the method captures nonlinearity.
+
+```{r}
+# Your code here
+```

@@ -1,0 +1,105 @@
+---
+title: "Template"
+# author: "Type Your Name Here"
+# date: today
+show_solution: false
+format: pdf
+---
+
+
+
+
+
+# Problems
+
+::: {#exr-1}
+## 1 point
+
+A variable that takes on the values of 0 or 1 and is used to incorporate the effect of categorical variables in a regression model is called
+\mc{
+\item a constant variable  
+\item an interaction   
+\item a dummy variable     
+\item None of these alternatives is correct.
+}
+:::
+
+
+::: {#exr-2}
+
+\mcc[2]{
+\item a constant variable  
+\item an interaction   
+\item a dummy variable     
+\item None of these alternatives is correct.
+}
+
+:::
+
+```{r}
+#| echo: false
+dat <- data.frame(x=c(1,2,3), y=c(3,4,3))
+```
+
+
+```{r}
+#| echo: false
+knitr::kable(
+    dat,
+    col.names = c("XXX $x$", "YYY $y$"),
+     align = "cc"
+)
+```
+
+
+
+
+::: {.answer}
+1. $y=\beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_1x_2+\beta_4x_1^2+\beta_5x_2^2+\varepsilon$
+2. $y=\beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_1x_2+\varepsilon$
+:::
+
+
+
+::: {.content-hidden when-meta="show_solution"}
+{{< pagebreak >}} 
+:::
+
+
+
+```{r}
+#| echo: true
+#| output: false
+fit <- lm(y~x, data=dat)
+s <- capture.output(summary(fit))
+```
+
+
+```{r}
+#| echo: false
+#| output: asis
+
+# if (params$show_solution) {
+#   s_out <- s        #
+# } else {
+s_out <- gsub(
+    "Multiple R-squared:\\s*[e0-9\\.+-]+",
+    "Multiple R-squared:  \\\\red{1. _______}",
+    s
+)
+# }
+
+cat("\\begin{alltt}\n")
+cat(paste(s_out, collapse = "\n"))
+cat("\n\\end{alltt}\n")
+```
+
+
+
+```{r}
+my_panel <- function(x, y, ...) {
+    panel.smooth(x, y, col.smooth = "#BC4B00", ...)
+}
+plot(fit, which = 5, panel = my_panel, cook.col = "black", cook.lty = 2)
+```
+

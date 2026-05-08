@@ -1,0 +1,527 @@
+---
+title: "Homework 2"
+# author: "Type Your Name Here"
+# date: today
+jupyter: stats
+format: pdf
+show_solution: true
+---
+
+
+
+
+
+::: {#exm-}
+islr 8
+:::
+
+
+
+
+::: {#exr-}
+Suppose we estimate the regression coefficients in a linear regression model by minimizing
+$$
+\sum_{i=1}^n\qty(y_i-\beta_0-\sum_{j=1}^p\beta_jx_{ij})^2+\lambda\sum_{j=1}^p\beta_j^2
+$$
+for a particular value of $\lambda$. Answer the following questions and justify your answer.
+
+a. As we increase $\lambda$ from $0$, how will the training $\rss$ be changed?
+b. As we increase $\lambda$ from $0$, how will the test $\rss$ be changed?
+c. As we increase $\lambda$ from $0$, how will the variance be changed?
+d. As we increase $\lambda$ from $0$, how will the squared bias be changed?
+e. As we increase $\lambda$ from $0$, how will the irreducible error be changed?
+:::
+
+::: {.content-visible when-meta="show_solution"}
+
+::: {.solution}
+
+This is ridge regression. The tuning parameter $\lambda$ controls the strength of the penalty:
+
+$$
+\lambda \sum_{j=1}^p \beta_j^2.
+$$
+
+When $\lambda=0$, the method is ordinary least squares. As $\lambda$ increases, the penalty becomes stronger, so the coefficients are shrunk more toward zero.
+
+**a. Training RSS**
+
+As $\lambda$ increases from $0$, the training RSS will increase or stay the same.
+
+Reason: $\lambda=0$ gives the ordinary least squares solution, which minimizes the training RSS without penalty. Adding a penalty restricts the solution away from the unconstrained RSS minimizer, so the training RSS cannot improve.
+
+**b. Test RSS**
+
+As $\lambda$ increases from $0$, the test RSS will typically decrease at first and then increase.
+
+Reason: a small amount of shrinkage can reduce overfitting and lower variance, improving test performance. But if $\lambda$ becomes too large, the model becomes too constrained, leading to underfitting and larger bias.
+
+**c. Variance**
+
+As $\lambda$ increases from $0$, variance will decrease.
+
+Reason: larger $\lambda$ shrinks the coefficients more strongly toward zero, making the fitted model less sensitive to random variation in the training data.
+
+**d. Squared bias**
+
+As $\lambda$ increases from $0$, squared bias will increase.
+
+Reason: stronger shrinkage pulls the fitted model away from the least squares fit and may prevent it from capturing the true relationship fully.
+
+**e. Irreducible error**
+
+The irreducible error does not change.
+
+Reason: irreducible error is caused by the noise in the data-generating process, not by the choice of $\lambda$ or the regression method.
+:::
+:::
+
+
+
+::: {#exr-}
+Suppose we estimate the regression coefficients in a linear regression model by minimizing
+$$
+\sum_{i=1}^n\qty(y_i-\beta_0-\sum_{j=1}^p\beta_jx_{ij})^2\quad \text{ subject to }\sum_{j=1}^p\abs{\beta_j}\leq s
+$$
+for a particular value of $s$. Answer the following questions and justify your answer.
+
+a. As we increase $s$ from $0$, how will the training $\rss$ be changed?
+b. As we increase $s$ from $0$, how will the test $\rss$ be changed?
+c. As we increase $s$ from $0$, how will the variance be changed?
+d. As we increase $s$ from $0$, how will the squared bias be changed?
+e. As we increase $s$ from $0$, how will the irreducible error be changed?
+:::
+
+::: {.content-visible when-meta="show_solution"}
+
+::: {.solution}
+
+
+This is the lasso constraint form. The parameter $s$ controls how large the coefficients are allowed to be:
+
+$$
+\sum_{j=1}^p |\beta_j| \le s.
+$$
+
+When $s=0$, all slope coefficients must be zero, so the model is the intercept-only model. As $s$ increases, the constraint becomes less restrictive, and the model becomes more flexible.
+
+**a. Training RSS**
+
+As $s$ increases, the training RSS will decrease or stay the same.
+
+Reason: increasing $s$ enlarges the set of allowable coefficient values. Since the old solution is still feasible, the minimized training RSS cannot increase.
+
+**b. Test RSS**
+
+As $s$ increases, the test RSS will typically decrease at first and then increase.
+
+Reason: when $s$ is very small, the model is too simple and has high bias, so test error is large. Increasing $s$ allows the model to capture more signal, reducing test error. However, if $s$ becomes too large, the model may overfit the training data, increasing variance and therefore increasing test error.
+
+**c. Variance**
+
+As $s$ increases, variance will increase.
+
+Reason: larger $s$ allows more flexible models with larger coefficients. The fitted model becomes more sensitive to the particular training sample, so its variance increases.
+
+**d. Squared bias**
+
+As $s$ increases, squared bias will decrease.
+
+Reason: when $s$ is small, the model is heavily constrained and may underfit the true relationship. Increasing $s$ relaxes the constraint, allowing the model to better approximate the true regression function.
+
+**e. Irreducible error**
+
+The irreducible error does not change.
+
+Reason: irreducible error comes from the random noise in the data-generating process, not from the choice of model or the value of $s$.
+:::
+:::
+
+
+
+
+
+
+
+
+
+
+::: {#exm-}
+## Exercise: Ridge vs Lasso
+
+Consider a regression problem with centered data matrix $X \in \mathbb{R}^{n \times p}$ and response $y \in \mathbb{R}^n$.
+
+---
+
+### (a) Bias–Variance Tradeoff
+
+Discuss how ridge regression and lasso differ in terms of bias and variance.
+
+- When might lasso have higher bias than ridge?
+- When might ridge have higher variance than lasso?
+
+---
+
+### (b) When Ridge Fails
+
+Construct (or describe) a situation where ridge regression performs much worse than lasso.
+
+Explain your reasoning.
+
+Hint: Consider the case where only a small number of predictors are truly relevant.
+
+---
+
+### (c) Code Examples
+
+Write Python code to generate datasets $(X, y)$ illustrating:
+
+- a case where ridge performs much worse than lasso
+- a case where lasso performs worse than ridge
+
+Use cross-validation to tune the regularization parameter.
+
+Ensure there is a performance difference. You can get a bonus if there is at least 1% difference in $R^2$. You may fix random seeds or adjust noise levels to achieve this.
+
+Your code should look like this:
+
+```{python}
+#| eval: false
+import numpy as np
+
+rng = np.random.default_rng(0)
+
+## Write your data generating code here to replace the code below
+n, p = 100, 100
+X = rng.normal(size=(n, p))
+y = rng.normal(size=n)
+```
+
+I will test the dataset using the following setting:
+
+1. Split the dataset into training and test set with `test_size=0.3`, `random_state=0`.
+2. Use `cv=5` and `neg_mean_squared_error` to pick $\lambda$.
+3. The range for `alpha` is `alphas = np.logspace(-4, 3, 50)`.
+4. Train the model on the training set, and test the model on the test set.
+5. For performance I only look at `r2_score`.
+
+
+```{python}
+#| eval: false
+#| echo: false
+
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import Ridge, Lasso
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, r2_score
+
+
+def compare_ridge_lasso(X, y, alphas=None):
+
+    if alphas is None:
+        alphas = np.logspace(-4, 3, 50)
+
+    X_tr, X_te, y_tr, y_te = train_test_split(
+        X, y, test_size=0.3, random_state=0
+    )
+
+    ridge_pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            ("ridge", Ridge()),
+        ]
+    )
+
+    ridge_grid = GridSearchCV(
+        ridge_pipe,
+        {"ridge__alpha": alphas},
+        cv=5,
+        scoring="neg_mean_squared_error",
+    )
+
+    lasso_pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            ("lasso", Lasso(max_iter=10000)),
+        ]
+    )
+
+    lasso_grid = GridSearchCV(
+        lasso_pipe,
+        {"lasso__alpha": alphas},
+        cv=5,
+        scoring="neg_mean_squared_error",
+    )
+
+    ridge_grid.fit(X_tr, y_tr)
+    lasso_grid.fit(X_tr, y_tr)
+
+    ridge_pred = ridge_grid.predict(X_te)
+    lasso_pred = lasso_grid.predict(X_te)
+
+    ridge_mse = mean_squared_error(y_te, ridge_pred)
+    lasso_mse = mean_squared_error(y_te, lasso_pred)
+
+    ridge_r2 = r2_score(y_te, ridge_pred)
+    lasso_r2 = r2_score(y_te, lasso_pred)
+
+    print(f"Ridge test MSE: {ridge_mse}, Ridge test R2: {ridge_r2}")
+    print(f"Lasso test MSE: {lasso_mse}, Lasso test R2: {lasso_r2}")
+```
+
+
+:::
+
+
+
+
+::: {.content-visible when-meta="show_solution"}
+
+::: {.solution}
+**(a) Bias–Variance Tradeoff**
+
+Ridge and lasso differ in how they regularize the model:
+
+- Ridge uses an $\ell_2$ penalty and shrinks all coefficients continuously.
+- Lasso uses an $\ell_1$ penalty and can set some coefficients exactly to zero.
+
+Bias
+
+- Lasso may have higher bias when the true signal is dense (many small nonzero coefficients), since it tends to eliminate weaker predictors.
+- Ridge generally has lower bias in dense settings, as it retains all predictors.
+
+Variance
+
+- Ridge tends to have lower variance, especially when predictors are highly correlated, since it stabilizes all coefficients.
+- Lasso may have higher variance, because variable selection introduces instability (small changes in data can change which variables are selected).
+
+Summary
+
+- Ridge: lower variance, better for dense signals
+- Lasso: higher bias in dense settings, better for sparse signals
+
+**(b) When Ridge Fails**
+
+Ridge performs poorly when the true model is sparse:
+
+- Only a small number of predictors are relevant
+- Many predictors are pure noise
+
+In this case:
+
+- Ridge keeps all variables with small coefficients
+- Noise variables remain and increase prediction error
+
+In contrast:
+
+- Lasso sets many coefficients to zero
+- Removes noise variables and improves prediction
+
+Therefore, ridge fails when sparsity is important, while lasso succeeds by performing variable selection.
+
+**(c) Code example**
+
+
+```{python}
+#| eval: false
+rng = np.random.default_rng(0)
+
+n, p = 120, 100
+X = rng.normal(size=(n, p))
+
+beta = np.zeros(p)
+beta[:5] = [10, 8, 6, 4, 2]
+
+y = X @ beta + rng.normal(size=n)
+```
+
+
+```{python}
+#| eval: false
+#| warning: false
+
+import numpy as np
+
+rng = np.random.default_rng(4)
+n = 200
+p = 500  
+k = 50  
+
+Z = rng.normal(size=(n, k))
+A = rng.normal(size=(k, p))
+X = Z @ A + 0.01 * rng.normal(size=(n, p))  
+
+gamma = rng.normal(1, 0.1, size=k)
+y = Z @ gamma + 3 * rng.normal(size=n)
+```
+
+
+
+:::
+:::
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+
+
+# Week 2: Ridge Regression, Lasso, and Regularization
+
+## Problem 1: Ridge Regression Formula
+
+Ridge regression solves
+
+$$
+\hat{\boldsymbol\beta}^{ridge}
+=
+\arg\min_{\boldsymbol\beta}
+\left\{
+\|\mathbf y-\mathbf X\boldsymbol\beta\|_2^2
++
+n\lambda \|\boldsymbol\beta\|_2^2
+\right\}.
+$$
+
+1. Show that the ridge solution is
+
+   $$
+   \hat{\boldsymbol\beta}^{ridge}
+   =
+   (\mathbf X^\top \mathbf X + n\lambda \mathbf I)^{-1}\mathbf X^\top \mathbf y.
+   $$
+
+2. Explain why this always exists when $\lambda > 0$.
+
+---
+
+## Problem 2: Ridge Variance Reduction
+
+Assume the linear model from Week 1.
+
+1. Explain why adding $n\lambda \mathbf I$ increases the eigenvalues of $\mathbf X^\top \mathbf X$.
+2. Explain why this reduces estimator variance.
+3. Explain why this introduces bias.
+
+---
+
+## Problem 3: Bias-Variance Trade-off in Ridge
+
+1. Explain what happens when $\lambda = 0$.
+2. Explain what happens as $\lambda \to \infty$.
+3. Explain why an intermediate value of $\lambda$ may improve prediction.
+
+---
+
+## Problem 4: Geometric Interpretation
+
+1. Write the constrained form of ridge regression.
+2. Explain the geometry of the $L_2$ ball.
+3. Explain how this geometry leads to shrinkage but usually not exact zeros.
+
+---
+
+## Problem 5: Lasso Geometry
+
+The lasso solves
+
+$$
+\hat{\boldsymbol\beta}^{lasso}
+=
+\arg\min_{\boldsymbol\beta}
+\left\{
+\|\mathbf y-\mathbf X\boldsymbol\beta\|_2^2
++
+n\lambda \|\boldsymbol\beta\|_1
+\right\}.
+$$
+
+1. Write the constrained form of lasso.
+2. Explain the geometry of the $L_1$ ball.
+3. Explain why lasso can set coefficients exactly to zero.
+
+---
+
+## Problem 6: Standardization
+
+1. Explain why predictors should be standardized before applying ridge or lasso.
+2. Explain what could go wrong if they are not standardized.
+
+---
+
+## Problem 7: Manual Ridge Prediction
+
+Use the first 24 observations of `mtcars` as training data and the remaining observations as testing data.
+
+1. Fit a ridge regression model with $\lambda = 3$.
+2. Compute predictions on the test data manually using
+
+   $$
+   \hat y = \mathbf x^\top \hat{\boldsymbol\beta}.
+   $$
+
+3. Report the test MSE.
+
+
+---
+
+## Problem 8: Coefficient Paths in Ridge
+
+Using `mtcars` or `Hitters`:
+
+1. Fit ridge regression for a grid of $\lambda$ values.
+2. Plot the coefficient paths.
+3. Explain which coefficients shrink fastest and why that may happen.
+
+```{r}
+library(MASS)
+# Your code here
+```
+
+---
+
+## Problem 9: Cross-Validation for Ridge
+
+Using `Hitters` from `ISLR2`:
+
+1. Remove missing values.
+2. Use 10-fold cross-validation to select $\lambda$ for ridge regression.
+3. Report $\lambda_{min}$.
+4. Report the corresponding CV error.
+
+
+
+---
+
+## Problem 10: Ridge versus Lasso on Real Data
+
+Using the same dataset:
+
+1. Fit ridge regression and lasso with cross-validation.
+2. Compare their test errors using a train/test split.
+3. For lasso, report the selected variables.
+4. Write a brief discussion comparing prediction and interpretability.
+ -->
+

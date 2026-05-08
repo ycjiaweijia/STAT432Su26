@@ -1,0 +1,255 @@
+# LASSO
+
+
+{{< include ../math.qmd >}}
+
+
+## What Is LASSO?
+
+The **LASSO** is a regularized version of linear regression that adds an $L_1$ penalty to the least-squares criterion. Its name stands for **least absolute shrinkage and selection operator**.
+
+For a linear model with response vector $y$ and design matrix $X$, the LASSO estimator is defined by
+
+$$
+\hat{\beta}_{\mathrm{lasso}}
+= \arg\min_{\beta}
+\left\{
+\lVert y - X\beta \rVert_2^2 + \lambda \sum_{j=1}^p |\beta_j|
+\right\},
+$$
+
+where $\lambda \ge 0$ is a tuning parameter.
+
+When $\lambda = 0$, the method reduces to ordinary least squares. As $\lambda$ increases, the penalty becomes stronger and the coefficients are shrunk more aggressively.
+
+::: {.callout-note}
+## Main Point
+
+Like ridge regression, LASSO controls model complexity by shrinking coefficients. Unlike ridge regression, it can set some coefficients exactly equal to zero, so it also performs variable selection.
+:::
+
+
+## Why LASSO Is Useful
+
+Ordinary least squares can become unstable when there are many predictors or when predictors are highly correlated. LASSO addresses this by introducing bias in exchange for lower variance and a simpler model.
+
+This can improve prediction, especially when:
+
+- only a subset of predictors is truly important;
+- interpretability matters;
+- the number of predictors is moderately large.
+
+
+## Variable Selection and Shrinkage
+
+The defining feature of LASSO is that the $L_1$ penalty can force some coefficient estimates to be exactly zero.
+
+As a result:
+
+- unimportant variables may be removed from the model;
+- the final model may be easier to interpret;
+- prediction error may improve if irrelevant variables are excluded.
+
+Ridge regression also shrinks coefficients, but it usually keeps all variables in the model. LASSO shrinks and selects at the same time.
+
+
+## Geometric Interpretation
+
+The geometric explanation of LASSO is useful for understanding why exact zeros occur.
+
+Ridge regression can be written with an $L_2$ constraint:
+
+$$
+\sum_{j=1}^p \beta_j^2 \le t.
+$$
+
+The corresponding constraint region is a circle in two dimensions, or a sphere in higher dimensions.
+
+LASSO can be written with an $L_1$ constraint:
+
+$$
+\sum_{j=1}^p |\beta_j| \le t.
+$$
+
+The corresponding constraint region is a diamond in two dimensions.
+
+Because the diamond has corners on the coordinate axes, the least-squares contours often touch the constraint region at a corner. At such a point, one or more coefficients are exactly zero.
+
+::: {.callout-important}
+## Comparison With Ridge
+
+Ridge has a smooth constraint boundary, so coefficients are typically shrunk but remain nonzero. LASSO has corners aligned with the axes, so solutions often occur at points where some coefficients are exactly zero.
+:::
+
+
+## Bias-Variance Tradeoff
+
+LASSO is a biased estimator. The penalty pulls coefficients toward zero, so the estimates are no longer unbiased in the classical sense.
+
+However, this bias can be worthwhile because it may greatly reduce variance. If the reduction in variance is large enough, the overall prediction error can decrease.
+
+Thus, LASSO is another example of the bias-variance tradeoff:
+
+- less flexibility may increase bias;
+- less flexibility may also reduce variance;
+- prediction may improve if the tradeoff is favorable.
+
+
+## How to Choose $\lambda$
+
+The tuning parameter $\lambda$ controls the amount of regularization in both ridge regression and LASSO.
+
+- When $\lambda = 0$, both methods reduce to ordinary least squares.
+- As $\lambda$ increases, the coefficients are shrunk more strongly.
+- In ridge regression, coefficients move continuously toward zero.
+- In LASSO, some coefficients may become exactly zero.
+
+So the practical question is: **how should we choose $\lambda$?**
+
+::: {.callout-note}
+## Main Idea
+
+There is no single universally best value of $\lambda$. It is usually chosen to balance model fit and model complexity, with the goal of improving prediction and avoiding overfitting.
+:::
+
+### A Simple Way
+
+The simplest explanation is to treat $\lambda$ as a knob that controls the strength of shrinkage.
+
+- A small $\lambda$ gives a model close to least squares.
+- A large $\lambda$ gives a more heavily regularized model.
+
+In an introductory discussion, one can fit the model over a grid of $\lambda$ values and inspect how the coefficients change. This gives an immediate visual understanding of the regularization path.
+
+For ridge regression, the coefficients decrease smoothly as $\lambda$ grows. For LASSO, some coefficients drop to zero as $\lambda$ increases.
+
+### The Traditional Classical Way
+
+A classical approach is to choose $\lambda$ using an analytic criterion that balances goodness of fit against model complexity.
+
+For ridge regression, older literature often used:
+
+- inspection of ridge trace plots,
+- Mallows' $C_p$,
+- Akaike's Information Criterion (AIC),
+- Bayesian Information Criterion (BIC),
+- generalized cross-validation (GCV).
+
+For LASSO, information criteria such as AIC or BIC can also be used, usually together with an estimate of the effective degrees of freedom.
+
+### The Modern Way
+
+The modern standard is to choose $\lambda$ by **cross-validation**, especially $K$-fold cross-validation.
+
+If $\mathrm{CV}(\lambda)$ denotes the cross-validation error, we choose
+
+$$
+\hat{\lambda}
+= \arg\min_{\lambda} \mathrm{CV}(\lambda).
+$$
+
+In practice, two values are often reported:
+
+- $\lambda_{\min}$, the value that minimizes cross-validation error;
+- $\lambda_{1se}$, the largest value of $\lambda$ within one standard error of the minimum.
+
+Usually, $\lambda_{\min}$ gives the most accurate prediction, while $\lambda_{1se}$ gives a simpler and more stable model.
+
+
+## Standardization
+
+For both ridge regression and LASSO, the predictors are usually **standardized** before fitting the model.
+
+The usual standardization is
+
+$$
+x_j^* = \frac{x_j - \bar{x}_j}{s_j},
+$$
+
+so that each predictor has mean $0$ and standard deviation $1$.
+
+This is important because the penalty acts on the coefficient magnitudes. Without standardization, variables measured on different scales would be penalized unequally.
+
+In practice:
+
+- we usually standardize the predictors $X$;
+- we usually do not penalize the intercept;
+- software such as `glmnet` standardizes predictors automatically by default.
+
+
+## Fitting LASSO With `glmnet`
+
+In R, the most common implementation is the `glmnet` package.
+
+```r
+library(glmnet)
+
+x <- model.matrix(y ~ ., data = dat)[, -1]
+y <- dat$y
+
+lasso_fit <- glmnet(x, y, alpha = 1)
+plot(lasso_fit)
+```
+
+To choose $\lambda$ by cross-validation:
+
+```r
+cv_fit <- cv.glmnet(x, y, alpha = 1)
+plot(cv_fit)
+
+coef(cv_fit, s = "lambda.min")
+coef(cv_fit, s = "lambda.1se")
+```
+
+Here:
+
+- `alpha = 1` specifies LASSO;
+- `lambda.min` gives the model with minimum CV error;
+- `lambda.1se` gives a simpler model within one standard error of the minimum.
+
+
+## Relation to Forward Stagewise Regression and Elastic Net
+
+LASSO is closely related to **forward stagewise regression** because both build a model gradually and often produce similar coefficient paths.
+
+LASSO is also closely related to the **elastic net**, which combines the ridge and LASSO penalties:
+
+$$
+\lambda_1 \sum_{j=1}^p |\beta_j| + \lambda_2 \sum_{j=1}^p \beta_j^2.
+$$
+
+Elastic net is often useful when predictors are highly correlated, because it combines variable selection with additional shrinkage.
+
+
+## Summary
+
+The main ideas of LASSO are:
+
+- it adds an $L_1$ penalty to least squares;
+- it shrinks coefficients toward zero;
+- it can set some coefficients exactly to zero;
+- it is useful for both prediction and variable selection;
+- the tuning parameter $\lambda$ is usually chosen by cross-validation.
+
+
+<!--
+Archived draft sections
+
+## glmnet
+
+## on variable lasso and shrinkage
+
+## Variable Selection Property and Shrinkage
+
+Earlier draft text on the ridge-versus-lasso geometry was incorporated into the active "Geometric Interpretation" section above.
+
+## Constrained Optimization View
+
+## Bias-variance Trade-off
+
+## Forward-stagewise Regression and the Solution Path
+
+## Elastic-Net
+
+## Fused Lasso and ADMM
+-->

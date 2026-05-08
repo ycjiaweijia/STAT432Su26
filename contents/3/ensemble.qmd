@@ -1,0 +1,627 @@
+# Ensemble Methods
+
+
+
+
+
+
+<!-- 
+
+
+
+# Ensemble methods
+
+
+## Bagging Bagging = 降方差
+
+## Random Forest decorrelation
+
+
+## Boosting reduce bias
+
+
+Linear → high bias
+Tree → high variance
+RF → reduce variance
+Boosting → reduce bias
+
+
+
+🎯 你可以这样总结整门课
+Part 1: simple models + regularization
+Part 2: flexible models + aggregation
+
+
+👉 我会改成：
+
+上半最重要是 “regularization（ridge + lasso）”
+
+因为：
+
+Ridge → 稳定性
+Lasso → 稀疏性
+
+👉 两个一起才完整
+
+
+week 1: ols+ridge
+week 2: lasso+pcr/pls
+week 3 logistic/lda + knn
+week 4 tree+ bagging
+week 5 boosting
+week 6 clustering
+
+
+Week 1：bias–variance
+Week 2：sparsity vs latent
+Week 5：RF vs boosting -->
+
+
+
+
+
+
+## 1. Basic idea
+
+An ensemble method combines many relatively simple models into one stronger model.
+
+A general ensemble has the form
+$$
+F_T(x)=\sum_{t=1}^T \alpha_t f_t(x),
+$$
+where
+
+- $f_t(x)$ is the $t$-th base learner,
+- $\alpha_t$ is its weight,
+- $T$ is the number of learners.
+
+For tree-based ensembles, each $f_t$ is usually a decision tree.
+
+The main motivation is that a single tree is often unstable. A small change in the data can lead to a different tree. Ensemble methods reduce this instability by combining many trees.
+
+::: {.callout-note}
+## Main idea
+
+A single tree is easy to interpret but has high variance.
+
+An ensemble sacrifices some interpretability to improve prediction.
+:::
+
+## 2. Two main strategies
+
+There are two major ways to build tree ensembles.
+
+| Method | How trees are built | Main effect |
+|---|---|---|
+| Bagging | independently and in parallel | reduce variance |
+| Random forest | bagging + random feature selection | reduce variance and decorrelate trees |
+| Boosting | sequentially, each tree corrects previous errors | reduce bias, often also variance |
+
+The key distinction is whether the trees are built independently or sequentially.
+
+## 3. Bagging
+
+Bagging means bootstrap aggregating.
+
+The algorithm is:
+
+1. Draw $B$ bootstrap samples from the training data.
+2. Fit one tree to each bootstrap sample.
+3. Average the predictions for regression.
+
+For regression,
+$$
+\hat f_{\text{bag}}(x)
+=
+\frac{1}{B}\sum_{b=1}^B \hat f_b(x).
+$$
+
+For classification, we usually use majority vote.
+
+### Why bagging works
+
+Bagging mainly reduces variance.
+
+If $\hat f_1(x),\ldots,\hat f_B(x)$ are noisy but approximately unbiased estimators, then averaging them stabilizes the prediction.
+
+If the base learners were independent and each had variance $\sigma^2$, then
+$$
+\operatorname{Var}\left(
+\frac{1}{B}\sum_{b=1}^B \hat f_b(x)
+\right)
+=
+\frac{\sigma^2}{B}.
+$$
+
+In practice, trees are not independent. If the correlation between tree predictions is $\rho$, then approximately
+$$
+\operatorname{Var}\left(
+\frac{1}{B}\sum_{b=1}^B \hat f_b(x)
+\right)
+=
+\rho\sigma^2+\frac{1-\rho}{B}\sigma^2.
+$$
+
+As $B$ becomes large, the second term goes to zero, but the first term remains. Therefore, reducing correlation between trees is important.
+
+This is the motivation for random forests.
+
+## 4. Random forests
+
+A random forest improves bagging by adding randomness to the splitting process.
+
+For each tree:
+
+1. Draw a bootstrap sample.
+2. Grow a large tree.
+3. At each split, randomly select only $m_{\text{try}}$ predictors.
+4. Find the best split only among those selected predictors.
+5. Do not prune the tree.
+
+For regression, the final prediction is
+$$
+\hat f_{\text{RF}}(x)
+=
+\frac{1}{B}\sum_{b=1}^B \hat f_b(x).
+$$
+
+### Role of `mtry`
+
+The parameter `mtry` controls how many variables are considered at each split.
+
+- Large `mtry`:
+  - each tree is stronger
+  - splits are more greedy
+  - trees become more correlated
+
+- Small `mtry`:
+  - trees are less correlated
+  - individual trees may be weaker
+  - may miss important variables at some splits
+
+Thus `mtry` controls a bias-variance tradeoff.
+
+### Other tuning parameters
+
+Important tuning parameters include:
+
+- `n_estimators`: number of trees
+- `max_features`: number of predictors considered at each split
+- `max_samples`: sample size for each bootstrap sample
+- `min_samples_leaf`: minimum leaf size
+- `max_depth`: maximum depth of each tree
+
+For random forests, trees are usually grown deep. The ensemble controls variance by averaging, rather than by pruning each tree.
+
+## 5. Random forest as adaptive local averaging
+
+A random forest can also be viewed as an adaptive kernel estimator.
+
+For one tree, two points are close if they fall in the same terminal node.
+
+Let $K_{\mathcal T_b}(x,x_i)$ indicate whether $x$ and $x_i$ fall in the same leaf of tree $b$.
+
+Then a random forest induces a similarity measure:
+$$
+K_{\text{RF}}(x,x_i)
+=
+\sum_{b=1}^B K_{\mathcal T_b}(x,x_i).
+$$
+
+This counts how many trees place $x$ and $x_i$ in the same terminal node.
+
+Thus, a random forest prediction can be viewed as a weighted average:
+$$
+\hat f_{\text{RF}}(x)
+=
+\sum_{i=1}^n w_i(x)y_i,
+$$
+where observations that often share leaves with $x$ receive larger weights.
+
+::: {.callout-note}
+## Adaptive neighborhood
+
+KNN defines neighborhoods by Euclidean distance.
+
+A random forest defines neighborhoods by tree leaves.
+
+Therefore, the neighborhood is learned from the response and can adapt to important variables.
+:::
+
+## 6. Variable importance
+
+Random forests provide measures of variable importance.
+
+Two common ideas are:
+
+1. Impurity-based importance  
+   Measures how much a variable reduces node impurity or RSS across the forest.
+
+2. Permutation importance  
+   Randomly permute one variable and measure how much prediction performance decreases.
+
+Permutation importance is often easier to interpret:
+
+- if permuting $x_j$ greatly worsens prediction, then $x_j$ is important;
+- if performance barely changes, then $x_j$ may not be useful.
+
+::: {.callout-caution}
+## Caution
+
+Impurity-based importance can be biased toward variables with many possible split points.
+
+Permutation importance is usually more directly connected to predictive performance.
+:::
+
+## 7. Extra-trees
+
+Extremely randomized trees, or extra-trees, add even more randomness.
+
+Compared with random forests:
+
+- random forest chooses the best split among random features;
+- extra-trees often choose split thresholds more randomly.
+
+This usually increases bias but can reduce variance and speed up computation.
+
+## 8. Boosting
+
+Boosting builds an additive model sequentially:
+$$
+F_T(x)=\sum_{t=1}^T \alpha_t f_t(x).
+$$
+
+Unlike random forests, the models are not built independently. Each new learner is chosen to improve the current ensemble.
+
+The general idea is:
+
+1. Start with a simple model $F_0(x)$.
+2. Find what the current model is doing wrong.
+3. Fit a weak learner to correct those errors.
+4. Add it to the model with a small step size.
+5. Repeat.
+
+For tree boosting, each $f_t(x)$ is usually a small regression tree.
+
+## 9. Gradient boosting for regression
+
+For squared error loss,
+$$
+L(y,F(x))=(y-F(x))^2.
+$$
+
+The derivative with respect to $F(x)$ is
+$$
+\frac{\partial L(y,F(x))}{\partial F(x)}
+=
+-2(y-F(x)).
+$$
+
+Therefore, the negative gradient is proportional to the residual:
+$$
+r_i
+=
+y_i-F_{t-1}(x_i).
+$$
+
+The gradient boosting algorithm for regression is:
+
+1. Initialize
+$$
+F_0(x)=\bar y.
+$$
+
+2. For $t=1,\ldots,T$:
+
+   Fit a regression tree $h_t(x)$ to the residuals
+$$
+r_i^{(t)}=y_i-F_{t-1}(x_i).
+$$
+
+   Update
+$$
+F_t(x)=F_{t-1}(x)+\eta h_t(x).
+$$
+
+Here $\eta$ is the learning rate, also called shrinkage.
+
+::: {.callout-note}
+## Key point
+
+For squared-error regression, gradient boosting fits trees to residuals.
+
+More generally, it fits trees to negative gradients of the loss function.
+:::
+
+## 10. Learning rate and number of trees
+
+The learning rate $\eta$ controls how much each tree contributes.
+
+- Small $\eta$:
+  - slower learning
+  - usually needs more trees
+  - often better generalization
+
+- Large $\eta$:
+  - faster learning
+  - higher risk of overfitting
+
+The number of trees $T$ is also a tuning parameter.
+
+The pair $(\eta,T)$ must be considered together.
+
+A common practical strategy is:
+
+- use a small learning rate;
+- tune the number of trees by validation or cross-validation.
+
+## 11. Tree depth in boosting
+
+In boosting, each tree is often shallow.
+
+- depth 1: decision stump, captures main effects
+- depth 2 or 3: captures simple interactions
+- larger depth: more complex interactions
+
+Unlike random forests, boosting does not need each tree to be strong. It builds strength by adding many weak learners sequentially.
+
+## 12. Stochastic gradient boosting
+
+Many implementations also use subsampling.
+
+At each iteration, fit the next tree using only a random subset of observations.
+
+This adds randomness and can improve generalization.
+
+Important parameters include:
+
+- `subsample`
+- `learning_rate`
+- `n_estimators`
+- `max_depth`
+- `min_samples_leaf`
+
+## 13. AdaBoost
+
+AdaBoost is a classical boosting method for binary classification.
+
+Here the response is coded as
+$$
+y_i\in\{-1,+1\}.
+$$
+
+AdaBoost builds
+$$
+F_T(x)=\sum_{t=1}^T \alpha_t f_t(x),
+$$
+and classifies by
+$$
+\operatorname{sign}(F_T(x)).
+$$
+
+The algorithm is:
+
+1. Initialize observation weights:
+$$
+w_i^{(1)}=\frac{1}{n}.
+$$
+
+2. For $t=1,\ldots,T$:
+
+   Fit a classifier $f_t(x)\in\{-1,+1\}$ using weights $w_i^{(t)}$.
+
+   Compute weighted error:
+$$
+\epsilon_t
+=
+\sum_{i=1}^n w_i^{(t)}
+I(y_i\neq f_t(x_i)).
+$$
+
+   Compute learner weight:
+$$
+\alpha_t
+=
+\frac{1}{2}\log\frac{1-\epsilon_t}{\epsilon_t}.
+$$
+
+   Update observation weights:
+$$
+w_i^{(t+1)}
+=
+\frac{1}{Z_t}
+w_i^{(t)}
+\exp\{-\alpha_t y_i f_t(x_i)\}.
+$$
+
+3. Output:
+$$
+F_T(x)=\sum_{t=1}^T \alpha_t f_t(x).
+$$
+
+### Interpretation
+
+If observation $i$ is correctly classified, then
+$$
+y_i f_t(x_i)=1,
+$$
+and its weight decreases.
+
+If it is misclassified, then
+$$
+y_i f_t(x_i)=-1,
+$$
+and its weight increases.
+
+So AdaBoost forces later learners to focus more on difficult observations.
+
+## 14. Gradient boosting for classification
+
+For classification, there is no ordinary residual $y-\hat y$ in the same sense as squared-error regression.
+
+Instead, boosting uses the negative gradient of a classification loss.
+
+For binary logistic boosting, we model
+$$
+p(x)=P(Y=1\mid X=x)
+=
+\frac{1}{1+\exp\{-F(x)\}}.
+$$
+
+Using negative log-likelihood loss, the pseudo-residual becomes
+$$
+r_i=y_i-p_i.
+$$
+
+Thus classification boosting can be understood as fitting the next learner to the current probability errors.
+
+## 15. XGBoost and modern boosting
+
+XGBoost is not a fundamentally different statistical idea from gradient boosting.
+
+It is a powerful engineering implementation of gradient boosted trees, with many practical improvements such as:
+
+- regularization on tree complexity
+- efficient split search
+- shrinkage
+- subsampling
+- column subsampling
+- handling sparse data
+- fast implementation
+
+For a statistical learning course, the core idea is still gradient boosting:
+
+$$
+\text{add weak learners sequentially to reduce a loss function}.
+$$
+
+::: {.callout-note}
+## Teaching point
+
+XGBoost is best understood as an optimized implementation of gradient boosted trees.
+
+The central statistical concept is boosting, not XGBoost itself.
+:::
+
+## 16. Bagging vs boosting
+
+| Feature | Bagging / Random Forest | Boosting |
+|---|---|---|
+| Construction | parallel | sequential |
+| Main purpose | reduce variance | reduce bias, often variance |
+| Base trees | usually deep | usually shallow |
+| Tree dependence | independent | each depends on previous model |
+| Overfitting risk | relatively robust | sensitive to tuning |
+| Key parameters | number of trees, `mtry`, leaf size | learning rate, number of trees, depth |
+
+## 17. Minimal Python examples
+
+### Random forest regression
+
+```python
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error
+
+rf = RandomForestRegressor(
+    random_state=0,
+    n_estimators=500,
+)
+
+param_grid = {
+    "max_features": ["sqrt", 0.5, 1.0],
+    "min_samples_leaf": [1, 5, 10],
+    "max_depth": [None, 5, 10],
+}
+
+grid = GridSearchCV(
+    rf,
+    param_grid=param_grid,
+    cv=5,
+    scoring="neg_mean_squared_error",
+)
+
+grid.fit(X_train, y_train)
+
+best_rf = grid.best_estimator_
+y_pred = best_rf.predict(X_test)
+
+test_mse = mean_squared_error(y_test, y_pred)
+
+print(grid.best_params_)
+print(test_mse)
+```
+
+### Gradient boosting regression
+
+```python
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error
+
+gbr = GradientBoostingRegressor(random_state=0)
+
+param_grid = {
+    "n_estimators": [100, 300, 500],
+    "learning_rate": [0.01, 0.05, 0.1],
+    "max_depth": [1, 2, 3],
+    "subsample": [0.8, 1.0],
+}
+
+grid = GridSearchCV(
+    gbr,
+    param_grid=param_grid,
+    cv=5,
+    scoring="neg_mean_squared_error",
+)
+
+grid.fit(X_train, y_train)
+
+best_gbr = grid.best_estimator_
+y_pred = best_gbr.predict(X_test)
+
+test_mse = mean_squared_error(y_test, y_pred)
+
+print(grid.best_params_)
+print(test_mse)
+```
+
+### AdaBoost classification
+
+```python
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+base_tree = DecisionTreeClassifier(max_depth=1, random_state=0)
+
+ada = AdaBoostClassifier(
+    estimator=base_tree,
+    n_estimators=200,
+    learning_rate=0.1,
+    random_state=0,
+)
+
+ada.fit(X_train, y_train)
+```
+
+## 18. Summary
+
+Ensemble methods improve prediction by combining many weak or unstable learners.
+
+Bagging averages many independently fitted trees and mainly reduces variance.
+
+Random forests improve bagging by selecting random subsets of variables at each split, which reduces correlation among trees.
+
+Boosting builds an additive model sequentially. Each new learner corrects the current model, often by fitting residuals or negative gradients.
+
+The main conceptual summary is:
+
+$$
+\text{single tree}
+\quad\longrightarrow\quad
+\text{high variance}
+\quad\longrightarrow\quad
+\text{ensemble trees}
+\quad\longrightarrow\quad
+\text{strong prediction}.
+$$

@@ -1,0 +1,347 @@
+---
+title: "Homework 1"
+# author: "Type Your Name Here"
+# date: today
+format: 
+    pdf:        
+        pdf-engine: lualatex
+        template-partials:
+            - ../../doc-class.tex
+        include-in-header:
+            - ../../math.tex
+            - text: |
+                \usepackage{xcolor}
+                \definecolor{AccessibleRed}{HTML}{BC4B00}
+                \newcommand{\red}[1]{\textcolor{AccessibleRed}{\textbf{#1}}}
+                \usepackage{alltt}
+                \usepackage{enumitem}
+                \usepackage[letterpaper,top=1in,bottom=0.89in,left=1in,right=1in]{geometry}
+                \AtBeginDocument{
+                    \renewcommand{\theexercise}{\arabic{exercise}}
+                    \setcounter{exercise}{0}
+                }                
+                \newcommand{\mc}[1]{
+                    \begin{enumerate}
+                        \setcounter{enumi}{0}
+                        \renewcommand{\labelenumi}{\Alph{enumi}.}
+                        \setlength{\itemsep}{0pt}
+                        \setlength{\topsep}{2pt}
+                        #1
+                    \end{enumerate}
+                }
+                \usepackage{multicol}
+                \newcommand{\mcc}[2][2]{
+                    \begin{multicols}{#1}
+                        \begin{enumerate}
+                            \setcounter{enumi}{0}
+                            \renewcommand{\labelenumi}{\Alph{enumi}.}
+                            \setlength{\itemsep}{0pt}
+                            \setlength{\topsep}{2pt}
+                            #2
+                        \end{enumerate}
+                    \end{multicols}
+                }
+        mainfont: Libertinus Serif
+        sansfont: Libertinus Sans
+        monofont: Latin Modern Mono
+        monofontoptions:
+            - Scale=0.95
+        mathfont: Libertinus Math
+        highlight-style: arrow
+params:
+    show_solution: false
+filters:
+    - ../../solution-filter.lua
+crossref:
+    chapters: false
+---
+
+
+
+
+
+
+---
+
+# Coding Problems
+
+Datasets:
+- Boston Housing
+- Auto MPG
+- California Housing
+
+---
+
+1. Load the **Boston dataset** and fit a linear regression model predicting `medv`.
+
+Compute:
+
+- training $R^2$
+- residual diagnostics.
+
+---
+
+2. Split the Boston dataset into training and test sets.
+
+Compute the **test MSE**.
+
+---
+
+3. Using the **Auto dataset**, fit a regression model predicting `mpg`.
+
+Evaluate prediction accuracy.
+
+---
+
+4. Fit polynomial regression models of degree 1–5 predicting `mpg` from `horsepower`.
+
+Plot training error vs model degree.
+
+---
+
+5. Repeat Problem 4 using a **train/test split** and plot test error.
+
+---
+
+6. Fit a regression model predicting house prices using the **California Housing dataset**.
+
+Report $R^2$.
+
+---
+
+7. Plot residuals vs fitted values and interpret the plot.
+
+---
+
+8. Remove one important predictor and compare model performance.
+
+---
+
+9. Fit two competing models and compare **test MSE**.
+
+---
+
+10. Write a short summary describing which model performs best.
+
+---
+
+
+
+
+
+# Week 1: Foundations, Bias-Variance Trade-off, and Linear Regression
+
+## Problem 1: Bias-Variance Decomposition
+
+Suppose
+
+$$
+Y = f(X) + \varepsilon,
+$$
+
+where
+
+$$
+E(\varepsilon \mid X)=0, \qquad \mathrm{Var}(\varepsilon \mid X)=\sigma^2.
+$$
+
+Let $\hat f(x_0)$ be an estimator of $f(x_0)$ based on a training sample, and let
+
+$$
+Y_0 = f(x_0) + \varepsilon_0
+$$
+
+be a future response at the predictor value $x_0$.
+
+1. Show that the expected prediction error at $x_0$ is
+
+   $$
+   E\big[(Y_0-\hat f(x_0))^2\big].
+   $$
+
+2. Derive the decomposition
+
+   $$
+   E\big[(Y_0-\hat f(x_0))^2\big]
+   =
+   \mathrm{Var}(\hat f(x_0))
+   +
+   \big(E[\hat f(x_0)]-f(x_0)\big)^2
+   +
+   \sigma^2.
+   $$
+
+3. Explain the meaning of each term.
+
+---
+
+## Problem 2: OLS Unbiasedness
+
+Consider the linear model
+
+$$
+\mathbf y = \mathbf X \boldsymbol\beta + \boldsymbol\varepsilon,
+$$
+
+where
+
+$$
+E(\boldsymbol\varepsilon)=\mathbf 0, \qquad
+\mathrm{Var}(\boldsymbol\varepsilon)=\sigma^2 \mathbf I.
+$$
+
+Assume $\mathbf X$ has full column rank.
+
+1. Show that the OLS estimator is
+
+   $$
+   \hat{\boldsymbol\beta}
+   =
+   (\mathbf X^\top \mathbf X)^{-1}\mathbf X^\top \mathbf y.
+   $$
+
+2. Prove that $\hat{\boldsymbol\beta}$ is unbiased.
+3. Show that
+
+   $$
+   \mathrm{Var}(\hat{\boldsymbol\beta})
+   =
+   \sigma^2(\mathbf X^\top \mathbf X)^{-1}.
+   $$
+
+---
+
+## Problem 3: Correlated Predictors and Variance Inflation
+
+Suppose two predictors $x_1$ and $x_2$ are highly correlated.
+
+1. Explain why the matrix $\mathbf X^\top \mathbf X$ becomes nearly singular.
+2. Explain why this increases the variance of $\hat{\boldsymbol\beta}$.
+3. Explain why coefficient instability does not necessarily imply poor training fit.
+
+---
+
+## Problem 4: Model Complexity
+
+Suppose two models are fitted to the same dataset:
+
+- Model A: simple linear regression
+- Model B: polynomial regression of degree 10
+
+Answer the following.
+
+1. Which model must have smaller or equal training RSS?
+2. Which model is likely to have higher variance?
+3. Under what conditions could Model B have larger test error?
+
+---
+
+## Problem 5: Parametric versus Nonparametric Models
+
+1. Explain the difference between a parametric model and a nonparametric model.
+2. Give one example of each.
+3. Compare them in terms of flexibility, interpretability, and sample size requirement.
+
+---
+
+## Problem 6: Simulation of OLS under a Correctly Specified Model
+
+Generate data from
+
+$$
+y_i = 3 + 2x_i + \varepsilon_i,
+\qquad
+\varepsilon_i \sim N(0,1),
+$$
+
+with $n=100$ and $x_i \sim \mathrm{Unif}(0,1)$.
+
+1. Generate one dataset and fit the model $y \sim x$.
+2. Repeat the simulation 500 times.
+3. Store the estimated slope and intercept from each repetition.
+4. Plot histograms of the estimated slopes and intercepts.
+5. Compare the empirical mean of the estimated slope with the true value $2$.
+
+```{r}
+set.seed(432)
+# Your code here
+```
+
+---
+
+## Problem 7: Simulation under Misspecification
+
+Now generate data from
+
+$$
+y_i = 3 + 2x_i + x_i^2 + \varepsilon_i,
+\qquad
+\varepsilon_i \sim N(0,1),
+$$
+
+with $n=100$ and $x_i \sim \mathrm{Unif}(0,1)$, but still fit the linear model
+
+$$
+y \sim x.
+$$
+
+1. Repeat the experiment 500 times.
+2. Plot the distribution of the estimated slope.
+3. Compare the average fitted slope with the true linear coefficient $2$.
+4. Explain the result.
+
+```{r}
+set.seed(432)
+# Your code here
+```
+
+---
+
+## Problem 8: Auto Dataset — Simple Linear Regression
+
+Use the `Auto` dataset from `ISLR2`.
+
+1. Fit the model
+
+   $$
+   \texttt{mpg} \sim \texttt{horsepower}.
+   $$
+
+2. Report the estimated coefficients, $R^2$, and residual standard error.
+3. Plot the data and add the fitted regression line.
+4. Comment on whether the linear fit seems adequate.
+
+
+
+---
+
+## Problem 9: Polynomial Regression and Test Error
+
+Using the `Auto` dataset:
+
+1. Randomly split the data into training (70%) and testing (30%).
+2. Fit polynomial models of degree $1,\ldots,5$ predicting `mpg` from `horsepower`.
+3. Compute the training MSE and testing MSE for each degree.
+4. Plot degree versus training MSE and degree versus testing MSE.
+5. Explain the pattern.
+
+```{r}
+set.seed(432)
+# Your code here
+```
+
+---
+
+## Problem 10: Cross-Validation and Model Selection
+
+Again using the `Auto` dataset:
+
+1. Use 10-fold cross-validation to compare polynomial models of degree $1,\ldots,10$.
+2. Identify the degree with the smallest CV error.
+3. Compare your answer with Problem 9.
+4. Explain why the chosen degree may differ between the test-set approach and cross-validation.
+
+```{r}
+set.seed(432)
+# Your code here
+```

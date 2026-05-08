@@ -1,0 +1,946 @@
+
+### PCA review
+
+Principal component analysis finds directions in predictor space that maximize variance.
+
+Let
+
+$$
+X = UDV^\top
+$$
+
+be the singular value decomposition of $X$.
+
+Then
+
+- the columns of $V$ are the principal directions
+- the principal components are
+
+$$
+Z = XV
+$$
+
+The first principal component captures the largest variance in $X$, the second captures the next largest variance orthogonal to the first, and so on.
+
+
+
+polish the notes and correct the necessary wrongings.
+change the structure into the best hirachical structure for these concepts and add necessary explainations. 
+don't add too many details unless really necessary
+output the result in md that i can directly copy.
+don't add too many bold unless really necessary
+
+1. X is of dim nxp. 
+   1. Each column is corresponding to a predictor
+      1. Each column represents all observations of the predictor in this sample.   
+      2. Each column vector is in $\mathbb R^n$. This space is called the observation space.
+      3. The angles between two column vectors in the observation space is the correlation between two predictors.
+   2. Each row is corresponding to a observation
+      1. Each row represents all measures of each predictor for this observation.
+      2. Each row vector is in $\mathbb R^p$. This space is called the feature space.
+      3. The distance between two observations in the feature space is the dissimilarity between two observations.
+2. The principal components are linear combinations of predictors. 
+   1. Each principal component lives in the observation space, so they are of dim n.
+   2. The entry of a principal component represents its measure of an observation. This measure is called **score** of the principal compoenent.
+   3. Each principal component is of maximal variance among all vectors that are orthogonal to the previous principal components.
+   4. Each principal component is a linear combination of the original predictors. The weights are called **loadings**, which means the contribution of the original precitors to the principal components.
+3. $X=UDV^\top$, $Z=UD=XV$.
+   1. $Z$ is the principal compnents. The columns of $Z=UD$  are also called the principal compoent scores.
+   2. The columns of $V$ are the loading vectors. They are also called the principal component directions.
+   3. Since $X=UDV^\top$ is the singular value decomposition, it is related to the eigenvalues of $X^\top X$. The sample covariance matrix is $\frac1{n-1}X^\top X$. Therefore you can see the relation between the singular values and the variance.
+   4. $D$ encodes the singular values (sample std. deviation) and $U$ represents the normalized principal components.
+
+
+
+
+
+
+
+
+
+polish the notes and correct the necessary wrongings.
+change the structure into the best hirachical structure for these concepts and add necessary explainations. 
+don't add too many details unless really necessary
+output the result in md that i can directly copy.
+don't add too many bold unless really necessary
+
+
+
+## Data matrix and its two geometric views
+
+Let $X \in \mathbb{R}^{n \times p}$ denote a data matrix with $n$ observations and $p$ predictors. Assume columns are centered unless otherwise stated.
+
+### Column (variable) perspective: Observation Space ($\mathbb{R}^n$)
+Each column represents a single predictor (feature) across all $n$ observations.
+
+- A column vector lies in $\mathbb{R}^n$, called the observation space.
+- The inner product structure in this space encodes relationships between variables:
+  - After centering (and optionally standardizing), the angle between two columns reflects their correlation.
+  - Orthogonality corresponds to zero correlation.
+
+### Row (observation) perspective: Feature Space ($\mathbb{R}^p$)
+Each row represents a single observation (sample point) across all $p$ predictors.
+
+- A row vector lies in $\mathbb{R}^p$, called the feature space.
+- Geometry in this space describes similarity between observations:
+  - Euclidean distance between two rows measures dissimilarity.
+
+
+## Principal components (PC)
+
+Principal component analysis constructs new variables $Z=\qty{z_1, \ldots,z_r}$ from linear combinations of the original predictors.
+
+### Loadings
+
+- Each PC is a linear combination of the columns of $X$.
+- **Loadings** ($v_{ij}$): The coefficients used to form PC $z_j$ are called loadings.
+- Loadings indicate how strongly each original predictor contributes to the component.
+
+### Scores
+- As a vector, each PC lies in $\mathbb{R}^n$ (observation space).
+- **Scores** ($z_{ij}$): The $i$-th entry of a PC $z_j$ is its value for observation $i$, called the score.
+- Scores represent the transformed coordinates of the original observations along the PC directions.
+
+
+### Optimality property
+
+- The first PC has the largest possible variance among all unit-length linear combinations of predictors.
+- Each subsequent PC:
+  - is orthogonal to previous PCs,
+  - maximizes variance under this orthogonality constraint.
+
+
+## SVD representation and PCA
+
+Assume $\rank(X)=r$. Then the singular value decomposition of $X$ is 
+$$
+X = U D V^\top,
+$$
+where:
+- $U \in \mathbb{R}^{n \times r}$ with orthonormal columns,
+- $D \in \mathbb{R}^{r \times r}$ is diagonal with singular values,
+- $V \in \mathbb{R}^{r \times p}$ is orthogonal.
+
+### Principal component $Z$
+
+- Define $Z = U D = X V$.
+- The columns of $Z$ are the principal components.
+- Each column of $Z$ contains the scores for one component across all observations.
+
+### Loadings and directions
+
+- The columns of $V$ are the loading vectors.
+- They define directions in feature space along which the data is projected.
+
+### Relation to covariance
+
+- The sample covariance matrix is $\frac{1}{n-1} X^\top X$.
+- Using SVD: $X^\top X = V D^2 V^\top$.
+- Thus:
+  - Columns of $V$ are eigenvectors of the covariance matrix.
+  - $D^2/(n-1)$ are the variances of the principal components.
+
+### Roles of $U$ and $D$
+
+- $U$ contains normalized principal component score directions.
+- $D$ scales these directions:
+  - singular values correspond to the standard deviations of the components (up to the factor $\sqrt{n-1}$ if using sample covariance).
+
+
+
+
+
+
+### Principal components analysis (PCA)
+
+Principal component analysis constructs new variables $Z=\qty{z_1, \ldots,z_r}$ from linear combinations of the original predictors.
+
+### Loadings
+
+- Each PC is a linear combination of the columns of $X$.
+- **Loadings** ($v_{ij}$): The coefficients used to form PC $z_j$ are called loadings.
+- Loadings indicate how strongly each original predictor contributes to the component.
+
+### Scores
+- As a vector, each PC lies in $\mathbb{R}^n$ (observation space).
+- **Scores** ($z_{ij}$): The $i$-th entry of a PC $z_j$ is its value for observation $i$, called the score.
+- Scores represent the transformed coordinates of the original observations along the PC directions.
+
+Using SVD, we have 
+$$
+Z = X V = U D.
+$$
+
+- Columns of $Z$ are the principal components.
+- This shows each component is both:
+  - a projection $Xv_j$,
+  - a scaled column of $U$.
+
+
+
+
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+Given a data matrix $X \in \mathbb{R}^{n \times p}$ ($n$ observations, $p$ variables), we assume $X$ is centered (each column has mean zero). 
+
+- Each column represents samples of a variable. Therefore each column vector lives in the sample space. The dimension of the space is $n$ which is the number of observations.
+- Each compoenet of the variable vector is the measurement of the variable of that observation.
+- Each row represents an observation. Therefore each row vecotr lives in the feature space (after transposing). The dimension o the space is $p$ which is the number of features.
+- Each component of the observation vector is the feature of that observation.
+
+
+
+Given a data matrix $X \in \mathbb{R}^{n \times p}$ ($n$ observations, $p$ variables), where $X$ is centered (each column has a mean of zero):
+
+- Variables as Vectors (Column Perspective):
+  - Each column of $X$ represents the collected samples of a single variable. Consequently, each column vector lives in the Sample Space. The dimension of this space is $n$ (the number of observations).
+  - Components: Each component of a variable vector is the specific measurement (realization) of that variable for a given observation.
+- Observations as Vectors (Row Perspective):
+  - Each row of $X$ represents a single observation (or case). When treated as a vector (typically by transposing the row into a column), it lives in the Feature Space. The dimension of this space is $p$ (the number of variables/features).
+  - Components: Each component of an observation vector is the value of a specific feature for that observation.
+
+
+Given a data matrix $X \in \mathbb{R}^{n \times p}$ (with $n$ observations and $p$ variables), where $X$ is column-centered (each column has mean zero):
+
+Variables as Vectors (Column Perspective)
+Each column of $X$ represents the observed values of a single variable across all observations.
+Therefore, each column vector lies in $\mathbb{R}^n$, often referred to as the sample space. The dimension of this space is $n$.
+Components: Each entry of a column vector is the measurement (realization) of that variable for a particular observation.
+Observations as Vectors (Row Perspective)
+Each row of $X$ represents a single observation across all variables.
+Thus, each row can be viewed as a vector in $\mathbb{R}^p$, often referred to as the feature space. The dimension of this space is $p$.
+Components: Each entry of a row vector is the value of a specific feature for that observation.
+Key refinement
+Removed “typically by transposing” — mathematically unnecessary. A row is already an element of $\mathbb{R}^p$; transposing is only a notational convenience.
+Replaced “lives in the Sample Space” with a slightly softer phrasing (“often referred to as”), since this terminology is contextual rather than strictly canonical.
+
+
+
+
+
+
+## 📘 Data Geometry: The Duality of the Data Matrix
+
+Given a data matrix $X \in \mathbb{R}^{n \times p}$ (with $n$ observations and $p$ variables), where $X$ is **column-centered** (each column has mean zero):
+
+### 1. Variables as Vectors (Column Perspective)
+
+Each column of $X$ represents the observed values of a single variable across all observations.
+
+* **Space**: Each column vector lies in $\mathbb{R}^n$, often referred to as the **Sample Space**. The dimension of this space is $n$.
+* **Components**: Each entry of a column vector is the measurement (realization) of that variable for a particular observation.
+* **Intuition**: In this space, the variable is a single "arrow." The relationship between two variables (like height and weight) is represented by the **angle** between their vectors. If the vectors are orthogonal (90°), the variables are uncorrelated.
+
+
+
+---
+
+### 2. Observations as Vectors (Row Perspective)
+
+Each row of $X$ represents a single observation across all variables.
+
+* **Space**: Each row lies in $\mathbb{R}^p$, often referred to as the **Feature Space**. The dimension of this space is $p$.
+* **Components**: Each entry of a row vector is the value of a specific feature for that observation.
+* **Intuition**: In this space, each observation is a "point" in a $p$-dimensional cloud. The relationship between two observations (like Student A and Student B) is represented by the **distance** between their points.
+
+
+
+---
+
+### 3. Summary Comparison
+
+| Perspective | Vector Representation | Space | Dimension | Geometric Meaning |
+| :--- | :--- | :--- | :--- | :--- |
+| **Column** | Variable | **Sample Space** | $n$ | **Angles** = Correlation |
+| **Row** | Observation | **Feature Space** | $p$ | **Distances** = Dissimilarity |
+
+---
+
+### 4. Connection to SVD ($X = UDV^T$)
+
+* **$V$ (Loadings)**: Provides a basis for the **Feature Space**. It tells us which directions in $\mathbb{R}^p$ capture the most variance.
+* **$U$ (Standardized Scores)**: Provides a basis for the **Sample Space**. It tells us how the variables (as vectors in $\mathbb{R}^n$) relate to the underlying principal axes.
+
+
+
+
+
+
+
+## 📘 Data Geometry: The Duality of the Data Matrix
+
+Given a data matrix $X \in \mathbb{R}^{n \times p}$ (with $n$ observations and $p$ variables), where $X$ is **column-centered** (each column has mean zero):
+
+---
+
+### 1. Variables as Vectors (Column Perspective)
+
+Each column of $X$ represents the observed values of a single variable across all observations.
+
+- **Space**: Each column vector lies in $\mathbb{R}^n$, often referred to as the **Sample Space**. The dimension of this space is $n$.
+- **Components**: Each entry of a column vector is the measurement (realization) of that variable for a particular observation.
+- **Intuition**: In this space, each variable is a vector. The relationship between two variables is encoded by their **inner product**:
+  - If variables are **standardized**, then  
+    $\text{correlation} = \cos(\theta),$
+    where $\theta$ is the angle between the two vectors.
+  - Orthogonality (90°) corresponds to **zero correlation**.
+
+---
+
+### 2. Observations as Vectors (Row Perspective)
+
+Each row of $X$ represents a single observation across all variables.
+
+- **Space**: Each row lies in $\mathbb{R}^p$, often referred to as the **Feature Space**. The dimension of this space is $p$.
+- **Components**: Each entry of a row vector is the value of a specific feature for that observation.
+- **Intuition**: In this space, each observation is a point in a $p$-dimensional cloud. The relationship between two observations is naturally measured by:
+  - **Distance** (e.g., Euclidean distance) → dissimilarity
+  - **Inner product** → similarity / alignment
+
+---
+
+### 3. Summary Comparison
+
+| Perspective | Vector Representation | Space | Dimension | Geometric Meaning |
+| :--- | :--- | :--- | :--- | :--- |
+| **Column** | Variable | $\mathbb{R}^n$ (Sample Space) | $n$ | Inner product → correlation (after scaling) |
+| **Row** | Observation | $\mathbb{R}^p$ (Feature Space) | $p$ | Distance → dissimilarity |
+
+---
+
+### 4. Connection to SVD ($X = U D V^\top$)
+
+- **$V$ (Loadings / Principal Directions)**:  
+  Columns of $V$ form an orthonormal basis for directions in the **feature space** $\mathbb{R}^p$. These are the principal component directions.
+
+- **$U D$ (Scores / Principal Components)**:  
+  The columns of $U D$ give the coordinates of the observations projected onto the principal directions. Each column is a principal component vector in $\mathbb{R}^n$.
+
+- **$U$ (Standardized Scores)**:  
+  Columns of $U$ are normalized principal component vectors (unit length), representing directions in the **sample space**.
+
+---
+
+### 🔑 Key Insight
+
+- $V$ → directions (how to combine features)  
+- $U D$ → projections (where observations lie in those directions)  
+
+
+
+
+
+
+
+1. The Core DecompositionIn a data matrix $X_{n \times p}$ ($n$ samples, $p$ variables) that has been centered (means subtracted), the SVD (Singular Value Decomposition) is:
+$$
+X = UDV^\top
+$$
+
+   - $U$ ($n \times r$): Left singular vectors (Sample Space).
+   - $D$ ($r \times r$): Singular values (square root of the "energy" or variance).
+   - $V$ ($p \times r$): Right singular vectors (Feature Space).
+1. Loadings ($V$): The "Recipe" of Variables
+   - Technical Definition:
+     - Loadings: The coefficients of the linear combination of original variables used to calculate the principal component scores.
+     - Eigenvectors: The columns of $V$ represent the principal axes (directions) of the data.
+   - The Analogy: A Fruit Juice Recipe
+     - Imagine a Principal Component (PC) is a "Signature Blend" of juice, while your original variables are "Apple," "Orange," and "Grape" base juices:
+       - Loadings are the recipe: If $PC_1$ has a loading of $0.8$ for Apple and $0.1$ for Orange, it tells you the "flavor" of this component is predominantly Apple.
+       - Geometric Intuition: A loading is the cosine of the angle between an original variable vector and the Principal Component axis. A small angle (cosine near 1) means the variable and the PC are highly correlated.
+     - Key Point: Loadings live in Feature Space. Use them to interpret what a component actually means (e.g., "PC1 represents overall student size").
+2. Scores & $U$: The "Finished Product" for Samples
+   - Technical Definition:
+     - PC Scores ($Z = XV = UD$): The coordinates of the original samples projected onto the principal axes.
+     - Left Singular Vectors ($U$): Standardized scores. Each column is a unit vector (length = 1) and is orthogonal to the others.
+   - The Analogy: The Athlete’s Final Score
+     - Scores are the "Points": If Loadings are the "Scoring Rubric" (e.g., 40% speed, 60% strength), then Scores are the actual results for each athlete (Sample). Athlete A gets a 95; Athlete B gets a 70.
+     - $U$ is the "Relative Standing": $U$ strips away the total variance (the singular values $D$). It tells you where Athlete A stands relative to the rest of the group in a standardized, unit-less coordinate system.Key Point: $U$ and Scores live in Sample Space. Use them to cluster, classify, or rank your observations.
+
+| Matrix Component | Space | Role | Intuitive Analogy |
+| :--- | :--- | :--- | :--- |
+| **Loadings ($V$)** | **Feature Space** ($\mathbb{R}^p$) | Defines the "Directions" | **The Scale / The Recipe** (How we measure) |
+| **Scores ($UD$)** | **Sample Space** ($\mathbb{R}^n$) | Provides the "Values" | **The Result / The Grade** (Measurement outcome) |
+| **Standardized Scores ($U$)** | **Sample Space** ($\mathbb{R}^n$) | Defines the "Position" | **The Ranking / The Map** (Unit-less location) |
+
+
+When teaching Principal Component Regression (PCR) or working with no-intercept models:
+
+1. Orthogonality: Because $U$ is an orthogonal matrix, using its columns as predictors in a regression model completely eliminates Multicollinearity.
+2. The Centering Requirement: Without centering (i.e., a "no-intercept" style PCA), the first loading vector will often point toward the data's center of mass rather than the direction of maximum spread. This makes the loadings hard to interpret as "correlations."
+3. Dimension Reduction: In a high-dimensional setting ($p > n$), we look at the first few columns of $U$ to capture the "signal" while discarding the "noise" (columns associated with tiny singular values in $D$).
+
+How does this geometric distinction between the "Recipe" ($V$) and the "Product" ($U$) help clarify the weighting behavior you've been seeing in your no-intercept modeling?
+
+# Principal Component Analysis (PCA) Summary
+
+## 1. Data Setup
+Given a data matrix $X \in \mathbb{R}^{n \times p}$ ($n$ observations, $p$ variables), we assume $X$ is **centered** (each column has mean zero).
+
+
+
+---
+
+## 2. PCA via Singular Value Decomposition (SVD)
+The SVD decomposes $X$ as:
+$$X = UDV^\top$$
+
+| Component | Matrix | Dimension | Interpretation |
+| :--- | :--- | :--- | :--- |
+| **Directions** | $V$ | $p \times r$ | The weights (loadings) that define the new axes. |
+| **Scores** | $Z = UD$ | $n \times r$ | The coordinates of the data in the new PC space. |
+| **Magnitudes** | $D$ | $r \times r$ | Diagonal matrix of singular values $d_k$. |
+| **Normalized** | $U$ | $n \times r$ | The directions of the scores (unit length). |
+
+---
+
+## 3. Key Mathematical Properties
+
+### Principal Component Directions ($v_k$)
+The columns of $V$ are orthonormal vectors that sequentially maximize variance:
+$$v_k = \arg\max_{\|v\|=1} \text{Var}(Xv)$$
+*(subject to $v_k \perp v_1, \dots, v_{k-1}$)*
+
+### Principal Component Scores ($z_i$)
+The scores represent the original data projected onto the PC directions. For any observation $x_i$:
+$$x_i = \sum_{k=1}^{r} z_{ik} v_k$$
+
+
+
+---
+
+## 4. Variance Explained
+The importance of each component is determined by its singular value $d_k$:
+
+* **Variance of $k$-th component:** $\lambda_k = \frac{d_k^2}{n}$
+* **Proportion of Variance Explained (PVE):**
+    $$\text{PVE}_k = \frac{d_k^2}{\sum_{j=1}^{r} d_j^2}$$
+
+
+
+---
+
+## 5. Dimensionality Reduction
+PCA allows for the best rank-$m$ approximation ($m < r$) of the data by retaining only the first $m$ columns of $U, D,$ and $V$:
+$$X \approx U_m D_m V_m^\top$$
+This reconstruction minimizes the **squared reconstruction error**, making it the optimal linear projection for data compression.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Principal Component Analysis
+
+## Data Setup
+
+Suppose we observe a dataset with  
+
+- $n$ observations  
+- $p$ variables  
+
+Let the data matrix be
+
+$$
+X =
+\mqty[x_1^\top \\
+x_2^\top \\
+\vdots \\
+x_n^\top
+]=\mqty[X_1,X_2,\ldots,X_p]=\mqty[x_{ij}]_{1\leq i\leq n, 1\leq j\leq p}
+\in \mathbb{R}^{n\times p}
+$$
+
+where
+
+- $x_i \in \mathbb{R}^p$ is the $i$-th observation
+- $X_j\in\mathbb{R}^n$ is the $j$-th variable
+
+
+Throughout this section we assume the variables are centered, so each column of $X$ has mean zero:
+
+$$
+\sum_{i=1}^{n} x_{ij} = 0,\quad \text{ for each }j.
+$$
+
+
+
+
+
+
+
+
+
+::: {.callout-note}
+Centering the variables simplifies the PCA formulation and ensures that the first principal component corresponds to the direction of maximal variance.
+:::
+
+
+# PCA via Singular Value Decomposition
+
+The singular value decomposition (SVD) of the data matrix $X$ is
+
+$$
+X = UDV^\top
+$$
+
+where
+
+$$
+U \in \mathbb{R}^{n\times r}, \quad
+D \in \mathbb{R}^{r\times r}, \quad
+V \in \mathbb{R}^{p\times r}
+$$
+
+and
+
+- $r = \rank(X)$
+- $U^\top U = I_r$
+- $V^\top V = I_r$
+- $D = \operatorname{diag}(d_1,\dots,d_r)$
+- $d_1 \ge d_2 \ge \dots \ge d_r >0$
+
+
+Here 
+- The columns of $UD$ are the principal component vectors, which is the direction of where the most variance are explained. It is official called principal component scores.
+- The columns of $U$ are the normalized principal component vectors, which gives the direction, but not magnitude.
+- The diagnoal of $D$ gives the magnitudes of each principal compoennt vector.
+- The columns of $V$ are the pricipal component directions. In other words, it is the weights to indicate how to use linear combinations of the orignal variables to make the principal component vectors. The math is $XV=UD$ since columns of $V$ are orthogonormal.
+
+Let the 
+
+
+<!-- Thus the dimensions are
+
+| Matrix | Dimension |
+|------|------|
+| \(X\) | \(n \times p\) |
+| \(U\) | \(n \times r\) |
+| \(D\) | \(r \times r\) |
+| \(V\) | \(p \times r\) | -->
+
+
+# Interpretation of the SVD Components
+
+| Matrix | Dimension | Interpretation |
+|------|------|------|
+| $V$ | $p \times r$ | principal component directions  |
+| $UD$ | $n \times r$ | principal component scores |
+| $U$ | $n \times r$ | normalized scores |
+
+---
+
+# Principal Component Directions
+
+Let
+
+$$
+V = [v_1, v_2, \dots, v_r]
+$$
+
+where
+
+$$
+v_k \in \mathbb{R}^p.
+$$
+
+The vectors \(v_k\) are the principal component directions.
+
+They are orthonormal:
+
+$$
+v_k^\top v_j =
+\begin{cases}
+1 & k=j \\
+0 & k\ne j
+\end{cases}
+$$
+
+Each direction maximizes variance sequentially:
+
+$$
+v_k =
+\arg\max_{\norm{v}=1} \Var(Xv)
+$$
+
+subject to orthogonality constraints with previous components.
+
+---
+
+# Principal Component Scores
+
+The principal component scores are obtained by projecting the data onto the principal component directions:
+
+$$
+Z = XV
+$$
+
+with
+
+$$
+Z \in \mathbb{R}^{n\times r}.
+$$
+
+Using the SVD $X=UDV^\top$,
+
+$$
+Z = XV = UD.
+$$
+
+Thus
+
+| Matrix | Dimension |
+|------|------|
+| $Z$ | $n\times r$ |
+| $U$ | $n\times r$ |
+| $D$ | $r\times r$ |
+
+Each row of $Z$ corresponds to the principal component representation of one observation.
+
+---
+
+# Matrix Reconstruction Form
+
+Using the SVD we can write
+
+$$
+X = UDV^\top
+$$
+
+or equivalently
+
+$$
+X = ZV^\top
+$$
+
+where
+
+$$
+Z = UD.
+$$
+
+Dimension check:
+
+$$
+(n\times r)(r\times p) = n\times p.
+$$
+
+Thus the original data matrix is reconstructed from
+
+- **scores \(Z\)**
+- **principal directions \(V\)**.
+
+---
+
+# Vector Form (Observation Representation)
+
+Let
+
+$$
+z_i^\top
+$$
+
+be the \(i\)-th row of \(Z\).
+
+Then the \(i\)-th observation satisfies
+
+$$
+x_i = z_i^\top V^\top
+$$
+
+or equivalently
+
+$$
+x_i = \sum_{k=1}^{r} z_{ik} v_k.
+$$
+
+where
+
+- \(v_k \in \mathbb{R}^p\) is the \(k\)-th principal component direction
+- \(z_{ik}\) is the **score of observation \(i\)** on component \(k\).
+
+Thus each observation is expressed as a linear combination of the principal component directions.
+
+---
+
+# Rank-1 Decomposition
+
+The SVD can also be written as a sum of rank-1 matrices:
+
+$$
+X =
+\sum_{k=1}^{r} d_k u_k v_k^\top
+$$
+
+where
+
+- $u_k \in \mathbb{R}^n$
+- $v_k \in \mathbb{R}^p$
+
+Each matrix
+
+$$
+d_k u_k v_k^\top
+$$
+
+represents the contribution of the $k$-th principal component to the data matrix.
+
+---
+
+# Variance Explained
+
+The sample covariance matrix is
+
+$$
+S = \frac{1}{n}X^\top X.
+$$
+
+Using SVD,
+
+$$
+X^\top X = V D^2 V^\top.
+$$
+
+Thus the variance explained by component $k$ is
+
+$$
+\lambda_k = \frac{d_k^2}{n}.
+$$
+
+The proportion of variance explained (PVE) is
+
+$$
+\text{PVE}_k =
+\frac{d_k^2}{\sum_{j=1}^{r} d_j^2}.
+$$
+
+---
+
+# Dimensionality Reduction
+
+If we retain only the first $m$ principal components,
+
+$$
+X \approx Z_m V_m^\top
+$$
+
+where
+
+$$
+Z_m \in \mathbb{R}^{n\times m},
+\quad
+V_m \in \mathbb{R}^{p\times m}.
+$$
+
+This provides the best rank-$m$ approximation to $X$ in terms of squared reconstruction error.
+
+
+
+
+### Geometric interpretation
+
+---
+
+::: {.callout-note}
+## Comparison with PCR
+
+PCR constructs components using only the predictor matrix $X$.
+
+PLS uses both $X$ and $y$ to determine the directions.
+
+As a result
+
+- PCR may require many components before the response information is captured.
+- PLS often achieves good predictive performance with fewer components.
+:::
+
+---
+
+### Choosing the number of components
+
+Similar to PCR, the number of components is chosen using cross-validation.
+
+Typical procedure:
+
+1. Fit PLS models with different numbers of components.
+2. Evaluate the validation error for each model.
+3. Choose the number of components that minimizes the validation error.
+
+---
+
+## PLS in Python
+
+`scikit-learn` provides the class `PLSRegression` for fitting partial least squares models.
+
+```python
+from sklearn.cross_decomposition import PLSRegression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+pls_pipe = Pipeline(
+    [
+        ("scaler", StandardScaler()),
+        ("model", PLSRegression(n_components=2))
+    ]
+)
+
+pls_pipe.fit(X, y)
+```
+
+The argument n_components specifies the number of PLS components.
+
+### Selecting the number of components
+
+We can choose the number of components using cross-validation.
+
+```{python}
+#| eval: false
+
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {"model__n_components": list(range(1, X.shape[1] + 1))}
+
+grid = GridSearchCV(pls_pipe, param_grid, cv=5, scoring="neg_mean_squared_error")
+
+grid.fit(X, y)
+
+best_components = grid.best_params_["model__n_components"]
+best_components
+```
+
+
+### PLS coefficient path
+
+We can also examine how the regression coefficients change as the number of components increases.
+
+
+```{python}
+#| eval: false
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cross_decomposition import PLSRegression
+from sklearn.preprocessing import StandardScaler
+
+X_scaled = StandardScaler().fit_transform(X)
+
+coefs = []
+
+for m in range(1, X.shape[1] + 1):
+    pls = PLSRegression(n_components=m)
+    pls.fit(X_scaled, y)
+    coefs.append(pls.coef_.ravel())
+
+coefs = np.array(coefs)
+
+for j in range(coefs.shape[1]):
+    plt.plot(range(1, X.shape[1] + 1), coefs[:, j], label=f"x{j + 1}")
+
+plt.xlabel("Number of components")
+plt.ylabel("Coefficient")
+plt.title("PLS coefficient path")
+plt.legend()
+plt.show()
+```
+
+
+Summary
+
+Partial least squares is a dimension reduction method designed for predictive modeling.
+
+It constructs components that maximize covariance between predictors and response.
+These components are used as predictors in a regression model.
+The number of components is typically selected using cross-validation.
+
+Compared with principal component regression:
+
+PCR focuses on explaining predictor variation.
+PLS focuses on predicting the response.
+
+As a result, PLS often requires fewer components to achieve strong predictive performance.
+
+
+
+
+
+
+
+
+
+<!-- Principal component regression constructs components that explain the variation in the predictor matrix $X$. However, these directions are chosen **without considering the response variable $y$**.
+
+Partial least squares (PLS) addresses this limitation by constructing components that are most strongly related to the response.
+
+The key idea is to construct components that simultaneously
+
+- capture variation in the predictors, and  
+- are strongly associated with the response. -->
+
+
+
+<!-- 5. Matrix Form (All Components)
+
+After $m$ steps:
+
+- $W = [w_1, \dots, w_m]$
+- $Z = XW$ (scores)
+- $P = [p_1, \dots, p_m]$
+
+PLS decomposition:
+$$
+X\approx ZP^\top
+$$
+
+Final regression:
+$$
+\hat y=Zc=XWc
+$$
+
+So:
+$$
+\hat\beta_{\mathrm PLS}=Wc.
+$$
+ -->
+
+
+
+<!-- **Final Model Representation**
+
+After $m$ components:
+$$
+\hat y=\sum_{k=1}^mc_kZ_k=\sum_{k=1}^mc_kXw_k.
+$$
+
+So the final coefficient vector is:
+$$
+\hat\beta_{\mathrm{PLS}}=\sum_{k=1}^mc_kw_k.
+$$ -->
