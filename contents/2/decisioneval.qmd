@@ -1,0 +1,1284 @@
+---
+jupyter: stats
+---
+
+# Classification Decisions and Evaluation
+
+<!-- 
+
+# Classification Evaluation, Statistical Decision Theory, and Threshold-Based Learning -->
+
+## Introduction
+
+In statistical learning, classification is fundamentally different from ordinary regression.
+
+In regression, the goal is usually to estimate a continuous response accurately.
+
+In classification, however, the goal is not merely prediction. Instead, classification involves:
+
+- uncertainty
+- decision making
+- asymmetric error costs
+- signal detection
+- threshold selection
+
+This makes classification closely connected to:
+
+- statistical decision theory
+- hypothesis testing
+- detection theory
+- the bias-variance tradeoff
+
+Metrics such as precision, recall, ROC curves, and AUC are not merely machine learning formulas. They arise naturally from statistical ideas about uncertainty and decision making.
+
+This chapter develops a unified statistical understanding of classification evaluation.
+
+---
+
+# Binary Classification Setup
+
+Suppose the response variable is binary:
+
+$$
+Y \in \{0,1\}.
+$$
+
+where:
+
+- $Y=1$ denotes the positive class
+- $Y=0$ denotes the negative class
+
+A classifier produces predictions:
+
+$$
+\hat Y \in \{0,1\}.
+$$
+
+The outcomes can be summarized using the confusion matrix.
+
+| | Predicted Positive | Predicted Negative |
+|---|---|---|
+| True Positive Class | TP | FN |
+| True Negative Class | FP | TN |
+
+where:
+
+- TP = true positives
+- FP = false positives
+- FN = false negatives
+- TN = true negatives
+
+---
+
+# Accuracy
+
+The most basic classification metric is accuracy:
+
+$$
+\text{Accuracy}
+=
+\frac{TP+TN}{N}.
+$$
+
+Accuracy measures the proportion of correctly classified observations.
+
+Although accuracy is intuitive, it has an important limitation:
+
+> It implicitly assumes all mistakes have equal cost.
+
+In practice, this assumption is often unrealistic.
+
+For example:
+
+- missing cancer may be far worse than a false alarm
+- falsely flagging a legitimate bank transaction may inconvenience customers
+- falsely accusing an innocent person may have severe consequences
+
+Thus classification evaluation often requires more refined metrics.
+
+---
+
+# Recall
+
+Recall is defined as:
+
+$$
+\text{Recall}
+=
+\frac{TP}{TP+FN}.
+$$
+
+Recall measures:
+
+> Among all truly positive observations,
+> how many were successfully detected?
+
+Equivalently:
+
+:contentReference[oaicite:0]{index=0}
+
+Recall is therefore a conditional probability.
+
+It is also called:
+
+- sensitivity
+- true positive rate (TPR)
+
+---
+
+# Statistical Interpretation of Recall
+
+Recall measures the ability to detect true signals.
+
+High recall means:
+
+```text
+few false negatives
+```
+
+Low recall means:
+
+```text
+many missed signals
+```
+
+Recall is closely related to:
+
+```text
+Type II error
+```
+
+and:
+
+```text
+statistical power
+```
+
+since:
+
+$$
+\text{Power}
+=
+1-\text{Type II Error}.
+$$
+
+Thus recall may be interpreted as:
+
+> the probability of correctly detecting a true signal.
+
+---
+
+# Precision
+
+Precision is defined as:
+
+$$
+\text{Precision}
+=
+\frac{TP}{TP+FP}.
+$$
+
+Precision measures:
+
+> Among all predicted positive observations,
+> how many are truly positive?
+
+Equivalently:
+
+:contentReference[oaicite:1]{index=1}
+
+Notice that the conditioning direction differs from recall.
+
+Recall conditions on the truth.
+
+Precision conditions on the prediction.
+
+This distinction is extremely important.
+
+---
+
+# Statistical Interpretation of Precision
+
+Precision measures:
+
+```text
+trustworthiness of positive predictions
+```
+
+High precision means:
+
+- few false positives
+- reliable positive discoveries
+
+Low precision means:
+
+- many false alarms
+- many predicted positives are incorrect
+
+Precision is closely related to:
+
+- false discovery control
+- positive predictive value
+
+in statistics and medical testing.
+
+---
+
+# Bayes' Rule Connection
+
+Precision and recall are connected through Bayes' theorem.
+
+Recall is:
+
+$$
+P(\hat Y=1\mid Y=1).
+$$
+
+Precision is:
+
+$$
+P(Y=1\mid \hat Y=1).
+$$
+
+These are related through:
+
+:contentReference[oaicite:2]{index=2}
+
+Thus precision depends not only on recall, but also on:
+
+- class prevalence
+- prediction frequency
+
+This explains why precision may collapse in highly imbalanced datasets.
+
+---
+
+# Class Imbalance
+
+Suppose only 1% of observations are positive.
+
+Then even a classifier with excellent recall may have poor precision.
+
+For example:
+
+- 100 true positives
+- 900 false positives
+
+Then:
+
+$$
+\text{Recall}=1
+$$
+
+but:
+
+$$
+\text{Precision}
+=
+\frac{100}{1000}
+=
+0.1.
+$$
+
+Thus most predicted positives are incorrect.
+
+This is why accuracy alone becomes misleading under severe class imbalance.
+
+---
+
+# Classification Thresholds
+
+Many classifiers output probabilities or scores:
+
+$$
+p(x)=P(Y=1\mid x).
+$$
+
+To make a final decision, we choose a threshold:
+
+$$
+\hat Y=
+\begin{cases}
+1 & p(x)>c\\
+0 & p(x)\le c
+\end{cases}
+$$
+
+where $c$ is the classification threshold.
+
+Changing the threshold changes classification behavior.
+
+---
+
+# Precision-Recall Tradeoff
+
+Suppose we lower the threshold.
+
+Then the classifier predicts positive more aggressively.
+
+This usually causes:
+
+- recall to increase
+- precision to decrease
+
+because:
+
+- more true positives are detected
+- but more false positives are also produced
+
+Conversely, raising the threshold generally causes:
+
+- higher precision
+- lower recall
+
+Thus precision and recall naturally trade off against each other.
+
+---
+
+# Statistical Decision Theory
+
+This tradeoff arises from statistical decision theory.
+
+Classification is fundamentally:
+
+> decision making under uncertainty.
+
+Different applications impose different error costs.
+
+The optimal threshold therefore depends on the application.
+
+---
+
+# Medical Screening Example
+
+Suppose we are screening for cancer.
+
+Missing a cancer patient may be extremely costly.
+
+Thus false negatives are dangerous.
+
+Therefore we prioritize:
+
+```text
+high recall
+```
+
+even if this produces additional false positives.
+
+Extra medical testing may be acceptable if it reduces missed diagnoses.
+
+---
+
+# Spam Filtering Example
+
+Now consider spam filtering.
+
+If precision is low, many legitimate emails will be classified as spam.
+
+Users may become frustrated.
+
+Thus precision becomes more important.
+
+---
+
+# Hypothesis Testing Interpretation
+
+Classification may also be interpreted through hypothesis testing.
+
+Suppose:
+
+$$
+H_0:Y=0
+$$
+
+versus
+
+$$
+H_1:Y=1.
+$$
+
+Then:
+
+- predicting positive corresponds to rejecting $H_0$
+- predicting negative corresponds to failing to reject $H_0$
+
+Under this interpretation:
+
+| Classification | Hypothesis Testing |
+|---|---|
+| False positive | Type I error |
+| False negative | Type II error |
+| Recall | Statistical power |
+
+Thus recall is essentially the power of a statistical test.
+
+---
+
+# Thresholds and Significance Levels
+
+Classification thresholds resemble significance levels in hypothesis testing.
+
+Lower thresholds correspond to:
+
+```text
+more aggressive rejection
+```
+
+This increases:
+
+- recall
+- false positives
+
+Similarly, higher significance levels in hypothesis testing increase rejection frequency.
+
+Conversely, conservative thresholds reduce false positives but may miss true signals.
+
+Thus classification thresholds and significance levels play similar statistical roles.
+
+---
+
+# ROC Curves
+
+ROC stands for:
+
+```text
+Receiver Operating Characteristic
+```
+
+An ROC curve plots:
+
+- true positive rate (TPR)
+- versus false positive rate (FPR)
+
+across all thresholds.
+
+The true positive rate is:
+
+$$
+TPR
+=
+\frac{TP}{TP+FN}.
+$$
+
+which is recall.
+
+The false positive rate is:
+
+$$
+FPR
+=
+\frac{FP}{FP+TN}.
+$$
+
+Equivalently:
+
+:contentReference[oaicite:3]{index=3}
+
+---
+
+# ROC Curves and Hypothesis Testing
+
+ROC curves are deeply connected to hypothesis testing.
+
+Recall that:
+
+- TPR corresponds to power
+- FPR corresponds to Type I error
+
+Thus an ROC curve essentially studies:
+
+```text
+power versus Type I error
+```
+
+across all thresholds.
+
+This is one of the deepest statistical interpretations of ROC analysis.
+
+---
+
+# Interpreting ROC Curves
+
+A classifier near the diagonal line behaves almost randomly.
+
+Better classifiers push the ROC curve toward the upper-left corner.
+
+The ideal classifier would achieve:
+
+- TPR = 1
+- FPR = 0
+
+meaning:
+
+- perfect detection
+- no false alarms
+
+---
+
+# AUC
+
+The area under the ROC curve is called AUC.
+
+AUC summarizes ranking performance across all thresholds.
+
+One of the most beautiful statistical interpretations of AUC is:
+
+:contentReference[oaicite:4]{index=4}
+
+where:
+
+- $s(X^+)$ is the score of a random positive observation
+- $s(X^-)$ is the score of a random negative observation
+
+Thus AUC measures:
+
+> the probability that a random positive observation receives a higher score than a random negative observation.
+
+This interpretation is fundamentally probabilistic and ranking-based.
+
+---
+
+# Why AUC Is Threshold-Free
+
+Accuracy depends on a specific threshold.
+
+AUC does not.
+
+Instead, AUC evaluates:
+
+```text
+ranking quality across all thresholds
+```
+
+This makes AUC particularly useful when the optimal threshold is unknown.
+
+---
+
+# Precision-Recall Curves
+
+A precision-recall curve plots:
+
+- precision
+- versus recall
+
+across thresholds.
+
+PR curves are especially useful for imbalanced datasets.
+
+---
+
+# ROC vs PR Curves
+
+ROC curves may appear optimistic under severe class imbalance.
+
+For example:
+
+- 99% negatives
+- very small FPR
+
+may still generate many false positives.
+
+PR curves reflect this problem more directly because they incorporate precision.
+
+Thus PR curves are often preferred for:
+
+```text
+rare-event detection
+```
+
+such as:
+
+- fraud detection
+- medical diagnosis
+- anomaly detection
+
+---
+
+# F1 Score
+
+The F1 score combines precision and recall:
+
+$$
+F1
+=
+\frac{2PR}{P+R}.
+$$
+
+where:
+
+- $P$ = precision
+- $R$ = recall
+
+This is the harmonic mean of precision and recall.
+
+---
+
+# Why Harmonic Mean?
+
+The harmonic mean strongly penalizes imbalance.
+
+For example:
+
+- precision = 1
+- recall = 0
+
+then:
+
+$$
+F1=0.
+$$
+
+Thus F1 favors classifiers that balance both quantities.
+
+---
+
+# Precision, Recall, and the Bias-Variance Tradeoff
+
+Precision and recall are also connected to the bias-variance tradeoff.
+
+Suppose a classifier is extremely conservative.
+
+It predicts positive only when highly certain.
+
+Then:
+
+- precision may be high
+- recall may be low
+
+This resembles a high-bias classifier.
+
+The classifier avoids risky decisions.
+
+---
+
+# Aggressive Classification and Variance
+
+Now suppose the classifier aggressively predicts positives.
+
+Then:
+
+- recall may increase
+- precision may decrease
+
+because the classifier becomes more sensitive to subtle patterns.
+
+This resembles lower bias but higher variance.
+
+The classifier becomes more flexible but also more unstable.
+
+---
+
+# Thresholds as Complexity Control
+
+Changing the classification threshold may itself be viewed as controlling effective complexity.
+
+A very low threshold produces:
+
+```text
+aggressive positive prediction
+```
+
+A very high threshold produces:
+
+```text
+conservative positive prediction
+```
+
+Thus threshold selection acts like a bias-variance tuning mechanism.
+
+---
+
+# Model Complexity and Precision-Recall Behavior
+
+Different model classes naturally produce different precision-recall behavior.
+
+Highly flexible models:
+
+- deep trees
+- boosting
+- neural networks
+
+may achieve higher recall by detecting subtle patterns.
+
+However, they may also generate more false positives.
+
+Simpler models:
+
+- linear models
+- regularized models
+
+may achieve higher precision but lower recall.
+
+Thus precision-recall behavior is closely tied to model complexity.
+
+---
+
+# Boosting and Recall
+
+Boosting methods such as AdaBoost and XGBoost often aggressively improve recall.
+
+Boosting repeatedly focuses on difficult observations.
+
+As a result, boosting tends to:
+
+- reduce false negatives
+- improve detection power
+
+However, overly aggressive boosting may increase false positives if the model begins fitting noise.
+
+Thus boosting often navigates a delicate precision-recall tradeoff.
+
+---
+
+# A Unified Statistical View
+
+We may summarize the relationships as follows.
+
+| Classification | Statistical Interpretation |
+|---|---|
+| False positive | Type I error |
+| False negative | Type II error |
+| Recall | Statistical power |
+| Precision | Reliability of discoveries |
+| Threshold | Significance cutoff |
+| ROC curve | Power vs Type I error |
+| AUC | Ranking probability |
+| Threshold tuning | Bias-variance tradeoff |
+
+---
+
+# Final Remarks
+
+Classification evaluation is fundamentally statistical.
+
+Metrics such as:
+
+- precision
+- recall
+- ROC curves
+- AUC
+- F1 score
+
+all arise naturally from:
+
+- statistical decision theory
+- hypothesis testing
+- uncertainty quantification
+- asymmetric error costs
+- model complexity control
+
+Recall measures the ability to detect true signals.
+
+Precision measures the reliability of positive discoveries.
+
+ROC curves study the tradeoff between detection power and false alarm rate.
+
+AUC measures ranking quality across all thresholds.
+
+Ultimately, classification is not merely about maximizing accuracy.
+
+It is about making statistically meaningful decisions under uncertainty while balancing competing risks.
+
+
+
+
+
+
+
+
+
+
+# Calibration and Probability Quality
+
+So far, we have discussed:
+
+- classification decisions
+- thresholds
+- precision and recall
+- ROC curves
+- AUC
+
+However, these evaluation tools primarily focus on:
+
+- classification quality
+- ranking quality
+- decision quality
+
+They do not directly evaluate whether the predicted probabilities themselves are trustworthy.
+
+This leads to an important additional question:
+
+> Are the predicted probabilities numerically correct?
+
+This question is addressed by calibration.
+
+---
+
+# What Is Calibration?
+
+Suppose a classifier predicts:
+
+$$
+P(Y=1\mid x)=0.8.
+$$
+
+A natural interpretation is:
+
+> approximately 80% of such observations should truly belong to the positive class.
+
+Calibration measures whether this interpretation is correct.
+
+Thus a classifier is well calibrated if:
+
+```text
+predicted probabilities
+≈
+observed frequencies
+```
+
+---
+
+# A Simple Example
+
+Suppose a model predicts probability 0.7 for 100 observations.
+
+If the model is well calibrated, then approximately:
+
+```text
+70 out of 100
+```
+
+should truly belong to the positive class.
+
+Similarly:
+
+- predicted 0.2 should correspond to roughly 20% positives
+- predicted 0.9 should correspond to roughly 90% positives
+
+Calibration therefore concerns:
+
+```text
+probability correctness
+```
+
+rather than merely classification accuracy.
+
+---
+
+# Calibration Versus Classification Accuracy
+
+This distinction is extremely important.
+
+A classifier may achieve:
+
+- high accuracy
+- high AUC
+- strong ranking performance
+
+while still producing poor probability estimates.
+
+Thus:
+
+> good classification does not necessarily imply good calibration.
+
+---
+
+# AUC Versus Calibration
+
+Recall that AUC measures:
+
+:contentReference[oaicite:0]{index=0}
+
+Thus AUC primarily evaluates:
+
+```text
+ranking quality
+```
+
+AUC asks:
+
+> Does the classifier rank positive observations above negative observations?
+
+Calibration asks something very different:
+
+> Are the predicted probabilities numerically meaningful?
+
+These are distinct properties.
+
+---
+
+# A Concrete Example
+
+Consider two models.
+
+---
+
+## Model A
+
+Predictions for positive observations:
+
+```text
+0.51
+0.52
+0.53
+```
+
+Predictions for negative observations:
+
+```text
+0.48
+0.47
+0.46
+```
+
+---
+
+## Model B
+
+Predictions for positive observations:
+
+```text
+0.99
+0.98
+0.97
+```
+
+Predictions for negative observations:
+
+```text
+0.02
+0.01
+0.03
+```
+
+---
+
+Both models may produce nearly identical rankings.
+
+Thus both may have similar AUC.
+
+However, their probability behavior is very different.
+
+Model B produces extremely confident predictions.
+
+If those probabilities are inaccurate, the model may be poorly calibrated despite excellent AUC.
+
+---
+
+# Calibration Curves
+
+A common visualization tool is the calibration curve, also called the reliability diagram.
+
+The basic idea is:
+
+1. Group observations according to predicted probabilities
+2. Compute empirical positive frequencies within each group
+3. Compare predicted probabilities with observed frequencies
+
+---
+
+# Reliability Diagram
+
+A reliability diagram plots:
+
+- predicted probability
+- versus observed frequency
+
+For a perfectly calibrated classifier:
+
+```text
+predicted probability
+=
+observed frequency
+```
+
+Thus the ideal calibration curve is the 45-degree line.
+
+---
+
+# Interpretation of Calibration Curves
+
+If the curve lies below the diagonal:
+
+```text
+model is overconfident
+```
+
+For example:
+
+- predicted probability = 0.9
+- actual frequency = 0.7
+
+The model predicts probabilities that are too extreme.
+
+---
+
+If the curve lies above the diagonal:
+
+```text
+model is underconfident
+```
+
+For example:
+
+- predicted probability = 0.3
+- actual frequency = 0.5
+
+The model predicts probabilities that are too conservative.
+
+---
+
+# Logistic Regression and Calibration
+
+Logistic regression often produces reasonably calibrated probabilities.
+
+This occurs because logistic regression directly models:
+
+:contentReference[oaicite:1]{index=1}
+
+using maximum likelihood estimation.
+
+Under reasonable model assumptions, the estimated probabilities often correspond fairly well to empirical frequencies.
+
+Thus logistic regression is frequently used as a baseline calibrated classifier.
+
+---
+
+# Boosting and Calibration
+
+Boosting methods such as:
+
+- AdaBoost
+- Gradient Boosting
+- XGBoost
+
+often achieve excellent classification accuracy and AUC.
+
+However, boosting models are frequently less well calibrated.
+
+---
+
+# Why Boosting May Be Poorly Calibrated
+
+Boosting repeatedly pushes observations farther from the decision boundary.
+
+In AdaBoost, this is closely related to margin growth.
+
+As boosting continues, predicted scores may become increasingly extreme.
+
+For example:
+
+```text
+0.001
+0.999
+```
+
+These extreme predictions improve separation and ranking quality, but they do not necessarily correspond to true probabilities.
+
+Thus boosting often produces:
+
+```text
+excellent ranking
+but overconfident probabilities
+```
+
+---
+
+# Random Forests and Calibration
+
+Random forests often produce probabilities that are somewhat conservative.
+
+Because predictions are averaged across many trees, the resulting probabilities may shrink toward the center.
+
+Thus random forests sometimes exhibit:
+
+```text
+underconfident probabilities
+```
+
+even when classification performance is strong.
+
+---
+
+# Calibration and the Bias-Variance Tradeoff
+
+Calibration is also connected to the bias-variance tradeoff.
+
+Very flexible models may overfit noise and produce:
+
+```text
+extreme probabilities
+```
+
+This increases variance and may damage calibration.
+
+Simpler models may produce:
+
+```text
+smoother probability estimates
+```
+
+which are sometimes better calibrated.
+
+Thus probability calibration depends not only on classification accuracy, but also on model complexity.
+
+---
+
+# Proper Scoring Rules
+
+Metrics such as accuracy and AUC evaluate decisions or rankings.
+
+Calibration requires evaluation of probability quality itself.
+
+This motivates proper scoring rules.
+
+---
+
+# Brier Score
+
+One important scoring rule is the Brier score:
+
+:contentReference[oaicite:2]{index=2}
+
+where:
+
+- $y_i$ is the true label
+- $p_i$ is the predicted probability
+
+The Brier score measures the quality of probabilistic forecasts.
+
+Lower Brier scores indicate better probability estimates.
+
+---
+
+# Calibration Methods
+
+If a classifier is poorly calibrated, post-processing methods may improve calibration.
+
+Two common approaches are:
+
+- Platt scaling
+- isotonic regression
+
+These methods adjust predicted scores to better match empirical frequencies.
+
+---
+
+# Platt Scaling
+
+Platt scaling fits a logistic regression model to the classifier scores.
+
+Suppose the original classifier outputs score:
+
+$$
+s(x).
+$$
+
+Platt scaling models:
+
+$$
+P(Y=1\mid s(x))
+$$
+
+using logistic regression.
+
+This often improves probability calibration while preserving ranking quality.
+
+---
+
+# Isotonic Regression
+
+Isotonic regression is a nonparametric calibration method.
+
+Unlike logistic calibration, isotonic regression does not assume a sigmoid shape.
+
+Instead, it learns a monotone transformation of the predicted scores.
+
+This method is more flexible but may overfit on small datasets.
+
+---
+
+# Three Different Evaluation Goals
+
+Classification evaluation actually involves several distinct goals.
+
+---
+
+## Decision Quality
+
+Measured by:
+
+- precision
+- recall
+- F1 score
+
+These metrics evaluate threshold-based decisions.
+
+---
+
+## Ranking Quality
+
+Measured by:
+
+- ROC curves
+- AUC
+
+These metrics evaluate ordering performance.
+
+---
+
+## Probability Quality
+
+Measured by:
+
+- calibration curves
+- Brier score
+
+These metrics evaluate probability correctness.
+
+---
+
+# A Unified Perspective
+
+These perspectives answer different statistical questions.
+
+| Evaluation Goal | Main Question |
+|---|---|
+| Accuracy | How often are predictions correct? |
+| Precision/Recall | How good are the classification decisions? |
+| ROC/AUC | How well are observations ranked? |
+| Calibration | Are probabilities trustworthy? |
+
+Thus classification evaluation is inherently multidimensional.
+
+---
+
+# Final Remarks
+
+Calibration is one of the most important and most overlooked aspects of classification.
+
+A classifier may achieve:
+
+- excellent accuracy
+- excellent AUC
+- excellent ranking performance
+
+while still producing unreliable probabilities.
+
+This distinction is especially important in applications where probabilities themselves drive decisions, such as:
+
+- medicine
+- finance
+- risk assessment
+- weather forecasting
+
+Calibration therefore completes the statistical picture of classification evaluation.
+
+Classification models should be evaluated not only by:
+
+- how well they classify
+- how well they rank
+
+but also by:
+
+> how well their predicted probabilities reflect reality.

@@ -1,3 +1,7 @@
+---
+jupyter: stats
+---
+
 # Statistical Learning Basics
 
 
@@ -24,7 +28,7 @@ H7: clustering
 
 
 
-
+6 weeks, week1 linear regression and basic python/sklearn, week2 ridge/lasso/pcr/pls, week3 logsitc/lds/decesion theory, week4 knn+tree, week5 bagging+boosting, week 6 clustering
 
 
 
@@ -212,7 +216,7 @@ The broad progression is:
 
 
 
-
+<!-- 
 
 
 
@@ -800,7 +804,7 @@ In R, `plot(fit)` automatically generates four diagnostic plots. In Python, you 
 ## 4. Required Libraries for the Course
 To set up a Python environment equivalent to the R statistical suite, run:
 
-
+ -->
 
 
 
@@ -920,3 +924,688 @@ Causal inference is more difficult because:
 
 **Final takeaway:**
 > Prediction is validated by data, inference is justified by assumptions, and causality requires design.
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+# Precision, Recall, Hypothesis Testing, and the Bias-Variance Tradeoff
+
+## Introduction
+
+In many introductory machine learning courses, precision and recall are introduced as simple formulas computed from a confusion matrix. However, this approach often hides the deeper statistical meaning behind these quantities.
+
+Precision and recall are fundamentally connected to:
+
+- statistical decision theory
+- hypothesis testing
+- asymmetric loss
+- uncertainty
+- threshold selection
+- the bias-variance tradeoff
+
+To fully understand classification, we must recognize an important fact:
+
+> Classification is not merely prediction.
+> It is decision making under uncertainty.
+
+A classifier does not directly observe the truth. Instead, it observes noisy predictors and attempts to make decisions about class membership. Different types of mistakes may have very different consequences.
+
+This is where precision and recall become important.
+
+---
+
+# Binary Classification Setup
+
+Suppose we have a binary classification problem.
+
+The true class is:
+
+$$
+Y \in \{0,1\}
+$$
+
+where:
+
+- $Y=1$ represents the positive class
+- $Y=0$ represents the negative class
+
+The classifier produces predictions:
+
+$$
+\hat Y \in \{0,1\}.
+$$
+
+The outcomes may be summarized using the confusion matrix.
+
+| | Predicted Positive | Predicted Negative |
+|---|---|---|
+| True Positive Class | TP | FN |
+| True Negative Class | FP | TN |
+
+where:
+
+- TP = true positives
+- FP = false positives
+- FN = false negatives
+- TN = true negatives
+
+---
+
+# Accuracy and Its Limitations
+
+The most obvious performance measure is accuracy:
+
+$$
+\text{Accuracy}
+=
+\frac{TP+TN}{N}.
+$$
+
+Accuracy measures the proportion of correct predictions.
+
+At first glance, this seems reasonable. However, accuracy implicitly assumes:
+
+> all mistakes have equal importance.
+
+In practice, this assumption is often unrealistic.
+
+For example:
+
+- missing cancer may be much worse than a false alarm
+- falsely accusing an innocent person may be worse than missing a criminal
+- incorrectly flagging legitimate transactions may frustrate customers
+
+Thus many classification problems involve asymmetric decision costs.
+
+This motivates precision and recall.
+
+---
+
+# Recall
+
+Recall is defined as:
+
+$$
+\text{Recall}
+=
+\frac{TP}{TP+FN}.
+$$
+
+Recall measures:
+
+> Among all truly positive observations,
+> how many were successfully detected?
+
+Equivalently:
+
+:contentReference[oaicite:0]{index=0}
+
+Thus recall is a conditional probability.
+
+It measures how sensitive the classifier is to positive observations.
+
+For this reason, recall is also called:
+
+- sensitivity
+- true positive rate
+
+---
+
+# Statistical Interpretation of Recall
+
+Recall is fundamentally related to:
+
+```text
+detection ability
+```
+
+A classifier with high recall rarely misses true positive observations.
+
+Low recall means:
+
+```text
+many false negatives
+```
+
+In statistical language, recall is closely connected to:
+
+```text
+Type II error
+```
+
+or equivalently:
+
+```text
+statistical power
+```
+
+since:
+
+$$
+\text{Power}
+=
+1-\text{Type II Error}.
+$$
+
+Thus recall is essentially the probability of correctly detecting a true signal.
+
+---
+
+# Hypothesis Testing Interpretation of Recall
+
+Suppose we formulate classification as hypothesis testing.
+
+For each observation:
+
+$$
+H_0: Y=0
+$$
+
+versus
+
+$$
+H_1: Y=1.
+$$
+
+Then:
+
+- predicting positive corresponds to rejecting $H_0$
+- predicting negative corresponds to failing to reject $H_0$
+
+Under this interpretation:
+
+| Classification | Hypothesis Testing |
+|---|---|
+| False positive | Type I error |
+| False negative | Type II error |
+
+Thus recall becomes:
+
+$$
+P(\text{Reject }H_0 \mid H_1 \text{ true}),
+$$
+
+which is precisely statistical power.
+
+This is one of the deepest statistical interpretations of recall.
+
+---
+
+# Precision
+
+Precision is defined as:
+
+$$
+\text{Precision}
+=
+\frac{TP}{TP+FP}.
+$$
+
+Precision measures:
+
+> Among all predicted positive observations,
+> how many are truly positive?
+
+Equivalently:
+
+:contentReference[oaicite:1]{index=1}
+
+Notice that this conditional probability is reversed compared with recall.
+
+Recall conditions on the truth.
+
+Precision conditions on the prediction.
+
+This distinction is extremely important.
+
+---
+
+# Statistical Interpretation of Precision
+
+Precision measures:
+
+```text
+trustworthiness of positive predictions
+```
+
+High precision means:
+
+- few false positives
+- positive predictions are reliable
+
+Low precision means:
+
+- many false alarms
+- many predicted positives are actually negative
+
+Thus precision is closely related to:
+
+```text
+false discovery control
+```
+
+and:
+
+```text
+positive predictive value
+```
+
+in medical statistics.
+
+---
+
+# Precision and Bayes' Rule
+
+Precision and recall are connected through Bayes' theorem.
+
+Recall is:
+
+$$
+P(\hat Y=1\mid Y=1).
+$$
+
+Precision is:
+
+$$
+P(Y=1\mid \hat Y=1).
+$$
+
+Bayes' rule gives:
+
+:contentReference[oaicite:2]{index=2}
+
+Thus precision depends not only on recall, but also on:
+
+- class prevalence
+- prediction frequency
+
+This explains why precision can collapse in highly imbalanced datasets.
+
+---
+
+# Class Imbalance
+
+Suppose only 1% of observations are positive.
+
+Even a classifier with high recall may have poor precision.
+
+For example:
+
+- 100 true positives
+- 900 false positives
+
+Then:
+
+$$
+\text{Recall}
+=
+1
+$$
+
+but:
+
+$$
+\text{Precision}
+=
+\frac{100}{1000}
+=
+0.1.
+$$
+
+Thus most predicted positives are incorrect.
+
+This is why accuracy alone becomes misleading under class imbalance.
+
+---
+
+# Thresholds and Decision Rules
+
+Most classifiers produce scores or probabilities:
+
+$$
+p(x)=P(Y=1\mid x).
+$$
+
+A final classification requires a threshold:
+
+$$
+\hat Y=
+\begin{cases}
+1 & p(x)>c\\
+0 & p(x)\le c
+\end{cases}
+$$
+
+where $c$ is the classification threshold.
+
+Changing the threshold changes precision and recall.
+
+---
+
+# Precision-Recall Tradeoff
+
+Suppose we lower the threshold.
+
+Then the classifier predicts positive more aggressively.
+
+This usually causes:
+
+- recall to increase
+- precision to decrease
+
+because:
+
+- more true positives are detected
+- but more false positives are also generated
+
+Conversely, raising the threshold produces:
+
+- higher precision
+- lower recall
+
+Thus precision and recall naturally trade off against each other.
+
+---
+
+# Statistical Decision Theory
+
+This tradeoff is fundamentally a decision-theoretic problem.
+
+Classification is not merely about finding the truth.
+
+Instead, it is about:
+
+> making decisions under uncertainty while balancing different error costs.
+
+Different applications prioritize different errors.
+
+---
+
+# Medical Screening Example
+
+Suppose we are screening for cancer.
+
+Missing a cancer patient may be extremely costly.
+
+Thus false negatives are dangerous.
+
+Therefore we prioritize:
+
+```text
+high recall
+```
+
+Even if this creates more false positives.
+
+Extra medical testing may be acceptable if it reduces missed diagnoses.
+
+---
+
+# Spam Filtering Example
+
+Now consider spam detection.
+
+If precision is low, many legitimate emails will be flagged as spam.
+
+Users may become frustrated.
+
+Thus precision becomes more important.
+
+This illustrates that the optimal tradeoff depends on the application.
+
+---
+
+# Precision, Recall, and the Bias-Variance Tradeoff
+
+Precision and recall are also connected to the bias-variance tradeoff.
+
+Suppose a classifier is extremely conservative.
+
+It predicts positive only when highly certain.
+
+Then:
+
+- precision may be high
+- recall may be low
+
+This resembles a high-bias classifier.
+
+The classifier avoids risky decisions.
+
+---
+
+# High Variance and Aggressive Classification
+
+Now suppose the classifier aggressively predicts positives.
+
+Then:
+
+- recall may increase
+- precision may decrease
+
+because the classifier begins fitting more subtle patterns.
+
+This resembles lower bias but higher variance.
+
+The classifier becomes more flexible and sensitive, but also more unstable.
+
+---
+
+# Thresholds as Complexity Control
+
+Changing the classification threshold can itself be viewed as controlling effective model complexity.
+
+A very low threshold creates:
+
+```text
+aggressive positive prediction
+```
+
+A very high threshold creates:
+
+```text
+conservative positive prediction
+```
+
+Thus threshold selection acts like a bias-variance tuning mechanism.
+
+---
+
+# Example: Logistic Regression
+
+Suppose logistic regression estimates:
+
+$$
+P(Y=1\mid x).
+$$
+
+If we classify positive whenever:
+
+$$
+P(Y=1\mid x)>0.5,
+$$
+
+then the classifier behaves moderately.
+
+If we instead use:
+
+$$
+P(Y=1\mid x)>0.1,
+$$
+
+the classifier becomes far more aggressive.
+
+This usually increases recall but decreases precision.
+
+---
+
+# Precision-Recall Curves
+
+A precision-recall curve shows how precision changes as recall changes across thresholds.
+
+This curve is especially important for imbalanced datasets.
+
+Unlike ROC curves, precision-recall curves directly reflect the quality of positive predictions.
+
+---
+
+# F1 Score
+
+Sometimes we want to balance precision and recall simultaneously.
+
+The F1 score is:
+
+$$
+F1
+=
+\frac{2PR}{P+R},
+$$
+
+where:
+
+- $P$ = precision
+- $R$ = recall
+
+This is the harmonic mean of precision and recall.
+
+---
+
+# Why Harmonic Mean?
+
+The harmonic mean heavily penalizes imbalance.
+
+For example:
+
+- precision = 1
+- recall = 0
+
+then:
+
+$$
+F1=0.
+$$
+
+Thus F1 favors classifiers that balance both quantities.
+
+---
+
+# Precision, Recall, and Model Flexibility
+
+Different models naturally produce different precision-recall behaviors.
+
+Highly flexible models:
+
+- deeper trees
+- boosting
+- neural networks
+
+may achieve higher recall by detecting subtle patterns.
+
+However, they may also generate more false positives.
+
+Simpler models:
+
+- linear models
+- regularized models
+
+may produce fewer false positives but miss weaker signals.
+
+Thus precision-recall behavior is deeply tied to model complexity.
+
+---
+
+# Boosting and Recall
+
+Boosting methods such as AdaBoost and XGBoost often aggressively improve recall.
+
+Boosting repeatedly focuses on difficult observations.
+
+As a result, boosting tends to:
+
+- reduce false negatives
+- improve detection power
+
+However, aggressive boosting may also increase false positives if the model begins fitting noise.
+
+Thus boosting often navigates a delicate precision-recall tradeoff.
+
+---
+
+# Hypothesis Testing Analogy
+
+The connection between classification and hypothesis testing is profound.
+
+Classification threshold selection resembles choosing a significance level.
+
+For example:
+
+- lower threshold
+  - easier to reject $H_0$
+  - higher recall
+  - more false positives
+
+- higher threshold
+  - harder to reject $H_0$
+  - lower recall
+  - fewer false positives
+
+This parallels:
+
+- liberal tests
+- conservative tests
+
+in classical hypothesis testing.
+
+---
+
+# Unified Statistical View
+
+We may summarize the connections as follows.
+
+| Classification | Hypothesis Testing |
+|---|---|
+| Positive prediction | Reject $H_0$ |
+| Negative prediction | Fail to reject $H_0$ |
+| False positive | Type I error |
+| False negative | Type II error |
+| Recall | Power |
+| Precision | Reliability of discoveries |
+
+This unified viewpoint connects machine learning classification directly to classical statistics.
+
+---
+
+# Final Remarks
+
+Precision and recall are not merely machine learning metrics.
+
+They arise naturally from:
+
+- statistical decision theory
+- hypothesis testing
+- uncertainty quantification
+- asymmetric loss
+- bias-variance tradeoffs
+
+Recall measures the ability to detect true signals.
+
+Precision measures the reliability of positive discoveries.
+
+Different applications require different balances between these quantities.
+
+Ultimately, classification is not simply about maximizing accuracy.
+
+It is about making statistically meaningful decisions under uncertainty while balancing competing risks. -->
+
+

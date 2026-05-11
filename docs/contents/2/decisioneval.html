@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Appendix A — Python IDE Setup – Statistical Learning</title>
+<title>7&nbsp; Classification Decisions and Evaluation – Statistical Learning</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,41 +23,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -68,8 +33,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../contents/app/venv.html" rel="next">
-<link href="../../contents/4/cluster.html" rel="prev">
+<link href="../../contents/3/tree.html" rel="next">
+<link href="../../contents/2/lda.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -112,6 +77,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles/fonts.css">
 <link rel="stylesheet" href="../../styles/blocks.css">
@@ -289,7 +283,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-          <h1 class="quarto-secondary-nav-title">Appendix A — Python IDE Setup</h1>
+          <h1 class="quarto-secondary-nav-title"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Classification Decisions and Evaluation</span></h1>
         </a>     
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
@@ -364,13 +358,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
  <span class="menu-text">Classification</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/2/logistic.html" class="sidebar-item-text sidebar-link">
@@ -381,6 +375,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../../contents/2/lda.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">LDA</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/decisioneval.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Classification Decisions and Evaluation</span></span></a>
   </div>
 </li>
       </ul>
@@ -397,19 +397,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/3/tree.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/3/rf.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Ensemble Methods</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Ensemble Methods</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/3/boost.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Optional: pip install xgboost</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Optional: pip install xgboost</span></span></a>
   </div>
 </li>
       </ul>
@@ -426,35 +426,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/4/knn.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">KNN Regression</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">KNN Regression</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/4/kernel.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">kernel.html</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">kernel.html</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/4/cluster.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">cluster.html</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">cluster.html</span></span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
  <span class="menu-text">Appendices</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../contents/app/ide.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../contents/app/ide.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Python IDE Setup</span></span></a>
   </div>
 </li>
@@ -476,9 +476,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#sec-vscode" id="toc-sec-vscode" class="nav-link active" data-scroll-target="#sec-vscode"><span class="header-section-number">A.1</span> VS Code</a></li>
-  <li><a href="#python-virtual-environment-installation" id="toc-python-virtual-environment-installation" class="nav-link" data-scroll-target="#python-virtual-environment-installation"><span class="header-section-number">A.2</span> Python Virtual Environment installation</a></li>
-  <li><a href="#back-to-vs-code-and-start-jupyter-notebook" id="toc-back-to-vs-code-and-start-jupyter-notebook" class="nav-link" data-scroll-target="#back-to-vs-code-and-start-jupyter-notebook"><span class="header-section-number">A.3</span> Back to VS Code and start Jupyter notebook</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">7.1</span> Introduction</a></li>
+  <li><a href="#binary-classification-setup" id="toc-binary-classification-setup" class="nav-link" data-scroll-target="#binary-classification-setup"><span class="header-section-number">8</span> Binary Classification Setup</a></li>
+  <li><a href="#accuracy" id="toc-accuracy" class="nav-link" data-scroll-target="#accuracy"><span class="header-section-number">9</span> Accuracy</a></li>
+  <li><a href="#recall" id="toc-recall" class="nav-link" data-scroll-target="#recall"><span class="header-section-number">10</span> Recall</a></li>
+  <li><a href="#statistical-interpretation-of-recall" id="toc-statistical-interpretation-of-recall" class="nav-link" data-scroll-target="#statistical-interpretation-of-recall"><span class="header-section-number">11</span> Statistical Interpretation of Recall</a></li>
+  <li><a href="#precision" id="toc-precision" class="nav-link" data-scroll-target="#precision"><span class="header-section-number">12</span> Precision</a></li>
+  <li><a href="#statistical-interpretation-of-precision" id="toc-statistical-interpretation-of-precision" class="nav-link" data-scroll-target="#statistical-interpretation-of-precision"><span class="header-section-number">13</span> Statistical Interpretation of Precision</a></li>
+  <li><a href="#bayes-rule-connection" id="toc-bayes-rule-connection" class="nav-link" data-scroll-target="#bayes-rule-connection"><span class="header-section-number">14</span> Bayes’ Rule Connection</a></li>
+  <li><a href="#class-imbalance" id="toc-class-imbalance" class="nav-link" data-scroll-target="#class-imbalance"><span class="header-section-number">15</span> Class Imbalance</a></li>
+  <li><a href="#classification-thresholds" id="toc-classification-thresholds" class="nav-link" data-scroll-target="#classification-thresholds"><span class="header-section-number">16</span> Classification Thresholds</a></li>
+  <li><a href="#precision-recall-tradeoff" id="toc-precision-recall-tradeoff" class="nav-link" data-scroll-target="#precision-recall-tradeoff"><span class="header-section-number">17</span> Precision-Recall Tradeoff</a></li>
+  <li><a href="#statistical-decision-theory" id="toc-statistical-decision-theory" class="nav-link" data-scroll-target="#statistical-decision-theory"><span class="header-section-number">18</span> Statistical Decision Theory</a></li>
+  <li><a href="#medical-screening-example" id="toc-medical-screening-example" class="nav-link" data-scroll-target="#medical-screening-example"><span class="header-section-number">19</span> Medical Screening Example</a></li>
+  <li><a href="#spam-filtering-example" id="toc-spam-filtering-example" class="nav-link" data-scroll-target="#spam-filtering-example"><span class="header-section-number">20</span> Spam Filtering Example</a></li>
+  <li><a href="#hypothesis-testing-interpretation" id="toc-hypothesis-testing-interpretation" class="nav-link" data-scroll-target="#hypothesis-testing-interpretation"><span class="header-section-number">21</span> Hypothesis Testing Interpretation</a></li>
+  <li><a href="#thresholds-and-significance-levels" id="toc-thresholds-and-significance-levels" class="nav-link" data-scroll-target="#thresholds-and-significance-levels"><span class="header-section-number">22</span> Thresholds and Significance Levels</a></li>
+  <li><a href="#roc-curves" id="toc-roc-curves" class="nav-link" data-scroll-target="#roc-curves"><span class="header-section-number">23</span> ROC Curves</a></li>
+  <li><a href="#roc-curves-and-hypothesis-testing" id="toc-roc-curves-and-hypothesis-testing" class="nav-link" data-scroll-target="#roc-curves-and-hypothesis-testing"><span class="header-section-number">24</span> ROC Curves and Hypothesis Testing</a></li>
+  <li><a href="#interpreting-roc-curves" id="toc-interpreting-roc-curves" class="nav-link" data-scroll-target="#interpreting-roc-curves"><span class="header-section-number">25</span> Interpreting ROC Curves</a></li>
+  <li><a href="#auc" id="toc-auc" class="nav-link" data-scroll-target="#auc"><span class="header-section-number">26</span> AUC</a></li>
+  <li><a href="#why-auc-is-threshold-free" id="toc-why-auc-is-threshold-free" class="nav-link" data-scroll-target="#why-auc-is-threshold-free"><span class="header-section-number">27</span> Why AUC Is Threshold-Free</a></li>
+  <li><a href="#precision-recall-curves" id="toc-precision-recall-curves" class="nav-link" data-scroll-target="#precision-recall-curves"><span class="header-section-number">28</span> Precision-Recall Curves</a></li>
+  <li><a href="#roc-vs-pr-curves" id="toc-roc-vs-pr-curves" class="nav-link" data-scroll-target="#roc-vs-pr-curves"><span class="header-section-number">29</span> ROC vs PR Curves</a></li>
+  <li><a href="#f1-score" id="toc-f1-score" class="nav-link" data-scroll-target="#f1-score"><span class="header-section-number">30</span> F1 Score</a></li>
+  <li><a href="#why-harmonic-mean" id="toc-why-harmonic-mean" class="nav-link" data-scroll-target="#why-harmonic-mean"><span class="header-section-number">31</span> Why Harmonic Mean?</a></li>
+  <li><a href="#precision-recall-and-the-bias-variance-tradeoff" id="toc-precision-recall-and-the-bias-variance-tradeoff" class="nav-link" data-scroll-target="#precision-recall-and-the-bias-variance-tradeoff"><span class="header-section-number">32</span> Precision, Recall, and the Bias-Variance Tradeoff</a></li>
+  <li><a href="#aggressive-classification-and-variance" id="toc-aggressive-classification-and-variance" class="nav-link" data-scroll-target="#aggressive-classification-and-variance"><span class="header-section-number">33</span> Aggressive Classification and Variance</a></li>
+  <li><a href="#thresholds-as-complexity-control" id="toc-thresholds-as-complexity-control" class="nav-link" data-scroll-target="#thresholds-as-complexity-control"><span class="header-section-number">34</span> Thresholds as Complexity Control</a></li>
+  <li><a href="#model-complexity-and-precision-recall-behavior" id="toc-model-complexity-and-precision-recall-behavior" class="nav-link" data-scroll-target="#model-complexity-and-precision-recall-behavior"><span class="header-section-number">35</span> Model Complexity and Precision-Recall Behavior</a></li>
+  <li><a href="#boosting-and-recall" id="toc-boosting-and-recall" class="nav-link" data-scroll-target="#boosting-and-recall"><span class="header-section-number">36</span> Boosting and Recall</a></li>
+  <li><a href="#a-unified-statistical-view" id="toc-a-unified-statistical-view" class="nav-link" data-scroll-target="#a-unified-statistical-view"><span class="header-section-number">37</span> A Unified Statistical View</a></li>
+  <li><a href="#final-remarks" id="toc-final-remarks" class="nav-link" data-scroll-target="#final-remarks"><span class="header-section-number">38</span> Final Remarks</a></li>
   </ul>
 </nav>
     </div>
@@ -488,7 +517,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block">Appendix A — Python IDE Setup</h1>
+<h1 class="title d-none d-lg-block"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Classification Decisions and Evaluation</span></h1>
 </div>
 
 
@@ -505,362 +534,649 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>There are so many different ways to setup Python develop environment. Each has its own pros and cons. In this tuturial we are going to cover one of the most popular setups, which is VS Code + <code>uv</code>.</p>
-<section id="sec-vscode" class="level2" data-number="A.1">
-<h2 data-number="A.1" class="anchored" data-anchor-id="sec-vscode"><span class="header-section-number">A.1</span> VS Code</h2>
-<p>We choose VS Code as our IDE for Python. The installation is straightforward starting from the <a href="https://code.visualstudio.com/">Official website</a>. After installation, we need to do a few configurations to make the experience better.</p>
-<ol type="1">
-<li>For development of Python, the essential plugins are the Python plugin and Jupyter plugin. You only need to install the two main ones, and all related plugins will be installed automatically.</li>
-</ol>
-<p><img src="assests/img/20250811114515.png" class="img-fluid"></p>
-<ol start="2" type="1">
-<li>You may start the terminal from top menu. Note that there are many different choices of terminals. After you start the first default terminal, you may start any new terminals using the small <code>+</code>.</li>
-</ol>
-<p><img src="assests/img/20250811120220.png" class="img-fluid"></p>
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Caution</span>Change Terminal default profile
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>In Windows the default terminal is Powershell when you first install VS Code. In the past it had bugs with <code>conda</code> (and I don’t know whether it is fixed now). In order to avoid headaches due to the bugs, we simply switch to other terminals, like Command Prompt. You may change the default terminal by</p>
-<ol type="1">
-<li>Press <code>Ctrl+Shift+P</code> or <code>F1</code> to open the top prompt menu.</li>
-<li>Find the <code>Terminal: Select Default Profile</code> command.</li>
-</ol>
-<p><img src="assests/img/20250811114818.png" class="img-fluid"></p>
-<ol start="3" type="1">
-<li>Select the desired terminal as the default one.</li>
-</ol>
-<p><img src="assests/img/20250811114921.png" class="img-fluid"></p>
-</div>
-</div>
-</div>
-<ol start="3" type="1">
-<li>Since many Python functionalities in VS Code depends on Python itself, we should turn to install Python now.</li>
-</ol>
-</section>
-<section id="python-virtual-environment-installation" class="level2" data-number="A.2">
-<h2 data-number="A.2" class="anchored" data-anchor-id="python-virtual-environment-installation"><span class="header-section-number">A.2</span> Python Virtual Environment installation</h2>
-<p>We have three choices here: <code>conda</code>, <code>pip</code> and <code>uv</code>. Each tool has its pros and cons. After setting up, for this course they shouldn’t have any major differences.</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span><code>conda</code>
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>First go to the <a href="https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions">Official website</a> to download and install <code>conda</code>. I recommand using <code>miniconda</code> instead of <code>anaconda</code> to avoid installing tons of unnecessary packages.</p>
-<p>When installing, please choose <code>Just Me</code> and <code>Add Miniconda3 to my Path environment variable</code>. (If you choose <code>All users</code> it is possible that <code>Add to Path var</code> won’t show up.) The <code>Add to Path var</code> is not recommended because it might be complicated in some situation, but if this is your first installation of Python or you want to mainly use <code>conda</code> it is completely fine.</p>
-<p><img src="assests/img/20250811121433.png" class="img-fluid"></p>
-<p>You may need to restart VS Code after the installation. Then open a terminal and use <code>conda --version</code> to test whether the installation is successful.</p>
-<p>Then use the following command to setup the first virtual environment for this course.</p>
-<ol type="1">
-<li>Create a new virtual environment. Note that your name can be anything and is not limited to <code>venv</code>:</li>
-</ol>
-<pre><code>conda create --name venv</code></pre>
-<ol start="2" type="1">
-<li>Activate the virtual environment.</li>
-</ol>
-<pre><code>conda activate venv</code></pre>
-<ol start="3" type="1">
-<li>Install packages.
-<ul>
-<li><code>pandas</code>, <code>matplotlib</code> and <code>scikit-learn</code> are packages for the course.</li>
-<li><code>jupyter</code> is a package used to power Jupyter notebook as well as the VS Code interative window. It is essential for homework for the course.</li>
-</ul></li>
-</ol>
-<pre><code>conda install pandas matplotlib scikit-learn jupyter</code></pre>
-</div>
-</div>
-</div>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span><code>venv</code>
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>This is the default Python virtual environment tools. It is definitely not as good as the other tools, but in many situations that you cannot freely install applications this is your only choice. To use it, you should first have a Python installed. This Python can be from anywhere. For example, we could install it from the <a href="https://www.python.org/downloads/">Official website</a>.</p>
-<p>Unlike <code>conda</code>, <code>venv</code> by default creates local environmnet. It creates a folder in your working folder, and install packages inside this folder.</p>
-<ol type="1">
-<li>Create a new virtual environment. Here the last <code>venv</code> is the name of the virtual environment, as well as the name of the environment folder. You can freely change it to anything.</li>
-</ol>
-<pre><code>python -m venv venv</code></pre>
-<ol start="2" type="1">
-<li>Activate the environment by <code>venv\scripts\activate</code> in Windows Command Prompt or <code>source venv/bin/activate</code> in Linux Bash.</li>
-<li>Install packages.
-<ul>
-<li><code>pandas</code>, <code>matplotlib</code> and <code>scikit-learn</code> are packages for the course.</li>
-<li><code>jupyter</code> is a package used to power Jupyter notebook as well as the VS Code interative window. It is essential for homework for the course.</li>
-</ul></li>
-</ol>
-<pre><code>pip install pandas matplotlib scikit-learn jupyter</code></pre>
-</div>
-</div>
-</div>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span><code>uv</code>
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p><code>uv</code> is a new tool that can be used to manage Python virtual environments and packages. Its idea is very similar to the Python built-in tools and it can be used as a drop-in replacement of <code>pip</code>. With <code>uv</code> you don’t need to have any Python installed (just like <code>conda</code>). You may go to the <a href="https://docs.astral.sh/uv/getting-started/installation/">Official website</a> to download and install <code>uv</code>.</p>
-<ol type="1">
-<li>Create a new virtual environment. Here the last <code>venv</code> is the name of the virtual environment, as well as the name of the environment folder. You can freely change it to anything.</li>
-</ol>
-<pre><code>uv venv venv</code></pre>
-<ol start="2" type="1">
-<li>Activate the environment by <code>venv\scripts\activate</code> in Windows Command Prompt or <code>source venv/bin/activate</code> in Linux Bash.</li>
-<li>Install packages.
-<ul>
-<li><code>pandas</code>, <code>matplotlib</code> and <code>scikit-learn</code> are packages for the course.</li>
-<li><code>jupyter</code> is a package used to power Jupyter notebook as well as the VS Code interative window. It is essential for homework for the course.</li>
-</ul></li>
-</ol>
-<pre><code>uv pip install pandas matplotlib scikit-learn jupyter</code></pre>
-</div>
-</div>
-</div>
-</section>
-<section id="back-to-vs-code-and-start-jupyter-notebook" class="level2" data-number="A.3">
-<h2 data-number="A.3" class="anchored" data-anchor-id="back-to-vs-code-and-start-jupyter-notebook"><span class="header-section-number">A.3</span> Back to VS Code and start Jupyter notebook</h2>
-<p>After Python is installed and virtual environment is set up, we could start to do a Hello World project.</p>
-<p>The way VS Code organizes projects is through folders by default. So we first start a new folder (called the working folder) and all project related files should be put inside this folder. (There are ways to work with files outside the working folder, but you don’t need it in most cases.)</p>
-<p><img src="assests/img/20250811124111.png" class="img-fluid"></p>
-<p>Then you may create new files/folders or copy files/folders into this working folder. For demonstration a new file called <code>helloworld.ipynb</code> is created.</p>
-<p><code>ipynb</code> means this is a Jupyter notebook file (which is short for <code>interactive Python notebook</code>). This is the format for this course’s homework assignment.</p>
-<p>This is the appearance of an empty notebook file.</p>
-<p><img src="assests/img/20250811125155.png" class="img-fluid"></p>
-<p>Before using we need to attach the virtual environment we just created to this notebook. Click the <code>Select Kernel</code> on the right upper corner and select the environment we want.</p>
-<p><img src="assests/img/20250811125322.png" class="img-fluid"></p>
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Caution</span>Expose kernels
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-5" class="callout-5-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>By default <code>conda</code> creates global virtual environment while <code>pip</code>/<code>uv</code> creates local virtual environment. You may always use the following method to expose your environments to other projects when necessary.</p>
-<ol type="1">
-<li>Make sure <code>ipykernel</code> package is installed.</li>
-<li>In the desired environment, run the command <code>python -m ipykernel install --user --name venv --display-name "Python (myenv)"</code>.</li>
-<li>Then you may find it in VS Code as the name “Python (myenv)”.</li>
-</ol>
-</div>
-</div>
-</div>
-<p>Now we could start using a notebook. The best part about the notebook is that it can acommendate codes and narratives and outputs together in one file.</p>
-<p><img src="assests/img/20250811140034.png" class="img-fluid"></p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Quick Markdown syntax
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-6" class="callout-6-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>Markdown is a light weight text format. For this course we only use the most basic syntax.</p>
-<ol type="1">
-<li>Text Formatting</li>
-</ol>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Markdown Syntax</th>
-<th>Output</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>*italics*, **bold**, ***bold italics***</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
-<td><em>italics</em>, <strong>bold</strong>, <strong><em>bold italics</em></strong></td>
-</tr>
-<tr class="even">
-<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>superscript^2^ / subscript~2~</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
-<td>superscript<sup>2</sup> / subscript<sub>2</sub></td>
-</tr>
-<tr class="odd">
-<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>~~strikethrough~~</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
-<td><del>strikethrough</del></td>
-</tr>
-<tr class="even">
-<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="in">`verbatim code`</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
-<td><code>verbatim code</code></td>
-</tr>
-</tbody>
-</table>
-<ol start="2" type="1">
-<li>Headings {#headings}</li>
-</ol>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Markdown Syntax</th>
-<th>Output</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Heading 1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
-<td><h1 id="heading-1" class="unnumbered">Heading 1</h1></td>
-</tr>
-<tr class="even">
-<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">## Heading 2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
-<td><h2 id="heading-2" class="unnumbered anchored">Heading 2</h2></td>
-</tr>
-<tr class="odd">
-<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">### Heading 3</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
-<td><h3 id="heading-3" class="unnumbered anchored">Heading 3</h3></td>
-</tr>
-</tbody>
-</table>
-<ol start="3" type="1">
-<li>Lists</li>
-</ol>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Markdown Syntax</th>
-<th>Output</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>unordered list</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="ss">  + </span>sub-item 1</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  + </span>sub-item 2</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>sub-sub-item 1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
-<td><ul>
-<li>unordered list
-<ul>
-<li>sub-item 1</li>
-<li>sub-item 2
-<ul>
-<li>sub-sub-item 1</li>
-</ul></li>
-</ul></li>
-</ul></td>
-</tr>
-<tr class="even">
-<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>ordered list</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>item 2</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>   i) sub-item 1</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>      A.  sub-sub-item 1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
-<td><ol type="1">
-<li>ordered list</li>
-<li>item 2
-<ol type="i">
-<li>sub-item 1
-<ol type="A">
-<li>sub-sub-item 1</li>
-</ol></li>
-</ol></li>
-</ol></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
 <!-- 
-## Google Colab {#sec-googlecolab}
 
-Google Colab is a product from Google Research, that allows anybody to write and execute arbitrary Python code through the browser, and is especially well suited to machine learning, data analysis and education.
-
-Here is the link to [Google Colab](https://research.google.com/colaboratory/). To use it you should have a Google account. Otherwise it is very simple to start, since a lot of packages for our course are already installed.
-
-### Install packages
-
-If you would like to install more packages, you can type the following code in a code cell and execute it.
-
-``` bash
-%pip install <pkg name>
-```
-
-``` bash
-%conda install <pkg name>
-```
-
-The drawback here is that Google Colab can only stay for 24 hours. After that, all additionaly installed packages will be earsed. However you may put the installation code mentioned above at the beginning of your notebook and these packages will be installed every time you run the notebook.
-
-### Upload files
-
-You may directly upload files to the working directory of Google Colab. This has to be done in the browser. When working with these files, you may just use relative paths.
-
-The drawback here is that Google Colab can only stay for 24 hours. After that, although your `.ipynb` files will be stores, all other files will be earsed.
-
-### Mount Google Drive
-
-One way to let the uploaded files stay in cloud is to upload them to Google Drive, and then load your Google Drive contents from Google Colab.
-
-Goole Drive is a cloud storage service provided by Google. When you register a Google account you will be automatically assigned a Google Drive account. You may get access to it from [this link](https://www.google.com/drive/).
-
-Here are the steps to mount Google Drive:
-
-1.  Upload your files to your Google Drive.
-2.  Run the following codes in Colab code cells before you are loading the uploaded files:
-
-::: {#a8f70bde .cell execution_count=1}
-``` {.python .cell-code}
-from google.colab import drive
-drive.mount('/content/gdrive')
-```
-:::
-
-
-3.  A window pop up asking you about the permission. Authorize and the drive is mounted.
-4.  To work in directories, the most popular commands are
-    -   `%ls`: list all files and folders in the working directory.
-    -   `%cd` + folder name: Get into a specific folder.
-    -   `%cd..`: Get into the parent folder. Then use these commands to find the files your just uploaded.
-5.  Finally you may directly get access to those files just like they are in the working directory.
-6.  
-
- -->
+# Classification Evaluation, Statistical Decision Theory, and Threshold-Based Learning -->
+<section id="introduction" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">7.1</span> Introduction</h2>
+<p>In statistical learning, classification is fundamentally different from ordinary regression.</p>
+<p>In regression, the goal is usually to estimate a continuous response accurately.</p>
+<p>In classification, however, the goal is not merely prediction. Instead, classification involves:</p>
+<ul>
+<li>uncertainty</li>
+<li>decision making</li>
+<li>asymmetric error costs</li>
+<li>signal detection</li>
+<li>threshold selection</li>
+</ul>
+<p>This makes classification closely connected to:</p>
+<ul>
+<li>statistical decision theory</li>
+<li>hypothesis testing</li>
+<li>detection theory</li>
+<li>the bias-variance tradeoff</li>
+</ul>
+<p>Metrics such as precision, recall, ROC curves, and AUC are not merely machine learning formulas. They arise naturally from statistical ideas about uncertainty and decision making.</p>
+<p>This chapter develops a unified statistical understanding of classification evaluation.</p>
+<hr>
+</section>
+<section id="binary-classification-setup" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Binary Classification Setup</h1>
+<p>Suppose the response variable is binary:</p>
+<p><span class="math display">\[
+Y \in \{0,1\}.
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(Y=1\)</span> denotes the positive class</li>
+<li><span class="math inline">\(Y=0\)</span> denotes the negative class</li>
+</ul>
+<p>A classifier produces predictions:</p>
+<p><span class="math display">\[
+\hat Y \in \{0,1\}.
+\]</span></p>
+<p>The outcomes can be summarized using the confusion matrix.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th>Predicted Positive</th>
+<th>Predicted Negative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>True Positive Class</td>
+<td>TP</td>
+<td>FN</td>
+</tr>
+<tr class="even">
+<td>True Negative Class</td>
+<td>FP</td>
+<td>TN</td>
+</tr>
+</tbody>
+</table>
+<p>where:</p>
+<ul>
+<li>TP = true positives</li>
+<li>FP = false positives</li>
+<li>FN = false negatives</li>
+<li>TN = true negatives</li>
+</ul>
+<hr>
+</section>
+<section id="accuracy" class="level1" data-number="9">
+<h1 data-number="9"><span class="header-section-number">9</span> Accuracy</h1>
+<p>The most basic classification metric is accuracy:</p>
+<p><span class="math display">\[
+\text{Accuracy}
+=
+\frac{TP+TN}{N}.
+\]</span></p>
+<p>Accuracy measures the proportion of correctly classified observations.</p>
+<p>Although accuracy is intuitive, it has an important limitation:</p>
+<blockquote class="blockquote">
+<p>It implicitly assumes all mistakes have equal cost.</p>
+</blockquote>
+<p>In practice, this assumption is often unrealistic.</p>
+<p>For example:</p>
+<ul>
+<li>missing cancer may be far worse than a false alarm</li>
+<li>falsely flagging a legitimate bank transaction may inconvenience customers</li>
+<li>falsely accusing an innocent person may have severe consequences</li>
+</ul>
+<p>Thus classification evaluation often requires more refined metrics.</p>
+<hr>
+</section>
+<section id="recall" class="level1" data-number="10">
+<h1 data-number="10"><span class="header-section-number">10</span> Recall</h1>
+<p>Recall is defined as:</p>
+<p><span class="math display">\[
+\text{Recall}
+=
+\frac{TP}{TP+FN}.
+\]</span></p>
+<p>Recall measures:</p>
+<blockquote class="blockquote">
+<p>Among all truly positive observations, how many were successfully detected?</p>
+</blockquote>
+<p>Equivalently:</p>
+<p>:contentReference<span data-index="0">oaicite:0</span></p>
+<p>Recall is therefore a conditional probability.</p>
+<p>It is also called:</p>
+<ul>
+<li>sensitivity</li>
+<li>true positive rate (TPR)</li>
+</ul>
+<hr>
+</section>
+<section id="statistical-interpretation-of-recall" class="level1" data-number="11">
+<h1 data-number="11"><span class="header-section-number">11</span> Statistical Interpretation of Recall</h1>
+<p>Recall measures the ability to detect true signals.</p>
+<p>High recall means:</p>
+<pre class="text"><code>few false negatives</code></pre>
+<p>Low recall means:</p>
+<pre class="text"><code>many missed signals</code></pre>
+<p>Recall is closely related to:</p>
+<pre class="text"><code>Type II error</code></pre>
+<p>and:</p>
+<pre class="text"><code>statistical power</code></pre>
+<p>since:</p>
+<p><span class="math display">\[
+\text{Power}
+=
+1-\text{Type II Error}.
+\]</span></p>
+<p>Thus recall may be interpreted as:</p>
+<blockquote class="blockquote">
+<p>the probability of correctly detecting a true signal.</p>
+</blockquote>
+<hr>
+</section>
+<section id="precision" class="level1" data-number="12">
+<h1 data-number="12"><span class="header-section-number">12</span> Precision</h1>
+<p>Precision is defined as:</p>
+<p><span class="math display">\[
+\text{Precision}
+=
+\frac{TP}{TP+FP}.
+\]</span></p>
+<p>Precision measures:</p>
+<blockquote class="blockquote">
+<p>Among all predicted positive observations, how many are truly positive?</p>
+</blockquote>
+<p>Equivalently:</p>
+<p>:contentReference<span data-index="1">oaicite:1</span></p>
+<p>Notice that the conditioning direction differs from recall.</p>
+<p>Recall conditions on the truth.</p>
+<p>Precision conditions on the prediction.</p>
+<p>This distinction is extremely important.</p>
+<hr>
+</section>
+<section id="statistical-interpretation-of-precision" class="level1" data-number="13">
+<h1 data-number="13"><span class="header-section-number">13</span> Statistical Interpretation of Precision</h1>
+<p>Precision measures:</p>
+<pre class="text"><code>trustworthiness of positive predictions</code></pre>
+<p>High precision means:</p>
+<ul>
+<li>few false positives</li>
+<li>reliable positive discoveries</li>
+</ul>
+<p>Low precision means:</p>
+<ul>
+<li>many false alarms</li>
+<li>many predicted positives are incorrect</li>
+</ul>
+<p>Precision is closely related to:</p>
+<ul>
+<li>false discovery control</li>
+<li>positive predictive value</li>
+</ul>
+<p>in statistics and medical testing.</p>
+<hr>
+</section>
+<section id="bayes-rule-connection" class="level1" data-number="14">
+<h1 data-number="14"><span class="header-section-number">14</span> Bayes’ Rule Connection</h1>
+<p>Precision and recall are connected through Bayes’ theorem.</p>
+<p>Recall is:</p>
+<p><span class="math display">\[
+P(\hat Y=1\mid Y=1).
+\]</span></p>
+<p>Precision is:</p>
+<p><span class="math display">\[
+P(Y=1\mid \hat Y=1).
+\]</span></p>
+<p>These are related through:</p>
+<p>:contentReference<span data-index="2">oaicite:2</span></p>
+<p>Thus precision depends not only on recall, but also on:</p>
+<ul>
+<li>class prevalence</li>
+<li>prediction frequency</li>
+</ul>
+<p>This explains why precision may collapse in highly imbalanced datasets.</p>
+<hr>
+</section>
+<section id="class-imbalance" class="level1" data-number="15">
+<h1 data-number="15"><span class="header-section-number">15</span> Class Imbalance</h1>
+<p>Suppose only 1% of observations are positive.</p>
+<p>Then even a classifier with excellent recall may have poor precision.</p>
+<p>For example:</p>
+<ul>
+<li>100 true positives</li>
+<li>900 false positives</li>
+</ul>
+<p>Then:</p>
+<p><span class="math display">\[
+\text{Recall}=1
+\]</span></p>
+<p>but:</p>
+<p><span class="math display">\[
+\text{Precision}
+=
+\frac{100}{1000}
+=
+0.1.
+\]</span></p>
+<p>Thus most predicted positives are incorrect.</p>
+<p>This is why accuracy alone becomes misleading under severe class imbalance.</p>
+<hr>
+</section>
+<section id="classification-thresholds" class="level1" data-number="16">
+<h1 data-number="16"><span class="header-section-number">16</span> Classification Thresholds</h1>
+<p>Many classifiers output probabilities or scores:</p>
+<p><span class="math display">\[
+p(x)=P(Y=1\mid x).
+\]</span></p>
+<p>To make a final decision, we choose a threshold:</p>
+<p><span class="math display">\[
+\hat Y=
+\begin{cases}
+1 &amp; p(x)&gt;c\\
+0 &amp; p(x)\le c
+\end{cases}
+\]</span></p>
+<p>where <span class="math inline">\(c\)</span> is the classification threshold.</p>
+<p>Changing the threshold changes classification behavior.</p>
+<hr>
+</section>
+<section id="precision-recall-tradeoff" class="level1" data-number="17">
+<h1 data-number="17"><span class="header-section-number">17</span> Precision-Recall Tradeoff</h1>
+<p>Suppose we lower the threshold.</p>
+<p>Then the classifier predicts positive more aggressively.</p>
+<p>This usually causes:</p>
+<ul>
+<li>recall to increase</li>
+<li>precision to decrease</li>
+</ul>
+<p>because:</p>
+<ul>
+<li>more true positives are detected</li>
+<li>but more false positives are also produced</li>
+</ul>
+<p>Conversely, raising the threshold generally causes:</p>
+<ul>
+<li>higher precision</li>
+<li>lower recall</li>
+</ul>
+<p>Thus precision and recall naturally trade off against each other.</p>
+<hr>
+</section>
+<section id="statistical-decision-theory" class="level1" data-number="18">
+<h1 data-number="18"><span class="header-section-number">18</span> Statistical Decision Theory</h1>
+<p>This tradeoff arises from statistical decision theory.</p>
+<p>Classification is fundamentally:</p>
+<blockquote class="blockquote">
+<p>decision making under uncertainty.</p>
+</blockquote>
+<p>Different applications impose different error costs.</p>
+<p>The optimal threshold therefore depends on the application.</p>
+<hr>
+</section>
+<section id="medical-screening-example" class="level1" data-number="19">
+<h1 data-number="19"><span class="header-section-number">19</span> Medical Screening Example</h1>
+<p>Suppose we are screening for cancer.</p>
+<p>Missing a cancer patient may be extremely costly.</p>
+<p>Thus false negatives are dangerous.</p>
+<p>Therefore we prioritize:</p>
+<pre class="text"><code>high recall</code></pre>
+<p>even if this produces additional false positives.</p>
+<p>Extra medical testing may be acceptable if it reduces missed diagnoses.</p>
+<hr>
+</section>
+<section id="spam-filtering-example" class="level1" data-number="20">
+<h1 data-number="20"><span class="header-section-number">20</span> Spam Filtering Example</h1>
+<p>Now consider spam filtering.</p>
+<p>If precision is low, many legitimate emails will be classified as spam.</p>
+<p>Users may become frustrated.</p>
+<p>Thus precision becomes more important.</p>
+<hr>
+</section>
+<section id="hypothesis-testing-interpretation" class="level1" data-number="21">
+<h1 data-number="21"><span class="header-section-number">21</span> Hypothesis Testing Interpretation</h1>
+<p>Classification may also be interpreted through hypothesis testing.</p>
+<p>Suppose:</p>
+<p><span class="math display">\[
+H_0:Y=0
+\]</span></p>
+<p>versus</p>
+<p><span class="math display">\[
+H_1:Y=1.
+\]</span></p>
+<p>Then:</p>
+<ul>
+<li>predicting positive corresponds to rejecting <span class="math inline">\(H_0\)</span></li>
+<li>predicting negative corresponds to failing to reject <span class="math inline">\(H_0\)</span></li>
+</ul>
+<p>Under this interpretation:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Classification</th>
+<th>Hypothesis Testing</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>False positive</td>
+<td>Type I error</td>
+</tr>
+<tr class="even">
+<td>False negative</td>
+<td>Type II error</td>
+</tr>
+<tr class="odd">
+<td>Recall</td>
+<td>Statistical power</td>
+</tr>
+</tbody>
+</table>
+<p>Thus recall is essentially the power of a statistical test.</p>
+<hr>
+</section>
+<section id="thresholds-and-significance-levels" class="level1" data-number="22">
+<h1 data-number="22"><span class="header-section-number">22</span> Thresholds and Significance Levels</h1>
+<p>Classification thresholds resemble significance levels in hypothesis testing.</p>
+<p>Lower thresholds correspond to:</p>
+<pre class="text"><code>more aggressive rejection</code></pre>
+<p>This increases:</p>
+<ul>
+<li>recall</li>
+<li>false positives</li>
+</ul>
+<p>Similarly, higher significance levels in hypothesis testing increase rejection frequency.</p>
+<p>Conversely, conservative thresholds reduce false positives but may miss true signals.</p>
+<p>Thus classification thresholds and significance levels play similar statistical roles.</p>
+<hr>
+</section>
+<section id="roc-curves" class="level1" data-number="23">
+<h1 data-number="23"><span class="header-section-number">23</span> ROC Curves</h1>
+<p>ROC stands for:</p>
+<pre class="text"><code>Receiver Operating Characteristic</code></pre>
+<p>An ROC curve plots:</p>
+<ul>
+<li>true positive rate (TPR)</li>
+<li>versus false positive rate (FPR)</li>
+</ul>
+<p>across all thresholds.</p>
+<p>The true positive rate is:</p>
+<p><span class="math display">\[
+TPR
+=
+\frac{TP}{TP+FN}.
+\]</span></p>
+<p>which is recall.</p>
+<p>The false positive rate is:</p>
+<p><span class="math display">\[
+FPR
+=
+\frac{FP}{FP+TN}.
+\]</span></p>
+<p>Equivalently:</p>
+<p>:contentReference<span data-index="3">oaicite:3</span></p>
+<hr>
+</section>
+<section id="roc-curves-and-hypothesis-testing" class="level1" data-number="24">
+<h1 data-number="24"><span class="header-section-number">24</span> ROC Curves and Hypothesis Testing</h1>
+<p>ROC curves are deeply connected to hypothesis testing.</p>
+<p>Recall that:</p>
+<ul>
+<li>TPR corresponds to power</li>
+<li>FPR corresponds to Type I error</li>
+</ul>
+<p>Thus an ROC curve essentially studies:</p>
+<pre class="text"><code>power versus Type I error</code></pre>
+<p>across all thresholds.</p>
+<p>This is one of the deepest statistical interpretations of ROC analysis.</p>
+<hr>
+</section>
+<section id="interpreting-roc-curves" class="level1" data-number="25">
+<h1 data-number="25"><span class="header-section-number">25</span> Interpreting ROC Curves</h1>
+<p>A classifier near the diagonal line behaves almost randomly.</p>
+<p>Better classifiers push the ROC curve toward the upper-left corner.</p>
+<p>The ideal classifier would achieve:</p>
+<ul>
+<li>TPR = 1</li>
+<li>FPR = 0</li>
+</ul>
+<p>meaning:</p>
+<ul>
+<li>perfect detection</li>
+<li>no false alarms</li>
+</ul>
+<hr>
+</section>
+<section id="auc" class="level1" data-number="26">
+<h1 data-number="26"><span class="header-section-number">26</span> AUC</h1>
+<p>The area under the ROC curve is called AUC.</p>
+<p>AUC summarizes ranking performance across all thresholds.</p>
+<p>One of the most beautiful statistical interpretations of AUC is:</p>
+<p>:contentReference<span data-index="4">oaicite:4</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(s(X^+)\)</span> is the score of a random positive observation</li>
+<li><span class="math inline">\(s(X^-)\)</span> is the score of a random negative observation</li>
+</ul>
+<p>Thus AUC measures:</p>
+<blockquote class="blockquote">
+<p>the probability that a random positive observation receives a higher score than a random negative observation.</p>
+</blockquote>
+<p>This interpretation is fundamentally probabilistic and ranking-based.</p>
+<hr>
+</section>
+<section id="why-auc-is-threshold-free" class="level1" data-number="27">
+<h1 data-number="27"><span class="header-section-number">27</span> Why AUC Is Threshold-Free</h1>
+<p>Accuracy depends on a specific threshold.</p>
+<p>AUC does not.</p>
+<p>Instead, AUC evaluates:</p>
+<pre class="text"><code>ranking quality across all thresholds</code></pre>
+<p>This makes AUC particularly useful when the optimal threshold is unknown.</p>
+<hr>
+</section>
+<section id="precision-recall-curves" class="level1" data-number="28">
+<h1 data-number="28"><span class="header-section-number">28</span> Precision-Recall Curves</h1>
+<p>A precision-recall curve plots:</p>
+<ul>
+<li>precision</li>
+<li>versus recall</li>
+</ul>
+<p>across thresholds.</p>
+<p>PR curves are especially useful for imbalanced datasets.</p>
+<hr>
+</section>
+<section id="roc-vs-pr-curves" class="level1" data-number="29">
+<h1 data-number="29"><span class="header-section-number">29</span> ROC vs PR Curves</h1>
+<p>ROC curves may appear optimistic under severe class imbalance.</p>
+<p>For example:</p>
+<ul>
+<li>99% negatives</li>
+<li>very small FPR</li>
+</ul>
+<p>may still generate many false positives.</p>
+<p>PR curves reflect this problem more directly because they incorporate precision.</p>
+<p>Thus PR curves are often preferred for:</p>
+<pre class="text"><code>rare-event detection</code></pre>
+<p>such as:</p>
+<ul>
+<li>fraud detection</li>
+<li>medical diagnosis</li>
+<li>anomaly detection</li>
+</ul>
+<hr>
+</section>
+<section id="f1-score" class="level1" data-number="30">
+<h1 data-number="30"><span class="header-section-number">30</span> F1 Score</h1>
+<p>The F1 score combines precision and recall:</p>
+<p><span class="math display">\[
+F1
+=
+\frac{2PR}{P+R}.
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(P\)</span> = precision</li>
+<li><span class="math inline">\(R\)</span> = recall</li>
+</ul>
+<p>This is the harmonic mean of precision and recall.</p>
+<hr>
+</section>
+<section id="why-harmonic-mean" class="level1" data-number="31">
+<h1 data-number="31"><span class="header-section-number">31</span> Why Harmonic Mean?</h1>
+<p>The harmonic mean strongly penalizes imbalance.</p>
+<p>For example:</p>
+<ul>
+<li>precision = 1</li>
+<li>recall = 0</li>
+</ul>
+<p>then:</p>
+<p><span class="math display">\[
+F1=0.
+\]</span></p>
+<p>Thus F1 favors classifiers that balance both quantities.</p>
+<hr>
+</section>
+<section id="precision-recall-and-the-bias-variance-tradeoff" class="level1" data-number="32">
+<h1 data-number="32"><span class="header-section-number">32</span> Precision, Recall, and the Bias-Variance Tradeoff</h1>
+<p>Precision and recall are also connected to the bias-variance tradeoff.</p>
+<p>Suppose a classifier is extremely conservative.</p>
+<p>It predicts positive only when highly certain.</p>
+<p>Then:</p>
+<ul>
+<li>precision may be high</li>
+<li>recall may be low</li>
+</ul>
+<p>This resembles a high-bias classifier.</p>
+<p>The classifier avoids risky decisions.</p>
+<hr>
+</section>
+<section id="aggressive-classification-and-variance" class="level1" data-number="33">
+<h1 data-number="33"><span class="header-section-number">33</span> Aggressive Classification and Variance</h1>
+<p>Now suppose the classifier aggressively predicts positives.</p>
+<p>Then:</p>
+<ul>
+<li>recall may increase</li>
+<li>precision may decrease</li>
+</ul>
+<p>because the classifier becomes more sensitive to subtle patterns.</p>
+<p>This resembles lower bias but higher variance.</p>
+<p>The classifier becomes more flexible but also more unstable.</p>
+<hr>
+</section>
+<section id="thresholds-as-complexity-control" class="level1" data-number="34">
+<h1 data-number="34"><span class="header-section-number">34</span> Thresholds as Complexity Control</h1>
+<p>Changing the classification threshold may itself be viewed as controlling effective complexity.</p>
+<p>A very low threshold produces:</p>
+<pre class="text"><code>aggressive positive prediction</code></pre>
+<p>A very high threshold produces:</p>
+<pre class="text"><code>conservative positive prediction</code></pre>
+<p>Thus threshold selection acts like a bias-variance tuning mechanism.</p>
+<hr>
+</section>
+<section id="model-complexity-and-precision-recall-behavior" class="level1" data-number="35">
+<h1 data-number="35"><span class="header-section-number">35</span> Model Complexity and Precision-Recall Behavior</h1>
+<p>Different model classes naturally produce different precision-recall behavior.</p>
+<p>Highly flexible models:</p>
+<ul>
+<li>deep trees</li>
+<li>boosting</li>
+<li>neural networks</li>
+</ul>
+<p>may achieve higher recall by detecting subtle patterns.</p>
+<p>However, they may also generate more false positives.</p>
+<p>Simpler models:</p>
+<ul>
+<li>linear models</li>
+<li>regularized models</li>
+</ul>
+<p>may achieve higher precision but lower recall.</p>
+<p>Thus precision-recall behavior is closely tied to model complexity.</p>
+<hr>
+</section>
+<section id="boosting-and-recall" class="level1" data-number="36">
+<h1 data-number="36"><span class="header-section-number">36</span> Boosting and Recall</h1>
+<p>Boosting methods such as AdaBoost and XGBoost often aggressively improve recall.</p>
+<p>Boosting repeatedly focuses on difficult observations.</p>
+<p>As a result, boosting tends to:</p>
+<ul>
+<li>reduce false negatives</li>
+<li>improve detection power</li>
+</ul>
+<p>However, overly aggressive boosting may increase false positives if the model begins fitting noise.</p>
+<p>Thus boosting often navigates a delicate precision-recall tradeoff.</p>
+<hr>
+</section>
+<section id="a-unified-statistical-view" class="level1" data-number="37">
+<h1 data-number="37"><span class="header-section-number">37</span> A Unified Statistical View</h1>
+<p>We may summarize the relationships as follows.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Classification</th>
+<th>Statistical Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>False positive</td>
+<td>Type I error</td>
+</tr>
+<tr class="even">
+<td>False negative</td>
+<td>Type II error</td>
+</tr>
+<tr class="odd">
+<td>Recall</td>
+<td>Statistical power</td>
+</tr>
+<tr class="even">
+<td>Precision</td>
+<td>Reliability of discoveries</td>
+</tr>
+<tr class="odd">
+<td>Threshold</td>
+<td>Significance cutoff</td>
+</tr>
+<tr class="even">
+<td>ROC curve</td>
+<td>Power vs Type I error</td>
+</tr>
+<tr class="odd">
+<td>AUC</td>
+<td>Ranking probability</td>
+</tr>
+<tr class="even">
+<td>Threshold tuning</td>
+<td>Bias-variance tradeoff</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="final-remarks" class="level1" data-number="38">
+<h1 data-number="38"><span class="header-section-number">38</span> Final Remarks</h1>
+<p>Classification evaluation is fundamentally statistical.</p>
+<p>Metrics such as:</p>
+<ul>
+<li>precision</li>
+<li>recall</li>
+<li>ROC curves</li>
+<li>AUC</li>
+<li>F1 score</li>
+</ul>
+<p>all arise naturally from:</p>
+<ul>
+<li>statistical decision theory</li>
+<li>hypothesis testing</li>
+<li>uncertainty quantification</li>
+<li>asymmetric error costs</li>
+<li>model complexity control</li>
+</ul>
+<p>Recall measures the ability to detect true signals.</p>
+<p>Precision measures the reliability of positive discoveries.</p>
+<p>ROC curves study the tradeoff between detection power and false alarm rate.</p>
+<p>AUC measures ranking quality across all thresholds.</p>
+<p>Ultimately, classification is not merely about maximizing accuracy.</p>
+<p>It is about making statistically meaningful decisions under uncertainty while balancing competing risks.</p>
 
 
 </section>
@@ -1322,13 +1638,13 @@ drive.mount('/content/gdrive')
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../contents/4/cluster.html" class="pagination-link" aria-label="cluster.html">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">cluster.html</span></span>
+      <a href="../../contents/2/lda.html" class="pagination-link" aria-label="LDA">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">LDA</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../contents/app/venv.html" class="pagination-link" aria-label="Python Virtual Environment">
-        <span class="nav-page-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Python Virtual Environment</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../contents/3/tree.html" class="pagination-link" aria-label="Tree-Based Methods">
+        <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
