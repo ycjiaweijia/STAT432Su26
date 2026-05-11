@@ -1691,3 +1691,993 @@ The main tuning problem is controlling tree size.
 A single tree is interpretable, flexible, and useful for discovering structure, but it is often unstable.
 
 This motivates ensemble methods such as bagging, random forests, and boosting.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Linear Models, Trees, Bagging, Random Forests, and Boosting:
+# A Unified View Through Predictor Interactions
+
+## Introduction
+
+One of the most important questions in statistical learning is:
+
+> How does a model combine predictors together?
+
+Different learning methods differ mainly in how they represent and combine predictor effects.
+
+Some methods assume predictors contribute independently and globally. Other methods automatically discover local interactions and hierarchical structures.
+
+This perspective provides a very unified way to understand:
+
+- linear models
+- trees
+- bagging
+- random forests
+- boosting
+
+The key idea is:
+
+> Different models differ in how they discover, combine, and refine predictor interactions.
+
+---
+
+# Linear Models
+
+Consider the multiple linear regression model:
+
+$$
+f(x)
+=
+\beta_0+\beta_1x_1+\cdots+\beta_px_p.
+$$
+
+This model assumes that predictor effects are additive.
+
+Each predictor contributes independently:
+
+$$
+\beta_j x_j.
+$$
+
+The overall prediction is simply the sum of these effects.
+
+Thus linear models have a very important structural assumption:
+
+> Predictor effects are global and additive.
+
+For example, suppose the coefficient of income is positive. Then increasing income always increases the prediction by the same amount, regardless of age, region, education, or other variables.
+
+This creates a very smooth and interpretable model.
+
+However, the model cannot automatically discover interactions between predictors.
+
+---
+
+# Interaction Terms in Linear Models
+
+Suppose the effect of one predictor depends on another predictor.
+
+For example:
+
+- income may matter differently for younger and older individuals
+- dosage effects may depend on body weight
+- advertising effects may depend on region
+
+A linear model cannot automatically discover such interactions.
+
+Instead, the interaction must be manually specified:
+
+$$
+y
+=
+\beta_0
++
+\beta_1x_1
++
+\beta_2x_2
++
+\beta_3x_1x_2.
+$$
+
+Thus interaction modeling in linear regression is explicit and manual.
+
+The analyst must decide:
+
+- which interactions exist
+- which interaction terms to include
+
+This becomes difficult when the number of predictors is large.
+
+---
+
+# Trees
+
+Decision trees approach interactions very differently.
+
+A tree recursively partitions predictor space into regions.
+
+For example:
+
+```text
+if age > 40:
+    if income < 50000:
+        predict class A
+```
+
+A single branch already represents a predictor interaction structure.
+
+This branch corresponds to:
+
+$$
+(\text{age}>40)
+\cap
+(\text{income}<50000).
+$$
+
+Thus a root-to-leaf path is essentially:
+
+> a hierarchical combination of predictor conditions.
+
+This is one of the most important conceptual differences between trees and linear models.
+
+Linear models require interaction terms to be specified manually.
+
+Trees discover interactions automatically.
+
+---
+
+# Trees as Interaction Hierarchies
+
+A tree can be viewed as a hierarchy of interactions.
+
+For example:
+
+```text
+x1 > 3
+    ↓
+x2 < 5
+    ↓
+x7 > 10
+```
+
+This means:
+
+- the effect of $x_2$ depends on the region defined by $x_1$
+- the effect of $x_7$ depends on both $x_1$ and $x_2$
+
+Thus trees naturally model:
+
+- nonlinear effects
+- threshold effects
+- conditional relationships
+- local interactions
+
+This makes trees extremely flexible.
+
+---
+
+# Advantages of Trees
+
+Because trees automatically discover interactions, they are very powerful for tabular data.
+
+Trees are especially good at handling:
+
+- complicated predictor interactions
+- nonlinear relationships
+- heterogeneous variables
+- mixed data types
+
+In addition, trees do not require:
+
+- feature scaling
+- manual interaction engineering
+- strict parametric assumptions
+
+---
+
+# Limitations of Trees
+
+Although trees are flexible, a single tree is often unstable.
+
+Small changes in the data may produce very different splits.
+
+As a result:
+
+- tree structures can vary substantially
+- prediction variance may be high
+- deep trees may overfit
+
+Thus a single tree is often not the best predictive model.
+
+This motivates ensemble methods.
+
+---
+
+# Bagging
+
+Bagging stands for bootstrap aggregation.
+
+The main idea is simple:
+
+1. Draw many bootstrap samples
+2. Fit a large tree to each sample
+3. Average the predictions
+
+The key insight is that different bootstrap samples produce different trees.
+
+Each tree may discover somewhat different interaction structures.
+
+For example:
+
+Tree A may discover:
+
+```text
+income → age → balance
+```
+
+while Tree B may discover:
+
+```text
+region → debt → income
+```
+
+and Tree C may discover:
+
+```text
+education → age → loan history
+```
+
+Thus bagging averages over many interaction hierarchies.
+
+---
+
+# Bagging as Interaction Averaging
+
+From the interaction perspective, bagging can be viewed as:
+
+> averaging many unstable interaction structures.
+
+This is extremely important.
+
+A single tree may overreact to small fluctuations in the data.
+
+Bagging stabilizes interaction discovery by averaging many trees together.
+
+The averaging process reduces variance and improves stability.
+
+Thus the primary goal of bagging is not to discover increasingly complicated interactions.
+
+Instead, the goal is:
+
+> stabilize interaction discovery through averaging.
+
+---
+
+# Random Forests
+
+Random forests extend bagging.
+
+A random forest still uses:
+
+- bootstrap sampling
+- many trees
+- averaging
+
+However, random forests introduce an additional source of randomness.
+
+At each split, the algorithm only considers a random subset of predictors.
+
+For example:
+
+```python
+max_features = sqrt(p)
+```
+
+This changes tree construction substantially.
+
+---
+
+# Why Random Forests Improve Bagging
+
+In ordinary bagging, strong predictors may dominate many trees.
+
+For example, if predictor $x_1$ is extremely important, then many trees will repeatedly split on $x_1$ near the top.
+
+As a result:
+
+- many trees become similar
+- interaction structures become correlated
+- averaging becomes less effective
+
+Random forests reduce this problem.
+
+Because each split only sees a subset of predictors, different trees are forced to explore different interaction structures.
+
+Thus random forests encourage diversity among trees.
+
+---
+
+# Random Forests as Decorrelated Interaction Averaging
+
+From the interaction viewpoint:
+
+- bagging averages many interaction structures
+- random forests average many decorrelated interaction structures
+
+This is the key conceptual improvement.
+
+Random forests intentionally encourage trees to explore different predictor combinations.
+
+This reduces tree correlation and further lowers variance.
+
+---
+
+# Boosting
+
+Boosting uses a completely different philosophy.
+
+Bagging and random forests build trees independently and average them.
+
+Boosting builds trees sequentially.
+
+Each new tree attempts to improve the mistakes made by earlier trees.
+
+Conceptually:
+
+```mermaid
+flowchart TD
+    A[Current Interaction Structure]
+    B[Identify Remaining Errors]
+    C[Fit New Local Interaction]
+    D[Refine Decision Boundary]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> B
+```
+
+Thus boosting continuously refines the model.
+
+---
+
+# Boosting as Interaction Refinement
+
+From the interaction perspective:
+
+> Boosting sequentially refines interaction structures.
+
+This is fundamentally different from bagging.
+
+Bagging:
+
+- parallel
+- independent
+- averaging
+
+Boosting:
+
+- sequential
+- adaptive
+- corrective
+
+Each new tree adds local corrections to the current model.
+
+These corrections often represent increasingly refined interactions.
+
+---
+
+# AdaBoost
+
+AdaBoost focuses on observations that were previously misclassified.
+
+At each stage:
+
+- difficult observations receive larger weights
+- the next tree focuses more strongly on those observations
+
+Thus AdaBoost progressively refines difficult regions of predictor space.
+
+The interaction structures become increasingly adaptive and localized.
+
+---
+
+# Gradient Boosting and XGBoost
+
+Gradient boosting generalizes this idea.
+
+Instead of directly emphasizing misclassified observations, gradient boosting fits trees to residuals or gradients.
+
+Each new tree attempts to correct the remaining errors.
+
+Thus boosting gradually builds a highly refined decision boundary.
+
+XGBoost further improves this framework through:
+
+- regularization
+- shrinkage
+- subsampling
+- optimized tree construction
+
+---
+
+# Why Boosting Is So Powerful
+
+Boosting is powerful because it repeatedly adds local interaction corrections.
+
+The final model becomes:
+
+```text
+many local interaction refinements
++
+many adaptive corrections
++
+many nonlinear partitions
+```
+
+combined together.
+
+As a result, boosting methods can approximate extremely complicated nonlinear functions.
+
+---
+
+# Comparing the Methods
+
+We may summarize the methods through their interaction philosophies.
+
+---
+
+## Linear Models
+
+```text
+global additive effects
+```
+
+Interactions must be manually specified.
+
+---
+
+## Trees
+
+```text
+discover one interaction hierarchy
+```
+
+Interactions are discovered automatically.
+
+---
+
+## Bagging
+
+```text
+average many unstable interaction hierarchies
+```
+
+Variance reduction through averaging.
+
+---
+
+## Random Forests
+
+```text
+average many decorrelated interaction hierarchies
+```
+
+Variance reduction through decorrelated averaging.
+
+---
+
+## Boosting
+
+```text
+iteratively refine interaction hierarchies
+```
+
+Sequential correction and local refinement.
+
+---
+
+# Final Remarks
+
+This interaction-based viewpoint provides a unified understanding of many important statistical learning methods.
+
+Linear models assume simple additive relationships.
+
+Trees automatically discover hierarchical interactions.
+
+Bagging stabilizes interaction discovery through averaging.
+
+Random forests further improve averaging by decorrelating trees.
+
+Boosting continuously refines interaction structures through sequential error correction.
+
+Although these methods appear very different algorithmically, they can all be understood through one central question:
+
+> How does the model discover and combine predictor interactions?
+
+
+
+
+
+
+
+
+```{python}
+import numpy as np
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import RidgeCV
+from sklearn.metrics import mean_squared_error, r2_score
+from xgboost import XGBRegressor
+
+# ============================================================
+# Simulate a dense linear signal
+# ============================================================
+
+rng = np.random.default_rng(42)
+
+n = 600
+p = 200
+
+# Correlated predictors
+Sigma = 0.7 * np.ones((p, p)) + 0.3 * np.eye(p)
+
+X = rng.multivariate_normal(mean=np.zeros(p), cov=Sigma, size=n)
+
+# Dense linear coefficients:
+# many predictors contribute small effects
+beta = rng.normal(0, 0.15, size=p)
+
+# Linear signal
+y = X @ beta + rng.normal(0, 1.5, size=n)
+
+# ============================================================
+# Train / test split
+# ============================================================
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=1
+)
+
+# ============================================================
+# Ridge Regression
+# ============================================================
+
+ridge = RidgeCV(alphas=np.logspace(-3, 3, 100))
+
+ridge.fit(X_train, y_train)
+
+ridge_pred = ridge.predict(X_test)
+
+# ============================================================
+# XGBoost
+# ============================================================
+
+xgb = XGBRegressor(
+    n_estimators=500,
+    learning_rate=0.05,
+    max_depth=4,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    random_state=1,
+)
+
+xgb.fit(X_train, y_train)
+
+xgb_pred = xgb.predict(X_test)
+
+# ============================================================
+# Evaluation
+# ============================================================
+
+results = pd.DataFrame(
+    {
+        "Model": ["Ridge", "XGBoost"],
+        "Test MSE": [
+            mean_squared_error(y_test, ridge_pred),
+            mean_squared_error(y_test, xgb_pred),
+        ],
+        "Test R2": [r2_score(y_test, ridge_pred), r2_score(y_test, xgb_pred)],
+    }
+)
+
+print(results)
+```
+
+
+
+
+
+```{python}
+import numpy as np
+import pandas as pd
+
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import Ridge
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, r2_score
+
+from xgboost import XGBRegressor
+
+
+def simulate_dense_linear(n=600, p=200, rho=0.7, noise_sd=1.5, seed=42):
+    rng = np.random.default_rng(seed)
+
+    Sigma = rho * np.ones((p, p)) + (1 - rho) * np.eye(p)
+
+    X = rng.multivariate_normal(mean=np.zeros(p), cov=Sigma, size=n)
+
+    # Dense linear signal: many predictors all matter a little
+    beta = rng.normal(0, 0.15, size=p)
+
+    y = X @ beta + rng.normal(0, noise_sd, size=n)
+
+    return X, y
+
+
+def fit_best_models(X_train, y_train):
+    ridge_pipe = make_pipeline(StandardScaler(), Ridge())
+
+    ridge_grid = {"ridge__alpha": np.logspace(-3, 4, 30)}
+
+    ridge_cv = GridSearchCV(
+        ridge_pipe,
+        ridge_grid,
+        cv=5,
+        scoring="neg_mean_squared_error",
+        n_jobs=-1,
+    )
+
+    xgb = XGBRegressor(objective="reg:squarederror", random_state=42, n_jobs=-1)
+
+    xgb_grid = {
+        "n_estimators": [200, 500, 1000],
+        "learning_rate": [0.03, 0.05, 0.1],
+        "max_depth": [2, 3, 4],
+        "subsample": [0.7, 0.9],
+        "colsample_bytree": [0.7, 0.9],
+        "reg_lambda": [1, 5, 10],
+    }
+
+    xgb_cv = GridSearchCV(
+        xgb, xgb_grid, cv=5, scoring="neg_mean_squared_error", n_jobs=-1
+    )
+
+    ridge_cv.fit(X_train, y_train)
+    xgb_cv.fit(X_train, y_train)
+
+    return ridge_cv, xgb_cv
+
+
+all_results = []
+
+n_repeats = 1
+
+for seed in range(n_repeats):
+    X, y = simulate_dense_linear(seed=seed)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=seed
+    )
+
+    ridge_cv, xgb_cv = fit_best_models(X_train, y_train)
+
+    models = {"Ridge": ridge_cv, "XGBoost": xgb_cv}
+
+    for name, model in models.items():
+        pred = model.predict(X_test)
+
+        all_results.append(
+            {
+                "seed": seed,
+                "model": name,
+                "test_mse": mean_squared_error(y_test, pred),
+                "test_r2": r2_score(y_test, pred),
+                "best_params": model.best_params_,
+            }
+        )
+
+
+results = pd.DataFrame(all_results)
+
+print(results[["seed", "model", "test_mse", "test_r2"]])
+
+summary = results.groupby("model").agg(
+    mean_mse=("test_mse", "mean"),
+    sd_mse=("test_mse", "std"),
+    mean_r2=("test_r2", "mean"),
+    sd_r2=("test_r2", "std"),
+)
+
+print("\nSummary:")
+print(summary)
+
+print("\nBest parameters by run:")
+for _, row in results.iterrows():
+    print(row["seed"], row["model"], row["best_params"])
+```
+
+
+
+
+
+
+
+
+
+
+
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import make_moons
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import zero_one_loss
+
+
+# ============================================================
+# Clean nonlinear classification dataset
+# ============================================================
+
+X, y = make_moons(n_samples=1200, noise=0.08, random_state=2)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.5, stratify=y, random_state=2
+)
+
+
+# ============================================================
+# AdaBoost with decision stumps
+# ============================================================
+
+ada = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1),
+    n_estimators=1000,
+    learning_rate=0.1,
+    random_state=2,
+)
+
+ada.fit(X_train, y_train)
+
+
+# ============================================================
+# Track training/test error and margins
+# ============================================================
+
+train_errors = []
+test_errors = []
+
+margin_mean = []
+margin_10pct = []
+margin_min = []
+
+y_train_signed = 2 * y_train - 1
+
+for pred_train, pred_test, F in zip(
+    ada.staged_predict(X_train),
+    ada.staged_predict(X_test),
+    ada.staged_decision_function(X_train),
+):
+    train_errors.append(zero_one_loss(y_train, pred_train))
+    test_errors.append(zero_one_loss(y_test, pred_test))
+
+    margins = y_train_signed * F
+    margin_mean.append(np.mean(margins))
+    margin_10pct.append(np.quantile(margins, 0.10))
+    margin_min.append(np.min(margins))
+
+
+first_zero = next((i + 1 for i, e in enumerate(train_errors) if e == 0), None)
+
+print("First iteration with training error = 0:", first_zero)
+print("Minimum test error:", np.min(test_errors))
+print("Iteration of minimum test error:", np.argmin(test_errors) + 1)
+
+
+# ============================================================
+# Plot dataset
+# ============================================================
+
+plt.figure(figsize=(6, 5))
+plt.scatter(X[y == 0, 0], X[y == 0, 1], alpha=0.7, label="Class 0")
+plt.scatter(X[y == 1, 0], X[y == 1, 1], alpha=0.7, label="Class 1")
+plt.title("Clean Two-Moons Dataset")
+plt.legend()
+plt.show()
+
+
+# ============================================================
+# Plot error curves
+# ============================================================
+
+plt.figure(figsize=(7, 5))
+plt.plot(train_errors, label="Training Error")
+plt.plot(test_errors, label="Test Error")
+
+if first_zero is not None:
+    plt.axvline(
+        first_zero, linestyle="--", label="Training Error First Reaches 0"
+    )
+
+plt.xlabel("Boosting Iteration")
+plt.ylabel("Classification Error")
+plt.title("AdaBoost Error Curves")
+plt.legend()
+plt.show()
+
+
+# ============================================================
+# Plot margin growth
+# ============================================================
+
+plt.figure(figsize=(7, 5))
+plt.plot(margin_mean, label="Average Margin")
+plt.plot(margin_10pct, label="10th Percentile Margin")
+plt.plot(margin_min, label="Minimum Margin")
+
+if first_zero is not None:
+    plt.axvline(
+        first_zero, linestyle="--", label="Training Error First Reaches 0"
+    )
+
+plt.xlabel("Boosting Iteration")
+plt.ylabel("Margin")
+plt.title("AdaBoost Margin Growth")
+plt.legend()
+plt.show()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import zero_one_loss
+from sklearn.model_selection import train_test_split
+
+# ============================================================
+# Generate a simple nonlinear binary classification dataset
+# ============================================================
+
+rng = np.random.default_rng(42)
+
+n = 500
+
+X = rng.uniform(-2, 2, size=(n, 2))
+
+# Smooth nonlinear boundary
+y = (X[:, 0] ** 2 + 0.8 * X[:, 1] + 0.3 * np.sin(3 * X[:, 0]) > 1).astype(int)
+
+# Add small label noise
+flip_idx = rng.choice(n, size=20, replace=False)
+y[flip_idx] = 1 - y[flip_idx]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=1
+)
+
+# ============================================================
+# AdaBoost with decision stumps
+# ============================================================
+
+ada = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1),
+    n_estimators=5000,
+    learning_rate=0.05,
+    random_state=1,
+)
+
+ada.fit(X_train, y_train)
+
+# ============================================================
+# Track training/test error over boosting rounds
+# ============================================================
+
+train_errors = []
+test_errors = []
+
+for pred_train, pred_test in zip(
+    ada.staged_predict(X_train), ada.staged_predict(X_test)
+):
+    train_errors.append(zero_one_loss(y_train, pred_train))
+
+    test_errors.append(zero_one_loss(y_test, pred_test))
+
+# ============================================================
+# Compute margins
+# ============================================================
+
+# AdaBoost uses labels {-1,+1} internally
+y_train_signed = 2 * y_train - 1
+
+# staged_decision_function gives F(x)
+margins = []
+
+for F in ada.staged_decision_function(X_train):
+    margin = np.mean(y_train_signed * F)
+    margins.append(margin)
+
+# ============================================================
+# Plot classification data
+# ============================================================
+
+plt.figure(figsize=(6, 5))
+
+plt.scatter(X[y == 0, 0], X[y == 0, 1], alpha=0.7, label="Class 0")
+
+plt.scatter(X[y == 1, 0], X[y == 1, 1], alpha=0.7, label="Class 1")
+
+plt.title("Synthetic Dataset")
+plt.legend()
+plt.show()
+
+# ============================================================
+# Plot train/test error
+# ============================================================
+
+plt.figure(figsize=(7, 5))
+
+plt.plot(train_errors, label="Training Error")
+plt.plot(test_errors, label="Test Error")
+
+plt.xlabel("Boosting Iteration")
+plt.ylabel("Classification Error")
+plt.title("AdaBoost Error Curves")
+
+plt.legend()
+plt.show()
+
+# ============================================================
+# Plot margins
+# ============================================================
+
+plt.figure(figsize=(7, 5))
+
+plt.plot(margins)
+
+plt.xlabel("Boosting Iteration")
+plt.ylabel("Average Margin")
+
+plt.title("Margin Growth in AdaBoost")
+
+plt.show()
+```

@@ -1,0 +1,1512 @@
+
+
+
+
+```{python}
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+
+def make_boosting_showcase(n=3000, random_state=42):
+    rng = np.random.default_rng(random_state)
+
+    X1 = rng.uniform(-3, 3, n)
+    X2 = rng.uniform(-3, 3, n)
+    X3 = rng.normal(0, 1, n)
+    X4 = rng.normal(0, 1, n)
+    X5 = rng.normal(0, 1, n)  # mostly noise
+    X6 = rng.normal(0, 1, n)  # mostly noise
+
+    # Nonlinear decision function:
+    # - circular boundary
+    # - interaction between X1 and X2
+    # - small contribution from X3
+    score = (
+        2.0 * np.sin(2 * X1)
+        + 1.5 * np.cos(2 * X2)
+        + 1.2 * (X1 * X2 > 1).astype(float)
+        - 1.0 * (X1**2 + X2**2 > 5).astype(float)
+        + 0.5 * X3
+        + rng.normal(0, 0.8, n)
+    )
+
+    y = (score > np.median(score)).astype(int)
+
+    X = pd.DataFrame(
+        {
+            "x1": X1,
+            "x2": X2,
+            "x3": X3,
+            "x4": X4,
+            "x5_noise": X5,
+            "x6_noise": X6,
+        }
+    )
+
+    return train_test_split(
+        X, y, test_size=0.3, random_state=random_state, stratify=y
+    )
+
+
+X_train, X_test, y_train, y_test = make_boosting_showcase()
+```
+
+
+
+```{python}
+from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
+# Optional: pip install xgboost
+from xgboost import XGBClassifier
+
+models = {
+    "Logistic Regression": make_pipeline(
+        StandardScaler(), LogisticRegression(max_iter=2000)
+    ),
+    "Single Tree": DecisionTreeClassifier(max_depth=3, random_state=42),
+    "Random Forest": RandomForestClassifier(
+        n_estimators=300, max_depth=5, random_state=42
+    ),
+    "AdaBoost": AdaBoostClassifier(
+        estimator=DecisionTreeClassifier(max_depth=1),
+        n_estimators=300,
+        learning_rate=0.05,
+        random_state=42,
+    ),
+    "XGBoost": XGBClassifier(
+        n_estimators=300,
+        max_depth=3,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        eval_metric="logloss",
+        random_state=42,
+    ),
+}
+
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    pred = model.predict(X_test)
+    print(f"{name:20s}: {accuracy_score(y_test, pred):.3f}")
+```
+
+
+
+# Boosting
+
+
+The central idea of boosting is simple: 
+
+> Build many weak learners sequentially so that each learner improves the mistakes made by earlier learners.
+
+This is very different from bagging or random forests. In random forests, all trees are built independently. Each tree is unaware of the other trees. Their predictions are later averaged together.
+
+Boosting is different. In boosting, the trees cooperate.
+
+The process looks conceptually like this:
+
+
+```{mermaid}
+flowchart TD
+    A[First Tree]
+    B[Identify Mistakes]
+    C[Second Tree Focuses on Mistakes]
+    D[Identify Remaining Mistakes]
+    E[Third Tree Focuses Again]
+    F[Continue Improving]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+```
+
+
+Thus boosting is an adaptive learning process. The model gradually learns where it is weak and allocates more attention to those difficult observations.
+
+This sequential correction mechanism is the key reason boosting can achieve very high predictive accuracy.
+
+---
+
+# Weak Learners
+
+Boosting is based on the idea of weak learners.
+
+A weak learner is a model that performs only slightly better than random guessing. Individually, weak learners are not impressive. However, boosting combines many weak learners into a powerful ensemble.
+
+In boosting, the weak learner is often a very shallow tree.
+
+For example, a decision stump is simply a tree with one split:
+
+```python
+DecisionTreeClassifier(max_depth=1)
+```
+
+A single stump is usually a poor classifier. It can only create a very simple decision boundary. However, boosting combines many stumps together sequentially, and the final model can become highly flexible.
+
+This is one of the most important ideas in boosting:
+
+> Many weak learners can combine to form a strong learner.
+
+---
+
+# AdaBoost
+
+AdaBoost stands for Adaptive Boosting. It was one of the earliest boosting algorithms to achieve major success.
+
+The key idea behind AdaBoost is:
+
+> Increase attention on observations that were previously misclassified.
+
+At every stage, AdaBoost identifies observations that are difficult to classify and forces the next learner to focus more strongly on them.
+
+---
+
+# The AdaBoost Algorithm
+
+Suppose we observe training data
+
+$$
+(x_1,y_1),\dots,(x_n,y_n)
+$$
+
+where
+
+$$
+y_i \in \{-1,+1\}.
+$$
+
+AdaBoost proceeds in several stages.
+
+---
+
+# Step 1: Initialize Observation Weights
+
+Initially, every observation receives equal importance.
+
+Thus the initial weights are
+
+$$
+w_i=\frac1n.
+$$
+
+At this stage, every observation contributes equally to the learning process.
+
+---
+
+# Step 2: Fit a Weak Learner
+
+Next, AdaBoost fits a weak learner to the weighted data.
+
+Usually this learner is a decision stump or another shallow tree.
+
+The learner attempts to minimize weighted classification error. This means observations with larger weights are treated as more important.
+
+Initially all weights are equal, so the first learner behaves similarly to ordinary classification.
+
+---
+
+# Step 3: Compute the Weighted Error
+
+After fitting the learner, AdaBoost computes the weighted classification error:
+
+$$
+\text{err}_m
+=
+\frac{
+\sum_{i=1}^n
+w_i I(y_i \ne G_m(x_i))
+}{
+\sum_{i=1}^n w_i
+}.
+$$
+
+Here:
+
+- $G_m(x)$ is the prediction from learner $m$
+- $I(\cdot)$ is the indicator function
+
+The numerator adds together the weights of misclassified observations.
+
+Thus observations with larger weights contribute more strongly to the error.
+
+---
+
+# Step 4: Compute the Learner Weight
+
+The learner itself also receives a weight:
+
+$$
+\alpha_m
+=
+\frac12
+\log
+\left(
+\frac{1-\text{err}_m}{\text{err}_m}
+\right).
+$$
+
+This quantity determines how influential the learner will be in the final model.
+
+If the learner performs well, then $\text{err}_m$ is small, and $\alpha_m$ becomes large.
+
+If the learner performs poorly, then $\alpha_m$ becomes small.
+
+Thus stronger learners receive more influence in the final prediction.
+
+---
+
+# Step 5: Update Observation Weights
+
+Now AdaBoost changes the observation weights.
+
+Misclassified observations receive larger weights, while correctly classified observations receive smaller weights.
+
+The update rule is
+
+$$
+w_i
+\leftarrow
+w_i
+\exp(-\alpha_m y_i G_m(x_i)).
+$$
+
+Although the formula looks complicated, the interpretation is straightforward.
+
+If an observation is classified correctly, then its weight decreases.
+
+If an observation is classified incorrectly, then its weight increases.
+
+As a result, the next learner focuses more strongly on observations that were difficult to classify previously.
+
+This is the heart of AdaBoost.
+
+---
+
+# Step 6: Repeat the Process
+
+AdaBoost repeats the procedure many times.
+
+Each new learner focuses more heavily on observations that earlier learners struggled with.
+
+Over time, the ensemble gradually improves.
+
+Instead of solving the entire problem at once, AdaBoost repeatedly corrects mistakes step by step.
+
+---
+
+# Final AdaBoost Prediction
+
+The final AdaBoost classifier combines all learners together:
+
+$$
+F(x)
+=
+\sum_{m=1}^M
+\alpha_m G_m(x).
+$$
+
+The final prediction is determined by the sign of this weighted sum:
+
+$$
+\text{sign}(F(x)).
+$$
+
+Thus AdaBoost forms a weighted voting system.
+
+Learners with stronger performance receive larger voting power.
+
+Learners with weaker performance receive smaller voting power.
+
+---
+
+# Intuition Behind AdaBoost
+
+The most important intuition is that AdaBoost repeatedly reallocates attention toward difficult observations.
+
+At early stages, the model correctly classifies easy observations. Those observations gradually become less important.
+
+The algorithm then spends more effort on observations that remain difficult.
+
+This repeated focusing mechanism allows AdaBoost to construct highly flexible decision boundaries from very simple learners.
+
+---
+
+# AdaBoost and the Bias-Variance Tradeoff
+
+Boosting primarily reduces bias.
+
+A shallow tree by itself usually underfits. Its decision boundary is too simple.
+
+AdaBoost gradually combines many shallow trees to create a more flexible model. The resulting ensemble can fit complicated patterns while still maintaining relatively low variance.
+
+This differs from bagging and random forests.
+
+Bagging mainly reduces variance by averaging unstable trees.
+
+Boosting mainly reduces bias by sequentially improving prediction errors.
+
+---
+
+# Advantages and Limitations of AdaBoost
+
+AdaBoost has several important advantages.
+
+It is conceptually elegant, relatively simple to implement, and often achieves strong predictive performance.
+
+In addition, AdaBoost usually requires little preprocessing. Tree-based methods naturally handle nonlinearities and interactions without explicit feature engineering.
+
+However, AdaBoost also has weaknesses.
+
+Because AdaBoost aggressively focuses on difficult observations, it can become sensitive to noisy data and outliers. If some observations are mislabeled, AdaBoost may repeatedly focus on those noisy points and overfit.
+
+Furthermore, boosting is inherently sequential. Each learner depends on earlier learners, so training cannot be fully parallelized.
+
+---
+
+# From AdaBoost to Gradient Boosting
+
+AdaBoost was historically very important, but modern boosting methods are usually based on gradient boosting.
+
+AdaBoost directly emphasizes misclassified observations.
+
+Gradient boosting generalizes this idea into a much broader framework.
+
+Instead of directly focusing on classification mistakes, gradient boosting attempts to model the remaining errors of the current model.
+
+These remaining errors are often represented by residuals or gradients.
+
+This perspective allows boosting to handle many types of loss functions and prediction problems.
+
+---
+
+# Gradient Boosting for Regression
+
+To understand gradient boosting, consider regression.
+
+Suppose we want to predict
+
+$$
+y.
+$$
+
+Initially we start with a very simple prediction:
+
+$$
+\hat y^{(0)}.
+$$
+
+For squared error loss, this initial prediction is often the sample mean.
+
+The model then computes residuals:
+
+$$
+r_i
+=
+y_i-\hat y_i.
+$$
+
+These residuals represent the mistakes made by the current model.
+
+Instead of fitting another tree directly to $y$, gradient boosting fits a tree to the residuals.
+
+Thus the next tree attempts to explain the remaining errors.
+
+After fitting the new tree, the prediction is updated:
+
+$$
+\hat y^{(m)}
+=
+\hat y^{(m-1)}
++
+\eta f_m(x),
+$$
+
+where:
+
+- $f_m(x)$ is the new tree
+- $\eta$ is the learning rate
+
+The process then repeats again and again.
+
+Each new tree improves the remaining errors left by earlier trees.
+
+---
+
+# Learning Rate and Shrinkage
+
+The learning rate controls how aggressively boosting updates the model.
+
+This parameter is sometimes called shrinkage.
+
+A small learning rate means each tree contributes only a small adjustment. The model learns slowly and cautiously.
+
+A large learning rate means each tree makes larger corrections. The model learns faster but may overfit more easily.
+
+Typical values are:
+
+```python
+learning_rate = 0.01
+learning_rate = 0.05
+learning_rate = 0.1
+```
+
+In practice, smaller learning rates combined with more trees often produce better predictive performance.
+
+---
+
+# XGBoost
+
+XGBoost stands for Extreme Gradient Boosting.
+
+It is essentially a highly optimized and regularized version of gradient boosting.
+
+XGBoost became extremely popular because it combines several important ideas:
+
+- gradient boosting
+- regularization
+- subsampling
+- efficient optimization
+- flexible tree construction
+
+For many years, XGBoost dominated machine learning competitions involving tabular data.
+
+---
+
+# Why XGBoost Works So Well
+
+XGBoost is powerful because it combines flexibility with regularization.
+
+Traditional boosting methods can easily overfit if too many trees are added.
+
+XGBoost combats overfitting in several ways.
+
+First, it regularizes tree complexity.
+
+Second, it uses shrinkage through the learning rate.
+
+Third, it uses random subsampling similar to random forests.
+
+Together these mechanisms create a model that is both flexible and stable.
+
+---
+
+# Regularization in XGBoost
+
+One major improvement in XGBoost is explicit regularization.
+
+XGBoost penalizes overly complicated trees.
+
+Complicated trees may fit training data extremely well but generalize poorly to new data.
+
+Regularization encourages smoother and simpler models.
+
+In practice, regularization can involve:
+
+- limiting tree depth
+- penalizing many leaves
+- shrinking leaf predictions
+
+The exact formulas are less important than the overall intuition:
+
+> XGBoost discourages unnecessarily complicated trees.
+
+---
+
+# Tree Depth
+
+Tree depth is one of the most important tuning parameters.
+
+Shallow trees produce smoother models with lower variance.
+
+Deep trees can capture stronger interactions and more complicated nonlinearities, but they may overfit.
+
+Typical values are:
+
+```python
+max_depth = 3
+max_depth = 4
+max_depth = 6
+```
+
+In many applications, surprisingly shallow trees perform very well.
+
+---
+
+# Number of Trees
+
+Boosting combines many trees sequentially.
+
+More trees generally increase model flexibility.
+
+However, too many trees may eventually overfit and also increase computation time.
+
+The number of trees strongly interacts with the learning rate.
+
+A smaller learning rate usually requires more trees.
+
+A larger learning rate usually requires fewer trees.
+
+---
+
+# Learning Rate Versus Number of Trees
+
+There is an important tradeoff between learning rate and the number of trees.
+
+A small learning rate means each tree contributes only a tiny adjustment. Therefore more trees are needed to build a strong model.
+
+A larger learning rate means each tree contributes more aggressively, so fewer trees are needed.
+
+In practice, many practitioners prefer:
+
+- small learning rate
+- large number of trees
+
+because this approach often produces smoother and more stable models.
+
+---
+
+# Subsampling
+
+XGBoost may randomly sample observations before fitting each tree.
+
+For example:
+
+```python
+subsample = 0.8
+```
+
+means each tree uses only 80% of the observations.
+
+This reduces variance and helps prevent overfitting.
+
+Subsampling also increases randomness, which improves robustness.
+
+---
+
+# Feature Subsampling
+
+XGBoost may also randomly sample predictors:
+
+```python
+colsample_bytree = 0.8
+```
+
+This means each tree uses only a subset of predictors.
+
+This idea resembles random forests.
+
+Feature subsampling helps decorrelate trees and reduce variance.
+
+---
+
+# Important Hyperparameters
+
+Several tuning parameters strongly affect XGBoost performance.
+
+The learning rate controls how aggressively the model updates predictions.
+
+The number of trees controls ensemble size.
+
+Tree depth controls interaction complexity.
+
+Subsampling controls randomness and regularization.
+
+Feature subsampling reduces correlation among trees.
+
+These parameters work together. Tuning one parameter often changes the effect of others.
+
+---
+
+# General Tuning Strategy
+
+A common practical strategy is:
+
+1. Start with shallow trees.
+2. Use a relatively small learning rate.
+3. Increase the number of trees.
+4. Use subsampling to reduce overfitting.
+5. Use cross-validation to monitor performance.
+
+For example:
+
+```python
+XGBClassifier(
+    n_estimators=500,
+    learning_rate=0.05,
+    max_depth=3,
+    subsample=0.8,
+    colsample_bytree=0.8
+)
+```
+
+This represents a conservative and stable boosting model.
+
+---
+
+# AdaBoost Versus XGBoost
+
+Although both methods are boosting algorithms, they differ substantially.
+
+AdaBoost directly increases weights on misclassified observations.
+
+XGBoost instead fits gradients or residuals.
+
+AdaBoost is conceptually simpler and historically important.
+
+XGBoost is more flexible, more regularized, and usually achieves stronger predictive performance in modern applications.
+
+AdaBoost is often excellent for teaching because the core idea is easy to visualize.
+
+XGBoost is often preferred in practice because of its predictive power and robustness.
+
+---
+
+# Comparison with Random Forests
+
+Random forests and boosting are both tree ensembles, but their philosophies differ fundamentally.
+
+Random forests build trees independently and then average predictions.
+
+Boosting builds trees sequentially and continuously corrects errors.
+
+Random forests mainly reduce variance.
+
+Boosting mainly reduces bias.
+
+Random forests are often easier to tune and more stable.
+
+Boosting methods often achieve higher predictive accuracy but require more careful tuning.
+
+---
+
+# Example in Python
+
+AdaBoost can be implemented in scikit-learn as follows:
+
+```python
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+model = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1),
+    n_estimators=200,
+    learning_rate=0.05
+)
+
+model.fit(X_train, y_train)
+```
+
+XGBoost can be implemented using the `xgboost` package:
+
+```python
+from xgboost import XGBClassifier
+
+model = XGBClassifier(
+    n_estimators=500,
+    learning_rate=0.05,
+    max_depth=3,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    eval_metric="logloss"
+)
+
+model.fit(X_train, y_train)
+```
+
+---
+
+# Final Remarks
+
+Boosting is one of the most important ideas in modern statistical learning.
+
+Instead of relying on one powerful learner, boosting constructs a strong model by combining many weak learners sequentially.
+
+AdaBoost introduced the key idea of adaptive focusing on difficult observations.
+
+Gradient boosting generalized this idea by fitting residuals or gradients.
+
+XGBoost further improved the framework through regularization, shrinkage, and subsampling.
+
+The most important conceptual ideas are:
+
+- sequential learning
+- weak learners
+- residual correction
+- shrinkage
+- regularization
+- bias reduction
+
+These ideas appear repeatedly throughout modern machine learning and form the foundation of many powerful predictive methods.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Boosting: AdaBoost and XGBoost
+
+## Introduction
+
+Tree-based methods are highly flexible and can model complicated nonlinear relationships. However, a single tree often has high variance and may not achieve the best predictive performance.
+
+Ensemble methods improve prediction by combining many trees together.
+
+There are two major ensemble ideas:
+
+1. Bagging / Random Forest
+   - Build many trees independently
+   - Average their predictions
+   - Main goal: reduce variance
+
+2. Boosting
+   - Build trees sequentially
+   - Each new tree focuses on correcting previous errors
+   - Main goal: reduce bias
+
+This chapter focuses on boosting methods, especially AdaBoost and XGBoost.
+
+---
+
+# The Main Idea of Boosting
+
+The central idea of boosting is:
+
+> Build many weak learners sequentially so that each learner improves the mistakes made by earlier learners.
+
+Unlike bagging, boosting is not parallel.
+
+Instead:
+
+```text
+Tree 1
+   ↓
+Identify mistakes
+   ↓
+Tree 2 focuses on mistakes
+   ↓
+Identify remaining mistakes
+   ↓
+Tree 3 focuses again
+   ↓
+...
+```
+
+The learners cooperate instead of working independently.
+
+---
+
+# Weak Learners
+
+Boosting usually uses weak learners.
+
+A weak learner is a model that performs only slightly better than random guessing.
+
+In boosting, the weak learner is often:
+
+- a decision stump
+- a shallow tree
+
+For example:
+
+```python
+DecisionTreeClassifier(max_depth=1)
+```
+
+A single stump is weak, but many stumps together can become very powerful.
+
+---
+
+# AdaBoost
+
+AdaBoost stands for:
+
+Adaptive Boosting
+
+It was one of the first highly successful boosting algorithms.
+
+The key idea is simple:
+
+> Increase attention on observations that were previously misclassified.
+
+---
+
+# AdaBoost Algorithm
+
+Suppose we have training observations:
+
+$$
+(x_1,y_1),\dots,(x_n,y_n)
+$$
+
+where:
+
+$$
+y_i \in \{-1,+1\}
+$$
+
+---
+
+## Step 1: Initialize Weights
+
+Initially, all observations receive equal weights:
+
+$$
+w_i=\frac1n
+$$
+
+Thus every observation is equally important.
+
+---
+
+## Step 2: Fit a Weak Learner
+
+Fit a weak learner using the weighted observations.
+
+Typically:
+
+- decision stump
+- shallow tree
+
+The learner attempts to minimize weighted classification error.
+
+---
+
+## Step 3: Compute Weighted Error
+
+The weighted error is:
+
+$$
+\text{err}_m
+=
+\frac{
+\sum_{i=1}^n
+w_i I(y_i \ne G_m(x_i))
+}{
+\sum_{i=1}^n w_i
+}
+$$
+
+where:
+
+- $G_m(x)$ is the prediction from tree $m$
+- $I(\cdot)$ is the indicator function
+
+---
+
+## Step 4: Compute Learner Weight
+
+The learner receives weight:
+
+$$
+\alpha_m
+=
+\frac12
+\log
+\left(
+\frac{1-\text{err}_m}{\text{err}_m}
+\right)
+$$
+
+Interpretation:
+
+- low error → large weight
+- high error → small weight
+
+Thus better learners contribute more.
+
+---
+
+## Step 5: Update Observation Weights
+
+Observations that were misclassified receive larger weights.
+
+Specifically:
+
+$$
+w_i
+\leftarrow
+w_i
+\exp(-\alpha_m y_i G_m(x_i))
+$$
+
+Interpretation:
+
+- correctly classified points:
+  - weights decrease
+- misclassified points:
+  - weights increase
+
+Thus the next learner focuses more on difficult observations.
+
+---
+
+## Step 6: Repeat
+
+Repeat the process many times.
+
+Each new learner focuses more strongly on hard observations.
+
+---
+
+# Final AdaBoost Model
+
+The final prediction is a weighted vote:
+
+$$
+F(x)
+=
+\sum_{m=1}^M
+\alpha_m G_m(x)
+$$
+
+Classification is based on:
+
+$$
+\text{sign}(F(x))
+$$
+
+Thus:
+
+- strong learners receive larger voting power
+- weak learners receive smaller voting power
+
+---
+
+# Intuition Behind AdaBoost
+
+The most important intuition is:
+
+> AdaBoost repeatedly focuses on difficult observations.
+
+At each iteration:
+
+- easy observations matter less
+- difficult observations matter more
+
+This adaptive focusing mechanism is why AdaBoost can build a strong classifier from weak learners.
+
+---
+
+# AdaBoost and Bias-Variance Tradeoff
+
+Boosting primarily reduces bias.
+
+Single shallow trees often underfit.
+
+Boosting combines many shallow trees sequentially to improve flexibility.
+
+Compared with bagging:
+
+| Method | Main Goal |
+|---|---|
+| Bagging | reduce variance |
+| Random Forest | reduce variance + decorrelate trees |
+| Boosting | reduce bias sequentially |
+
+---
+
+# Advantages of AdaBoost
+
+Advantages:
+
+- simple idea
+- often strong predictive performance
+- works well with weak learners
+- little preprocessing required
+
+---
+
+# Limitations of AdaBoost
+
+Limitations:
+
+- sensitive to noisy observations
+- sensitive to outliers
+- sequential training can be slower
+- may overfit if boosting continues too long
+
+---
+
+# From AdaBoost to Gradient Boosting
+
+AdaBoost focuses on misclassified observations.
+
+Gradient boosting generalizes this idea.
+
+Instead of:
+
+- focusing directly on classification mistakes
+
+gradient boosting:
+
+- fits residuals or gradients
+
+This makes the framework much more flexible.
+
+---
+
+# Gradient Boosting for Regression
+
+Suppose we want to predict:
+
+$$
+y
+$$
+
+---
+
+## Initial Model
+
+Start with a simple prediction:
+
+$$
+\hat y^{(0)}
+$$
+
+often the sample mean.
+
+---
+
+## Residuals
+
+Compute residuals:
+
+$$
+r_i
+=
+y_i-\hat y_i
+$$
+
+The residuals represent remaining errors.
+
+---
+
+## Fit a Tree to Residuals
+
+Instead of fitting:
+
+$$
+y
+$$
+
+directly, we fit a tree to:
+
+$$
+r_i
+$$
+
+The new tree attempts to predict the remaining mistakes.
+
+---
+
+## Update Prediction
+
+Update predictions:
+
+$$
+\hat y^{(m)}
+=
+\hat y^{(m-1)}
++
+\eta f_m(x)
+$$
+
+where:
+
+- $f_m(x)$ is the new tree
+- $\eta$ is the learning rate
+
+---
+
+# Learning Rate (Shrinkage)
+
+The learning rate controls how aggressively boosting updates predictions.
+
+Small learning rate:
+
+- slower learning
+- safer
+- less overfitting
+
+Large learning rate:
+
+- faster learning
+- more aggressive
+- more overfitting risk
+
+Typical values:
+
+```python
+learning_rate = 0.01
+learning_rate = 0.05
+learning_rate = 0.1
+```
+
+---
+
+# XGBoost
+
+XGBoost stands for:
+
+Extreme Gradient Boosting
+
+It is one of the most successful machine learning algorithms in practice.
+
+XGBoost is essentially:
+
+> a highly optimized and regularized gradient boosting method.
+
+---
+
+# Why XGBoost Became Popular
+
+XGBoost became popular because it combines:
+
+- strong predictive performance
+- regularization
+- efficient computation
+- flexibility
+- automatic handling of nonlinear interactions
+
+It has been widely used in:
+
+- Kaggle competitions
+- industry applications
+- tabular data problems
+
+---
+
+# Core Ideas Behind XGBoost
+
+The main ideas are:
+
+1. Sequential boosting
+2. Gradient-based learning
+3. Shrinkage
+4. Regularization
+5. Subsampling
+6. Tree optimization
+
+---
+
+# Regularization in XGBoost
+
+A major improvement over traditional boosting is regularization.
+
+XGBoost penalizes overly complex trees.
+
+This helps reduce overfitting.
+
+Regularization may include:
+
+- limiting tree depth
+- penalizing many leaves
+- penalizing large leaf weights
+
+Thus XGBoost is usually more stable than traditional boosting.
+
+---
+
+# Tree Depth
+
+Tree depth controls interaction complexity.
+
+Small depth:
+
+- smoother model
+- lower variance
+- simpler interactions
+
+Large depth:
+
+- more flexible
+- captures stronger interactions
+- higher variance
+
+Typical values:
+
+```python
+max_depth = 3
+max_depth = 4
+max_depth = 6
+```
+
+Very deep trees may overfit.
+
+---
+
+# Number of Trees
+
+Boosting combines many trees.
+
+More trees increase model flexibility.
+
+However:
+
+- too many trees may overfit
+- training becomes slower
+
+The number of trees interacts strongly with the learning rate.
+
+---
+
+# Learning Rate vs Number of Trees
+
+Important tradeoff:
+
+| Learning Rate | Number of Trees |
+|---|---|
+| small | large |
+| large | small |
+
+Common strategy:
+
+- small learning rate
+- many trees
+
+This is often more stable.
+
+---
+
+# Subsampling
+
+XGBoost may randomly sample observations.
+
+This is called row subsampling.
+
+Example:
+
+```python
+subsample = 0.8
+```
+
+Only 80% of observations are used for each tree.
+
+Benefits:
+
+- lower variance
+- less overfitting
+- faster training
+
+---
+
+# Feature Subsampling
+
+XGBoost may also randomly sample predictors.
+
+Example:
+
+```python
+colsample_bytree = 0.8
+```
+
+Benefits:
+
+- decorrelates trees
+- reduces variance
+- improves robustness
+
+This idea is similar to Random Forest.
+
+---
+
+# Important Hyperparameters in XGBoost
+
+The most important hyperparameters are:
+
+| Parameter | Role |
+|---|---|
+| learning_rate | step size |
+| n_estimators | number of trees |
+| max_depth | tree complexity |
+| subsample | row subsampling |
+| colsample_bytree | feature subsampling |
+
+---
+
+# General Tuning Rules
+
+## Rule 1
+
+Start with shallow trees.
+
+Example:
+
+```python
+max_depth=3
+```
+
+---
+
+## Rule 2
+
+Use small learning rate.
+
+Example:
+
+```python
+learning_rate=0.05
+```
+
+---
+
+## Rule 3
+
+Increase number of trees when learning rate is small.
+
+Example:
+
+```python
+n_estimators=500
+```
+
+---
+
+## Rule 4
+
+Use subsampling to reduce overfitting.
+
+Example:
+
+```python
+subsample=0.8
+colsample_bytree=0.8
+```
+
+---
+
+# AdaBoost vs XGBoost
+
+| AdaBoost | XGBoost |
+|---|---|
+| focuses on misclassified observations | fits gradients/residuals |
+| usually shallow stumps | deeper trees possible |
+| simpler | more flexible |
+| less regularization | strong regularization |
+| older method | modern industrial method |
+
+---
+
+# Comparison with Random Forest
+
+| Random Forest | XGBoost |
+|---|---|
+| trees independent | trees sequential |
+| averaging | error correction |
+| mainly reduces variance | mainly reduces bias |
+| easy parallelization | sequential training |
+| usually more stable | usually more accurate |
+
+---
+
+# Typical Workflow in Practice
+
+Typical workflow:
+
+1. Start with train/test split
+2. Use cross-validation
+3. Tune:
+   - learning_rate
+   - max_depth
+   - n_estimators
+4. Monitor validation error
+5. Stop before overfitting
+
+---
+
+# Example in Python
+
+## AdaBoost
+
+```python
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+model = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1),
+    n_estimators=200,
+    learning_rate=0.05
+)
+
+model.fit(X_train, y_train)
+```
+
+---
+
+## XGBoost
+
+```python
+from xgboost import XGBClassifier
+
+model = XGBClassifier(
+    n_estimators=500,
+    learning_rate=0.05,
+    max_depth=3,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    eval_metric="logloss"
+)
+
+model.fit(X_train, y_train)
+```
+
+---
+
+# Summary
+
+Boosting builds models sequentially.
+
+Each new learner attempts to improve previous mistakes.
+
+AdaBoost:
+
+- reweights observations
+- emphasizes difficult observations
+
+Gradient boosting:
+
+- fits residuals or gradients
+
+XGBoost:
+
+- regularized gradient boosting
+- powerful predictive performance
+- strong practical success
+
+The most important ideas are:
+
+- sequential learning
+- weak learners
+- residual correction
+- shrinkage
+- regularization
+- bias reduction
+
+Boosting methods are among the most powerful tools for supervised learning on tabular data.
