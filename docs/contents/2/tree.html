@@ -84,6 +84,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/bootstrap/bootstrap-dark-7e342b42b1d8244df6d5a8d63372ab02.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
+<link href="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -114,6 +116,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+    <style type="text/css">
+    .ps-root .ps-algorithm {
+      border-top: 2px solid;
+      border-bottom: 2px solid;
+    }
+    .pseudocode-container {
+      text-align: left;
+    }
+    </style>
+  
+      <style type="text/css">
+      .ps-algorithm > .ps-line {
+        text-align: left;
+      }
+      </style>
+    
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -456,7 +474,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
- <span class="menu-text">Distance Based Methods</span></a>
+ <span class="menu-text">Unsupervised Learning</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -514,9 +532,13 @@ window.Quarto = {
   <li><a href="#regression-trees" id="toc-regression-trees" class="nav-link" data-scroll-target="#regression-trees"><span class="header-section-number">10.3</span> Regression Trees</a>
   <ul class="collapse">
   <li><a href="#split-criterion-for-regression-trees" id="toc-split-criterion-for-regression-trees" class="nav-link" data-scroll-target="#split-criterion-for-regression-trees"><span class="header-section-number">10.3.1</span> Split Criterion for Regression Trees</a></li>
-  <li><a href="#interpretation-of-regression-trees" id="toc-interpretation-of-regression-trees" class="nav-link" data-scroll-target="#interpretation-of-regression-trees"><span class="header-section-number">10.3.2</span> Interpretation of Regression Trees</a></li>
   </ul></li>
-  <li><a href="#pros-and-cons" id="toc-pros-and-cons" class="nav-link" data-scroll-target="#pros-and-cons"><span class="header-section-number">10.4</span> Pros and cons</a></li>
+  <li><a href="#some-discussions" id="toc-some-discussions" class="nav-link" data-scroll-target="#some-discussions"><span class="header-section-number">10.4</span> Some discussions</a>
+  <ul class="collapse">
+  <li><a href="#trees-are-local" id="toc-trees-are-local" class="nav-link" data-scroll-target="#trees-are-local"><span class="header-section-number">10.4.1</span> Trees are local</a></li>
+  <li><a href="#trees-are-nonlinear" id="toc-trees-are-nonlinear" class="nav-link" data-scroll-target="#trees-are-nonlinear"><span class="header-section-number">10.4.2</span> Trees are nonlinear</a></li>
+  <li><a href="#automatic-interaction-effects" id="toc-automatic-interaction-effects" class="nav-link" data-scroll-target="#automatic-interaction-effects"><span class="header-section-number">10.4.3</span> Automatic interaction effects</a></li>
+  </ul></li>
   <li><a href="#tuning-hyperparameters" id="toc-tuning-hyperparameters" class="nav-link" data-scroll-target="#tuning-hyperparameters"><span class="header-section-number">10.5</span> Tuning hyperparameters</a></li>
   <li><a href="#pruning" id="toc-pruning" class="nav-link" data-scroll-target="#pruning"><span class="header-section-number">10.6</span> Pruning</a></li>
   <li><a href="#trees-in-python" id="toc-trees-in-python" class="nav-link" data-scroll-target="#trees-in-python"><span class="header-section-number">10.7</span> Trees in Python</a></li>
@@ -615,24 +637,58 @@ window.Quarto = {
 </header>
 
 
-<p>A decision tree is a nonparametric method. Instead of assuming a global linear relationship such as <span class="math inline">\(f(x)=\beta_0+\beta_1x_1+\cdots+\beta_px_p\)</span>, a tree learns a collection of simple if-then rules directly from the data.</p>
+<div class="hidden">
+<!-- Constants and basic symbols -->
+<p><span class="math display">\[
+\require{physics}
+\require{braket}
+\]</span></p>
+<p><span class="math display">\[
+\newcommand{\dl}[1]{{\hspace{#1mu}\mathrm d}}
+\newcommand{\me}{{\mathrm e}}
+% \newcommand{\argmin}{\operatorname{argmin}}
+\newcommand{\rss}{\mathrm{RSS}}
+\newcommand{\ols}{\mathrm{OLS}}
+\newcommand{\ridge}{\mathrm{ridge}}
+\newcommand{\lasso}{\mathrm{lasso}}
+\newcommand{\mle}{\mathrm{MLE}}
+\newcommand{\constant}{\mathrm{constant}}
+\newcommand{\resid}{\mathrm{residual}}
+\newcommand{\span}{\mathrm{span}}
+\newcommand{\gini}{\mathrm{Gini}}
+\]</span></p>
+<!-- Probability -->
+<p>$$ </p>
+<p> $$</p>
+<!-- Distributions pdf -->
+<p><span class="math display">\[
+\newcommand{\pdfbinom}{{\tt binom}}
+\newcommand{\pdfbeta}{{\tt beta}}
+\newcommand{\pdfpois}{{\tt poisson}}
+\newcommand{\pdfgamma}{{\tt gamma}}
+\newcommand{\pdfnormal}{{\tt norm}}
+  \newcommand{\pdfexp}{{\tt expon}}
+\]</span></p>
+<!-- Distributions -->
+<p><span class="math display">\[
+\newcommand{\distbinom}{\operatorname{B}}
+\newcommand{\distbeta}{\operatorname{Beta}}
+\newcommand{\distgamma}{\operatorname{Gamma}}
+\newcommand{\distexp}{\operatorname{Exp}}
+\newcommand{\distpois}{\operatorname{Poisson}}
+\newcommand{\distnormal}{\operatorname{\mathcal N}}
+\]</span></p>
+</div>
+<p>A decision tree is another nonparametric method, which learns a collection of simple if-then rules directly from the data.</p>
 <p>The basic idea is:</p>
 <ol type="1">
 <li>Split the feature space into regions.</li>
 <li>Continue splitting each region into smaller regions.</li>
 <li>Use the observations inside each final region to make predictions.</li>
 </ol>
-<!-- A decision tree is called **adaptive** because the regions are learned from the data.
-
-* If a predictor is useful, the tree may split on it many times.
-* If a predictor is not useful, the tree may ignore it completely. -->
-<!-- 
-Unlike linear regression, trees can naturally model nonlinear relationships and complicated interactions between predictors.
-
---- -->
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 10.1 (Example: A Classification Tree)</strong></span> &nbsp;</p>
-<div id="687f369a" class="cell" data-execution_count="1">
+<div id="944d9cf8" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -643,39 +699,48 @@ Unlike linear regression, trees can naturally model nonlinear relationships and 
 </div>
 <p>This is a classification tree. The tree repeatedly asks simple questions such as</p>
 <ul>
-<li>Is <code>x[1] &lt;= 0.8</code>?</li>
+<li>Is <code>x[0] &lt;= 2.45</code>?</li>
 <li>Is <code>x[1] &lt;= 1.75</code>?</li>
 </ul>
 <p>Each split divides the feature space into smaller regions.</p>
-<p>Notice that a tree may split on the same predictor multiple times. This is very common in practice. This suggests that the feature <code>x[1]</code> is more important than other features.</p>
+<p>This tree actually create the following splits in the feature space.</p>
+<div id="133a028d" class="cell" data-execution_count="2">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="tree_files/figure-html/cell-3-output-1.png" width="668" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
 </div>
 <!-- 
-# Why Trees Are Nonlinear
-
-A tree partitions the feature space into regions and predicts separately inside each region.
-
-For example:
-
-* If age < 30, predict salary = $45,000
-* Otherwise predict salary = $82,000
-
-This creates a **piecewise prediction rule** instead of one global linear equation.
-
-Therefore trees are naturally nonlinear models.
-
---- -->
+Notice that a tree may split on the same predictor multiple times. This is very common in practice. This suggests that the feature `x[1]` is more important than other features. -->
+</div>
+<p>Based on the idea of a decision tree, a tree makes decisions by repeatedly asking questions of the form <span class="math inline">\(x_j \leq c\)</span>. Therefore, a tree has two important properties:</p>
+<ul>
+<li>It depends directly on the original features.</li>
+<li>The scale of a feature is usually not important.</li>
+</ul>
+<p>As a result, we should expect that a tree is:</p>
+<ul>
+<li>sensitive to feature construction or feature combinations: A tree can only split on the features that are provided. If the useful signal is hidden in a combination such as <span class="math inline">\(x_1+x_2\)</span> or <span class="math inline">\(x_1x_2\)</span>, a tree may need many splits to approximate that relationship.</li>
+<li>not sensitive to monotone transformations of a feature: For example, replacing <span class="math inline">\(x\)</span> by <span class="math inline">\(\log(x)\)</span> or <span class="math inline">\(2x+5\)</span> does not change the ordering of the observations. Since tree splits mainly depend on ordering, the tree can usually produce an equivalent split after the transformation.</li>
+</ul>
 <section id="cart-classification-and-regression-trees" class="level2" data-number="10.1">
 <h2 data-number="10.1" class="anchored" data-anchor-id="cart-classification-and-regression-trees"><span class="header-section-number">10.1</span> CART: Classification and Regression Trees</h2>
 <p>There are many algorithms for constructing decision trees. The most common one is called CART (Classification and Regression Trees).</p>
 <p>CART has the following properties:</p>
 <ul>
 <li>It creates only binary splits;</li>
-<li>For classification, common splitting criteria include Gini impurity and Entropy;</li>
-<li>For regression, common splitting criteria include Mean squared error (MSE) and Sum of squared errors (SSE).</li>
+<li>It can perform both classification and regression tasks:
+<ul>
+<li>For classification, common splitting criteria include Gini impurity and entropy;</li>
+<li>For regression, common splitting criteria include mean squared error (MSE) and sum of squared errors (SSE).</li>
+</ul></li>
 </ul>
 <section id="splitting-a-dataset" class="level3" data-number="10.1.1">
 <h3 data-number="10.1.1" class="anchored" data-anchor-id="splitting-a-dataset"><span class="header-section-number">10.1.1</span> Splitting a Dataset</h3>
-<p>At each step, CART searches for the best split.</p>
+<p>At each step, CART searches over possible splits and chooses the split that produces the largest reduction in impurity (or prediction error).</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -686,29 +751,19 @@ Therefore trees are naturally nonlinear models.
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Inputs:</strong> A dataset</p>
-<p><span class="math display">\[
-S={[\text{features},\text{target}]}
-\]</span></p>
+<p><strong>Inputs:</strong> A dataset <span class="math inline">\(S={[\text{features},\text{target}]}\)</span></p>
 <p><strong>Outputs:</strong> The best split <span class="math inline">\((k,t)\)</span></p>
 <ol type="1">
-<li><p>For each feature <span class="math inline">\(k\)</span>:</p>
+<li>For each feature <span class="math inline">\(x_k\)</span>:
 <ol type="1">
-<li><p>For each candidate split value <span class="math inline">\(t\)</span>:</p>
+<li>For each candidate split value <span class="math inline">\(t\)</span>:
 <ol type="1">
-<li>Split the dataset into two subsets:</li>
-</ol>
-<p><span class="math display">\[
-G_l={x_k\le t},
-\qquad
-G_r={x_k&gt;t}
-\]</span></p>
-<ol start="2" type="1">
+<li>Split the dataset into two subsets: <span class="math inline">\(G_l=\qty{\text{data with }x_k\le t}\)</span>, <span class="math inline">\(G_r=\qty{\text{data with }x_k&gt;t}\)</span>.</li>
 <li>Compute the split cost function <span class="math inline">\(J(k,t)\)</span></li>
 <li>Compare with the current best split</li>
 </ol></li>
 </ol></li>
-<li><p>Return the split <span class="math inline">\((k,t)\)</span> with the smallest cost</p></li>
+<li>Return the split <span class="math inline">\((k,t)\)</span> with the smallest cost</li>
 </ol>
 </div>
 </div>
@@ -723,29 +778,17 @@ G_r={x_k&gt;t}
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Inputs:</strong></p>
-<ul>
-<li>A labeled dataset <span class="math inline">\(S\)</span></li>
-<li>A maximal tree depth <code>max_depth</code></li>
-</ul>
-<p><strong>Outputs:</strong></p>
-<ul>
-<li>A decision tree</li>
-</ul>
+<p><strong>Inputs:</strong> A labeled dataset <span class="math inline">\(S\)</span> and a maximal tree depth <code>max_depth</code></p>
+<p><strong>Outputs:</strong> A decision tree</p>
 <ol type="1">
-<li><p>Start with the original dataset <span class="math inline">\(S\)</span></p></li>
-<li><p>If the node is not pure:</p>
+<li>Start with the original dataset <span class="math inline">\(S\)</span></li>
+<li>If the node is not pure:
 <ol type="1">
 <li>Find the best split</li>
-<li>Split the node into:</li>
-</ol>
-<p><span class="math display">\[
-G_l,
-\qquad
-G_r
-\]</span></p></li>
-<li><p>Apply the same procedure recursively to both child nodes</p></li>
-<li><p>Stop when:</p>
+<li>Split the node into: <span class="math inline">\(G_l\)</span>, <span class="math inline">\(G_r\)</span></li>
+</ol></li>
+<li>Apply the same procedure recursively to both child nodes</li>
+<li>Stop when:
 <ul>
 <li>the maximal depth is reached, or</li>
 <li>the node becomes pure, or</li>
@@ -758,20 +801,11 @@ G_r
 </section>
 <section id="classification-trees" class="level2" data-number="10.2">
 <h2 data-number="10.2" class="anchored" data-anchor-id="classification-trees"><span class="header-section-number">10.2</span> Classification Trees</h2>
-<p>For classification trees, we need a criterion to measure whether a split is good or bad. The two most common choices are:</p>
-<ul>
-<li>Gini impurity</li>
-<li>Entropy</li>
-</ul>
-<p>Their performance is usually very similar. In these notes we focus on Gini impurity because it is slightly easier to compute and interpret.</p>
+<p>For classification trees, we need a criterion to measure whether a split is good or bad. In this notes we focus on Gini impurity.</p>
 <section id="gini-impurity" class="level3" data-number="10.2.1">
 <h3 data-number="10.2.1" class="anchored" data-anchor-id="gini-impurity"><span class="header-section-number">10.2.1</span> Gini Impurity</h3>
 <p>Assume that a node contains <span class="math inline">\(n\)</span> observations divided into <span class="math inline">\(K\)</span> classes.</p>
-<p>Let</p>
-<p><span class="math display">\[
-p_i=\frac{n_i}{n}
-\]</span></p>
-<p>be the proportion of class <span class="math inline">\(i\)</span>.</p>
+<p>Let <span class="math inline">\(p_i=\frac{n_i}{n}\)</span> be the proportion of class <span class="math inline">\(i\)</span>.</p>
 <p>If we randomly assign labels according to the class proportions, then:</p>
 <ul>
 <li>the probability an observation belongs to class <span class="math inline">\(i\)</span> is <span class="math inline">\(p_i\)</span></li>
@@ -791,14 +825,14 @@ p_i(1-p_i).
 \]</span></p>
 <p>we obtain</p>
 <p><span class="math display">\[
-Gini
+\gini
 =\sum_{i=1}^K p_i(1-p_i)
 =1-\sum_{i=1}^K p_i^2.
 \]</span></p>
 <div id="def-gini" class="theorem definition">
 <p><span class="theorem-title"><strong>Definition 10.1 (Gini Impurity)</strong></span> The <strong>Gini impurity</strong> of a node is</p>
 <p><span class="math display">\[
-Gini
+\gini
 =1-\sum_{i=1}^K p_i^2,
 \]</span></p>
 <p>where <span class="math inline">\(p_i\)</span> is the proportion of class <span class="math inline">\(i\)</span> inside the node.</p>
@@ -808,7 +842,7 @@ Gini
 <p>Then one of the probabilities equals 1 and all others equal 0.</p>
 <p>Therefore</p>
 <p><span class="math display">\[
-Gini=1-1^2=0.
+\gini=1-1^2=0.
 \]</span></p>
 <p>This is the minimum possible impurity.</p>
 <p>A node with Gini impurity 0 is called a pure node.</p>
@@ -821,7 +855,7 @@ p_2=1-p_1.
 \]</span></p>
 <p>Then</p>
 <p><span class="math display">\[
-Gini
+\gini
 =1-p_1^2-(1-p_1)^2
 =2p_1-2p_1^2.
 \]</span></p>
@@ -833,17 +867,11 @@ Gini
 <p>Therefore impurity is largest when the classes are balanced.</p>
 </div>
 <p>The impurity of a node itself is not enough. CART actually evaluates the quality of a split by examining the impurity of the child nodes after splitting.</p>
-<p>Suppose a node <span class="math inline">\(G\)</span> is split into:</p>
-<p><span class="math display">\[
-G_l,
-\qquad
-G_r.
-\]</span></p>
-<p>The split cost is</p>
+<p>Suppose a node <span class="math inline">\(G\)</span> is split into <span class="math inline">\(G_l\)</span> and <span class="math inline">\(G_r\)</span>. The split cost is</p>
 <p><span class="math display">\[
 J
-=\frac{|G_l|}{|G|}Gini(G_l)
-+\frac{|G_r|}{|G|}Gini(G_r).
+=\frac{|G_l|}{|G|}\gini(G_l)
++\frac{|G_r|}{|G|}\gini(G_r).
 \]</span></p>
 <p>A good split produces child nodes with low impurity.</p>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -856,10 +884,9 @@ J
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Entropy is another popular impurity measure.</p>
-<p>Its formula is</p>
+<p>Entropy is another popular impurity measure. Its formula is</p>
 <p><span class="math display">\[
-Entropy
+\mathrm{Entropy}
 =-\sum_{i=1}^K p_i\log(p_i).
 \]</span></p>
 <p>Entropy and Gini impurity usually produce very similar trees.</p>
@@ -871,72 +898,97 @@ Entropy
 <section id="regression-trees" class="level2" data-number="10.3">
 <h2 data-number="10.3" class="anchored" data-anchor-id="regression-trees"><span class="header-section-number">10.3</span> Regression Trees</h2>
 <p>Regression trees are used when the response variable is quantitative. Instead of predicting a class label, a regression tree predicts a numerical value.</p>
-<p>Suppose a terminal node contains responses</p>
-<p><span class="math display">\[
-y_1,y_2,\ldots,y_n.
-\]</span></p>
-<p>The prediction for that region is usually the sample mean:</p>
-<p><span class="math display">\[
+<p>Suppose a terminal node contains responses <span class="math inline">\(y_1\)</span>, <span class="math inline">\(y_2\)</span>, <span class="math inline">\(\ldots\)</span>, <span class="math inline">\(y_n\)</span>. The prediction for that region is usually the sample mean: <span class="math display">\[
 \hat y
 =\frac{1}{n}\sum_{i=1}^n y_i.
 \]</span></p>
 <p>Therefore regression trees approximate the regression function using piecewise constant regions.</p>
 <section id="split-criterion-for-regression-trees" class="level3" data-number="10.3.1">
 <h3 data-number="10.3.1" class="anchored" data-anchor-id="split-criterion-for-regression-trees"><span class="header-section-number">10.3.1</span> Split Criterion for Regression Trees</h3>
-<p>For regression trees, CART typically minimizes the residual sum of squares (RSS) or equivalently the mean squared error (MSE).</p>
-<p>Suppose a split divides the data into two regions:</p>
+<p>For regression trees, CART typically minimizes the residual sum of squares (RSS). Sometimes the mean squared error (MSE) is used. These two are essentially the equaivalent.</p>
+<p>Suppose a split divides the data into two regions <span class="math inline">\(G_l\)</span> and <span class="math inline">\(G_r\)</span>. The split cost is</p>
 <p><span class="math display">\[
-G_l,
-\qquad
-G_r.
+\rss=\sum_{i\in G_l}(y_i-\bar y_l)^2+\sum_{i\in G_r}(y_i-\bar y_r)^2,
 \]</span></p>
-<p>The split cost is</p>
-<p>$$ RSS ===</p>
-<p><em>{iG_l}(y_i-y_l)^2 + </em>{iG_r}(y_i-y_r)^2, $$</p>
-<p>where</p>
+<p>where <span class="math inline">\(\bar y_l\)</span> and <span class="math inline">\(\bar y_r\)</span> are the mean responses inside the two regions. The best split is the one that minimizes this quantity.</p>
+</section>
+</section>
+<section id="some-discussions" class="level2" data-number="10.4">
+<h2 data-number="10.4" class="anchored" data-anchor-id="some-discussions"><span class="header-section-number">10.4</span> Some discussions</h2>
+<section id="trees-are-local" class="level3" data-number="10.4.1">
+<h3 data-number="10.4.1" class="anchored" data-anchor-id="trees-are-local"><span class="header-section-number">10.4.1</span> Trees are local</h3>
+<p>A tree makes predictions using only observations inside a small region of the feature space. Suppose a tree partitions the feature space into regions. The prediction at a point <span class="math inline">\(x\)</span> depends only on the region containing <span class="math inline">\(x\)</span>. Therefore, if a new observation falls into a region, the tree ignores all data outside the region.</p>
+<p>As a result, tree predictions are local:</p>
+<ul>
+<li>nearby regions may have very different predictions</li>
+<li>only observations in the same local region affect the prediction</li>
+<li>changing distant observations usually does not affect the prediction</li>
+</ul>
+<p>This is similar in spirit to KNN, where prediction also depends primarily on nearby observations.</p>
+</section>
+<section id="trees-are-nonlinear" class="level3" data-number="10.4.2">
+<h3 data-number="10.4.2" class="anchored" data-anchor-id="trees-are-nonlinear"><span class="header-section-number">10.4.2</span> Trees are nonlinear</h3>
+<p>A tree creates many if-then rules. Because of these recursive splits:</p>
+<ul>
+<li>the prediction function can change abruptly</li>
+<li>variable effects depend on the region</li>
+<li>interactions are created automatically</li>
+</ul>
+<p>The resulting prediction surface is piecewise constant, not a single linear equation. Therefore, trees are nonlinear models.</p>
+</section>
+<section id="automatic-interaction-effects" class="level3" data-number="10.4.3">
+<h3 data-number="10.4.3" class="anchored" data-anchor-id="automatic-interaction-effects"><span class="header-section-number">10.4.3</span> Automatic interaction effects</h3>
+<p>One important property of trees is that they automatically create interaction effects.</p>
+<p>For example, consider a tree with depth 3. One path through the tree may look like:</p>
+<ul>
+<li>if <span class="math inline">\(x_1 \le 1\)</span></li>
+<li>and <span class="math inline">\(x_2 \le 2\)</span></li>
+<li>and <span class="math inline">\(x_3 \le 3\)</span></li>
+<li>then predict <span class="math inline">\(y=1.1\)</span></li>
+</ul>
+<p>Notice that the prediction depends on the combination of all three conditions simultaneously.</p>
+<p>In other words, the effect of <span class="math inline">\(x_3\)</span> is not independent of <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span>. The split on <span class="math inline">\(x_3\)</span> is only relevant inside the region defined by the earlier splits.</p>
+<p>Therefore, trees naturally model interactions between variables.</p>
+<p>This is very different from a standard additive linear model such as</p>
 <p><span class="math display">\[
-\bar y_l
-\qquad\text{and}\qquad
-\bar y_r
+f(x)=\beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3,
 \]</span></p>
-<p>are the mean responses inside the two regions.</p>
-<p>The best split is the one that minimizes this quantity.</p>
+<p>where each variable contributes independently unless explicit interaction terms like <span class="math inline">\(x_1x_2\)</span> are manually added.</p>
+<!-- ## Pros and cons
+
+Decision trees have several important advantages:
+
+- Easy to interpret
+- Naturally handle nonlinear relationships
+- Automatically detect interactions
+- No need for feature scaling
+- Can handle both numerical and categorical predictors
+
+Decision trees also have important weaknesses:
+
+- High variance
+- Sensitive to small changes in data
+- Often less accurate than ensemble methods
+- Deep trees may overfit severely
+
+Because of these weaknesses, single trees are often improved using ensemble methods such as:
+
+- Bagging
+- Random forests
+- Boosting -->
+<!-- 
+### Interpretation of Regression Trees
+
+A regression tree creates regions with similar response values.
+
+For example:
+
+- If age < 30, predict salary = $45,000
+- If age $\geq$ 30 and education < 16 years, predict salary = $68,000
+- Otherwise predict salary = $95,000
+
+Thus a regression tree approximates a complicated nonlinear function using many simple local averages. -->
 </section>
-<section id="interpretation-of-regression-trees" class="level3" data-number="10.3.2">
-<h3 data-number="10.3.2" class="anchored" data-anchor-id="interpretation-of-regression-trees"><span class="header-section-number">10.3.2</span> Interpretation of Regression Trees</h3>
-<p>A regression tree creates regions with similar response values.</p>
-<p>For example:</p>
-<ul>
-<li>If age &lt; 30, predict salary = $45,000</li>
-<li>If age ≥ 30 and education &lt; 16 years, predict salary = $68,000</li>
-<li>Otherwise predict salary = $95,000</li>
-</ul>
-<p>Thus a regression tree approximates a complicated nonlinear function using many simple local averages.</p>
-</section>
-</section>
-<section id="pros-and-cons" class="level2" data-number="10.4">
-<h2 data-number="10.4" class="anchored" data-anchor-id="pros-and-cons"><span class="header-section-number">10.4</span> Pros and cons</h2>
-<p>Decision trees have several important advantages:</p>
-<ul>
-<li>Easy to interpret</li>
-<li>Naturally handle nonlinear relationships</li>
-<li>Automatically detect interactions</li>
-<li>No need for feature scaling</li>
-<li>Can handle both numerical and categorical predictors</li>
-</ul>
-<p>Decision trees also have important weaknesses:</p>
-<ul>
-<li>High variance</li>
-<li>Sensitive to small changes in data</li>
-<li>Often less accurate than ensemble methods</li>
-<li>Deep trees may overfit severely</li>
-</ul>
-<p>Because of these weaknesses, single trees are often improved using ensemble methods such as:</p>
-<ul>
-<li>Bagging</li>
-<li>Random forests</li>
-<li>Boosting</li>
-</ul>
 </section>
 <section id="tuning-hyperparameters" class="level2" data-number="10.5">
 <h2 data-number="10.5" class="anchored" data-anchor-id="tuning-hyperparameters"><span class="header-section-number">10.5</span> Tuning hyperparameters</h2>
@@ -948,25 +1000,25 @@ G_r.
 <p>In other words, the finer the splits are, the further the learning is. We need to consider some early stop conditions to prevent the model from overfitting.</p>
 <p>Some possible early stop conditions:</p>
 <ul>
-<li><code>max_depth</code>: The max depth of the tree. <!-- - The default is `none` which means no limits. --></li>
+<li><code>max_depth</code>: The max depth of the tree.</li>
 <li><code>min_samples_split</code>: The minimum number of samples required to split an internal node. <!-- - The default is 2 which means that we will split a node with as few as 2 elements if needed. --></li>
 <li><code>min_samples_leaf</code>: The minimum number of samples required to be at a leaf node. <!-- - The default is 1 which means that we will still split the node even if one subset only contains 1 element. --></li>
 </ul>
 <!-- If we don't set them (which means that we use the default setting), the dataset will be split untill all subsets are pure. -->
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 10.4 (ALMOST all end nodes are pure)</strong></span> In this example, we let the tree grow as further as possible. It only stops when (almost) all end nodes are pure, even if the end nodes only contain ONE element (like #6 and #11).</p>
-<div id="435435bd" class="cell" data-execution_count="2">
+<div id="59acc8bf" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-3-output-1.png" width="505" height="502" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-4-output-1.png" width="1222" height="1215" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>In this example there is one exception. #13 node is not pure. We could list all data in node #13.</p>
-<div id="d03b57ff" class="cell" data-execution_count="3">
-<div class="cell-output cell-output-display" data-execution_count="3">
+<div id="f7730bdd" class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="28">
 <div>
 
 
@@ -1008,7 +1060,7 @@ G_r.
 </div>
 <p>Therefore we could treat these hyperparameters as an indicator about how far the dataset is split. The further the dataset is split, the further the learning goes, the more details are learned. Since we don’t want the model to be overfitting, we don’t want to split the dataset that far. In this case, we could use the learning curve to help us make the decision.</p>
 <p>In this example, let us choose <code>min_samples_leaf</code> as the indicator. When <code>min_samples_leaf</code> is big, the learning just starts. When <code>min_samples_leaf=1</code>, we reach the far most side of learning. We will see how the training and testing accuracy changes along the learning process.</p>
-<div id="b0f2167e" class="cell" data-execution_count="4">
+<div id="08313a6e" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1028,7 +1080,7 @@ G_r.
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-5-output-1.png" width="575" height="411" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-6-output-1.png" width="575" height="411" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1043,13 +1095,13 @@ G_r.
 <section id="trees-in-python" class="level2" data-number="10.7">
 <h2 data-number="10.7" class="anchored" data-anchor-id="trees-in-python"><span class="header-section-number">10.7</span> Trees in Python</h2>
 <p>In <code>sklearn</code>, we use <code>cost_complexity_pruning_path</code> to help us find the effective alphas and the corresponding impurities.</p>
-<div id="aa63bdee" class="cell" data-execution_count="5">
+<div id="0aef04e9" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ccp_path <span class="op">=</span> clf.cost_complexity_pruning_path(X_train, y_train)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>ccp_alphas, impurities <span class="op">=</span> ccp_path.ccp_alphas, ccp_path.impurities</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The list <code>ccp_alphas</code> contains all important <code>ccp_alpha</code>s. We could train a model for each of them. We could use the argument <code>ccp_alpha</code> to control the value when initialize the model. After we train all these tree models for each effective <code>ccp_alpha</code>, we evaluate the model and record the results.</p>
-<div id="9115a163" class="cell" data-execution_count="6">
+<div id="f91965a6" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>clfs <span class="op">=</span> []</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ccp_alpha <span class="kw">in</span> ccp_alphas:</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>, ccp_alpha<span class="op">=</span>ccp_alpha)</span>
@@ -1062,7 +1114,7 @@ G_r.
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>test_acc <span class="op">=</span> [clf.score(X_test, y_test) <span class="cf">for</span> clf <span class="kw">in</span> clfs]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We would like to visualize these info.</p>
-<div id="0d45d30b" class="cell" data-execution_count="7">
+<div id="9aac7396" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].plot(ccp_alphas, node_counts, marker<span class="op">=</span><span class="st">"o"</span>, drawstyle<span class="op">=</span><span class="st">"steps-post"</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_xlabel(<span class="st">"alpha"</span>)</span>
@@ -1078,7 +1130,7 @@ G_r.
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-8-output-1.png" width="597" height="430" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-9-output-1.png" width="597" height="430" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1088,7 +1140,7 @@ G_r.
 <summary>
 We could combine all the code above into a function.
 </summary>
-<div id="09b68658" class="cell" data-execution_count="8">
+<div id="dbff9f21" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.base <span class="im">import</span> clone</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> eval_ccp_alphas(clf, X, y):</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    ccp_path <span class="op">=</span> clf.cost_complexity_pruning_path(X, y)</span>
@@ -1120,16 +1172,16 @@ We could combine all the code above into a function.
 <span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ccp_alphas</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="34c52a7f" class="cell" data-execution_count="9">
+<div id="fcf77bf7" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>eval_ccp_alphas(DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>), X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
+<div class="cell-output cell-output-display" data-execution_count="34">
 <pre><code>array([0.        , 0.00485564, 0.01049869, 0.01534424, 0.03364964,
        0.24888323, 0.33214852])</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-10-output-2.png" width="597" height="430" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-11-output-2.png" width="597" height="430" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1143,8 +1195,8 @@ f(x)=\beta_0+\beta_1x_1+\cdots+\beta_px_p,
 \]</span> a tree learns a collection of simple if-then rules from the data. A very typical example is shown below.</p>
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 11.1 (Classification Tree example)</strong></span> &nbsp;</p>
-<div id="66b936bf" class="cell" data-execution_count="10">
-<div class="cell-output cell-output-display" data-execution_count="10">
+<div id="b013acee" class="cell" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="35">
 <pre><code>[Text(0.4, 0.8333333333333334, 'node #0\nx[1] &lt;= 0.8\ngini = 0.667\nsamples = 150\nvalue = [50, 50, 50]'),
  Text(0.2, 0.5, 'node #1\ngini = 0.0\nsamples = 50\nvalue = [50, 0, 0]'),
  Text(0.30000000000000004, 0.6666666666666667, 'True  '),
@@ -1156,7 +1208,7 @@ f(x)=\beta_0+\beta_1x_1+\cdots+\beta_px_p,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-11-output-2.png" width="505" height="502" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-12-output-2.png" width="505" height="502" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1504,7 +1556,7 @@ J(k, t_k)=\frac{m_l}mGini(S_l)+\frac{m_r}{m}Gini(S_r).
 <h3 data-number="11.10.1" class="anchored" data-anchor-id="initial-setup"><span class="header-section-number">11.10.1</span> Initial setup</h3>
 <p>Since the dataset will be splitted, we will put <code>X</code> and <code>y</code> together as a single variable <code>S</code>. In this case when we split the dataset by selecting rows, the features and the labels are still paired correctly.</p>
 <p>We also print the labels and the feature names for our convenience.</p>
-<div id="bafd788a" class="cell" data-execution_count="11">
+<div id="60f81588" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_iris</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1525,13 +1577,13 @@ J(k, t_k)=\frac{m_l}mGini(S_l)+\frac{m_r}{m}Gini(S_r).
 <section id="use-package-sklearn" class="level3" data-number="11.10.2">
 <h3 data-number="11.10.2" class="anchored" data-anchor-id="use-package-sklearn"><span class="header-section-number">11.10.2</span> Use package <code>sklearn</code></h3>
 <p>Now we would like to use the decision tree package provided by <code>sklearn</code>. The process is straightforward. The parameter <code>random_state=40</code> will be discussed {ref}<code>later&lt;note-random_state&gt;</code>, and it is not necessary in most cases.</p>
-<div id="aeea545c" class="cell" data-execution_count="12">
+<div id="87a1f80e" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">40</span>, min_samples_split<span class="op">=</span><span class="dv">2</span>)</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>clf.fit(X, y)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<style>#sk-container-id-1 {
+<div class="cell-output cell-output-display" data-execution_count="37">
+<style>#sk-container-id-2 {
   /* Definition of color scheme common for light and dark mode */
   --sklearn-color-text: #000;
   --sklearn-color-text-muted: #666;
@@ -1548,7 +1600,7 @@ J(k, t_k)=\frac{m_l}mGini(S_l)+\frac{m_r}{m}Gini(S_r).
   --sklearn-color-fitted-level-3: cornflowerblue;
 }
 
-#sk-container-id-1.light {
+#sk-container-id-2.light {
   /* Specific color for light theme */
   --sklearn-color-text-on-default-background: black;
   --sklearn-color-background: white;
@@ -1556,22 +1608,22 @@ J(k, t_k)=\frac{m_l}mGini(S_l)+\frac{m_r}{m}Gini(S_r).
   --sklearn-color-icon: #696969;
 }
 
-#sk-container-id-1.dark {
+#sk-container-id-2.dark {
   --sklearn-color-text-on-default-background: white;
   --sklearn-color-background: #111;
   --sklearn-color-border-box: white;
   --sklearn-color-icon: #878787;
 }
 
-#sk-container-id-1 {
+#sk-container-id-2 {
   color: var(--sklearn-color-text);
 }
 
-#sk-container-id-1 pre {
+#sk-container-id-2 pre {
   padding: 0;
 }
 
-#sk-container-id-1 input.sk-hidden--visually {
+#sk-container-id-2 input.sk-hidden--visually {
   border: 0;
   clip: rect(1px 1px 1px 1px);
   clip: rect(1px, 1px, 1px, 1px);
@@ -1583,7 +1635,7 @@ J(k, t_k)=\frac{m_l}mGini(S_l)+\frac{m_r}{m}Gini(S_r).
   width: 1px;
 }
 
-#sk-container-id-1 div.sk-dashed-wrapped {
+#sk-container-id-2 div.sk-dashed-wrapped {
   border: 1px dashed var(--sklearn-color-line);
   margin: 0 0.4em 0.5em 0.4em;
   box-sizing: border-box;
@@ -1591,7 +1643,7 @@ J(k, t_k)=\frac{m_l}mGini(S_l)+\frac{m_r}{m}Gini(S_r).
   background-color: var(--sklearn-color-background);
 }
 
-#sk-container-id-1 div.sk-container {
+#sk-container-id-2 div.sk-container {
   /* jupyter's `normalize.less` sets `[hidden] { display: none; }`
      but bootstrap.min.css set `[hidden] { display: none !important; }`
      so we also need the `!important` here to be able to override the
@@ -1601,7 +1653,7 @@ J(k, t_k)=\frac{m_l}mGini(S_l)+\frac{m_r}{m}Gini(S_r).
   position: relative;
 }
 
-#sk-container-id-1 div.sk-text-repr-fallback {
+#sk-container-id-2 div.sk-text-repr-fallback {
   display: none;
 }
 
@@ -1617,14 +1669,14 @@ div.sk-item {
 
 /* Parallel-specific style estimator block */
 
-#sk-container-id-1 div.sk-parallel-item::after {
+#sk-container-id-2 div.sk-parallel-item::after {
   content: "";
   width: 100%;
   border-bottom: 2px solid var(--sklearn-color-text-on-default-background);
   flex-grow: 1;
 }
 
-#sk-container-id-1 div.sk-parallel {
+#sk-container-id-2 div.sk-parallel {
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -1632,28 +1684,28 @@ div.sk-item {
   position: relative;
 }
 
-#sk-container-id-1 div.sk-parallel-item {
+#sk-container-id-2 div.sk-parallel-item {
   display: flex;
   flex-direction: column;
 }
 
-#sk-container-id-1 div.sk-parallel-item:first-child::after {
+#sk-container-id-2 div.sk-parallel-item:first-child::after {
   align-self: flex-end;
   width: 50%;
 }
 
-#sk-container-id-1 div.sk-parallel-item:last-child::after {
+#sk-container-id-2 div.sk-parallel-item:last-child::after {
   align-self: flex-start;
   width: 50%;
 }
 
-#sk-container-id-1 div.sk-parallel-item:only-child::after {
+#sk-container-id-2 div.sk-parallel-item:only-child::after {
   width: 0;
 }
 
 /* Serial-specific style estimator block */
 
-#sk-container-id-1 div.sk-serial {
+#sk-container-id-2 div.sk-serial {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1671,14 +1723,14 @@ clickable and can be expanded/collapsed.
 
 /* Pipeline and ColumnTransformer style (default) */
 
-#sk-container-id-1 div.sk-toggleable {
+#sk-container-id-2 div.sk-toggleable {
   /* Default theme specific background. It is overwritten whether we have a
   specific estimator or a Pipeline/ColumnTransformer */
   background-color: var(--sklearn-color-background);
 }
 
 /* Toggleable label */
-#sk-container-id-1 label.sk-toggleable__label {
+#sk-container-id-2 label.sk-toggleable__label {
   cursor: pointer;
   display: flex;
   width: 100%;
@@ -1691,13 +1743,13 @@ clickable and can be expanded/collapsed.
   gap: 0.5em;
 }
 
-#sk-container-id-1 label.sk-toggleable__label .caption {
+#sk-container-id-2 label.sk-toggleable__label .caption {
   font-size: 0.6rem;
   font-weight: lighter;
   color: var(--sklearn-color-text-muted);
 }
 
-#sk-container-id-1 label.sk-toggleable__label-arrow:before {
+#sk-container-id-2 label.sk-toggleable__label-arrow:before {
   /* Arrow on the left of the label */
   content: "▸";
   float: left;
@@ -1705,25 +1757,25 @@ clickable and can be expanded/collapsed.
   color: var(--sklearn-color-icon);
 }
 
-#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {
+#sk-container-id-2 label.sk-toggleable__label-arrow:hover:before {
   color: var(--sklearn-color-text);
 }
 
 /* Toggleable content - dropdown */
 
-#sk-container-id-1 div.sk-toggleable__content {
+#sk-container-id-2 div.sk-toggleable__content {
   display: none;
   text-align: left;
   /* unfitted */
   background-color: var(--sklearn-color-unfitted-level-0);
 }
 
-#sk-container-id-1 div.sk-toggleable__content.fitted {
+#sk-container-id-2 div.sk-toggleable__content.fitted {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-0);
 }
 
-#sk-container-id-1 div.sk-toggleable__content pre {
+#sk-container-id-2 div.sk-toggleable__content pre {
   margin: 0.2em;
   border-radius: 0.25em;
   color: var(--sklearn-color-text);
@@ -1731,78 +1783,78 @@ clickable and can be expanded/collapsed.
   background-color: var(--sklearn-color-unfitted-level-0);
 }
 
-#sk-container-id-1 div.sk-toggleable__content.fitted pre {
+#sk-container-id-2 div.sk-toggleable__content.fitted pre {
   /* unfitted */
   background-color: var(--sklearn-color-fitted-level-0);
 }
 
-#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {
+#sk-container-id-2 input.sk-toggleable__control:checked~div.sk-toggleable__content {
   /* Expand drop-down */
   display: block;
   width: 100%;
   overflow: visible;
 }
 
-#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
+#sk-container-id-2 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
   content: "▾";
 }
 
 /* Pipeline/ColumnTransformer-specific style */
 
-#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
+#sk-container-id-2 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
   color: var(--sklearn-color-text);
   background-color: var(--sklearn-color-unfitted-level-2);
 }
 
-#sk-container-id-1 div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+#sk-container-id-2 div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
   background-color: var(--sklearn-color-fitted-level-2);
 }
 
 /* Estimator-specific style */
 
 /* Colorize estimator box */
-#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
+#sk-container-id-2 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
   /* unfitted */
   background-color: var(--sklearn-color-unfitted-level-2);
 }
 
-#sk-container-id-1 div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+#sk-container-id-2 div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-2);
 }
 
-#sk-container-id-1 div.sk-label label.sk-toggleable__label,
-#sk-container-id-1 div.sk-label label {
+#sk-container-id-2 div.sk-label label.sk-toggleable__label,
+#sk-container-id-2 div.sk-label label {
   /* The background is the default theme color */
   color: var(--sklearn-color-text-on-default-background);
 }
 
 /* On hover, darken the color of the background */
-#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {
+#sk-container-id-2 div.sk-label:hover label.sk-toggleable__label {
   color: var(--sklearn-color-text);
   background-color: var(--sklearn-color-unfitted-level-2);
 }
 
 /* Label box, darken color on hover, fitted */
-#sk-container-id-1 div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
+#sk-container-id-2 div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
   color: var(--sklearn-color-text);
   background-color: var(--sklearn-color-fitted-level-2);
 }
 
 /* Estimator label */
 
-#sk-container-id-1 div.sk-label label {
+#sk-container-id-2 div.sk-label label {
   font-family: monospace;
   font-weight: bold;
   line-height: 1.2em;
 }
 
-#sk-container-id-1 div.sk-label-container {
+#sk-container-id-2 div.sk-label-container {
   text-align: center;
 }
 
 /* Estimator-specific */
-#sk-container-id-1 div.sk-estimator {
+#sk-container-id-2 div.sk-estimator {
   font-family: monospace;
   border: 1px dotted var(--sklearn-color-border-box);
   border-radius: 0.25em;
@@ -1812,18 +1864,18 @@ clickable and can be expanded/collapsed.
   background-color: var(--sklearn-color-unfitted-level-0);
 }
 
-#sk-container-id-1 div.sk-estimator.fitted {
+#sk-container-id-2 div.sk-estimator.fitted {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-0);
 }
 
 /* on hover */
-#sk-container-id-1 div.sk-estimator:hover {
+#sk-container-id-2 div.sk-estimator:hover {
   /* unfitted */
   background-color: var(--sklearn-color-unfitted-level-2);
 }
 
-#sk-container-id-1 div.sk-estimator.fitted:hover {
+#sk-container-id-2 div.sk-estimator.fitted:hover {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-2);
 }
@@ -1914,7 +1966,7 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
 
 /* "?"-specific style due to the `<a>` HTML tag */
 
-#sk-container-id-1 a.estimator_doc_link {
+#sk-container-id-2 a.estimator_doc_link {
   float: right;
   font-size: 1rem;
   line-height: 1em;
@@ -1929,7 +1981,7 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
   border: var(--sklearn-color-unfitted-level-1) 1pt solid;
 }
 
-#sk-container-id-1 a.estimator_doc_link.fitted {
+#sk-container-id-2 a.estimator_doc_link.fitted {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-0);
   border: var(--sklearn-color-fitted-level-1) 1pt solid;
@@ -1937,14 +1989,14 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
 }
 
 /* On hover */
-#sk-container-id-1 a.estimator_doc_link:hover {
+#sk-container-id-2 a.estimator_doc_link:hover {
   /* unfitted */
   background-color: var(--sklearn-color-unfitted-level-3);
   color: var(--sklearn-color-background);
   text-decoration: none;
 }
 
-#sk-container-id-1 a.estimator_doc_link.fitted:hover {
+#sk-container-id-2 a.estimator_doc_link.fitted:hover {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-3);
 }
@@ -2081,7 +2133,7 @@ a.param-doc-link::before {
     height: 14px;
     cursor: pointer;
 }
-</style><div id="sk-container-id-1" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>DecisionTreeClassifier(random_state=40)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox" checked=""><label for="sk-estimator-id-1" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>DecisionTreeClassifier</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.8/modules/generated/sklearn.tree.DecisionTreeClassifier.html">?<span>Documentation for DecisionTreeClassifier</span></a><span class="sk-estimator-doc-link fitted">i<span>Fitted</span></span></div></label><div class="sk-toggleable__content fitted" data-param-prefix="">
+</style><div id="sk-container-id-2" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>DecisionTreeClassifier(random_state=40)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-2" type="checkbox" checked=""><label for="sk-estimator-id-2" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>DecisionTreeClassifier</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.8/modules/generated/sklearn.tree.DecisionTreeClassifier.html">?<span>Documentation for DecisionTreeClassifier</span></a><span class="sk-estimator-doc-link fitted">i<span>Fitted</span></span></div></label><div class="sk-toggleable__content fitted" data-param-prefix="">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -2413,17 +2465,17 @@ function forceTheme(elementId) {
     }
 }
 
-forceTheme('sk-container-id-1');</script>
+forceTheme('sk-container-id-2');</script>
 </div>
 </div>
 <p><code>sklearn</code> provide a way to automatically generate the tree view of the decision tree. The code is as follows.</p>
-<div id="f18d9a62" class="cell" data-execution_count="13">
+<div id="d3dc4e1c" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> plot_tree</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">3</span>, <span class="dv">3</span>), dpi<span class="op">=</span><span class="dv">200</span>)</span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>plot_tree(clf, filled<span class="op">=</span><span class="va">True</span>, impurity<span class="op">=</span><span class="va">True</span>, node_ids<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="38">
 <pre><code>[Text(0.5, 0.9166666666666666, 'node #0\nx[1] &lt;= 0.8\ngini = 0.667\nsamples = 150\nvalue = [50, 50, 50]'),
  Text(0.4090909090909091, 0.75, 'node #1\ngini = 0.0\nsamples = 50\nvalue = [50, 0, 0]'),
  Text(0.4545454545454546, 0.8333333333333333, 'True  '),
@@ -2445,7 +2497,7 @@ forceTheme('sk-container-id-1');</script>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-14-output-2.png" width="505" height="502" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-15-output-2.png" width="505" height="502" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -2455,7 +2507,7 @@ forceTheme('sk-container-id-1');</script>
 Visualize decision boundary is optional.
 </summary>
 <p>Similar to k-NN, we may use <code>sklearn.inspection.DecisionBoundaryDisplay</code> to visualize the decision boundary of this decision tree.</p>
-<div id="6300efcc" class="cell" data-execution_count="14">
+<div id="91b831ae" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.inspection <span class="im">import</span> DecisionBoundaryDisplay</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>DecisionBoundaryDisplay.from_estimator(</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    clf,</span>
@@ -2471,7 +2523,7 @@ Visualize decision boundary is optional.
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-15-output-1.png" width="600" height="434" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-16-output-1.png" width="600" height="434" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -2495,12 +2547,12 @@ Visualize decision boundary is optional.
 <p>If we don’t set them (which means that we use the default setting), the dataset will be split untill all subsets are pure.</p>
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 11.4 (ALMOST all end nodes are pure)</strong></span> In this example, we let the tree grow as further as possible. It only stops when (almost) all end nodes are pure, even if the end nodes only contain ONE element (like #6 and #11).</p>
-<div id="c0764351" class="cell" data-execution_count="15">
+<div id="b15d857d" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">40</span>)</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>clf.fit(X, y)</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">3</span>, <span class="dv">3</span>), dpi<span class="op">=</span><span class="dv">200</span>)</span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>plot_tree(clf, filled<span class="op">=</span><span class="va">True</span>, impurity<span class="op">=</span><span class="va">True</span>, node_ids<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
+<div class="cell-output cell-output-display" data-execution_count="40">
 <pre><code>[Text(0.5, 0.9166666666666666, 'node #0\nx[1] &lt;= 0.8\ngini = 0.667\nsamples = 150\nvalue = [50, 50, 50]'),
  Text(0.4090909090909091, 0.75, 'node #1\ngini = 0.0\nsamples = 50\nvalue = [50, 0, 0]'),
  Text(0.4545454545454546, 0.8333333333333333, 'True  '),
@@ -2522,15 +2574,15 @@ Visualize decision boundary is optional.
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-16-output-2.png" width="505" height="502" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-17-output-2.png" width="505" height="502" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>In this example there is one exception. #13 node is not pure. The reason is as follows.</p>
-<div id="0ccd0ee6" class="cell" data-execution_count="16">
+<div id="074ccaa2" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>X[(X[:, <span class="dv">0</span>]<span class="op">&gt;</span><span class="fl">0.8</span>) <span class="op">&amp;</span> (X[:, <span class="dv">1</span>] <span class="op">&gt;</span><span class="fl">1.75</span>) <span class="op">&amp;</span> (X[:, <span class="dv">0</span>]<span class="op">&lt;=</span><span class="fl">4.85</span>)]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
+<div class="cell-output cell-output-display" data-execution_count="41">
 <pre><code>array([[4.8, 1.8],
        [4.8, 1.8],
        [4.8, 1.8]])</code></pre>
@@ -2540,7 +2592,7 @@ Visualize decision boundary is optional.
 </div>
 <p>Therefore we could treat these hyperparameters as an indicator about how far the dataset is split. The further the dataset is split, the further the learning goes, the more details are learned. Since we don’t want the model to be overfitting, we don’t want to split the dataset that far. In this case, we could use the learning curve to help us make the decision.</p>
 <p>In this example, let us choose <code>min_samples_leaf</code> as the indicator. When <code>min_samples_leaf</code> is big, the learning just starts. When <code>min_samples_leaf=1</code>, we reach the far most side of learning. We will see how the training and testing accuracy changes along the learning process.</p>
-<div id="20f7c972" class="cell" data-execution_count="17">
+<div id="55dc4ddd" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2560,7 +2612,7 @@ Visualize decision boundary is optional.
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-18-output-1.png" width="575" height="411" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-19-output-1.png" width="575" height="411" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -2572,13 +2624,13 @@ Visualize decision boundary is optional.
 <p>Other than tuning hyperparameters, we also want to prune our tree in order to reduce overfitting further. The pruning algorithm introduced together with CART is called <strong>Minimal-Cost-Complexity Pruning</strong> (MCCP).</p>
 <p>The idea is to use the cost-complexity measure to replace Gini impurity to grow the tree. The cost-complexity measure is gotten by adding the total number of end nodes with the coefficent <code>ccp_alpha</code> to the Gini impurity. The parameter <code>ccp_alpha&gt;=0</code> is known as the <strong>complexity parameter</strong>, and it can help the tree to self-balance the number of end nodes and the Gini impurity.</p>
 <p>In <code>sklearn</code>, we use <code>cost_complexity_pruning_path</code> to help us find the effective alphas and the corresponding impurities.</p>
-<div id="669b605d" class="cell" data-execution_count="18">
+<div id="d6f1ae72" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>ccp_path <span class="op">=</span> clf.cost_complexity_pruning_path(X_train, y_train)</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>ccp_alphas, impurities <span class="op">=</span> ccp_path.ccp_alphas, ccp_path.impurities</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The list <code>ccp_alphas</code> contains all important <code>ccp_alpha</code>s. We could train a model for each of them. We could use the argument <code>ccp_alpha</code> to control the value when initialize the model. After we train all these tree models for each effective <code>ccp_alpha</code>, we evaluate the model and record the results.</p>
-<div id="cb846460" class="cell" data-execution_count="19">
+<div id="103912e8" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>clfs <span class="op">=</span> []</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ccp_alpha <span class="kw">in</span> ccp_alphas:</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>, ccp_alpha<span class="op">=</span>ccp_alpha)</span>
@@ -2591,7 +2643,7 @@ Visualize decision boundary is optional.
 <span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>test_acc <span class="op">=</span> [clf.score(X_test, y_test) <span class="cf">for</span> clf <span class="kw">in</span> clfs]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We would like to visualize these info.</p>
-<div id="39e7ec13" class="cell" data-execution_count="20">
+<div id="fa003109" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>)</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].plot(ccp_alphas, node_counts, marker<span class="op">=</span><span class="st">"o"</span>, drawstyle<span class="op">=</span><span class="st">"steps-post"</span>)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_xlabel(<span class="st">"alpha"</span>)</span>
@@ -2607,7 +2659,7 @@ Visualize decision boundary is optional.
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-21-output-1.png" width="597" height="430" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-22-output-1.png" width="597" height="430" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -2617,7 +2669,7 @@ Visualize decision boundary is optional.
 <summary>
 We could combine all the code above into a function.
 </summary>
-<div id="cbcb1002" class="cell" data-execution_count="21">
+<div id="7787fbe1" class="cell" data-execution_count="22">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.base <span class="im">import</span> clone</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> eval_ccp_alphas(clf, X, y):</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    ccp_path <span class="op">=</span> clf.cost_complexity_pruning_path(X, y)</span>
@@ -2649,16 +2701,16 @@ We could combine all the code above into a function.
 <span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ccp_alphas</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="1fe58bf6" class="cell" data-execution_count="22">
+<div id="ca976e5f" class="cell" data-execution_count="23">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>eval_ccp_alphas(DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>), X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
+<div class="cell-output cell-output-display" data-execution_count="47">
 <pre><code>array([0.        , 0.00485564, 0.01049869, 0.01534424, 0.03364964,
        0.24888323, 0.33214852])</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="tree_files/figure-html/cell-23-output-2.png" width="597" height="430" class="figure-img"></p>
+<p><img src="tree_files/figure-html/cell-24-output-2.png" width="597" height="430" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -3310,7 +3362,7 @@ many nonlinear partitions</code></pre>
 <blockquote class="blockquote">
 <p>How does the model discover and combine predictor interactions?</p>
 </blockquote>
-<div id="8be2686b" class="cell" data-execution_count="23">
+<div id="6cdb3f6c" class="cell" data-execution_count="24">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -3397,7 +3449,7 @@ many nonlinear partitions</code></pre>
 1  XGBoost  4.046432  0.087671</code></pre>
 </div>
 </div>
-<div id="eced1f07" class="cell" data-execution_count="24">
+<div id="f61f41b6" class="cell" data-execution_count="25">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -3506,7 +3558,7 @@ many nonlinear partitions</code></pre>
 <span id="cb43-106"><a href="#cb43-106" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _, row <span class="kw">in</span> results.iterrows():</span>
 <span id="cb43-107"><a href="#cb43-107" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(row[<span class="st">"seed"</span>], row[<span class="st">"model"</span>], row[<span class="st">"best_params"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="a37e6350" class="cell" data-execution_count="25">
+<div id="72477ab0" class="cell" data-execution_count="26">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -3628,7 +3680,7 @@ many nonlinear partitions</code></pre>
 <span id="cb44-119"><a href="#cb44-119" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
 <span id="cb44-120"><a href="#cb44-120" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="b741dba2" class="cell" data-execution_count="26">
+<div id="9f181555" class="cell" data-execution_count="27">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -4216,6 +4268,39 @@ many nonlinear partitions</code></pre>
   </div>
 </nav>
 </div> <!-- /content -->
+    <script type="text/javascript">
+    (function(d) {
+      d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+        let pseudocodeOptions = {
+          indentSize: el.dataset.indentSize,
+          commentDelimiter: " " + el.dataset.commentDelimiter + " ",
+          lineNumber: el.dataset.lineNumber.toLowerCase() === "true",
+          lineNumberPunc: el.dataset.lineNumberPunc,
+          noEnd: el.dataset.noEnd.toLowerCase() === "true",
+          scopeLines: el.dataset.indentLines.toLowerCase() === "true",
+          titlePrefix: el.dataset.captionPrefix,
+        };
+        pseudocode.renderElement(el.querySelector(".pseudocode"), pseudocodeOptions);
+      });
+    })(document);
+    (function(d) {
+      d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+        let captionSpan = el.querySelector(".ps-root > .ps-algorithm > .ps-line > .ps-keyword")
+        if (captionSpan !== null) {
+          let captionPrefix = el.dataset.captionPrefix + " ";
+          let captionNumber = "";
+          if (el.dataset.pseudocodeNumber) {
+            captionNumber = el.dataset.pseudocodeNumber + " ";
+            if (el.dataset.chapterLevel) {
+              captionNumber = el.dataset.chapterLevel + "." + captionNumber;
+            }
+          }
+          captionSpan.innerHTML = captionPrefix + captionNumber;
+        }
+      });
+    })(document);
+    </script>
+  
 
 
 

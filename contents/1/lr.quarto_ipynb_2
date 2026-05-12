@@ -1,0 +1,1886 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "jupyter: stats\n",
+        "---\n",
+        "\n",
+        "# Linear Regression\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {.hidden}\n",
+        "<!-- Constants and basic symbols -->\n",
+        "\n",
+        "$$\n",
+        "\\require{physics}\n",
+        "\\require{braket}\n",
+        "$$\n",
+        "\n",
+        "$$\n",
+        "\\newcommand{\\dl}[1]{{\\hspace{#1mu}\\mathrm d}}\n",
+        "\\newcommand{\\me}{{\\mathrm e}}\n",
+        "% \\newcommand{\\argmin}{\\operatorname{argmin}}\n",
+        "\\newcommand{\\rss}{\\mathrm{RSS}}\n",
+        "\\newcommand{\\ols}{\\mathrm{OLS}}\n",
+        "\\newcommand{\\ridge}{\\mathrm{ridge}}\n",
+        "\\newcommand{\\lasso}{\\mathrm{lasso}}\n",
+        "\\newcommand{\\mle}{\\mathrm{MLE}}\n",
+        "\\newcommand{\\constant}{\\mathrm{constant}}\n",
+        "\\newcommand{\\resid}{\\mathrm{residual}}\n",
+        "\\newcommand{\\span}{\\mathrm{span}}\n",
+        "\\newcommand{\\gini}{\\mathrm{Gini}}\n",
+        "$$\n",
+        "\n",
+        "<!-- Probability -->\n",
+        "\n",
+        "$$\n",
+        " \\newcommand{\\Exp}{\\operatorname{E}}\n",
+        " \\newcommand{\\Var}{\\operatorname{Var}}\n",
+        "  \\newcommand{\\Cov}{\\operatorname{Cov}}\n",
+        " \\newcommand{\\Mode}{\\operatorname{mode}}\n",
+        " \\newcommand{\\cor}{\\operatorname{cor}}\n",
+        "\n",
+        " \\newcommand{\\nll}{\\operatorname{nll}}\n",
+        "$$\n",
+        "\n",
+        "<!-- Distributions pdf -->\n",
+        "\n",
+        "$$\n",
+        " \\newcommand{\\pdfbinom}{{\\tt binom}}\n",
+        " \\newcommand{\\pdfbeta}{{\\tt beta}}\n",
+        " \\newcommand{\\pdfpois}{{\\tt poisson}}\n",
+        " \\newcommand{\\pdfgamma}{{\\tt gamma}}\n",
+        " \\newcommand{\\pdfnormal}{{\\tt norm}}\n",
+        "  \\newcommand{\\pdfexp}{{\\tt expon}}\n",
+        "$$\n",
+        "\n",
+        "<!-- Distributions -->\n",
+        "\n",
+        "$$\n",
+        " \\newcommand{\\distbinom}{\\operatorname{B}}\n",
+        " \\newcommand{\\distbeta}{\\operatorname{Beta}}\n",
+        " \\newcommand{\\distgamma}{\\operatorname{Gamma}}\n",
+        " \\newcommand{\\distexp}{\\operatorname{Exp}}\n",
+        " \\newcommand{\\distpois}{\\operatorname{Poisson}}\n",
+        " \\newcommand{\\distnormal}{\\operatorname{\\mathcal N}}\n",
+        "$$\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "This section offers a brief review of linear regression, with the main emphasis on its Python implementation through examples.\n",
+        "\n",
+        "## Quick Overview\n",
+        "\n",
+        "Linear regression is the fundamental supervised learning method for a quantitative response. It models the conditional mean of the response as a linear function of the predictors:\n",
+        "$$\n",
+        "y = \\beta_0 + \\beta_1 x_1 + \\cdots + \\beta_p x_p + \\varepsilon.\n",
+        "$$\n",
+        "\n",
+        "In matrix notation, this can be written as\n",
+        "$$\n",
+        "\\vb y = \\vb X\\beta + \\varepsilon.\n",
+        "$$\n",
+        "Here, $\\vb X$ is the design matrix, whose first column is a column of ones representing the intercept.\n",
+        "\n",
+        "## The Ordinary Least Squares Estimator\n",
+        "\n",
+        "The most common fitting method is ordinary least squares (OLS). It chooses the coefficient vector $\\beta$ that minimizes the residual sum of squares ($\\rss$):\n",
+        "\n",
+        "$$\n",
+        "\\rss(\\beta) = \\sum_{i=1}^n (y_i - \\hat{y}_i)^2\n",
+        "= \\norm{\\vb y - \\vb X\\beta }_2^2.\n",
+        "$$\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {#thm-}\n",
+        "## OLS Estimator\n",
+        "The coefficient vector that minimizes $\\rss$ is\n",
+        "$$\n",
+        "\\hat{\\beta}_{\\ols} = (\\vb X^\\top \\vb X)^{-1}\\vb X^\\top \\vb y,\n",
+        "$$\n",
+        "provided that $\\vb X^\\top \\vb X$ is invertible. This estimator is called the ordinary least squares (OLS) estimator.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "Once the coefficients are estimated, the fitted value for observation $i$ is\n",
+        "\n",
+        "$$\n",
+        "\\hat{y}_i = \\hat{\\beta}_0 + \\hat{\\beta}_1 x_{i1} + \\cdots + \\hat{\\beta}_p x_{ip}.\n",
+        "$$\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "Interpretability is one of the main advantages of linear regression compared with many more complex models.\n",
+        "\n",
+        "1. The coefficient $\\beta_j$ describes how the predicted response changes when $x_j$ increases by one unit, while the other predictors are held fixed.\n",
+        "2. When interaction terms are present, a main effect cannot be interpreted in isolation. The effect of a predictor depends on the values of the variables with which it interacts.\n",
+        "3. If predictors are centered so that $0$ corresponds to the average of the original variable, the intercept represents the predicted response at the average predictor levels.\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Training Error and Test Error\n",
+        "\n",
+        "\n",
+        "Classical regression focuses heavily on checking model assumptions, such as independence of errors, constant variance, and approximate normality. In statistical learning, however, the primary goal is predictive performance rather than formal inference. As a result, these diagnostic tools play a secondary role. While they can still help reveal serious problems such as nonlinearity or influential observations, the main evaluation of a model is based on how well it predicts new data.\n",
+        "\n",
+        "::: {#def-}\n",
+        "## Training Error\n",
+        "The training error measures how well a model fits the training data.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "::: {#def-}\n",
+        "## Test Error\n",
+        "The test error measures prediction error on new observations not used to fit the model.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "For example, for a fitted model, we can measure its performance using the mean squared error (MSE). The training MSE measures how well the model fits the training data. However, a model that fits the training data very well may perform poorly on new observations. The more relevant quantity is the test MSE, which measures prediction error on new data drawn from the same population.\n",
+        "\n",
+        "The goal of statistical learning is to build models with small test error, not merely small training error.\n",
+        "\n",
+        "::: {#def-}\n",
+        "## Overfitting \n",
+        "\n",
+        "Overfitting occurs when a model fits the training data very closely but fails to generalize well to new data. In this case, the model captures random noise or idiosyncrasies in the training sample rather than the underlying relationship.\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "Model selection methods attempt to balance model complexity and prediction accuracy in order to avoid overfitting.\n",
+        "\n",
+        "\n",
+        "::: {.callout-note}\n",
+        "Prediction error can be decomposed conceptually into two components: bias and variance. Simple models may have high bias but low variance, while very flexible models may have low bias but high variance. Model selection aims to balance these two effects to minimize prediction error. This will be discussed in more detail in later sections.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## Information Criteria and Estimated Test Error\n",
+        "\n",
+        "Classical regression tends to estimate expected test error using only training data. These criteria reward good fit but penalize models with many predictors. \n",
+        "\n",
+        "Some commonly used criteria are:\n",
+        "\n",
+        "- AIC (Akaike Information Criterion)  \n",
+        "- BIC (Bayesian Information Criterion)\n",
+        "- Mallows' $C_p$\n",
+        "\n",
+        "Although these criteria are useful for model comparison, they still rely on approximations derived from the training sample.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "## Linear Regression in Python\n",
+        "\n",
+        "\n",
+        "\n",
+        "There are many Python libraries for fitting linear regression models. In this course, we use [`scikit-learn`](https://scikit-learn.org/) as the primary modeling tool, with support from `pandas` and `numpy` for data manipulation, and `matplotlib` and `seaborn` for visualization.\n",
+        "\n",
+        "\n",
+        "To demonstrate the code, we generate a dataset with 2 predictors and 1 response variable, where $\\beta_0 = 1$, $\\beta_1 = 2$, and $\\beta_2 = 3$.\n"
+      ],
+      "id": "8c75a0d5"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "\n",
+        "np.random.seed(1)\n",
+        "\n",
+        "n = 100\n",
+        "\n",
+        "x1 = np.random.normal(1, 0.1, size=n)\n",
+        "x2 = np.random.normal(0, 1, size=n)\n",
+        "y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 0.5, size=n)\n",
+        "\n",
+        "X = pd.DataFrame({'x1': x1, 'x2': x2})"
+      ],
+      "id": "0b10cd8f",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "When using `sklearn`, a dataset is typically represented by features `X` and a target variable `y`.\n",
+        "\n",
+        "- `X` usually has 2 dimensions (number of samples × features).\n",
+        "- `y` is usually 1-dimensional, though it may also be represented as a 2-dimensional array with a single column.\n",
+        "\n",
+        "Both `X` and `y` can be stored as either `numpy` arrays or `pandas` objects.\n",
+        "\n",
+        "In this example we construct `X` as a DataFrame, since column names make it easier to modify variables during the model-building stage, e.g. when adding interactions or transformations.\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Linear regression models\n",
+        "\n",
+        "We fit a linear regression model using `LinearRegression`."
+      ],
+      "id": "031cedb7"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.linear_model import LinearRegression\n",
+        "\n",
+        "model = LinearRegression()\n",
+        "model.fit(X, y)\n",
+        "\n",
+        "print(f\"intercept: {model.intercept_}\")\n",
+        "print(f\"coefficients: {model.coef_}\")"
+      ],
+      "id": "cc4bab71",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "We can then use the fitted model to generate predictions and compute residuals.\n"
+      ],
+      "id": "fa58061e"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "y_pred = model.predict(X)\n",
+        "res = y - y_pred"
+      ],
+      "id": "da25b483",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Measure model performance\n",
+        "`sklearn` provides many performance measures, most of which can be found in `sklearn.metrics`. A common syntax is `metric(y_true, y_pred)`.\n"
+      ],
+      "id": "2c52c457"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "# | eval: false\n",
+        "from sklearn.metrics import mean_squared_error, r2_score, root_mean_squared_error\n",
+        "\n",
+        "y_pred = model.predict(X)\n",
+        "\n",
+        "print(f\"MSE: {mean_squared_error(y, y_pred)}\")\n",
+        "print(f\"R2: {r2_score(y, y_pred)}\")\n",
+        "print(f\"RMSE: {root_mean_squared_error(y, y_pred)}\")"
+      ],
+      "id": "d6efec1a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Each model also provides a built-in scoring method. For a specific model, you can check the official documentation to see which metric is used, but the general idea is:\n",
+        "\n",
+        "- regressors use `r2_score`, and\n",
+        "- classifiers use `accuracy`"
+      ],
+      "id": "d282f2aa"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "model.score(X, y)"
+      ],
+      "id": "ce75d23c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Note that \n",
+        "$$\n",
+        "R^2=1-\\frac{\\operatorname{MSE}}{\\operatorname{Var}(y)}\n",
+        "$$\n",
+        "`r2_score` can serve as a normalized negative MSE (up to an additive constant).\n",
+        "\n",
+        "\n",
+        "### Model Diagnostics\n",
+        "\n",
+        "In traditional regression, diagnostic plots are powerful tools for detecting potential problems in a fitted model. However, statistical learning primarily focuses on prediction performance rather than model assumptions. Therefore, diagnostics are not our primary focus in this course, and this section is optional.\n",
+        "\n",
+        "\n",
+        "<details>\n",
+        "<summary><strong>Click for more details.</strong></summary>\n",
+        "\n",
+        "\n",
+        "In Python there is no single function that automatically produces all diagnostic plots. Instead, we usually combine tools from several libraries. In these notes we focus on basic tools from `statsmodels`, `scipy`, `seaborn`, and `matplotlib`.\n",
+        "\n",
+        "We can also use `seaborn`'s theme to improve the appearance of plots produced by `matplotlib`-based tools.\n"
+      ],
+      "id": "574fd353"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import seaborn as sns\n",
+        "sns.set_theme()"
+      ],
+      "id": "328e7084",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "We compute several quantities needed for residual analysis. Although our primary modeling tool is `sklearn`, residual diagnostics are easier with `statsmodels`. Therefore we construct a `statsmodels` model that holds the same data.\n",
+        "\n",
+        "Since we already have the feature matrix and the target vector, the fastest way to use `statsmodels` is through `statsmodels.api` (as opposed to the R-style interface `statsmodels.formula.api`).\n"
+      ],
+      "id": "33a8c83f"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import statsmodels.api as sm\n",
+        "X_sm = sm.add_constant(X)\n",
+        "model = sm.OLS(y, X_sm).fit()\n",
+        "model.params"
+      ],
+      "id": "9447856b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The fitted values, residuals, leverage, Cook's distance, and other quantities can be extracted directly from this `model` object. We wrap them into DataFrames for easier plotting."
+      ],
+      "id": "e885b938"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "y_pred = model.fittedvalues\n",
+        "res = model.resid\n",
+        "\n",
+        "model_output = pd.DataFrame({\n",
+        "    \"y_true\": y,\n",
+        "    \"y_pred\": y_pred,\n",
+        "    \"res\": res\n",
+        "})"
+      ],
+      "id": "c38e2c2a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "influence = model.get_influence()\n",
+        "\n",
+        "std_resid = influence.resid_studentized_internal\n",
+        "sqrt_std_resid = np.sqrt(np.abs(std_resid))\n",
+        "leverage = influence.hat_matrix_diag\n",
+        "cooks = influence.cooks_distance[0]\n",
+        "\n",
+        "df_diag = pd.DataFrame({\n",
+        "    \"leverage\": leverage,\n",
+        "    \"std_resid\": std_resid,\n",
+        "    \"sqrt_std_resid\": sqrt_std_resid,\n",
+        "    \"cooks\": cooks\n",
+        "})"
+      ],
+      "id": "9daedd95",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## Residual plots\n",
+        "The most basic residual plot is simply residuals versus fitted values."
+      ],
+      "id": "03ffd463"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "\n",
+        "plt.scatter(y_pred, res)\n",
+        "plt.axhline(0, linestyle=\"--\")"
+      ],
+      "id": "8a9d2691",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "If we use `seaborn`, additional features are computed automatically. For example, setting `lowess=True` will display a smooth trend curve."
+      ],
+      "id": "28410876"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import seaborn as sns\n",
+        "\n",
+        "sns.regplot(\n",
+        "    data=model_output,\n",
+        "    x=\"y_pred\",\n",
+        "    y=\"res\",\n",
+        "    lowess=True,\n",
+        "    scatter_kws={\"alpha\": 0.6},\n",
+        "    line_kws={\"color\": \"red\", \"linestyle\": \"--\"},\n",
+        ")\n",
+        "\n",
+        "plt.axhline(0, linestyle=\"--\")"
+      ],
+      "id": "4076865b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## Q-Q plot"
+      ],
+      "id": "0e62a615"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import scipy.stats as stats\n",
+        "\n",
+        "stats.probplot(res, dist=\"norm\", plot=plt);"
+      ],
+      "id": "5922a1d4",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## Scale-location plot"
+      ],
+      "id": "61ba4f61"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import numpy as np\n",
+        "\n",
+        "\n",
+        "sns.scatterplot(x=y_pred, y=sqrt_std_resid, data=df_diag)\n",
+        "\n",
+        "sns.regplot(\n",
+        "    x=y_pred,\n",
+        "    y=sqrt_std_resid,\n",
+        "    data=df_diag,\n",
+        "    lowess=True,\n",
+        "    scatter=False,\n",
+        "    line_kws={\"color\": \"red\"}\n",
+        ")\n",
+        "\n",
+        "plt.xlabel(\"Fitted values\")\n",
+        "plt.ylabel(\"√|Standardized residuals|\")\n",
+        "plt.title(\"Scale-Location\");"
+      ],
+      "id": "4ec0fd2d",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## Leverage with Cook's distance\n"
+      ],
+      "id": "052a32ee"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sns.scatterplot(\n",
+        "    x=leverage,\n",
+        "    y=std_resid,\n",
+        "    data=df_diag,\n",
+        "    size=cooks,\n",
+        "    sizes=(20, 200),\n",
+        "    alpha=0.7\n",
+        ")\n",
+        "\n",
+        "plt.axhline(0, linestyle=\"--\", color=\"gray\")\n",
+        "\n",
+        "plt.xlabel(\"Leverage\")\n",
+        "plt.ylabel(\"Standardized Residuals\")\n",
+        "plt.title(\"Residuals vs Leverage\");"
+      ],
+      "id": "470f94ab",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## Partial residual plots\n",
+        "\n",
+        "Partial residual plots help visualize the relationship between a predictor and the response after adjusting for the effects of other predictors. `plot_ccpr()` from `sm.graphics` can be used to generate partial residual plots."
+      ],
+      "id": "ce94e089"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sm.graphics.plot_ccpr(model, \"x1\");"
+      ],
+      "id": "293daf9b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "To generate plots for all predictors at once, we can use"
+      ],
+      "id": "ecdb791c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sm.graphics.plot_ccpr_grid(model);"
+      ],
+      "id": "ffde5755",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The default `plot_ccpr()` does not include a smooth curve. If a smooth trend line is desired, we can compute it using the `lowess()` function and add it manually."
+      ],
+      "id": "a0ef300c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from statsmodels.nonparametric.smoothers_lowess import lowess\n",
+        "\n",
+        "fig = sm.graphics.plot_ccpr(model, \"x1\")\n",
+        "\n",
+        "ax = fig.axes[0]\n",
+        "x = ax.lines[0].get_xdata()\n",
+        "y = ax.lines[0].get_ydata()\n",
+        "\n",
+        "smooth = lowess(y, x, frac=0.5)\n",
+        "ax.plot(smooth[:, 0], smooth[:, 1], color=\"red\")"
+      ],
+      "id": "027e97b3",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The same idea can be applied to the grid version."
+      ],
+      "id": "56eba372"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "fig = sm.graphics.plot_ccpr_grid(model)\n",
+        "\n",
+        "for ax in fig.axes:\n",
+        "    if len(ax.lines) != 0:\n",
+        "        x = ax.lines[0].get_xdata()\n",
+        "        y = ax.lines[0].get_ydata()\n",
+        "\n",
+        "        smooth = lowess(y, x, frac=0.5)\n",
+        "        ax.plot(smooth[:, 0], smooth[:, 1], color=\"red\")"
+      ],
+      "id": "855a0915",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "</details>\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "## Model evaluation\n",
+        "\n",
+        "\n",
+        "### Train-Test Split\n",
+        "\n",
+        "Instead of estimating test performance indirectly from the training data, we can evaluate a model more directly by using data that were not used to fit the model. This leads to the idea of data splitting:\n",
+        "\n",
+        "The dataset is divided into two parts:\n",
+        "\n",
+        "- Training set: used to fit the model.\n",
+        "- Test set: used to evaluate prediction performance.\n",
+        "\n",
+        "After fitting the model on the training set, predictions are made on the test set, and performance measures such as MSE are computed. This provides a more realistic estimate of how the model performs on new data.\n",
+        "\n",
+        "---\n",
+        "\n",
+        "In many situations we also need to choose between several competing models or tuning parameters. To avoid using the test data for model selection, a third subset is often introduced.\n",
+        "\n",
+        "- Training set: used to fit models.\n",
+        "- Validation set: used to compare models and select tuning parameters.\n",
+        "- Test set: used only once at the end to estimate the final model's performance.\n",
+        "\n",
+        "This separation helps prevent overly optimistic performance estimates.\n",
+        "\n",
+        "---\n",
+        "\n",
+        "In `sklearn`, the function `train_test_split()` from `sklearn.model_selection` is commonly used to split the data into a training set and a test set."
+      ],
+      "id": "a59048a4"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "\n",
+        "np.random.seed(1)\n",
+        "\n",
+        "n = 10\n",
+        "\n",
+        "x1 = np.random.normal(1, 0.1, size=n)\n",
+        "x2 = np.random.normal(0, 1, size=n)\n",
+        "y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 0.5, size=n)\n",
+        "\n",
+        "X = pd.DataFrame({'x1': x1, 'x2': x2})\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)"
+      ],
+      "id": "c02be194",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The argument `test_size=0.2` means that 20% of the data are used as the test set, while the remaining 80% are used as the training set. The argument `random_state=0` ensures reproducibility.\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Cross-Validation\n",
+        "\n",
+        "When the dataset is not large, splitting the data into separate training, validation, and test sets may leave too little data for model fitting. In such cases, cross-validation is commonly used to estimate validation performance more efficiently.\n",
+        "\n",
+        "The most common form is $k$-fold cross-validation.\n",
+        "\n",
+        "\n",
+        "1. The available training data are divided into $k$ roughly equal parts (called folds).\n",
+        "2. For each fold:\n",
+        "   - The model is trained on $k-1$ folds.\n",
+        "   - The remaining fold is used as a validation set.\n",
+        "3. This process is repeated $k$ times so that each fold serves once as the validation set.\n",
+        "4. The validation errors from all folds are averaged to estimate the model's expected test error.\n",
+        "\n",
+        "---\n",
+        "\n",
+        "\n",
+        "Cross-validation is primarily used to estimate test error or to compare competing models. When it is used for model selection, two additional steps are typically performed. Note that cross-validation uses only the training data and does not involve the test set.\n",
+        "\n",
+        "5. After the best model configuration has been selected, the model is retrained on the entire training data.\n",
+        "6. The final model is then evaluated once on the test set, providing an unbiased estimate of its performance on new data.\n",
+        "\n",
+        "---\n",
+        "\n",
+        "In `sklearn`, there are several ways to perform $k$-fold cross-validation. From `KFold` to `cross_validate` and then `cross_val_score`, the interface becomes easier to use, but also less flexible.\n",
+        "\n",
+        "The three approaches perform essentially the same task, but at different levels of abstraction.\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## `KFold`\n",
+        "`KFold` from `sklearn.model_selection` is used to split the dataset into $k$ groups, called folds. In each iteration, one fold is used as the validation set and the remaining folds are used as the training set.\n"
+      ],
+      "id": "434c47bc"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import KFold\n",
+        "\n",
+        "kf = KFold(n_splits=5)\n",
+        "\n",
+        "for train_idx, val_idx in kf.split(range(10)):\n",
+        "    print(train_idx, val_idx)"
+      ],
+      "id": "784bef4e",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "- Here I use `range(10)` inside `kf.split()` because only the indices are needed. If a dataset is passed instead, the output is still the indices for the training set and validation set.\n",
+        "- If you want the split to be randomized, set `shuffle=True` when creating `KFold`. In that case, you may also specify `random_state` to make the result reproducible.\n",
+        "\n",
+        "Let us now apply `KFold` to our simulated dataset.\n"
+      ],
+      "id": "8d39ea03"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import KFold\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "from sklearn.metrics import r2_score\n",
+        "\n",
+        "kf = KFold(n_splits=5, shuffle=True, random_state=1)\n",
+        "\n",
+        "cv_scores = []\n",
+        "for train_idx, val_idx in kf.split(X):\n",
+        "    X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]\n",
+        "    y_train, y_val = y[train_idx], y[val_idx]\n",
+        "\n",
+        "    model = LinearRegression()\n",
+        "    model.fit(X_train, y_train)\n",
+        "\n",
+        "    y_pred = model.predict(X_val)\n",
+        "    mse = r2_score(y_val, y_pred)\n",
+        "\n",
+        "    cv_scores.append(mse)\n",
+        "\n",
+        "print(cv_scores)\n",
+        "print(sum(cv_scores) / len(cv_scores))"
+      ],
+      "id": "a7704a29",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This gives the validation MSE for each fold, together with their average.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## `cross_validate`\n",
+        "Using `KFold` directly is somewhat manual. We may use `cross_validate()` to automate the cross-validation process. Depending on the arguments supplied, `cross_validate()` may internally use `KFold`.\n",
+        "\n",
+        "You may specify which scoreing methods useing `scoring=[]` argument. The default choice will be the default choice from the model. In `LinearRegression` case, the default one is `r2_score`."
+      ],
+      "id": "d3a639d8"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import cross_validate\n",
+        "\n",
+        "model = LinearRegression()\n",
+        "cv_result = cross_validate(model, X, y, cv=5)\n",
+        "\n",
+        "cv_result"
+      ],
+      "id": "5d4ee2e4",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "If you are only interested in the validation scores, you may extract them directly."
+      ],
+      "id": "41e0f6be"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cv_result['test_score']"
+      ],
+      "id": "73ad1867",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "- You may choose different scoring methods. More info can be found in [the document](https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter).\n",
+        "- Here the MSE values are negative because `sklearn` follows the convention that larger scores are better.\n",
+        "- If `cv=5`, then `KFold(5, shuffle=False)` is used by default. If you want randomized folds, you may pass a `KFold` object explicitly."
+      ],
+      "id": "e578835b"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cv_result = cross_validate(\n",
+        "    model, X, y, cv=KFold(5, shuffle=True, random_state=1)\n",
+        ")\n",
+        "\n",
+        "cv_result[\"test_score\"]"
+      ],
+      "id": "8689b454",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "You may compare these scores with the ones obtained in the `KFold` section. Usually, the overall cross-validation score is taken to be the mean of the fold scores."
+      ],
+      "id": "bae0714d"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cv_result['test_score'].mean()"
+      ],
+      "id": "5ef95cd2",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## `cross_val_score`\n",
+        "`cross_val_score()` is a shorter way to obtain `cv_result[\"test_score\"]` from the `cross_validate()` section. The arguments `cv` and `scoring` work in the same way."
+      ],
+      "id": "69c40ae4"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import cross_val_score\n",
+        "\n",
+        "cv_scores = cross_val_score(\n",
+        "    model, X, y, cv=KFold(5, shuffle=True, random_state=1)\n",
+        ")\n",
+        "\n",
+        "cv_scores"
+      ],
+      "id": "cbf07dfa",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cv_scores.mean()"
+      ],
+      "id": "f3fa27a3",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "So `cross_val_score()` is convenient when you only need the validation scores and do not need the extra information returned by `cross_validate()`.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "---\n",
+        "\n",
+        "Cross-validation is often used to compare competing models. One important application is hyperparameter tuning. In this setting, we compare models from the same family under different choices of hyperparameters. In `sklearn`, this process is commonly carried out with `GridSearchCV`.\n",
+        "\n",
+        "The CV procedure is summarized (again) as follows:\n",
+        "\n",
+        "1. Split the training data into several folds.\n",
+        "2. For each hyperparameter combination, hold out one fold as the validation set and use the remaining folds as the training set.\n",
+        "3. Fit the model on the training folds and evaluate its performance on the validation fold.\n",
+        "4. Repeat this process so that each fold serves once as the validation set. The average validation score is the cross-validation score for that hyperparameter combination.\n",
+        "5. Repeat Steps 2–4 for all hyperparameter combinations, and select the combination with the best average cross-validation score.\n",
+        "6. **Final step:** After the best hyperparameter combination is identified, the model is refit on the entire training set using these hyperparameters.\n",
+        "\n",
+        "---\n",
+        "\n",
+        "`GridSearchCV` automates this process. To illustrate the idea, suppose we want to decide whether a linear regression model should be fit with or without an intercept.\n",
+        "\n",
+        "First, specify the hyperparameters to be tuned:"
+      ],
+      "id": "c6fa6955"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "params = {\"fit_intercept\": [True, False]}"
+      ],
+      "id": "6630066c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: {.callout-important}\n",
+        "## `Pipeline` and `ColumnTransformer`\n",
+        "If the model is wrapped inside a `Pipeline` or a `ColumnTransformer` (discussed later), hyperparameters inside a step must be referred to using the syntax `step__param` with two underscores.\n",
+        "\n",
+        "For example, suppose a pipeline contains a step named `linear`, and that step has a hyperparameter called `fit_intercept`. Then the parameter grid should be written as"
+      ],
+      "id": "ce855e88"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "params = {\"linear__fit_intercept\": [True, False]}"
+      ],
+      "id": "80631718",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "\n",
+        "Next, construct the grid search. \n",
+        "\n",
+        "- The argument `cv` is specified in the same way as in ordinary `cross-validation`. \n",
+        "- The argument `refit=True` controls whether the model is refit on the entire training set using the best hyperparameters. The default value is `True`."
+      ],
+      "id": "f101620d"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import GridSearchCV\n",
+        "\n",
+        "gs = GridSearchCV(model, param_grid=params, cv=5, refit=True)\n",
+        "gs.fit(X, y)"
+      ],
+      "id": "089a3335",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "After fitting, the best estimator and other information about the search can be obtained. "
+      ],
+      "id": "edd202a7"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "gs.best_estimator_"
+      ],
+      "id": "a2c925f0",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "gs.best_params_"
+      ],
+      "id": "3eb00f6f",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "gs.best_score_"
+      ],
+      "id": "92e0d7aa",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "`gs.cv_results_` stores the results for all folds. Itself is a `dict`. Usually we convert it into a DataFrame.\n"
+      ],
+      "id": "25820298"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "df_result = pd.DataFrame(gs.cv_results_)\n",
+        "df_result"
+      ],
+      "id": "a50b0b0c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Then we could get access to the mean test score or other metrics to see how scores are changed along the parameters."
+      ],
+      "id": "796c56ad"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "df_result[\"mean_test_score\"]"
+      ],
+      "id": "7bb55ae5",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Feature Engineering and Preprocessing\n",
+        "\n",
+        "\n",
+        "Feature engineering refers to modifying or creating predictors in order to better represent the relationship between the predictors and the response. Here we mainly cover the `sklearn` way to perform feature engineering.\n",
+        "\n",
+        "\n",
+        "::: {.callout-note}\n",
+        "## Modeling Perspective\n",
+        "\n",
+        "In statistical learning (commonly implemented using `sklearn`), the primary goal is predictive performance. Models are therefore typically constructed by building a feature matrix, and modifying a model usually means modifying the feature matrix rather than changing a model formula.\n",
+        "\n",
+        "In contrast, traditional regression analysis (commonly implemented using `statsmodels`) allows explicit specification of statistical models through a formula language. This approach is convenient when precise control of model terms and statistical inference are required.\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "### Creating Features Manually\n",
+        "\n",
+        "Before introducing automated tools, we can always create new predictors directly by modifying the original dataset."
+      ],
+      "id": "f0051945"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "X = pd.DataFrame({'x1': [0, 2, 4], 'x2': [1, 3, 5]})\n",
+        "X"
+      ],
+      "id": "5f154dd4",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "For example, we can add the squared term of $x_2$ and the interaction term $x_1x_2$ to form a new feature matrix `X2`.\n"
+      ],
+      "id": "e865d52d"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "X2 = X.copy()\n",
+        "X2[\"x2_sq\"] = X[\"x2\"] ** 2\n",
+        "X2[\"x1_x2\"] = X[\"x1\"] * X[\"x2\"]\n",
+        "X2"
+      ],
+      "id": "eecad20f",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This corresponds to fitting a model of the form\n",
+        "$$\n",
+        "y=\\beta_0+\\beta_1x_1+\\beta_2x_2+\\beta_3x_2^2+\\beta_4x_1x_2+\\varepsilon.\n",
+        "$$\n",
+        "\n",
+        "::: {.callout-tip}\n",
+        "Although the model is called linear regression, it can represent nonlinear relationships by including transformed predictors such as $x^2$, $\\log x$, or $\\sqrt{x}$. The model remains linear because it is linear in the coefficients $\\beta$.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Polynomial Features\n",
+        "\n",
+        "\n",
+        "<details>\n",
+        "<summary><strong>Click to expand.</strong></summary>\n",
+        "\n",
+        "When many predictors are present, manually creating polynomial and interaction terms can become tedious. In such cases we can use `PolynomialFeatures` from `sklearn.preprocessing`, which automatically generates polynomial and interaction terms up to the specified degree.\n"
+      ],
+      "id": "9389a3a4"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.preprocessing import PolynomialFeatures\n",
+        "\n",
+        "poly = PolynomialFeatures(degree=2, interaction_only=False, include_bias=True)\n",
+        "poly.fit_transform(X)"
+      ],
+      "id": "de606db7",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The argument `interaction_only=False` means that both squared terms and interaction terms are included. For example, if the original variables are $x_1$ and $x_2$, then the transformed matrix contains terms such as\n",
+        "$$\n",
+        "1,x_1,x_2,x_1^2,x_1x_2,x_2^2.\n",
+        "$$"
+      ],
+      "id": "6181bc06"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "poly2 = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)\n",
+        "poly2.fit_transform(X)"
+      ],
+      "id": "16b9d163",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Here `interaction_only=True` means that only interaction terms are added, while powers such as $x_1^2$ and $x_2^2$ are excluded. In addition, the argument `include_bias=False` removes the constant column of ones.\n",
+        "</details>\n",
+        "\n",
+        "\n",
+        "### Categorical Variables\n",
+        "\n",
+        "\n",
+        "::: {.callout-caution}\n",
+        "## Dummy Variable Trap\n",
+        "Including all dummy variables together with an intercept creates perfect multicollinearity because the dummy variables sum to one. Therefore, when creating dummy variables with $k$ categories, we typically include only $k-1$ variables.\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "<details>\n",
+        "<summary><strong>`pandas` version</strong></summary>\n",
+        "\n",
+        "\n",
+        "We could use `pd.get_dummies()` to directly modify the dataset. "
+      ],
+      "id": "7e517792"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "df = pd.DataFrame({\"color\": [\"red\", \"blue\", \"green\", \"red\"]})\n",
+        "\n",
+        "pd.get_dummies(df, drop_first=True)"
+      ],
+      "id": "081e96d4",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The argument `drop_first=True` removes the base category column to avoid the dummy variable trap described above. If you want to keep the base column, you may set it to `False` (which is the default).\n",
+        "\n",
+        "`pd.get_dummies()` automatically detects categorical variables and leaves numerical variables unchanged."
+      ],
+      "id": "30396a73"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "X = pd.DataFrame({\"x\": [1, 2, 3, 4, 5, 6], \"group\": [\"A\", \"A\", \"B\", \"B\", \"C\", \"C\"]})\n",
+        "\n",
+        "pd.get_dummies(X, drop_first=True)"
+      ],
+      "id": "37cf2c17",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "If you want to convert numeric variables into dummy variables, you may manually cast them to categorical variables."
+      ],
+      "id": "7def4d87"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "X[\"x\"] = X[\"x\"].astype(\"category\")\n",
+        "pd.get_dummies(X, drop_first=True)"
+      ],
+      "id": "989d24d9",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "</details>\n",
+        "\n",
+        "\n",
+        "<details>\n",
+        "<summary><strong>`sklearn` version</strong></summary>\n",
+        "\n",
+        "\n",
+        "`OneHotEncoder` from `sklearn` is another tool for converting categorical variables into dummy variables. It follows the standard `sklearn` API. Compared with `pd.get_dummies()`, which is convenient for quick data analysis, `OneHotEncoder` is better suited for statistical learning pipelines because it can be fitted on training data and then applied consistently to new data."
+      ],
+      "id": "31619b11"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.preprocessing import OneHotEncoder\n",
+        "\n",
+        "df = pd.DataFrame({\"color\": [\"red\", \"blue\", \"green\", \"red\"]})\n",
+        "encoder = OneHotEncoder(drop=\"first\", sparse_output=False) \n",
+        "\n",
+        "encoder.fit_transform(df)"
+      ],
+      "id": "8cbf4bab",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The argument `sparse_output=False` controls the output format. If `False`, the output is a regular matrix. If `True`, the output is a sparse matrix.\n"
+      ],
+      "id": "58b3b217"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.preprocessing import OneHotEncoder\n",
+        "\n",
+        "X = pd.DataFrame({\"x\": [1, 2, 3, 4, 5, 6], \"group\": [\"A\", \"A\", \"B\", \"B\", \"C\", \"C\"]})\n",
+        "encoder = OneHotEncoder(drop=\"first\", sparse_output=False)\n",
+        "\n",
+        "encoder.fit_transform(X)"
+      ],
+      "id": "4872e39f",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "When applied to a DataFrame with multiple columns, unlike the `pandas` version, `OneHotEncoder` converts each column into dummy variables. In the example above, the first five columns correspond to `x` and the last two correspond to `group`.\n",
+        "\n",
+        "If you want to apply `OneHotEncoder` only to certain columns, you need to use a `ColumnTransformer`, which will be introduced later.\n",
+        "\n",
+        "</details>\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Scaling Variables {#sec-scaling}\n",
+        "\n",
+        "\n",
+        "<details>\n",
+        "<summary><strong>Centralization, standardization and normalization</strong></summary>\n",
+        "\n",
+        "\n",
+        "In regression and statistical learning, these transformations are typically applied to the predictors $X$ to control their location and scale. They are rarely applied to the response $y$, unless there is a specific modeling reason.\n",
+        "\n",
+        "- Centralization: Subtract the sample mean so that the variable has mean $0$.\n",
+        "- Standardization: Subtract the sample mean and divide by the sample standard deviation so that the variable has mean $0$ and standard deviation $1$.\n",
+        "- Normalization: Rescale the variable so that its values lie between $0$ and $1$.\n",
+        "\n",
+        "Standardization is especially useful when predictors are measured on very different scales. It is commonly used in statistical learning, particularly for methods such as ridge regression and lasso.\n"
+      ],
+      "id": "0e1b0e5f"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "\n",
+        "np.random.seed(1)\n",
+        "\n",
+        "X = pd.DataFrame({\"x1\": np.random.normal(10, 2, size=8), \"x2\": np.random.normal(100, 20, size=8)})\n",
+        "X"
+      ],
+      "id": "10ce7370",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Standardization:"
+      ],
+      "id": "54a29a6c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.preprocessing import StandardScaler\n",
+        "\n",
+        "scaler = StandardScaler()\n",
+        "scaler.fit_transform(X)"
+      ],
+      "id": "dd3f8a0c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Centralization (standardization without scaling):"
+      ],
+      "id": "a5ef9b2c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "scaler = StandardScaler(with_std=False)\n",
+        "scaler.fit_transform(X)"
+      ],
+      "id": "11e9c66c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Normalization:\n"
+      ],
+      "id": "ce3bf39a"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.preprocessing import MinMaxScaler\n",
+        "\n",
+        "minmax = MinMaxScaler()\n",
+        "minmax.fit_transform(X)"
+      ],
+      "id": "83f5e744",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Note that scaling is not required for ordinary least squares (OLS). However, it is essential for regularization methods such as ridge and lasso because the penalty depends on the scale of the coefficients.\n",
+        "</details>\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "### `ColumnTransformer`\n",
+        "\n",
+        "\n",
+        "<details>\n",
+        "<summary><strong>Click to expand.</strong></summary>\n",
+        "\n",
+        "To apply different transformations to different columns, we can use `ColumnTransformer`. `ColumnTransformer` consists of multiple transformations. Each transformation is specified by a triple containing:\n",
+        "\n",
+        "- a name (identifier),\n",
+        "- the transformer,\n",
+        "- the columns to which it applies.\n"
+      ],
+      "id": "1c23933f"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.compose import ColumnTransformer\n",
+        "\n",
+        "prep = ColumnTransformer(\n",
+        "    transformers=[\n",
+        "        (\"cat\", OneHotEncoder(drop=\"first\", sparse_output=False), [\"group\"]),\n",
+        "        (\"x\", \"passthrough\", [\"x\"]),\n",
+        "        (\"x_std\", StandardScaler(), [\"x\"]),\n",
+        "    ]\n",
+        ")\n",
+        "\n",
+        "X = pd.DataFrame({\"x\": [1, 2, 3, 4, 5, 6], \"group\": [\"A\", \"A\", \"B\", \"B\", \"C\", \"C\"]})\n",
+        "prep.fit_transform(X)"
+      ],
+      "id": "52bf6910",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "You may use the id to get into each transformer.\n"
+      ],
+      "id": "3d9dc265"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "prep.transformers_"
+      ],
+      "id": "977d0524",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "prep.named_transformers_['x_std']"
+      ],
+      "id": "f5f27d12",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "</details>\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {.callout-tip}\n",
+        "## Estimator, Predictor and Transformer\n",
+        "\n",
+        "In `sklearn`, all models are called estimators. An estimator is any object that can be trained using the `.fit()` method.\n",
+        "\n",
+        "\n",
+        "Once an estimator is fitted,\n",
+        "\n",
+        "- if it can transform input data using `.transform()`, it is called a transformer;\n",
+        "- if it can generate predictions using `.predict()`, it is called a predictor.\n",
+        "\n",
+        "Typical examples include\n",
+        "\n",
+        "- Transformers: `StandardScaler`, `MinMaxScaler`, `PolynomialFeatures`, `OneHotEncoder`, etc.\n",
+        "- Predictors: `LinearRegression` and most other machine learning models.\n",
+        "\n",
+        "Usually a model is applied in two steps: \n",
+        "\n",
+        "1. `.fit()` learns the parameters from the training data.\n",
+        "2. `.transform()` or `.predict()` applies the model to data.\n",
+        "\n",
+        "For transformers, the combined method `.fit_transform()` performs both steps in one call.\n",
+        "\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "## Pipelines and transformations of $y$\n",
+        "\n",
+        "\n",
+        "In many modeling workflows, several steps must be performed before fitting the model. These steps may include\n",
+        "\n",
+        "- feature transformations,\n",
+        "- scaling variables,\n",
+        "- generating polynomial features.\n",
+        "\n",
+        "A `pipeline` combines these steps into a single object. Using pipelines ensures that the same transformations are applied consistently during training, cross-validation, and prediction, and helps prevent data leakage.\n",
+        "\n",
+        "Here is a typical `pipeline`. Each step is indicated by a pair consisting of\n",
+        "\n",
+        "- a name (identifier) of the step\n",
+        "- the estimator\n"
+      ],
+      "id": "8e2fea02"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.pipeline import Pipeline\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "\n",
+        "steps = [\n",
+        "    (\"scaler\", StandardScaler()),\n",
+        "    (\"linear_model\", LinearRegression()),\n",
+        "]\n",
+        "pipe = Pipeline(steps=steps)"
+      ],
+      "id": "6c0d26c3",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This `pipe` object behaves like a `model` object. You may use the step names to access the internal components.\n"
+      ],
+      "id": "2b40b583"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "pipe.steps"
+      ],
+      "id": "5cbed7be",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "pipe.named_steps['scaler']"
+      ],
+      "id": "2d858e98",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: {.callout-note}\n",
+        "Pipelines are particularly useful when combined with cross-validation and hyperparameter tuning, since they ensure that preprocessing steps are applied within each training fold.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "### `TransformedTargetRegressor`\n",
+        "\n",
+        "`TransformedTargetRegressor` from `sklearn.compose` is a wrapper that applies a transformation to the response variable $y$ during model fitting and automatically applies the inverse transformation when making predictions. In other words, the regressor is trained on the transformed response, while predictions are converted back to the original scale.\n",
+        "\n",
+        "Here is a simple example of a `TransformedTargetRegressor`. The transformation of $y$ is centralizer, which is essentially standardizer without rescaling."
+      ],
+      "id": "30a9af7c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "from sklearn.compose import TransformedTargetRegressor\n",
+        "\n",
+        "model = TransformedTargetRegressor(\n",
+        "    regressor=LinearRegression(),\n",
+        "    transformer=StandardScaler(with_std=False)\n",
+        ")"
+      ],
+      "id": "2c66fee1",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Full Example\n",
+        "\n",
+        "<details>\n",
+        "<summary><strong>Click to expand.</strong></summary>\n",
+        "\n",
+        "In this example we build a more complicated pipeline."
+      ],
+      "id": "569a4123"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "\n",
+        "np.random.seed(1)\n",
+        "\n",
+        "n = 100\n",
+        "\n",
+        "X = pd.DataFrame(\n",
+        "    {\n",
+        "        \"x1\": np.random.normal(0, 1, n),\n",
+        "        \"x2\": np.random.normal(5, 2, n),\n",
+        "        \"group\": np.random.choice([\"A\", \"B\", \"C\"], size=n),\n",
+        "    }\n",
+        ")\n",
+        "\n",
+        "y = 1 + 2 * X[\"x1\"] - 1.5 * X[\"x2\"] + 3 * (X[\"group\"] == \"B\") - 2 * (X[\"group\"] == \"C\") + np.random.normal(0, 1, n)"
+      ],
+      "id": "e4cabf10",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The pipeline is illustrated as follows.\n",
+        "\n",
+        "1. `ColumnTransformer` separates numeric and categorical features.\n",
+        "2. Numeric features go through: `StandardScaler` → `PolynomialFeatures`.\n",
+        "3. Categorical features go through `OneHotEncoder`.\n",
+        "4. The transformed features are combined into a single feature matrix.\n",
+        "5. The model `LinearRegression` is fitted to the transformed data.\n",
+        "6. The response variable $y$ is centralized.\n",
+        "7. The fitted model can then be used to generate predictions, while the transforamtion of $y$ is automatically reversed.\n",
+        "\n",
+        "```{mermaid}\n",
+        "flowchart TB\n",
+        "\n",
+        "A[Input Data X]\n",
+        "Y[Response: y]\n",
+        "\n",
+        "subgraph TTR[TransformedTargetRegressor]\n",
+        "direction TB\n",
+        "\n",
+        "Y --> Y1[Center y]\n",
+        "Y1 --> P\n",
+        "\n",
+        "subgraph P[Pipeline]\n",
+        "direction TB\n",
+        "\n",
+        "B[ColumnTransformer]\n",
+        "\n",
+        "subgraph N[Numeric features: x1, x2]\n",
+        "direction TB\n",
+        "N1[StandardScaler]\n",
+        "N2[PolynomialFeatures]\n",
+        "N1 --> N2\n",
+        "end\n",
+        "\n",
+        "subgraph C[Categorical features: group]\n",
+        "direction TB\n",
+        "C1[OneHotEncoder]\n",
+        "end\n",
+        "\n",
+        "B --> N\n",
+        "B --> C\n",
+        "\n",
+        "N2 --> D[Combined feature matrix]\n",
+        "C1 --> D\n",
+        "D --> E[LinearRegression]\n",
+        "end\n",
+        "\n",
+        "P --> H[Predictions on centered y-scale]\n",
+        "H --> I[Reverse y transformation]\n",
+        "end\n",
+        "\n",
+        "A --> B\n",
+        "I --> O[Predictions on original y-scale]\n",
+        "```\n"
+      ],
+      "id": "298c5f5b"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.compose import ColumnTransformer, TransformedTargetRegressor\n",
+        "from sklearn.pipeline import Pipeline\n",
+        "from sklearn.preprocessing import StandardScaler, OneHotEncoder, PolynomialFeatures\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "\n",
+        "\n",
+        "numeric_features = [\"x1\", \"x2\"]\n",
+        "categorical_features = [\"group\"]\n",
+        "\n",
+        "numeric_pipe = Pipeline([(\"scaler\", StandardScaler()), (\"poly\", PolynomialFeatures(degree=2, include_bias=False))])\n",
+        "\n",
+        "preprocessor = ColumnTransformer(\n",
+        "    [(\"num\", numeric_pipe, numeric_features), (\"cat\", OneHotEncoder(drop=\"first\"), categorical_features)]\n",
+        ")\n",
+        "\n",
+        "pipe = Pipeline([(\"preprocess\", preprocessor), (\"model\", LinearRegression())])\n",
+        "model = TransformedTargetRegressor(regressor=pipe, transformer=StandardScaler(with_std=False))"
+      ],
+      "id": "0b6758bb",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The entire `pipeline` is trained on the training set and then evaluated on the validation set, where the training and validation sets are determined by cross-validation.\n"
+      ],
+      "id": "56c72bb2"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import cross_validate\n",
+        "\n",
+        "cv_result = cross_validate(\n",
+        "    model, X, y, cv=KFold(5, shuffle=True, random_state=1), scoring=[\"r2\", \"neg_mean_squared_error\"]\n",
+        ")\n",
+        "\n",
+        "print(f\"test R2: {cv_result['test_r2'].mean()}\")\n",
+        "print(f\"test neg mse: {cv_result['test_neg_mean_squared_error'].mean()}\")"
+      ],
+      "id": "262c459f",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "</details>"
+      ],
+      "id": "2a81f55d"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "stats",
+      "language": "python",
+      "display_name": "(stats)",
+      "path": "C:\\Users\\xiaox\\AppData\\Roaming\\jupyter\\kernels\\stats"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}

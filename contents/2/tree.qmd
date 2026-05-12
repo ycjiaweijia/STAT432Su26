@@ -2,24 +2,17 @@
 jupyter: stats
 ---
 
+{{< include ../math.qmd >}} 
+
 # Tree-Based Methods
 
-A decision tree is a nonparametric method. Instead of assuming a global linear relationship such as $f(x)=\beta_0+\beta_1x_1+\cdots+\beta_px_p$, a tree learns a collection of simple if-then rules directly from the data.
+A decision tree is another nonparametric method, which learns a collection of simple if-then rules directly from the data.
 
 The basic idea is:
 
 1. Split the feature space into regions.
 2. Continue splitting each region into smaller regions.
 3. Use the observations inside each final region to make predictions.
-
-<!-- A decision tree is called **adaptive** because the regions are learned from the data.
-
-* If a predictor is useful, the tree may split on it many times.
-* If a predictor is not useful, the tree may ignore it completely. -->
-<!-- 
-Unlike linear regression, trees can naturally model nonlinear relationships and complicated interactions between predictors.
-
---- -->
 
 ::: {#exm-}
 ## Example: A Classification Tree
@@ -36,47 +29,74 @@ iris = load_iris()
 X = iris.data[:, 2:]
 y = iris.target
 
-clf = DecisionTreeClassifier(
-    random_state=40,
-    max_depth=2
-)
+clf = DecisionTreeClassifier(random_state=2, max_depth=2)
 
 clf.fit(X, y)
 
 plt.figure(figsize=(3, 3), dpi=200)
-plot_tree(
-    clf,
-    filled=True,
-    impurity=True,
-    node_ids=True
-);
+
+plot_tree(clf, filled=True, impurity=True, node_ids=True);  # fmt: skip
 ```
+
 
 This is a classification tree. The tree repeatedly asks simple questions such as
 
-- Is `x[1] <= 0.8`?
+- Is `x[0] <= 2.45`?
 - Is `x[1] <= 1.75`?
 
 Each split divides the feature space into smaller regions.
 
-Notice that a tree may split on the same predictor multiple times. This is very common in practice. This suggests that the feature `x[1]` is more important than other features.
+
+This tree actually create the following splits in the feature space.
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+xmin, xmax = 0, 7
+ymin, ymax = 0, 3
+
+ax.add_patch(Rectangle((xmin, ymin), 2.45 - xmin, ymax - ymin, alpha=0.4, color="C1"))
+
+ax.add_patch(Rectangle((2.45, ymin), xmax - 2.45, 1.75 - ymin, alpha=0.4, color="C2"))
+
+ax.add_patch(Rectangle((2.45, 1.75), xmax - 2.45, ymax - 1.75, alpha=0.4, color="C4"))
+
+ax.axvline(2.45, color="black", linestyle="--", linewidth=2)
+ax.hlines(1.75, xmin=2.45, xmax=xmax, color="black", linestyle="--", linewidth=2)
+
+ax.text(1.2, 1.5, "node #1\nclass 0", ha="center", va="center", fontsize=13)
+ax.text(4.5, 0.9, "node #3\nclass 1", ha="center", va="center", fontsize=13)
+ax.text(4.5, 2.35, "node #4\nclass 2", ha="center", va="center", fontsize=13)
+
+ax.set_xlabel(r"$x_0$")
+ax.set_ylabel(r"$x_1$")
+ax.set_title("Decision Regions of a Simple Decision Tree")
+
+ax.set_xlim(xmin, xmax)
+ax.set_ylim(ymin, ymax);  # fmt: skip
+```
+<!-- 
+Notice that a tree may split on the same predictor multiple times. This is very common in practice. This suggests that the feature `x[1]` is more important than other features. -->
 :::
 
-<!-- 
-# Why Trees Are Nonlinear
 
-A tree partitions the feature space into regions and predicts separately inside each region.
+Based on the idea of a decision tree, a tree makes decisions by repeatedly asking questions of the form $x_j \leq c$. Therefore, a tree has two important properties:
 
-For example:
+- It depends directly on the original features.
+- The scale of a feature is usually not important.
 
-* If age < 30, predict salary = $45,000
-* Otherwise predict salary = $82,000
+As a result, we should expect that a tree is:
 
-This creates a **piecewise prediction rule** instead of one global linear equation.
+- sensitive to feature construction or feature combinations: A tree can only split on the features that are provided. If the useful signal is hidden in a combination such as $x_1+x_2$ or $x_1x_2$, a tree may need many splits to approximate that relationship.
+- not sensitive to monotone transformations of a feature: For example, replacing $x$ by $\log(x)$ or $2x+5$ does not change the ordering of the observations. Since tree splits mainly depend on ordering, the tree can usually produce an equivalent split after the transformation.
 
-Therefore trees are naturally nonlinear models.
 
---- -->
+
 
 ## CART: Classification and Regression Trees
 
@@ -85,41 +105,31 @@ There are many algorithms for constructing decision trees. The most common one i
 CART has the following properties:
 
 - It creates only binary splits;
-- For classification, common splitting criteria include Gini impurity and Entropy;
-- For regression, common splitting criteria include Mean squared error (MSE) and Sum of squared errors (SSE).
+- It can perform both classification and regression tasks:
+  - For classification, common splitting criteria include Gini impurity and entropy;
+  - For regression, common splitting criteria include mean squared error (MSE) and sum of squared errors (SSE).
 
 ### Splitting a Dataset
+At each step, CART searches over possible splits and chooses the split that produces the largest reduction in impurity (or prediction error).
 
-At each step, CART searches for the best split.
 
 :::{.callout-note}
 
 # Algorithm: Split the Dataset
 
-**Inputs:** A dataset
-
-$$
-S={[\text{features},\text{target}]}
-$$
+**Inputs:** A dataset $S={[\text{features},\text{target}]}$
 
 **Outputs:** The best split $(k,t)$
 
-1. For each feature $k$:
-
+1. For each feature $x_k$:
    1. For each candidate split value $t$:
-
-      1. Split the dataset into two subsets:
-
-      $$
-      G_l={x_k\le t},
-      \qquad
-      G_r={x_k>t}
-      $$
-
+      1. Split the dataset into two subsets: $G_l=\qty{\text{data with }x_k\le t}$, $G_r=\qty{\text{data with }x_k>t}$.
       2. Compute the split cost function $J(k,t)$
       3. Compare with the current best split
 2. Return the split $(k,t)$ with the smallest cost
 :::
+
+
 
 
 
@@ -129,59 +139,37 @@ The splitting algorithm is applied recursively.
 
 # Algorithm: CART
 
-**Inputs:**
+**Inputs:** A labeled dataset $S$ and a maximal tree depth `max_depth`
 
-* A labeled dataset $S$
-* A maximal tree depth `max_depth`
-
-**Outputs:**
-
-* A decision tree
+**Outputs:** A decision tree
 
 1. Start with the original dataset $S$
-
 2. If the node is not pure:
-
    1. Find the best split
-   2. Split the node into:
-
-   $$
-   G_l,
-   \qquad
-   G_r
-   $$
-
+   2. Split the node into: $G_l$, $G_r$
 3. Apply the same procedure recursively to both child nodes
-
 4. Stop when:
-
-   * the maximal depth is reached, or
-   * the node becomes pure, or
-   * further splitting is impossible
+   - the maximal depth is reached, or
+   - the node becomes pure, or
+   - further splitting is impossible
 :::
+
+
+
+
+
 
 
 
 ## Classification Trees
 
-For classification trees, we need a criterion to measure whether a split is good or bad. The two most common choices are:
-
-- Gini impurity
-- Entropy
-
-Their performance is usually very similar. In these notes we focus on Gini impurity because it is slightly easier to compute and interpret.
+For classification trees, we need a criterion to measure whether a split is good or bad. In this notes we focus on Gini impurity. 
 
 ### Gini Impurity
 
 Assume that a node contains $n$ observations divided into $K$ classes.
 
-Let
-
-$$
-p_i=\frac{n_i}{n}
-$$
-
-be the proportion of class $i$.
+Let $p_i=\frac{n_i}{n}$ be the proportion of class $i$.
 
 If we randomly assign labels according to the class proportions, then:
 
@@ -209,7 +197,7 @@ $$
 we obtain
 
 $$
-Gini
+\gini
 =\sum_{i=1}^K p_i(1-p_i)
 =1-\sum_{i=1}^K p_i^2.
 $$
@@ -221,7 +209,7 @@ $$
 The **Gini impurity** of a node is
 
 $$
-Gini
+\gini
 =1-\sum_{i=1}^K p_i^2,
 $$
 
@@ -240,7 +228,7 @@ Then one of the probabilities equals 1 and all others equal 0.
 Therefore
 
 $$
-Gini=1-1^2=0.
+\gini=1-1^2=0.
 $$
 
 This is the minimum possible impurity.
@@ -265,7 +253,7 @@ $$
 Then
 
 $$
-Gini
+\gini
 =1-p_1^2-(1-p_1)^2
 =2p_1-2p_1^2.
 $$
@@ -281,20 +269,12 @@ Therefore impurity is largest when the classes are balanced.
 
 The impurity of a node itself is not enough. CART actually evaluates the quality of a split by examining the impurity of the child nodes after splitting.
 
-Suppose a node $G$ is split into:
-
-$$
-G_l,
-\qquad
-G_r.
-$$
-
-The split cost is
+Suppose a node $G$ is split into $G_l$ and $G_r$. The split cost is
 
 $$
 J
-=\frac{|G_l|}{|G|}Gini(G_l)
-+\frac{|G_r|}{|G|}Gini(G_r).
+=\frac{|G_l|}{|G|}\gini(G_l)
++\frac{|G_r|}{|G|}\gini(G_r).
 $$
 
 A good split produces child nodes with low impurity.
@@ -304,12 +284,10 @@ A good split produces child nodes with low impurity.
 ::: {.callout-note}
 # Entropy
 
-Entropy is another popular impurity measure.
-
-Its formula is
+Entropy is another popular impurity measure. Its formula is
 
 $$
-Entropy
+\mathrm{Entropy}
 =-\sum_{i=1}^K p_i\log(p_i).
 $$
 
@@ -319,18 +297,13 @@ Because Gini impurity is slightly simpler computationally and conceptually, we m
 
 :::
 
+
+
 ## Regression Trees
 
 Regression trees are used when the response variable is quantitative. Instead of predicting a class label, a regression tree predicts a numerical value.
 
-Suppose a terminal node contains responses
-
-$$
-y_1,y_2,\ldots,y_n.
-$$
-
-The prediction for that region is usually the sample mean:
-
+Suppose a terminal node contains responses $y_1$, $y_2$, $\ldots$, $y_n$. The prediction for that region is usually the sample mean:
 $$
 \hat y
 =\frac{1}{n}\sum_{i=1}^n y_i.
@@ -341,53 +314,73 @@ Therefore regression trees approximate the regression function using piecewise c
 
 ### Split Criterion for Regression Trees
 
-For regression trees, CART typically minimizes the residual sum of squares (RSS) or equivalently the mean squared error (MSE).
+For regression trees, CART typically minimizes the residual sum of squares (RSS). Sometimes the mean squared error (MSE) is used. These two are essentially the equaivalent. 
 
-Suppose a split divides the data into two regions:
-
-$$
-G_l,
-\qquad
-G_r.
-$$
-
-The split cost is
+Suppose a split divides the data into two regions $G_l$ and $G_r$. The split cost is
 
 $$
-RSS
-===
-
-\sum_{i\in G_l}(y_i-\bar y_l)^2
-+
-\sum_{i\in G_r}(y_i-\bar y_r)^2,
+\rss=\sum_{i\in G_l}(y_i-\bar y_l)^2+\sum_{i\in G_r}(y_i-\bar y_r)^2,
 $$
 
-where
+where $\bar y_l$ and $\bar y_r$ are the mean responses inside the two regions. The best split is the one that minimizes this quantity.
+
+
+
+
+
+
+## Some discussions
+
+### Trees are local
+
+A tree makes predictions using only observations inside a small region of the feature space. Suppose a tree partitions the feature space into regions. The prediction at a point $x$ depends only on the region containing $x$. Therefore, if a new observation falls into a region, the tree ignores all data outside the region.
+
+As a result, tree predictions are local:
+
+- nearby regions may have very different predictions
+- only observations in the same local region affect the prediction
+- changing distant observations usually does not affect the prediction
+
+This is similar in spirit to KNN, where prediction also depends primarily on nearby observations.
+
+
+### Trees are nonlinear
+
+A tree creates many if-then rules. Because of these recursive splits:
+
+- the prediction function can change abruptly
+- variable effects depend on the region
+- interactions are created automatically
+
+The resulting prediction surface is piecewise constant, not a single linear equation. Therefore, trees are nonlinear models.
+
+
+### Automatic interaction effects
+
+One important property of trees is that they automatically create interaction effects.
+
+For example, consider a tree with depth 3. One path through the tree may look like:
+
+- if $x_1 \le 1$
+- and $x_2 \le 2$
+- and $x_3 \le 3$
+- then predict $y=1.1$
+
+Notice that the prediction depends on the combination of all three conditions simultaneously.
+
+In other words, the effect of $x_3$ is not independent of $x_1$ and $x_2$. The split on $x_3$ is only relevant inside the region defined by the earlier splits.
+
+Therefore, trees naturally model interactions between variables.
+
+This is very different from a standard additive linear model such as
 
 $$
-\bar y_l
-\qquad\text{and}\qquad
-\bar y_r
+f(x)=\beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3,
 $$
 
-are the mean responses inside the two regions.
+where each variable contributes independently unless explicit interaction terms like $x_1x_2$ are manually added.
 
-The best split is the one that minimizes this quantity.
-
-
-### Interpretation of Regression Trees
-
-A regression tree creates regions with similar response values.
-
-For example:
-
-- If age < 30, predict salary = $45,000
-- If age ≥ 30 and education < 16 years, predict salary = $68,000
-- Otherwise predict salary = $95,000
-
-Thus a regression tree approximates a complicated nonlinear function using many simple local averages.
-
-## Pros and cons
+<!-- ## Pros and cons
 
 Decision trees have several important advantages:
 
@@ -408,8 +401,22 @@ Because of these weaknesses, single trees are often improved using ensemble meth
 
 - Bagging
 - Random forests
-- Boosting
+- Boosting -->
 
+
+
+<!-- 
+### Interpretation of Regression Trees
+
+A regression tree creates regions with similar response values.
+
+For example:
+
+- If age < 30, predict salary = $45,000
+- If age $\geq$ 30 and education < 16 years, predict salary = $68,000
+- Otherwise predict salary = $95,000
+
+Thus a regression tree approximates a complicated nonlinear function using many simple local averages. -->
 
 
 
@@ -426,7 +433,6 @@ In other words, the finer the splits are, the further the learning is. We need t
 Some possible early stop conditions:
 
 - `max_depth`: The max depth of the tree. 
-<!-- - The default is `none` which means no limits. -->
 - `min_samples_split`: The minimum number of samples required to split an internal node. 
 <!-- - The default is 2 which means that we will split a node with as few as 2 elements if needed. -->
 - `min_samples_leaf`: The minimum number of samples required to be at a leaf node. 
@@ -445,7 +451,7 @@ In this example, we let the tree grow as further as possible. It only stops when
 #| echo: false
 clf = DecisionTreeClassifier(random_state=40)
 clf.fit(X, y)
-plt.figure(figsize=(3, 3), dpi=200)
+plt.figure(figsize=(5, 5), dpi=300)
 plot_tree(clf, filled=True, impurity=True, node_ids=True);
 ```
 
@@ -489,7 +495,7 @@ for i in num_leaf:
 plt.plot(num_leaf, train_acc, label='training')
 plt.plot(num_leaf, test_acc, label='testing')
 plt.gca().set_xlim((max(num_leaf)+1, min(num_leaf)-1))
-plt.legend()
+plt.legend();
 ```
 
 From this plot, the accuracy has a big jump at `min_sample_leaf=41`. So we could choose this to be our hyperparameter.

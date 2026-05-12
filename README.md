@@ -17,3 +17,10 @@ This uses a modified version of the `bookup-html` custom quarto format. You can 
 ```
 quarto use template juba/bookup-html
 ```
+
+
+## Extension
+
+```
+quarto add leovan/quarto-pseudocode
+```
