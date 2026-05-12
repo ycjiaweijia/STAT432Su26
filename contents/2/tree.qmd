@@ -107,7 +107,9 @@ CART has the following properties:
 - It creates only binary splits;
 - It can perform both classification and regression tasks:
   - For classification, common splitting criteria include Gini impurity and entropy;
-  - For regression, common splitting criteria include mean squared error (MSE) and sum of squared errors (SSE).
+  - For regression, common splitting criteria include residual sum of squares (RSS) and mean squared error (MSE).
+
+
 
 ### Splitting a Dataset
 At each step, CART searches over possible splits and chooses the split that produces the largest reduction in impurity (or prediction error).
@@ -125,7 +127,7 @@ At each step, CART searches over possible splits and chooses the split that prod
    1. For each candidate split value $t$:
       1. Split the dataset into two subsets: $G_l=\qty{\text{data with }x_k\le t}$, $G_r=\qty{\text{data with }x_k>t}$.
       2. Compute the split cost function $J(k,t)$
-      3. Compare with the current best split
+      3. Keep the best split found so far
 2. Return the split $(k,t)$ with the smallest cost
 :::
 
@@ -144,34 +146,26 @@ The splitting algorithm is applied recursively.
 **Outputs:** A decision tree
 
 1. Start with the original dataset $S$
-2. If the node is not pure:
+2. If the node is not pure and stopping conditions are not met:
    1. Find the best split
-   2. Split the node into: $G_l$, $G_r$
-3. Apply the same procedure recursively to both child nodes
-4. Stop when:
+   2. Split the node into: $G_l$ and $G_r$
+   3. Apply the same procedure recursively to both child nodes
+3. Stop when:
    - the maximal depth is reached, or
    - the node becomes pure, or
    - further splitting is impossible
 :::
 
+When making predictions, a classification tree uses the most common class label in a region as the predicted value, while a regression tree uses the mean of the response values in the region as the predicted value.
 
 
 
+### Classification Trees: Gini Impurity
+Classification trees are used when the response variable is categorical. A classification tree partitions the feature space into piecewise constant regions, where each region predicts either a class label or class probabilities.
 
+In these notes, we use Gini impurity to measure the quality of a split. 
 
-
-
-## Classification Trees
-
-For classification trees, we need a criterion to measure whether a split is good or bad. In this notes we focus on Gini impurity. 
-
-### Gini Impurity
-
-Assume that a node contains $n$ observations divided into $K$ classes.
-
-Let $p_i=\frac{n_i}{n}$ be the proportion of class $i$.
-
-If we randomly assign labels according to the class proportions, then:
+Assume that a node contains $n$ observations divided into $K$ classes. Let $p_i=\frac{n_i}{n}$ be the proportion of class $i$. If we classify observations according to the class proportions:
 
 - the probability an observation belongs to class $i$ is $p_i$
 - the probability we incorrectly classify it is $1-p_i$
@@ -260,14 +254,13 @@ $$
 
 When:
 
-- $p_1=0$ or $1$, the impurity is 0
-- $p_1=0.5$, the impurity is maximized
+- $p_1=0$ or $1$, the impurity is 0;
+- $p_1=0.5$, the impurity is maximized.
 
-Therefore impurity is largest when the classes are balanced.
+Therefore, impurity is largest when the classes are perfectly balanced.
 :::
 
-
-The impurity of a node itself is not enough. CART actually evaluates the quality of a split by examining the impurity of the child nodes after splitting.
+The impurity of a node alone is not enough. CART evaluates a split by examining the impurity of the child nodes after splitting.
 
 Suppose a node $G$ is split into $G_l$ and $G_r$. The split cost is
 
@@ -277,9 +270,7 @@ J
 +\frac{|G_r|}{|G|}\gini(G_r).
 $$
 
-A good split produces child nodes with low impurity.
-
-
+A good split produces child nodes with low impurity, ideally creating nodes that are close to pure.
 
 ::: {.callout-note}
 # Entropy
@@ -299,9 +290,9 @@ Because Gini impurity is slightly simpler computationally and conceptually, we m
 
 
 
-## Regression Trees
+### Regression Trees: RSS
 
-Regression trees are used when the response variable is quantitative. Instead of predicting a class label, a regression tree predicts a numerical value.
+Regression trees are used when the response variable is quantitative. Instead of predicting a class label, they predict numerical values.
 
 Suppose a terminal node contains responses $y_1$, $y_2$, $\ldots$, $y_n$. The prediction for that region is usually the sample mean:
 $$
@@ -309,33 +300,34 @@ $$
 =\frac{1}{n}\sum_{i=1}^n y_i.
 $$
 
-Therefore regression trees approximate the regression function using piecewise constant regions.
+
+Therefore, regression trees approximate the regression function using piecewise constant regions.
 
 
-### Split Criterion for Regression Trees
-
-For regression trees, CART typically minimizes the residual sum of squares (RSS). Sometimes the mean squared error (MSE) is used. These two are essentially the equaivalent. 
+For regression trees, CART typically minimizes the residual sum of squares (RSS). Sometimes the mean squared error (MSE) is used instead. Since MSE differs from RSS only by a constant scaling factor, minimizing one is equivalent to minimizing the other.
 
 Suppose a split divides the data into two regions $G_l$ and $G_r$. The split cost is
 
 $$
-\rss=\sum_{i\in G_l}(y_i-\bar y_l)^2+\sum_{i\in G_r}(y_i-\bar y_r)^2,
+\rss
+=
+\sum_{i\in G_l}(y_i-\bar y_l)^2
++
+\sum_{i\in G_r}(y_i-\bar y_r)^2,
 $$
 
-where $\bar y_l$ and $\bar y_r$ are the mean responses inside the two regions. The best split is the one that minimizes this quantity.
+where $\bar y_l$ and $\bar y_r$ are the mean responses within the two regions. The best split is the one that minimizes this quantity.
 
 
 
 
 
 
-## Some discussions
+<!-- ## Important Properties of Trees -->
 
 ### Trees are local
 
-A tree makes predictions using only observations inside a small region of the feature space. Suppose a tree partitions the feature space into regions. The prediction at a point $x$ depends only on the region containing $x$. Therefore, if a new observation falls into a region, the tree ignores all data outside the region.
-
-As a result, tree predictions are local:
+A tree makes predictions using only observations inside a small region of the feature space. Suppose a tree partitions the feature space into regions. The prediction at a point $x$ depends only on the region containing $x$. As a result, tree predictions are local:
 
 - nearby regions may have very different predictions
 - only observations in the same local region affect the prediction
@@ -352,7 +344,8 @@ A tree creates many if-then rules. Because of these recursive splits:
 - variable effects depend on the region
 - interactions are created automatically
 
-The resulting prediction surface is piecewise constant, not a single linear equation. Therefore, trees are nonlinear models.
+
+The prediction surface is therefore discontinuous and piecewise constant. Therefore, trees are nonlinear models.
 
 
 ### Automatic interaction effects
@@ -366,9 +359,7 @@ For example, consider a tree with depth 3. One path through the tree may look li
 - and $x_3 \le 3$
 - then predict $y=1.1$
 
-Notice that the prediction depends on the combination of all three conditions simultaneously.
-
-In other words, the effect of $x_3$ is not independent of $x_1$ and $x_2$. The split on $x_3$ is only relevant inside the region defined by the earlier splits.
+Notice that the prediction depends on the combination of all three conditions simultaneously. Therefore, the effect of one variable may depend on the values of earlier splitting variables. In other words, the effect of $x_3$ is not independent of $x_1$ and $x_2$. The split on $x_3$ is only relevant inside the region defined by the earlier splits.
 
 Therefore, trees naturally model interactions between variables.
 
@@ -423,27 +414,15 @@ Thus a regression tree approximates a complicated nonlinear function using many 
 ## Tuning hyperparameters
 
 
-Building a decision tree is the same as splitting the training dataset. If we are alllowed to keep splitting it, it is possible to get to a case that each end node is pure: the Gini impurity is 0, or every element has the same response variable locally. This means two things:
-
-1. The tree learns too many (unnecessary) details from the training set so it is overfitting. 
-2. We could use the number of split to indicate the progress of the learning.
-
-In other words, the finer the splits are, the further the learning is. We need to consider some early stop conditions to prevent the model from overfitting.
-
-Some possible early stop conditions:
-
-- `max_depth`: The max depth of the tree. 
-- `min_samples_split`: The minimum number of samples required to split an internal node. 
-<!-- - The default is 2 which means that we will split a node with as few as 2 elements if needed. -->
-- `min_samples_leaf`: The minimum number of samples required to be at a leaf node. 
-<!-- - The default is 1 which means that we will still split the node even if one subset only contains 1 element. -->
-
-<!-- If we don't set them (which means that we use the default setting), the dataset will be split untill all subsets are pure. -->
-
+Building a decision tree is the same as splitting the training dataset. If we are alllowed to keep splitting it, it is possible to get to a case that each end node is pure: the Gini impurity is 0, or every element has the same response variable locally. 
 
 
 ::: {#exm-}
 # ALMOST all end nodes are pure
+
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
 
 In this example, we let the tree grow as further as possible. It only stops when (almost) all end nodes are pure, even if the end nodes only contain ONE element (like #6 and #11).
 
@@ -452,7 +431,7 @@ In this example, we let the tree grow as further as possible. It only stops when
 clf = DecisionTreeClassifier(random_state=40)
 clf.fit(X, y)
 plt.figure(figsize=(5, 5), dpi=300)
-plot_tree(clf, filled=True, impurity=True, node_ids=True);
+plot_tree(clf, filled=True, impurity=True, node_ids=True);  # fmt: skip
 ```
 
 
@@ -471,10 +450,140 @@ pd.DataFrame({"x[0]": X[nodeids, 0], "x[1]": X[nodeids, 1], "y": y[nodeids]})
 All the data points in this node has the same feature while their labels are different. They cannot be split further purely based on features.
 
 
+</details>
+
+
 :::
 
 
-Therefore we could treat these hyperparameters as an indicator about how far the dataset is split. The further the dataset is split, the further the learning goes, the more details are learned. Since we don't want the model to be overfitting, we don't want to split the dataset that far. In this case, we could use the learning curve to help us make the decision.
+As the tree continues splitting the feature space into smaller regions, it learns increasingly fine details of the training set. Although this increases flexibility, it can also make the model overly sensitive to noise. Therefore, we usually do not want the tree to grow indefinitely.
+
+There are two common ways to control a single tree growth:
+
+1. Pruning: first grow a large tree, then remove unnecessary branches afterward.
+2. Pre-pruning: stop the tree early by imposing restrictions during training.
+   
+
+### Pruning
+
+Pruning means removing branches from a tree. The pruning method introduced in CART is called Minimal Cost-Complexity Pruning (MCCP).
+
+The idea is very similar to regularization in ridge or lasso regression: we balance goodness of fit against model complexity by adding a penalty term. In MCCP, the penalty is proportional to the number of terminal nodes (leaves) in the tree.
+
+More specifically, the cost function is modified by adding a complexity penalty controlled by the parameter `ccp_alpha`. The parameter `ccp_alpha` is called the complexity parameter and is always $\geq0$. Let $T$ be a subtree, and let $|T|$ denote the number of terminal nodes. The cost-complexity criterion is
+$$
+C_\alpha(T)=J(T)+\alpha |T|,
+$$
+where:
+
+- $J(T)$ measures the training error,
+- $|T|$ measures tree complexity through the number of terminal nodes,
+- $\alpha$ is corresponding to `ccp_alpha` in the notes.
+
+
+This has the same general structure as regularized regression: $\text{loss}+\text{penalty}$.
+
+The tuning parameter $\alpha$ controls how expensive it is to add another leaf. If a split reduces the training error by only a small amount, it may not be worth keeping when $\alpha$ is large. When $\alpha = 0$, there is no complexity penalty, so the procedure behaves like an ordinary decision tree and larger trees are generally preferred.
+
+When applying MCCP, we typically begin with a large tree and then compute the `ccp_alpha` path, which contains the critical values where the tree structure changes. Each critical value corresponds to a different subtree produced by pruning. We then use validation or cross-validation to compare these candidate subtrees and choose the best value of `ccp_alpha`.
+
+If several values of `ccp_alpha` achieve similar validation performance, we usually prefer the simpler tree. Therefore, among models with similar test or validation scores, a larger `ccp_alpha` is often preferred because it produces a smaller and more stable tree.
+
+
+### Pre-pruning
+
+We also tend to set some early stopping conditions to limit the growth of a tree. Some common early stopping conditions are:
+
+- `max_depth`: maximum tree depth
+- `min_samples_split`: minimum number of observations required to split a node
+- `min_samples_leaf`: minimum number of observations in a terminal node
+- `max_leaf_nodes`: maximum number of leaves
+
+Smaller trees are usually more stable but may underfit. Larger trees are more flexible but may overfit. A larger tree is not automatically better, even if it achieves lower training error.
+
+The main tuning problem is therefore choosing the appropriate tree size. Tree size controls the bias-variance tradeoff.
+
+
+Pre-pruning is simple, but it can be too greedy. A split that appears only mildly useful at an early stage may later enable highly informative splits deeper in the tree. If we stop too early, we may miss important structure in the data.
+
+For this reason, the standard strategy for building a tree model is:
+
+1. Grow a large tree.
+2. Prune it back.
+3. Use validation or cross-validation to choose the final tree size.
+
+<!-- 
+
+A fully grown tree can fit the training data very closely, but it often overfits.
+
+Important complexity controls include:
+
+- `max_depth`: maximum tree depth
+- `min_samples_split`: minimum number of observations required to split a node
+- `min_samples_leaf`: minimum number of observations in a terminal node
+- `max_leaf_nodes`: maximum number of leaves
+- `ccp_alpha`: cost-complexity pruning parameter
+
+## 12. Cost-complexity pruning
+
+Let $T$ be a subtree, and let $|T|$ be the number of terminal nodes.
+
+For regression, the cost-complexity criterion is
+$$
+C_\alpha(T)
+=
+\sum_{m=1}^{|T|}
+\sum_{x_i\in R_m}
+(y_i-\bar y_{R_m})^2
++
+\alpha |T|.
+$$
+
+The first term measures training error.
+
+The second term penalizes tree complexity.
+
+- $\alpha=0$: prefer a large tree
+- larger $\alpha$: prefer a smaller tree
+
+This has the same structure as regularized regression:
+$$
+\text{loss}+\text{penalty}.
+$$
+
+The tuning parameter $\alpha$ controls how expensive it is to add another leaf.
+
+If a split reduces RSS by only a small amount, it will not be worth keeping when $\alpha$ is large.
+
+::: {.callout-note}
+## Interpretation of $\alpha$
+
+The pruning parameter $\alpha$ controls the tradeoff between fit and complexity.
+
+It plays the same conceptual role as a tuning parameter in ridge or lasso.
+:::
+
+
+
+
+
+ -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 In this example, let us choose `min_samples_leaf` as the indicator. When `min_samples_leaf` is big, the learning just starts. When `min_samples_leaf=1`, we reach the far most side of learning. We will see how the training and testing accuracy changes along the learning process.
 
@@ -483,7 +592,9 @@ In this example, let us choose `min_samples_leaf` as the indicator. When `min_sa
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.15, random_state=42
+)
 num_leaf = list(range(1, 100))
 train_acc = []
 test_acc = []
@@ -492,10 +603,10 @@ for i in num_leaf:
     clf.fit(X_train, y_train)
     train_acc.append(clf.score(X_train, y_train))
     test_acc.append(clf.score(X_test, y_test))
-plt.plot(num_leaf, train_acc, label='training')
-plt.plot(num_leaf, test_acc, label='testing')
-plt.gca().set_xlim((max(num_leaf)+1, min(num_leaf)-1))
-plt.legend();
+plt.plot(num_leaf, train_acc, label="training")
+plt.plot(num_leaf, test_acc, label="testing")
+plt.gca().set_xlim((max(num_leaf) + 1, min(num_leaf) - 1))
+plt.legend();  # fmt: skip
 ```
 
 From this plot, the accuracy has a big jump at `min_sample_leaf=41`. So we could choose this to be our hyperparameter.
@@ -503,12 +614,54 @@ From this plot, the accuracy has a big jump at `min_sample_leaf=41`. So we could
 
 
 
-## Pruning
-Other than tuning hyperparameters, we also want to prune our tree in order to reduce overfitting further. The pruning algorithm introduced together with CART is called **Minimal-Cost-Complexity Pruning** (MCCP). 
 
-The idea is to use the cost-complexity measure to replace Gini impurity to grow the tree. The cost-complexity measure is gotten by adding the total number of end nodes with the coefficent `ccp_alpha` to the Gini impurity. The parameter `ccp_alpha>=0` is known as the **complexity parameter**, and it can help the tree to self-balance the number of end nodes and the Gini impurity.
+## 13. Bias-variance tradeoff
 
+Regression trees have a clear bias-variance tradeoff.
 
+A shallow tree:
+
+- has fewer leaves
+- gives smoother, more stable predictions
+- has higher bias
+- has lower variance
+
+A deep tree:
+
+- has many leaves
+- adapts strongly to the training data
+- has lower bias
+- has higher variance
+
+This is one reason a single tree is usually not the final model for high-performance prediction.
+
+Random forests and boosting improve on trees by combining many trees.
+
+The connection is:
+
+- bagging and random forests mainly reduce variance
+- boosting often reduces bias by fitting trees sequentially
+
+## 14. Variable importance
+
+Trees can be used to measure variable importance.
+
+A common idea is to add up how much each variable reduces impurity across all splits.
+
+For regression, impurity reduction means reduction in RSS or variance.
+
+If a variable is used often near the top of the tree and creates large reductions in RSS, it receives high importance.
+
+This is useful, but it should be interpreted carefully.
+
+Variable importance can be affected by:
+
+- correlated predictors
+- variables with many possible split points
+- instability of a single tree
+- preprocessing choices
+
+For more reliable importance measures, ensembles and permutation importance are often better.
 
 
 
@@ -556,6 +709,69 @@ ax[2].set_ylabel("accuracy")
 ax[2].legend()
 ```
 Based on the plot, it seems that the fourth dot 0.01534424 is a good fit. So this is the complexity parameter we are going to use.
+
+
+
+
+
+
+
+
+```{python}
+ccp_alphas_plot = ccp_alphas[:-1]
+
+clfs = []
+
+for ccp_alpha in ccp_alphas_plot:
+    clf = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
+    clf.fit(X_train, y_train)
+    clfs.append(clf)
+
+node_counts = [clf.tree_.node_count for clf in clfs]
+train_acc = [clf.score(X_train, y_train) for clf in clfs]
+test_acc = [clf.score(X_test, y_test) for clf in clfs]
+
+best_alpha = 0.04
+
+fig, ax = plt.subplots(2, 1, figsize=(7, 7))
+
+ax[0].plot(ccp_alphas_plot, node_counts, marker="o", drawstyle="steps-post")
+# ax[0].set_xlabel("ccp_alpha")
+ax[0].set_ylabel("number of nodes")
+
+ax[1].plot(ccp_alphas_plot, train_acc, marker="o", drawstyle="steps-post", label="train")
+ax[1].plot(ccp_alphas_plot, test_acc, marker="o", drawstyle="steps-post", label="test")
+ax[1].set_xlabel("ccp_alpha")
+ax[1].set_ylabel("accuracy")
+
+ax[0].axvline(
+    best_alpha,
+    color="black",
+    linestyle="--",
+    label="best ccp_alpha"
+)
+
+ax[1].axvline(
+    best_alpha,
+    color="black",
+    linestyle="--",
+    label="best ccp_alpha"
+)
+ax[0].legend()
+ax[1].legend()
+
+plt.tight_layout()
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1416,140 +1632,6 @@ eval_ccp_alphas(DecisionTreeClassifier(random_state=42), X_train, y_train)
 # Regression Trees
 
 ## 1. Why trees?
-
-## 10. Tree complexity
-
-A fully grown tree can fit the training data very closely, but it often overfits.
-
-Important complexity controls include:
-
-- `max_depth`: maximum tree depth
-- `min_samples_split`: minimum number of observations required to split a node
-- `min_samples_leaf`: minimum number of observations in a terminal node
-- `max_leaf_nodes`: maximum number of leaves
-- `ccp_alpha`: cost-complexity pruning parameter
-
-Small trees are more stable but may underfit.
-
-Large trees are flexible but may overfit.
-
-The main tuning problem is to choose the right tree size.
-
-::: {.callout-note}
-## Rule of thumb
-
-Tree size controls the bias-variance tradeoff.
-
-A larger tree is not automatically better, even if it has smaller training error.
-:::
-
-## 11. Stopping rules
-
-Stopping rules decide when the recursive splitting process should stop.
-
-Common stopping rules include:
-
-- stop when the node is too small
-- stop when the tree reaches a maximum depth
-- stop when the improvement in RSS is too small
-- stop when a leaf-size constraint would be violated
-
-These rules are called pre-pruning because they stop the tree before it becomes too large.
-
-Pre-pruning is simple, but it can be too greedy. A split that looks weak now might allow useful splits later.
-
-For this reason, another common strategy is:
-
-1. Grow a large tree.
-2. Prune it back.
-3. Use validation or cross-validation to choose the final size.
-
-## 12. Cost-complexity pruning
-
-Let $T$ be a subtree, and let $|T|$ be the number of terminal nodes.
-
-For regression, the cost-complexity criterion is
-$$
-C_\alpha(T)
-=
-\sum_{m=1}^{|T|}
-\sum_{x_i\in R_m}
-(y_i-\bar y_{R_m})^2
-+
-\alpha |T|.
-$$
-
-The first term measures training error.
-
-The second term penalizes tree complexity.
-
-- $\alpha=0$: prefer a large tree
-- larger $\alpha$: prefer a smaller tree
-
-This has the same structure as regularized regression:
-$$
-\text{loss}+\text{penalty}.
-$$
-
-The tuning parameter $\alpha$ controls how expensive it is to add another leaf.
-
-If a split reduces RSS by only a small amount, it will not be worth keeping when $\alpha$ is large.
-
-::: {.callout-note}
-## Interpretation of $\alpha$
-
-The pruning parameter $\alpha$ controls the tradeoff between fit and complexity.
-
-It plays the same conceptual role as a tuning parameter in ridge or lasso.
-:::
-
-## 13. Bias-variance tradeoff
-
-Regression trees have a clear bias-variance tradeoff.
-
-A shallow tree:
-
-- has fewer leaves
-- gives smoother, more stable predictions
-- has higher bias
-- has lower variance
-
-A deep tree:
-
-- has many leaves
-- adapts strongly to the training data
-- has lower bias
-- has higher variance
-
-This is one reason a single tree is usually not the final model for high-performance prediction.
-
-Random forests and boosting improve on trees by combining many trees.
-
-The connection is:
-
-- bagging and random forests mainly reduce variance
-- boosting often reduces bias by fitting trees sequentially
-
-## 14. Variable importance
-
-Trees can be used to measure variable importance.
-
-A common idea is to add up how much each variable reduces impurity across all splits.
-
-For regression, impurity reduction means reduction in RSS or variance.
-
-If a variable is used often near the top of the tree and creates large reductions in RSS, it receives high importance.
-
-This is useful, but it should be interpreted carefully.
-
-Variable importance can be affected by:
-
-- correlated predictors
-- variables with many possible split points
-- instability of a single tree
-- preprocessing choices
-
-For more reliable importance measures, ensembles and permutation importance are often better.
 
 ## 15. Strengths
 
