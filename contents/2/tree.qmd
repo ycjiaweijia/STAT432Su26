@@ -492,7 +492,7 @@ If several values of `ccp_alpha` achieve similar validation performance, we usua
 
 ### Pre-pruning
 
-We also tend to set some early stopping conditions to limit the growth of a tree. Some common early stopping conditions are:
+We often impose some early stopping conditions to limit the growth of a tree. This strategy is called pre-pruning. Some common early stopping conditions are:
 
 - `max_depth`: maximum tree depth
 - `min_samples_split`: minimum number of observations required to split a node
@@ -501,115 +501,217 @@ We also tend to set some early stopping conditions to limit the growth of a tree
 
 Smaller trees are usually more stable but may underfit. Larger trees are more flexible but may overfit. A larger tree is not automatically better, even if it achieves lower training error.
 
-The main tuning problem is therefore choosing the appropriate tree size. Tree size controls the bias-variance tradeoff.
+However, pre-pruning can be greedy. A split that appears only mildly useful at an early stage may later enable highly informative splits deeper in the tree. If we stop the tree too early, we may miss important structure in the data.
+
+Therefore, in modern practice, pre-pruning is usually not the primary method for selecting the final model complexity. Instead, we mainly rely on pruning by choosing the best `ccp_alpha` through validation or cross-validation. Pre-pruning is often used only as a guardrail to prevent the initial tree from becoming excessively large. In practice, we usually set relatively mild early stopping limits to stabilize the tree-growing process and then rely on pruning to determine the final tree size.
 
 
-Pre-pruning is simple, but it can be too greedy. A split that appears only mildly useful at an early stage may later enable highly informative splits deeper in the tree. If we stop too early, we may miss important structure in the data.
-
-For this reason, the standard strategy for building a tree model is:
-
-1. Grow a large tree.
-2. Prune it back.
-3. Use validation or cross-validation to choose the final tree size.
-
-<!-- 
-
-A fully grown tree can fit the training data very closely, but it often overfits.
-
-Important complexity controls include:
-
-- `max_depth`: maximum tree depth
-- `min_samples_split`: minimum number of observations required to split a node
-- `min_samples_leaf`: minimum number of observations in a terminal node
-- `max_leaf_nodes`: maximum number of leaves
-- `ccp_alpha`: cost-complexity pruning parameter
-
-## 12. Cost-complexity pruning
-
-Let $T$ be a subtree, and let $|T|$ be the number of terminal nodes.
-
-For regression, the cost-complexity criterion is
-$$
-C_\alpha(T)
-=
-\sum_{m=1}^{|T|}
-\sum_{x_i\in R_m}
-(y_i-\bar y_{R_m})^2
-+
-\alpha |T|.
-$$
-
-The first term measures training error.
-
-The second term penalizes tree complexity.
-
-- $\alpha=0$: prefer a large tree
-- larger $\alpha$: prefer a smaller tree
-
-This has the same structure as regularized regression:
-$$
-\text{loss}+\text{penalty}.
-$$
-
-The tuning parameter $\alpha$ controls how expensive it is to add another leaf.
-
-If a split reduces RSS by only a small amount, it will not be worth keeping when $\alpha$ is large.
 
 ::: {.callout-note}
-## Interpretation of $\alpha$
+## Tuning in practice
 
-The pruning parameter $\alpha$ controls the tradeoff between fit and complexity.
+In classical CART, `ccp_alpha` is the primary complexity parameter and is usually selected by cross-validation after growing a large tree.
 
-It plays the same conceptual role as a tuning parameter in ridge or lasso.
+In modern practice, pre-pruning parameters and `ccp_alpha` are often tuned together, especially for computational efficiency and stability. In other words, methods such as `GridSearchCV` can be used to tune all hyperparameters simultaneously.
+
+However, when the search space becomes too large, this approach can become computationally expensive. In that case, we often return to the more traditional CART-style strategy: we first coarsely identify a reasonable range for the early stopping hyperparameters and then fine-tune `ccp_alpha`.
 :::
 
 
 
 
 
- -->
+
+## Trees in Python
+
+We use `DecisionTreeClassifier` and `DecisionTreeRegressor` from `sklearn.tree` to implement Decision Tree models. The API is almost identical to other models. So `.fit()`, `.predict()`, `.score()`, etc. are used as usual.
+
+1. We could set `max_depth`, `min_samples_leaf`, `ccp_alpha`, etc. for the model.
+2. The random state can be fixed by setting `random_state`. The randomness happens because the model select a ramdom feature to split when multiple features are ranking the same.
+3. The method `.cost_complexity_pruning_path()` can be used to find all critical `ccp_alpha` values.
 
 
+### Example 1: Classify `iris` dataset
+
+This dataset contains 150 records with 3 classes. The dataset is prepared as follows.
+
+```{python}
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+
+iris = load_iris()
+
+X = iris.data
+y = iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+```
+
+Note that for decision tree models, categorical data doesn't have to be converted into one-hot vectors.
+
+The following code shows the basic API. 
+
+```{python}
+from sklearn.tree import DecisionTreeClassifier
+
+clf = DecisionTreeClassifier(random_state=2)
+clf.fit(X_train, y_train)
+clf.score(X_test, y_test)
+```
+
+After we get this tree model, we could actually display the tree using `plot_tree()` function. Because in most cases the tree is too large to read texts in the nodes, we use `matplotlib` to control the configuration of the plot to make it larger and clearer.
+
+```{python}
+from sklearn.tree import plot_tree
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(5, 5), dpi=300)
+plot_tree(clf, filled=True, impurity=True, node_ids=True); 
+```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-In this example, let us choose `min_samples_leaf` as the indicator. When `min_samples_leaf` is big, the learning just starts. When `min_samples_leaf=1`, we reach the far most side of learning. We will see how the training and testing accuracy changes along the learning process.
+Then we would like to prune the tree. We start from find all critical `ccp_alpha`s.
 
 
 ```{python}
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.15, random_state=42
-)
-num_leaf = list(range(1, 100))
-train_acc = []
-test_acc = []
-for i in num_leaf:
-    clf = DecisionTreeClassifier(random_state=42, min_samples_leaf=i)
-    clf.fit(X_train, y_train)
-    train_acc.append(clf.score(X_train, y_train))
-    test_acc.append(clf.score(X_test, y_test))
-plt.plot(num_leaf, train_acc, label="training")
-plt.plot(num_leaf, test_acc, label="testing")
-plt.gca().set_xlim((max(num_leaf) + 1, min(num_leaf) - 1))
-plt.legend();  # fmt: skip
+ccp_path = clf.cost_complexity_pruning_path(X_train, y_train)
+ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
 ```
 
-From this plot, the accuracy has a big jump at `min_sample_leaf=41`. So we could choose this to be our hyperparameter.
+The last `ccp_alpha` is too big that it always force the tree has only one node. In most cases this is not interesting at all. Therefore usually we would like to remove the last `ccp_alpha`. 
+
+
+
+
+
+```{python}
+clf = DecisionTreeClassifier(random_state=42)
+ccp_path = clf.cost_complexity_pruning_path(X_train, y_train)
+ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
+```
+
+The list `ccp_alphas` contains all important `ccp_alpha`s. We could train a model for each of them. We could use the argument `ccp_alpha` to control the value when initialize the model. After we train all these tree models for each effective `ccp_alpha`, we evaluate the model and record the results.
+
+
+
+```{python}
+ccp_alphas_plot = ccp_alphas[:-1]
+
+clfs = []
+
+for ccp_alpha in ccp_alphas_plot:
+    clf = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
+    clf.fit(X_train, y_train)
+    clfs.append(clf)
+
+node_counts = [clf.tree_.node_count for clf in clfs]
+train_acc = [clf.score(X_train, y_train) for clf in clfs]
+test_acc = [clf.score(X_test, y_test) for clf in clfs]
+```
+
+Here we use the regualr validtion method to fit the model on the training set and test it on the test set. All results are recorded. Other than the accuracy, I also record the number of nodes since this is a good property to show the complexity of the model.
+
+The results are better to be shown in plots. 
+
+
+```{python}
+import matplotlib.pyplot as plt
+
+best_alpha = 0.05
+
+fig, ax = plt.subplots(2, 1, figsize=(7, 7))
+
+ax[0].plot(ccp_alphas_plot, node_counts, marker="o", drawstyle="steps-post")
+ax[1].plot(
+    ccp_alphas_plot, train_acc, marker="o", drawstyle="steps-post", label="train"
+)
+ax[1].plot(ccp_alphas_plot, test_acc, marker="o", drawstyle="steps-post", label="test")
+
+ax[1].set_xlabel("ccp_alpha")
+ax[0].set_ylabel("number of nodes")
+ax[1].set_ylabel("accuracy")
+
+ax[0].axvline(best_alpha, color="black", linestyle="--", label="best ccp_alpha")
+
+ax[1].axvline(best_alpha, color="black", linestyle="--", label="best ccp_alpha")
+ax[0].legend()
+ax[1].legend(loc='lower left')
+
+plt.tight_layout()
+```
+
+Based on the plot, from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`, the test accuracy stay the same. Therefore we choose the model with the least number of nodes. So we could choose any `ccp_alpha` from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`. Therefore we would like to choose the one with the least number of nodes, which is `{python} ccp_alphas[-3].item()`. Since all values in the range is the same, we could use `ccp_alpha=0.05` for simplicity.
+
+
+
+
+### Example 2: 
+
+
+
+
+```{python}
+from sklearn.datasets import load_diabetes
+from sklearn.model_selection import train_test_split
+
+X, y = load_diabetes(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+```
+
+
+
+```{python}
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error, r2_score
+
+tree = DecisionTreeRegressor(random_state=1)
+path = tree.cost_complexity_pruning_path(X_train, y_train)
+
+ccp_alphas = path.ccp_alphas[:-1]
+
+grid = GridSearchCV(
+    DecisionTreeRegressor(random_state=1),
+    param_grid={"ccp_alpha": ccp_alphas},
+    cv=5,
+    scoring="r2",
+)
+
+grid.fit(X_train, y_train)
+
+# Best model
+best_tree = grid.best_estimator_
+
+# Predictions
+y_pred_train = best_tree.predict(X_train)
+y_pred_test = best_tree.predict(X_test)
+
+print("Best ccp_alpha:")
+print(grid.best_params_)
+
+print("Training MSE:")
+print(mean_squared_error(y_train, y_pred_train))
+
+print("Testing MSE:")
+print(mean_squared_error(y_test, y_pred_test))
+
+print(r2_score(y_train, y_pred_train))
+print(r2_score(y_test, y_pred_test))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -662,182 +764,6 @@ Variable importance can be affected by:
 - preprocessing choices
 
 For more reliable importance measures, ensembles and permutation importance are often better.
-
-
-
-
-
-## Trees in Python
-
-In `sklearn`, we use `cost_complexity_pruning_path` to help us find the effective alphas and the corresponding impurities. 
-
-```{python}
-clf = DecisionTreeClassifier(random_state=42)
-ccp_path = clf.cost_complexity_pruning_path(X_train, y_train)
-ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
-```
-
-The list `ccp_alphas` contains all important `ccp_alpha`s. We could train a model for each of them. We could use the argument `ccp_alpha` to control the value when initialize the model. After we train all these tree models for each effective `ccp_alpha`, we evaluate the model and record the results.
-
-
-```{python}
-clfs = []
-for ccp_alpha in ccp_alphas:
-    clf = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
-    clf.fit(X_train, y_train)
-    clfs.append(clf)
-
-node_counts = [clf.tree_.node_count for clf in clfs]
-depth = [clf.tree_.max_depth for clf in clfs]
-train_acc = [clf.score(X_train, y_train) for clf in clfs]
-test_acc = [clf.score(X_test, y_test) for clf in clfs]
-```
-We would like to visualize these info.
-
-```{python}
-fig, ax = plt.subplots(3, 1)
-ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")
-ax[0].set_xlabel("alpha")
-ax[0].set_ylabel("number of nodes")
-ax[1].plot(ccp_alphas, depth, marker="o", drawstyle="steps-post")
-ax[1].set_xlabel("alpha")
-ax[1].set_ylabel("depth of tree")
-ax[2].plot(ccp_alphas, train_acc, marker="o", drawstyle="steps-post", label='train')
-ax[2].plot(ccp_alphas, test_acc, marker="o", drawstyle="steps-post", label='test')
-ax[2].set_xlabel("alpha")
-ax[2].set_ylabel("accuracy")
-ax[2].legend()
-```
-Based on the plot, it seems that the fourth dot 0.01534424 is a good fit. So this is the complexity parameter we are going to use.
-
-
-
-
-
-
-
-
-```{python}
-ccp_alphas_plot = ccp_alphas[:-1]
-
-clfs = []
-
-for ccp_alpha in ccp_alphas_plot:
-    clf = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
-    clf.fit(X_train, y_train)
-    clfs.append(clf)
-
-node_counts = [clf.tree_.node_count for clf in clfs]
-train_acc = [clf.score(X_train, y_train) for clf in clfs]
-test_acc = [clf.score(X_test, y_test) for clf in clfs]
-
-best_alpha = 0.04
-
-fig, ax = plt.subplots(2, 1, figsize=(7, 7))
-
-ax[0].plot(ccp_alphas_plot, node_counts, marker="o", drawstyle="steps-post")
-# ax[0].set_xlabel("ccp_alpha")
-ax[0].set_ylabel("number of nodes")
-
-ax[1].plot(ccp_alphas_plot, train_acc, marker="o", drawstyle="steps-post", label="train")
-ax[1].plot(ccp_alphas_plot, test_acc, marker="o", drawstyle="steps-post", label="test")
-ax[1].set_xlabel("ccp_alpha")
-ax[1].set_ylabel("accuracy")
-
-ax[0].axvline(
-    best_alpha,
-    color="black",
-    linestyle="--",
-    label="best ccp_alpha"
-)
-
-ax[1].axvline(
-    best_alpha,
-    color="black",
-    linestyle="--",
-    label="best ccp_alpha"
-)
-ax[0].legend()
-ax[1].legend()
-
-plt.tight_layout()
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-<details>
-<summary>We could combine all the code above into a function.</summary>
-
-```{python}
-from sklearn.base import clone
-def eval_ccp_alphas(clf, X, y):
-    ccp_path = clf.cost_complexity_pruning_path(X, y)
-    ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
-    clfs = []
-    for ccp_alpha in ccp_alphas:
-        clf_tmp = clone(clf)
-        clf_tmp.set_params(ccp_alpha=ccp_alpha)
-        clf_tmp.fit(X, y)
-        clfs.append(clf_tmp)
-
-    node_counts = [clf.tree_.node_count for clf in clfs]
-    depth = [clf.tree_.max_depth for clf in clfs]
-    train_acc = [clf.score(X_train, y_train) for clf in clfs]
-    test_acc = [clf.score(X_test, y_test) for clf in clfs]
-
-    fig, ax = plt.subplots(3, 1)
-    ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")
-    ax[0].set_xlabel("alpha")
-    ax[0].set_ylabel("number of nodes")
-    ax[1].plot(ccp_alphas, depth, marker="o", drawstyle="steps-post")
-    ax[1].set_xlabel("alpha")
-    ax[1].set_ylabel("depth of tree")
-    ax[2].plot(ccp_alphas, train_acc, marker="o", drawstyle="steps-post", label='train')
-    ax[2].plot(ccp_alphas, test_acc, marker="o", drawstyle="steps-post", label='test')
-    ax[2].set_xlabel("alpha")
-    ax[2].set_ylabel("accuracy")
-    ax[2].legend()
-
-    return ccp_alphas
-```
-
-
-```{python}
-eval_ccp_alphas(DecisionTreeClassifier(random_state=42), X_train, y_train)
-```
-
-
-</details>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
