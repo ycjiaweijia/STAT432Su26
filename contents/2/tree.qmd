@@ -17,6 +17,8 @@ The basic idea is:
 ::: {#exm-}
 ## Example: A Classification Tree
 
+
+<!-- fmt: off -->
 ```{python}
 #| echo: false
 from sklearn.datasets import load_iris
@@ -35,9 +37,9 @@ clf.fit(X, y)
 
 plt.figure(figsize=(3, 3), dpi=200)
 
-plot_tree(clf, filled=True, impurity=True, node_ids=True);  # fmt: skip
+plot_tree(clf, filled=True, impurity=True, node_ids=True);  
 ```
-
+<!-- fmt: on -->
 
 This is a classification tree. The tree repeatedly asks simple questions such as
 
@@ -49,6 +51,7 @@ Each split divides the feature space into smaller regions.
 
 This tree actually create the following splits in the feature space.
 
+<!-- fmt: off -->
 ```{python}
 #| echo: false
 import numpy as np
@@ -78,10 +81,9 @@ ax.set_ylabel(r"$x_1$")
 ax.set_title("Decision Regions of a Simple Decision Tree")
 
 ax.set_xlim(xmin, xmax)
-ax.set_ylim(ymin, ymax);  # fmt: skip
+ax.set_ylim(ymin, ymax);
 ```
-<!-- 
-Notice that a tree may split on the same predictor multiple times. This is very common in practice. This suggests that the feature `x[1]` is more important than other features. -->
+<!-- fmt: on -->
 :::
 
 
@@ -426,14 +428,15 @@ Building a decision tree is the same as splitting the training dataset. If we ar
 
 In this example, we let the tree grow as further as possible. It only stops when (almost) all end nodes are pure, even if the end nodes only contain ONE element (like #6 and #11).
 
+<!-- fmt: off -->
 ```{python}
 #| echo: false
 clf = DecisionTreeClassifier(random_state=40)
 clf.fit(X, y)
 plt.figure(figsize=(5, 5), dpi=300)
-plot_tree(clf, filled=True, impurity=True, node_ids=True);  # fmt: skip
+plot_tree(clf, filled=True, impurity=True, node_ids=True);
 ```
-
+<!-- fmt: on -->
 
 In this example there is one exception. #13 node is not pure. We could list all data in node #13. 
 
@@ -527,13 +530,15 @@ However, when the search space becomes too large, this approach can become compu
 We use `DecisionTreeClassifier` and `DecisionTreeRegressor` from `sklearn.tree` to implement Decision Tree models. The API is almost identical to other models. So `.fit()`, `.predict()`, `.score()`, etc. are used as usual.
 
 1. We could set `max_depth`, `min_samples_leaf`, `ccp_alpha`, etc. for the model.
-2. The random state can be fixed by setting `random_state`. The randomness happens because the model select a ramdom feature to split when multiple features are ranking the same.
+2. The random state can be fixed by setting `random_state`. The randomness mainly comes from the internal feature ordering used during split search. Even when `splitter="best"` is used, `sklearn` randomly permutes the feature order before evaluating splits. Therefore, when multiple splits produce the same impurity reduction, different trees may be generated unless `random_state` is fixed.
 3. The method `.cost_complexity_pruning_path()` can be used to find all critical `ccp_alpha` values.
+
+
 
 
 ### Example 1: Classify `iris` dataset
 
-This dataset contains 150 records with 3 classes. The dataset is prepared as follows.
+This is the famous Iris dataset. The purpose is to use 4 numeric measurements to classify types of iris. This dataset contains 150 records with 3 classes. More information can be found [here](https://scikit-learn.org/stable/datasets/toy_dataset.html#iris-dataset).
 
 ```{python}
 from sklearn.datasets import load_iris
@@ -561,13 +566,16 @@ clf.score(X_test, y_test)
 
 After we get this tree model, we could actually display the tree using `plot_tree()` function. Because in most cases the tree is too large to read texts in the nodes, we use `matplotlib` to control the configuration of the plot to make it larger and clearer.
 
+<!-- fmt: off -->
 ```{python}
 from sklearn.tree import plot_tree
 import matplotlib.pyplot as plt
 
 plt.figure(figsize=(5, 5), dpi=300)
-plot_tree(clf, filled=True, impurity=True, node_ids=True); 
+plot_tree(clf, filled=True, impurity=True, node_ids=True); # <1>
 ```
+1. `filled` is used to fill colors in blocks. `impurity` is to display Gini impurity. `node_ids` is to display the node id.
+<!-- fmt: on -->
 
 
 Then we would like to prune the tree. We start from find all critical `ccp_alpha`s.
@@ -575,31 +583,22 @@ Then we would like to prune the tree. We start from find all critical `ccp_alpha
 
 ```{python}
 ccp_path = clf.cost_complexity_pruning_path(X_train, y_train)
-ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
+ccp_alphas = ccp_path.ccp_alphas[:-1]
 ```
 
-The last `ccp_alpha` is too big that it always force the tree has only one node. In most cases this is not interesting at all. Therefore usually we would like to remove the last `ccp_alpha`. 
+The last `ccp_alpha` is too big that it always force the tree to have only one node. In most cases this is not interesting at all. Therefore usually we would like to remove the last `ccp_alpha`. 
 
 
+We then train models for each `ccp_alpha`. We could use the argument `ccp_alpha` to control the value when initialize the model. After we train all these tree models for each effective `ccp_alpha`, we evaluate the models and record the results. Here we use `accuracy` as our metric, which comes automatically from `clf.score()`.
 
 
 
 ```{python}
-clf = DecisionTreeClassifier(random_state=42)
-ccp_path = clf.cost_complexity_pruning_path(X_train, y_train)
-ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
-```
-
-The list `ccp_alphas` contains all important `ccp_alpha`s. We could train a model for each of them. We could use the argument `ccp_alpha` to control the value when initialize the model. After we train all these tree models for each effective `ccp_alpha`, we evaluate the model and record the results.
-
-
-
-```{python}
-ccp_alphas_plot = ccp_alphas[:-1]
+from sklearn.metrics import accuracy_score
 
 clfs = []
 
-for ccp_alpha in ccp_alphas_plot:
+for ccp_alpha in ccp_alphas:
     clf = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
     clf.fit(X_train, y_train)
     clfs.append(clf)
@@ -621,33 +620,48 @@ best_alpha = 0.05
 
 fig, ax = plt.subplots(2, 1, figsize=(7, 7))
 
-ax[0].plot(ccp_alphas_plot, node_counts, marker="o", drawstyle="steps-post")
-ax[1].plot(
-    ccp_alphas_plot, train_acc, marker="o", drawstyle="steps-post", label="train"
-)
-ax[1].plot(ccp_alphas_plot, test_acc, marker="o", drawstyle="steps-post", label="test")
+ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")  # <1>
+ax[1].plot(ccp_alphas, train_acc, marker="o", drawstyle="steps-post", label="train")
+ax[1].plot(ccp_alphas, test_acc, marker="o", drawstyle="steps-post", label="test")
+
+ax[0].axvline(best_alpha, color="black", linestyle="--", label="best ccp_alpha")
+ax[1].axvline(best_alpha, color="black", linestyle="--", label="best ccp_alpha")
 
 ax[1].set_xlabel("ccp_alpha")
 ax[0].set_ylabel("number of nodes")
 ax[1].set_ylabel("accuracy")
 
-ax[0].axvline(best_alpha, color="black", linestyle="--", label="best ccp_alpha")
-
-ax[1].axvline(best_alpha, color="black", linestyle="--", label="best ccp_alpha")
 ax[0].legend()
-ax[1].legend(loc='lower left')
-
-plt.tight_layout()
+ax[1].legend(loc="lower left")
 ```
+1. For pruning-related plots, `drawstyle="steps-post"` is important because the tree structure stays the same within each interval of `ccp_alpha` values. The change only occurs after reaching the next pruning threshold.
 
 Based on the plot, from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`, the test accuracy stay the same. Therefore we choose the model with the least number of nodes. So we could choose any `ccp_alpha` from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`. Therefore we would like to choose the one with the least number of nodes, which is `{python} ccp_alphas[-3].item()`. Since all values in the range is the same, we could use `ccp_alpha=0.05` for simplicity.
 
+We can now build our final tree and display it.
 
 
+<!-- fmt:off -->
+```{python}
+clf = DecisionTreeClassifier(random_state=42, ccp_alpha=best_alpha)
+clf.fit(X_train, y_train)
+plot_tree(clf, filled=True, impurity=True, node_ids=True);
+```
+<!-- fmt:on -->
 
-### Example 2: 
+
+::: {.callout-note}
+Although the hyperparameters with the highest validation score are often preferred, model complexity should also be taken into consideration. This is why the number of nodes is displayed.
+
+In this `iris` example, the dataset is very small and the differences between validation scores are negligible. In such situations, a slightly simpler tree is often preferred because it is more interpretable and potentially more stable while achieving similar predictive performance.
+
+In larger datasets, small differences in validation scores are often more meaningful, so predictive performance may be prioritized more heavily.
+:::
 
 
+### Example 2: Regression `diabetes` dataset
+
+We now look at a dataset for regression. This is to use 10 baseline variables to predict a quantitative measure of disease progression one year after baseline. More information can be found from [here](https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset) and [here](https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html).
 
 
 ```{python}
@@ -658,60 +672,86 @@ X, y = load_diabetes(return_X_y=True)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 ```
 
+The whole process is very similar to the `iris` example. One modification we want to make is to use cross-validation instead of random-split validation in this example. 
 
+We first generate a `tmp_tree` which is only used to get the critical `ccp_alpha`. Note that the method `cost_complexity_pruning_path()` internally grows a tree in order to compute the effective pruning path, although the estimator itself is not stored as a fitted model.
 
 ```{python}
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import mean_squared_error, r2_score
 
-tree = DecisionTreeRegressor(random_state=1)
-path = tree.cost_complexity_pruning_path(X_train, y_train)
-
+tmp_tree = DecisionTreeRegressor(random_state=1)
+path = tmp_tree.cost_complexity_pruning_path(X_train, y_train)
 ccp_alphas = path.ccp_alphas[:-1]
+```
 
+Now run `GridSearchCV` on these `ccp_alphas`. Note that we use $R^2$ as our model metric in this example.
+
+```{python}
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import r2_score
+
+params = param_grid = {"ccp_alpha": ccp_alphas}
 grid = GridSearchCV(
-    DecisionTreeRegressor(random_state=1),
-    param_grid={"ccp_alpha": ccp_alphas},
-    cv=5,
-    scoring="r2",
+    DecisionTreeRegressor(random_state=1), param_grid=params, scoring="r2"
 )
 
 grid.fit(X_train, y_train)
 
-# Best model
 best_tree = grid.best_estimator_
 
-# Predictions
 y_pred_train = best_tree.predict(X_train)
 y_pred_test = best_tree.predict(X_test)
 
-print("Best ccp_alpha:")
-print(grid.best_params_)
-
-print("Training MSE:")
-print(mean_squared_error(y_train, y_pred_train))
-
-print("Testing MSE:")
-print(mean_squared_error(y_test, y_pred_test))
-
-print(r2_score(y_train, y_pred_train))
-print(r2_score(y_test, y_pred_test))
+print(f"Best ccp_alpha: {grid.best_params_['ccp_alpha']}")
+print(f"Training R^2: {r2_score(y_train, y_pred_train)}")
+print(f"Testing R^2: {r2_score(y_test, y_pred_test)}")
 ```
 
 
+We could visualize the validation curve. Note that only the metric is recorded in the cross-validation results. If we want to display the model complexity like the number of nodes, we need to refit all the model again.
+
+
+```{python}
+cv_test_score = grid.cv_results_['mean_test_score']
+
+node_counts = []
+for ccp_alpha in ccp_alphas:
+    tree = DecisionTreeRegressor(random_state=1, ccp_alpha=ccp_alpha)
+    tree.fit(X_train, y_train)
+    node_counts.append(tree.tree_.node_count)
+
+best_alpha = grid.best_params_['ccp_alpha']
+
+fig, ax = plt.subplots(2, 1, figsize=(7, 7))
+
+ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")  # <1>
+ax[1].plot(ccp_alphas, cv_test_score, marker="o", drawstyle="steps-post", label="cv score")
+
+ax[0].axvline(best_alpha, color="black", linestyle="--", label="best ccp_alpha")
+ax[1].axvline(best_alpha, color="black", linestyle="--", label="best ccp_alpha")
+
+ax[1].set_xlabel("ccp_alpha")
+ax[0].set_ylabel("number of nodes")
+ax[1].set_ylabel("R^2")
+
+ax[0].legend()
+ax[1].legend(loc="lower left")
+```
+
+
+From the plot, our choice of `ccp_alpha`=`{python} best_alpha` is reasonable.
 
 
 
 
+::: {.callout-warning}
+A single regression tree often has relatively unstable predictive performance on moderate-sized datasets. This is one reason why ensemble methods such as Random Forest and Boosting are often preferred in practice.
+:::
 
 
 
 
-
-
-
-
+<!-- 
 
 
 
@@ -768,220 +808,6 @@ For more reliable importance measures, ensembles and permutation importance are 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Tree
-
-
-A decision tree is a nonparametric method. Instead of assuming a global linear form such as 
-$$
-f(x)=\beta_0+\beta_1x_1+\cdots+\beta_px_p,
-$$ 
-a tree learns a collection of simple if-then rules from the data. A very typical example is shown below.
-
-::: {#exm-}
-## Classification Tree example
-```{python}
-#| echo: false
-from sklearn.datasets import load_iris
-from sklearn.tree import DecisionTreeClassifier
-import matplotlib.pyplot as plt
-from sklearn.tree import plot_tree
-
-
-iris = load_iris()
-X = iris.data[:, 2:]
-y = iris.target
-
-clf = DecisionTreeClassifier(random_state=40, max_depth=2)
-clf.fit(X, y)
-
-plt.figure(figsize=(3, 3), dpi=200)
-plot_tree(clf, filled=True, impurity=True, node_ids=True)
-```
-This is a classficiation tree. In this example there are 3 classes, and we just check the feature `x[1]`. The first time if `x[1]<=0.8`, the data will be classified as orange. If not, the tree will check `x[1]` again and compare it with 1.75. If this time it is `<=1.75`, the data is classified as green, otherwise purple.
-
-:::
-
-
-In general, a tree learns a collection of simple if-then rules from the data. A tree is called "adaptive" because the regions are learned from the data. If a predictor is useful, the tree may split on it many times. If a predictor is not useful, the tree may ignore it.
-
-There are many algorithms for constructing decision trees. In this chapter, we focus on Classification and Regression Trees (usually called CART).
-
-:::{.callout-note}
-
-# Algorithm: Split the Dataset
-
-**Inputs** Given a dataset $S=\{[features, target]\}$.
-
-**Outputs** A best split $(k, t_k)$.
-
-1. For each feature $k$:
-    1. For each value $t$ of the feature:
-        1. Split the dataset $S$ into two subsets, one with $k\leq t$ and one with $k>t$.
-        2. Compute the cost function $J(k,t)$. 
-        3. Compare it with the current smallest cost. If this split has smaller cost, replace the current smallest cost and pair with $(k, t)$.
-2. Return the pair $(k,t_k)$ that has the smallest cost function.
-:::
-
-
-We then use this split algorithm recursively to get the decision tree.
-
-:::{.callout-note}
-# Classification and Regression Tree, CART
-
-**Inputs** Given a labeled dataset $S=\{[features, label]\}$ and a maximal depth `max_depth`.
-
-**Outputs** A decision tree.
-
-1. Starting from the original dataset $S$. Set the working dataset $G=S$.
-2. Consider a dataset $G$. If the cost function $J(G)\neq0$, split $G$ into $G_l$ and $G_r$ to minimize the cost function. Record the split pair $(k, t_k)$.
-3. Now set the working dataset $G=G_l$ and $G=G_r$ respectively, and apply the above two steps to each of them.
-4. Repeat the above steps, until `max_depth` is reached, or each subset is pure that is impossible to split further.
-:::
-
-
- CART has the following features:
-
-- It creates only binary splits.
-- For classification, common splitting criteria include Gini impurity and entropy.
-- For regression, common splitting criteria include mean squared error or sum of squared errors.
-
-
-
-## Classification Tree 
-
-
-
-
-### Gini impurity
-
-To split a dataset, we need a metric to tell whether the split is good or not. The two most popular metrics that are used are Gini impurity and Entropy. The two metrics don't have essential differences, that the results obtained by applying each metric are very similar to each other. Therefore we will only focus on Gini impurity since it is slightly easier to compute and slightly easier to explain.
-
-<!-- ### Motivation and Definition -->
-Assume that we have a dataset of totally $n$ objects, and these objects are divided into $k$ classes. The $i$-th class has $n_i$ objects. Then if we randomly pick an object, the probability to get an object belonging to the $i$-th class is
-
-$$
-p_i=\frac{n_i}{n}
-$$
-
-If we then guess the class of the object purely based on the distribution of each class, the probability that our guess is incorrect is 
-
-$$
-1-p_i = 1-\frac{n_i}{n}.
-$$
-
-Therefore, if we randomly pick an object that belongs to the $i$-th class and randomly guess its class purely based on the distribution but our guess is wrong, the probability that such a thing happens is 
-
-$$
-p_i(1-p_i).
-$$
-
-Consider all classes. The probability at which any object of the dataset will be mislabelled when it is randomly labeled is the sum of the probability described above:
-
-$$
-\sum_{i=1}^kp_i(1-p_i)=\sum_{i=1}^kp_i-\sum_{i=1}^kp_i^2=1-\sum_{i=1}^kp_i^2.
-$$
-
-This is the definition formula for the *Gini impurity*. 
-
-
-
-::: {#def-gini}
-The **Gini impurity** is calculated using the following formula
-
-$$
-Gini = \sum_{i=1}^kp_i(1-p_i)=\sum_{i=1}^kp_i-\sum_{i=1}^kp_i^2=1-\sum_{i=1}^kp_i^2,
-$$
-where $p_i$ is the probability of class $i$.
-:::
-
-The way to understand Gini impurity is to consider some extreme examples. 
-
-
-::: {#exm-}
-
-Assume that we only have one class. Therefore $k=1$, and $p_1=1$. Then the Gini impurity is
-
-$$
-Gini = 1-1^2=0.
-$$
-This is the minimum possible Gini impurity. It means that the dataset is **pure**: all the objects contained are of one unique class. In this case, we won't make any mistakes if we randomly guess the label.
-
-:::
-
-
-
-
-::: {#exm-}
-Assume that we have two classes. Therefore $k=2$. Consider the distribution $p_1$ and $p_2$. We know that $p_1+p_2=1$. Therefore $p_2=1-p_1$. Then the Gini impurity is
-
-$$
-Gini(p_1) = 1-p_1^2-p_2^2=1-p_1^2-(1-p_1)^2=2p_1-2p_1^2.
-$$
-When $0\leq p_1\leq 1$, this function $Gini(p_1)$ is between $0$ and $0.5$. 
-- It gets $0$ when $p_1=0$ or $1$. In these two cases, the dataset is still a one-class set since the size of one class is $0$. 
-- It gets $0.5$ when $p_1=0.5$. This means that the Gini impurity is maximized when the size of different classes are balanced.
-:::
-
-
-::: {.callout-tip}
-## Entropy
-Other than Gini impurity, entropy is also a popular choice for classification tree. However its performance is very similar to the Gini impurity while the formula for entropy is a little bit more complicated, therefore we only discuss the Gini impurity in this notes.
-:::
-
-
-<!-- ### Algorithm
-
-
-::: {.callout-note}
-# Algorithm: Gini impurity
-
-**Inputs** A dataset $S=\{data=[features, label]\}$ with labels. 
-
-**Outputs** The Gini impurity of the dataset.
-
-1. Get the size $n$ of the dataset.
-2. Go through the label list, and find all unique labels: $uniqueLabelList$.
-3. Go through each label $l$ in $uniqueLabelList$ and count how many elements belonging to the label, and record them as $n_l$.
-4. Use the formula to compute the Gini impurity:
-
-   $$
-    Gini = 1-\sum_{l\in uniqueLabelList}\left(\frac{n_l}{n}\right)^2.
-   $$
-:::
  -->
 
 
@@ -1001,1231 +827,15 @@ Other than Gini impurity, entropy is also a popular choice for classification tr
 
 
 
-Suppose the tree divides the feature space into $M$ terminal regions:
-$$
-R_1,R_2,\ldots,R_M.
-$$
 
-These regions are also called leaves or terminal nodes.
 
-For a new observation $x$, the fitted regression tree has the form
-$$
-\hat f(x)=\sum_{m=1}^M c_m I(x\in R_m),
-$$
-where $c_m$ is the prediction assigned to region $R_m$.
 
-For squared error loss, the best constant in each region is the sample mean:
-$$
-\hat c_m
-=
-\frac{1}{N_m}
-\sum_{x_i\in R_m}y_i,
-$$
-where $N_m$ is the number of training observations in region $R_m$.
 
-Therefore,
-$$
-\hat f(x)
-=
-\sum_{m=1}^M
-\bar y_{R_m} I(x\in R_m).
-$$
 
-This is a piecewise constant approximation to the regression function $f(x)=E(Y\mid X=x)$.
 
-Inside a leaf, every point receives the same prediction. Across a split boundary, the prediction can jump.
 
-## 3. A single split
 
-At a node $\mathcal A$, a binary split is determined by:
 
-- a variable index $j$
-- a cutoff value $c$
-
-The split creates two child nodes:
-$$
-\mathcal A_L(j,c)=\{x\in \mathcal A: x_j\le c\},
-$$
-and
-$$
-\mathcal A_R(j,c)=\{x\in \mathcal A: x_j>c\}.
-$$
-
-For regression, a good split makes the responses inside each child node more homogeneous.
-
-One way to write the split criterion is the weighted post-split variance:
-$$
-\frac{N_L}{N_{\mathcal A}}\operatorname{Var}(\mathcal A_L)
-+
-\frac{N_R}{N_{\mathcal A}}\operatorname{Var}(\mathcal A_R).
-$$
-
-We want this quantity to be small.
-
-Equivalently, we maximize the variance reduction:
-$$
-\operatorname{score}(j,c)
-=
-\operatorname{Var}(\mathcal A)
--
-\left[
-\frac{N_L}{N_{\mathcal A}}\operatorname{Var}(\mathcal A_L)
-+
-\frac{N_R}{N_{\mathcal A}}\operatorname{Var}(\mathcal A_R)
-\right].
-$$
-
-The best split is
-$$
-(\hat j,\hat c)
-=
-\arg\max_{j,c}\operatorname{score}(j,c).
-$$
-
-The same idea can be written using residual sum of squares:
-$$
-\sum_{x_i\in \mathcal A_L}(y_i-\bar y_L)^2
-+
-\sum_{x_i\in \mathcal A_R}(y_i-\bar y_R)^2.
-$$
-
-The split with the smallest post-split RSS is chosen.
-
-## 4. Recursive binary splitting
-
-A regression tree is built greedily.
-
-At each node:
-
-1. Try each predictor $x_j$.
-2. Try candidate cutoffs $c$.
-3. Compute the split criterion.
-4. Choose the split with the largest reduction in RSS.
-5. Repeat the same procedure on the two child nodes.
-
-This is called recursive binary splitting.
-
-The procedure is greedy because the best split is chosen locally at each step. The algorithm does not search over all possible trees globally.
-
-This matters because an early split affects all later splits below it. A split that looks best now may not be part of the globally best tree.
-
-Still, recursive binary splitting is fast, simple, and usually effective.
-
-## 5. Candidate cutoffs
-
-For a continuous predictor $x_j$, candidate cutoffs are usually chosen between sorted observed values.
-
-If the unique observed values of $x_j$ are
-$$
-v_1<v_2<\cdots<v_K,
-$$
-then possible cutoffs can be taken as midpoints:
-$$
-c_k=\frac{v_k+v_{k+1}}{2},
-\qquad k=1,\ldots,K-1.
-$$
-
-For each candidate cutoff, the data in the current node are divided into a left group and a right group.
-
-For categorical predictors, a split divides the categories into two groups. In practice, software handles this differently depending on the implementation. Some implementations require one-hot encoding first.
-
-::: {.callout-note}
-## Practical detail
-
-Trees do not require variables to be on the same scale.
-
-A split only compares one variable to one cutoff, so standardization is usually not needed for ordinary tree models.
-:::
-
-## 6. Prediction
-
-Once the tree is fitted, prediction is simple.
-
-For a new point $x_0$:
-
-1. Start at the root node.
-2. Follow the splitting rules.
-3. Drop $x_0$ into a terminal node $R_m$.
-4. Predict by the average response in that leaf:
-
-$$
-\hat f(x_0)=\bar y_{R_m}.
-$$
-
-Equivalently,
-$$
-\hat f(x_0)
-=
-\sum_{m=1}^M
-\left(
-\frac{\sum_{i=1}^n y_i I(x_i\in R_m)}
-{\sum_{i=1}^n I(x_i\in R_m)}
-\right)
-I(x_0\in R_m).
-$$
-
-This expression shows that a regression tree is a local averaging estimator.
-
-The neighborhood of $x_0$ is not a ball or a nearest-neighbor set. It is the leaf containing $x_0$.
-
-## 7. Adaptive kernel view
-
-KNN also predicts by local averaging, but its neighborhood is usually determined by distance.
-
-A tree also predicts by averaging nearby training responses, but the neighborhood is defined by the learned terminal node.
-
-Let $R(x_0)$ be the terminal node containing $x_0$.
-
-For a point $x_0$, the tree gives positive weight only to observations that fall in the same terminal node:
-$$
-w_i(x_0)
-=
-\frac{I(x_i\in R(x_0))}
-{\sum_{l=1}^n I(x_l\in R(x_0))}.
-$$
-
-Then
-$$
-\hat f(x_0)=\sum_{i=1}^n w_i(x_0)y_i.
-$$
-
-The important difference is that the tree neighborhood is adaptive.
-
-If only $x_1$ is important, the tree may split mostly on $x_1$ and ignore irrelevant directions. This helps trees avoid some problems of ordinary distance-based local methods.
-
-::: {.callout-note}
-## Key idea
-
-KNN uses a fixed notion of distance.
-
-A tree learns the neighborhood from the data.
-:::
-
-## 8. Geometry
-
-A regression tree partitions the feature space into axis-aligned rectangles.
-
-For example, in two dimensions, a split such as
-$$
-x_1\le c
-$$
-creates a vertical boundary, and a split such as
-$$
-x_2\le c
-$$
-creates a horizontal boundary.
-
-After several splits, the feature space becomes a collection of rectangles.
-
-Inside each rectangle, the fitted value is constant:
-$$
-\hat f(x)=\bar y_R.
-$$
-
-Therefore, trees can model nonlinear patterns and interactions, but the fitted function is not smooth.
-
-The function is flat inside each region and jumps across split boundaries.
-
-This is why a single tree often looks rough.
-
-## 9. Interactions
-
-Trees handle interactions naturally.
-
-An interaction means the effect of one variable depends on the value of another variable.
-
-For example, suppose the tree first splits on $x_1$:
-$$
-x_1\le c_1.
-$$
-
-Then, inside the left branch, the tree may split on $x_2$:
-$$
-x_2\le c_2.
-$$
-
-This means the role of $x_2$ is different depending on whether $x_1\le c_1$ or $x_1>c_1$.
-
-No explicit interaction term such as $x_1x_2$ needs to be added.
-
-This is one reason trees are useful exploratory models.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## CART Algorithms 
-
-### Ideas
-Consider a labeled dataset $S$ with totally $m$ elements. We use a feature $k$ and a threshold $t_k$ to split it into two subsets: $S_l$ with $m_l$ elements and $S_r$ with $m_r$ elements. Then the cost function of this split is
-
-$$
-J(k, t_k)=\frac{m_l}mGini(S_l)+\frac{m_r}{m}Gini(S_r).
-$$
-It is not hard to see that the more pure the two subsets are the lower the cost function is. Therefore our goal is find a split that can minimize the cost function.
-
-
-
-
-
-
-
-
-
-## Decision Tree Project 1: the `iris` dataset
-
-We are going to use the Decision Tree model to study the `iris` dataset. This dataset has already studied previously using k-NN. Again we will only use the first two features for visualization purpose.
-
-### Initial setup
-
-Since the dataset will be splitted, we will put `X` and `y` together as a single variable `S`. In this case when we split the dataset by selecting rows, the features and the labels are still paired correctly. 
-
-We also print the labels and the feature names for our convenience.
-
-
-```{python}
-from sklearn.datasets import load_iris
-import numpy as np
-
-iris = load_iris()
-X = iris.data[:, 2:]
-y = iris.target
-y = y.reshape((y.shape[0],1))
-S = np.concatenate([X,y], axis=1)
-
-print(iris.target_names)
-print(iris.feature_names)
-```
-
-
-
-### Use package `sklearn`
-
-Now we would like to use the decision tree package provided by `sklearn`. The process is straightforward. The parameter `random_state=40` will be discussed {ref}`later<note-random_state>`, and it is not necessary in most cases.
-
-
-```{python}
-from sklearn.tree import DecisionTreeClassifier
-
-clf = DecisionTreeClassifier(random_state=40, min_samples_split=2)
-clf.fit(X, y)
-```
-
-
-`sklearn` provide a way to automatically generate the tree view of the decision tree. The code is as follows. 
-
-
-
-```{python}
-import matplotlib.pyplot as plt
-from sklearn.tree import plot_tree
-
-plt.figure(figsize=(3, 3), dpi=200)
-plot_tree(clf, filled=True, impurity=True, node_ids=True)
-```
-
-
-
-<details>
-<summary>Visualize decision boundary is optional.</summary>
-
-
-Similar to k-NN, we may use `sklearn.inspection.DecisionBoundaryDisplay` to visualize the decision boundary of this decision tree.
-
-
-
-```{python}
-from sklearn.inspection import DecisionBoundaryDisplay
-DecisionBoundaryDisplay.from_estimator(
-    clf,
-    X,
-    cmap='coolwarm',
-    response_method="predict",
-    xlabel=iris.feature_names[0],
-    ylabel=iris.feature_names[1],
-)
-
-# Plot the training points
-plt.scatter(X[:, 0], X[:, 1], c=y, s=15)
-```
-
-
-</details>
-
-
-### Tuning hyperparameters
-
-
-Building a decision tree is the same as splitting the training dataset. If we are alllowed to keep splitting it, it is possible to get to a case that each end node is pure: the Gini impurity is 0. This means two things:
-
-1. The tree learns too many (unnecessary) detailed info from the training set which might not be applied to the test set. This is called *overfitting*. We should prevent a model from overfitting.
-2. We could use the number of split to indicate the progress of the learning.
-
-In other words, the finer the splits are, the further the learning is. We need to consider some early stop conditions to prevent the model from overfitting.
-
-Some possible early stop conditions:
-
-- `max_depth`: The max depth of the tree. The default is `none` which means no limits.
-- `min_samples_split`: The minimum number of samples required to split an internal node. The default is 2 which means that we will split a node with as few as 2 elements if needed.
-- `min_samples_leaf`: The minimum number of samples required to be at a leaf node. The default is 1 which means that we will still split the node even if one subset only contains 1 element.
-
-If we don't set them (which means that we use the default setting), the dataset will be split untill all subsets are pure.
-
-
-
-::: {#exm-}
-# ALMOST all end nodes are pure
-
-In this example, we let the tree grow as further as possible. It only stops when (almost) all end nodes are pure, even if the end nodes only contain ONE element (like #6 and #11).
-
-```{python}
-clf = DecisionTreeClassifier(random_state=40)
-clf.fit(X, y)
-plt.figure(figsize=(3, 3), dpi=200)
-plot_tree(clf, filled=True, impurity=True, node_ids=True)
-```
-
-
-In this example there is one exception. #13 node is not pure. The reason is as follows.
-
-```{python}
-X[(X[:, 0]>0.8) & (X[:, 1] >1.75) & (X[:, 0]<=4.85)]
-```
-All the data points in this node has the same feature while their labels are different. They cannot be split further purely based on features.
-
-
-:::
-
-
-Therefore we could treat these hyperparameters as an indicator about how far the dataset is split. The further the dataset is split, the further the learning goes, the more details are learned. Since we don't want the model to be overfitting, we don't want to split the dataset that far. In this case, we could use the learning curve to help us make the decision.
-
-In this example, let us choose `min_samples_leaf` as the indicator. When `min_samples_leaf` is big, the learning just starts. When `min_samples_leaf=1`, we reach the far most side of learning. We will see how the training and testing accuracy changes along the learning process.
-
-
-```{python}
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
-num_leaf = list(range(1, 100))
-train_acc = []
-test_acc = []
-for i in num_leaf:
-    clf = DecisionTreeClassifier(random_state=42, min_samples_leaf=i)
-    clf.fit(X_train, y_train)
-    train_acc.append(clf.score(X_train, y_train))
-    test_acc.append(clf.score(X_test, y_test))
-plt.plot(num_leaf, train_acc, label='training')
-plt.plot(num_leaf, test_acc, label='testing')
-plt.gca().set_xlim((max(num_leaf)+1, min(num_leaf)-1))
-plt.legend()
-```
-
-From this plot, the accuracy has a big jump at `min_sample_leaf=41`. So we could choose this to be our hyperparameter.
-
-
-
-
-### Pruning
-Other than tuning hyperparameters, we also want to prune our tree in order to reduce overfitting further. The pruning algorithm introduced together with CART is called **Minimal-Cost-Complexity Pruning** (MCCP). 
-
-The idea is to use the cost-complexity measure to replace Gini impurity to grow the tree. The cost-complexity measure is gotten by adding the total number of end nodes with the coefficent `ccp_alpha` to the Gini impurity. The parameter `ccp_alpha>=0` is known as the **complexity parameter**, and it can help the tree to self-balance the number of end nodes and the Gini impurity.
-
-
-In `sklearn`, we use `cost_complexity_pruning_path` to help us find the effective alphas and the corresponding impurities. 
-
-```{python}
-clf = DecisionTreeClassifier(random_state=42)
-ccp_path = clf.cost_complexity_pruning_path(X_train, y_train)
-ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
-```
-
-The list `ccp_alphas` contains all important `ccp_alpha`s. We could train a model for each of them. We could use the argument `ccp_alpha` to control the value when initialize the model. After we train all these tree models for each effective `ccp_alpha`, we evaluate the model and record the results.
-
-
-```{python}
-clfs = []
-for ccp_alpha in ccp_alphas:
-    clf = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
-    clf.fit(X_train, y_train)
-    clfs.append(clf)
-
-node_counts = [clf.tree_.node_count for clf in clfs]
-depth = [clf.tree_.max_depth for clf in clfs]
-train_acc = [clf.score(X_train, y_train) for clf in clfs]
-test_acc = [clf.score(X_test, y_test) for clf in clfs]
-```
-We would like to visualize these info.
-
-```{python}
-fig, ax = plt.subplots(3, 1)
-ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")
-ax[0].set_xlabel("alpha")
-ax[0].set_ylabel("number of nodes")
-ax[1].plot(ccp_alphas, depth, marker="o", drawstyle="steps-post")
-ax[1].set_xlabel("alpha")
-ax[1].set_ylabel("depth of tree")
-ax[2].plot(ccp_alphas, train_acc, marker="o", drawstyle="steps-post", label='train')
-ax[2].plot(ccp_alphas, test_acc, marker="o", drawstyle="steps-post", label='test')
-ax[2].set_xlabel("alpha")
-ax[2].set_ylabel("accuracy")
-ax[2].legend()
-```
-Based on the plot, it seems that the fourth dot 0.01534424 is a good fit. So this is the complexity parameter we are going to use.
-
-
-
-<details>
-<summary>We could combine all the code above into a function.</summary>
-
-```{python}
-from sklearn.base import clone
-def eval_ccp_alphas(clf, X, y):
-    ccp_path = clf.cost_complexity_pruning_path(X, y)
-    ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
-    clfs = []
-    for ccp_alpha in ccp_alphas:
-        clf_tmp = clone(clf)
-        clf_tmp.set_params(ccp_alpha=ccp_alpha)
-        clf_tmp.fit(X, y)
-        clfs.append(clf_tmp)
-
-    node_counts = [clf.tree_.node_count for clf in clfs]
-    depth = [clf.tree_.max_depth for clf in clfs]
-    train_acc = [clf.score(X_train, y_train) for clf in clfs]
-    test_acc = [clf.score(X_test, y_test) for clf in clfs]
-
-    fig, ax = plt.subplots(3, 1)
-    ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")
-    ax[0].set_xlabel("alpha")
-    ax[0].set_ylabel("number of nodes")
-    ax[1].plot(ccp_alphas, depth, marker="o", drawstyle="steps-post")
-    ax[1].set_xlabel("alpha")
-    ax[1].set_ylabel("depth of tree")
-    ax[2].plot(ccp_alphas, train_acc, marker="o", drawstyle="steps-post", label='train')
-    ax[2].plot(ccp_alphas, test_acc, marker="o", drawstyle="steps-post", label='test')
-    ax[2].set_xlabel("alpha")
-    ax[2].set_ylabel("accuracy")
-    ax[2].legend()
-
-    return ccp_alphas
-```
-
-
-```{python}
-eval_ccp_alphas(DecisionTreeClassifier(random_state=42), X_train, y_train)
-```
-
-
-</details>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Regression Trees
-
-## 1. Why trees?
-
-## 15. Strengths
-
-Regression trees are useful because they:
-
-- are easy to interpret
-- automatically handle nonlinear relationships
-- automatically capture interactions
-- do not require feature scaling
-- can handle mixed variable types
-- are easy to visualize
-- are robust to monotone transformations of predictors
-- provide a natural basis for random forests and boosting
-
-The biggest strength is interpretability.
-
-A tree can often be explained as a sequence of simple rules.
-
-## 16. Weaknesses
-
-A single regression tree also has important limitations:
-
-- prediction is piecewise constant
-- fitted function is not smooth
-- small changes in data can change the tree
-- high variance
-- often weaker predictive performance than ensembles
-- poor extrapolation outside the training range
-- axis-aligned splits can be inefficient for diagonal patterns
-
-Poor extrapolation is especially important.
-
-If a test point has a predictor value outside the training range, a tree still predicts using the average of some training leaf. It does not continue a linear trend beyond the observed data.
-
-::: {.callout-caution}
-## Important
-
-A single tree is usually better as an interpretable model or as a building block.
-
-For prediction, ensembles of trees are usually much stronger.
-:::
-
-## 17. Minimal Python example
-
-```python
-from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.metrics import mean_squared_error
-from sklearn.tree import DecisionTreeRegressor
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.3,
-    random_state=0,
-)
-
-tree = DecisionTreeRegressor(random_state=0)
-
-param_grid = {
-    "max_depth": [2, 3, 4, 5, None],
-    "min_samples_leaf": [1, 5, 10, 20],
-    "ccp_alpha": [0.0, 0.001, 0.01, 0.1],
-}
-
-grid = GridSearchCV(
-    tree,
-    param_grid=param_grid,
-    cv=5,
-    scoring="neg_mean_squared_error",
-)
-
-grid.fit(X_train, y_train)
-
-best_tree = grid.best_estimator_
-
-y_pred = best_tree.predict(X_test)
-test_mse = mean_squared_error(y_test, y_pred)
-
-print(grid.best_params_)
-print(test_mse)
-```
-
-The important point is that tuning should be done using validation data or cross-validation, not by choosing the tree with the smallest training error.
-
-## 18. Cost-complexity pruning path in sklearn
-
-```python
-from sklearn.model_selection import cross_val_score
-from sklearn.tree import DecisionTreeRegressor
-import numpy as np
-
-tree = DecisionTreeRegressor(random_state=0)
-path = tree.cost_complexity_pruning_path(X_train, y_train)
-
-ccp_alphas = path.ccp_alphas
-
-cv_mse = []
-
-for alpha in ccp_alphas:
-    model = DecisionTreeRegressor(
-        random_state=0,
-        ccp_alpha=alpha,
-    )
-    scores = cross_val_score(
-        model,
-        X_train,
-        y_train,
-        cv=5,
-        scoring="neg_mean_squared_error",
-    )
-    cv_mse.append(-scores.mean())
-
-best_alpha = ccp_alphas[np.argmin(cv_mse)]
-
-pruned_tree = DecisionTreeRegressor(
-    random_state=0,
-    ccp_alpha=best_alpha,
-)
-
-pruned_tree.fit(X_train, y_train)
-```
-
-The pruning path gives a sequence of candidate values for `ccp_alpha`.
-
-Cross-validation chooses which subtree gives the best prediction error.
-
-## 19. Summary
-
-A regression tree is an adaptive partitioning method.
-
-Its fitted model is
-$$
-\hat f(x)
-=
-\sum_{m=1}^M
-\bar y_{R_m} I(x\in R_m).
-$$
-
-The algorithm chooses splits to reduce within-node variation, usually measured by RSS or variance.
-
-The fitted function is piecewise constant.
-
-The main tuning problem is controlling tree size.
-
-A single tree is interpretable, flexible, and useful for discovering structure, but it is often unstable.
-
-This motivates ensemble methods such as bagging, random forests, and boosting.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Linear Models, Trees, Bagging, Random Forests, and Boosting:
-# A Unified View Through Predictor Interactions
-
-## Introduction
-
-One of the most important questions in statistical learning is:
-
-> How does a model combine predictors together?
-
-Different learning methods differ mainly in how they represent and combine predictor effects.
-
-Some methods assume predictors contribute independently and globally. Other methods automatically discover local interactions and hierarchical structures.
-
-This perspective provides a very unified way to understand:
-
-- linear models
-- trees
-- bagging
-- random forests
-- boosting
-
-The key idea is:
-
-> Different models differ in how they discover, combine, and refine predictor interactions.
-
----
-
-# Linear Models
-
-Consider the multiple linear regression model:
-
-$$
-f(x)
-=
-\beta_0+\beta_1x_1+\cdots+\beta_px_p.
-$$
-
-This model assumes that predictor effects are additive.
-
-Each predictor contributes independently:
-
-$$
-\beta_j x_j.
-$$
-
-The overall prediction is simply the sum of these effects.
-
-Thus linear models have a very important structural assumption:
-
-> Predictor effects are global and additive.
-
-For example, suppose the coefficient of income is positive. Then increasing income always increases the prediction by the same amount, regardless of age, region, education, or other variables.
-
-This creates a very smooth and interpretable model.
-
-However, the model cannot automatically discover interactions between predictors.
-
----
-
-# Interaction Terms in Linear Models
-
-Suppose the effect of one predictor depends on another predictor.
-
-For example:
-
-- income may matter differently for younger and older individuals
-- dosage effects may depend on body weight
-- advertising effects may depend on region
-
-A linear model cannot automatically discover such interactions.
-
-Instead, the interaction must be manually specified:
-
-$$
-y
-=
-\beta_0
-+
-\beta_1x_1
-+
-\beta_2x_2
-+
-\beta_3x_1x_2.
-$$
-
-Thus interaction modeling in linear regression is explicit and manual.
-
-The analyst must decide:
-
-- which interactions exist
-- which interaction terms to include
-
-This becomes difficult when the number of predictors is large.
-
----
-
-# Trees
-
-Decision trees approach interactions very differently.
-
-A tree recursively partitions predictor space into regions.
-
-For example:
-
-```text
-if age > 40:
-    if income < 50000:
-        predict class A
-```
-
-A single branch already represents a predictor interaction structure.
-
-This branch corresponds to:
-
-$$
-(\text{age}>40)
-\cap
-(\text{income}<50000).
-$$
-
-Thus a root-to-leaf path is essentially:
-
-> a hierarchical combination of predictor conditions.
-
-This is one of the most important conceptual differences between trees and linear models.
-
-Linear models require interaction terms to be specified manually.
-
-Trees discover interactions automatically.
-
----
-
-# Trees as Interaction Hierarchies
-
-A tree can be viewed as a hierarchy of interactions.
-
-For example:
-
-```text
-x1 > 3
-    ↓
-x2 < 5
-    ↓
-x7 > 10
-```
-
-This means:
-
-- the effect of $x_2$ depends on the region defined by $x_1$
-- the effect of $x_7$ depends on both $x_1$ and $x_2$
-
-Thus trees naturally model:
-
-- nonlinear effects
-- threshold effects
-- conditional relationships
-- local interactions
-
-This makes trees extremely flexible.
-
----
-
-# Advantages of Trees
-
-Because trees automatically discover interactions, they are very powerful for tabular data.
-
-Trees are especially good at handling:
-
-- complicated predictor interactions
-- nonlinear relationships
-- heterogeneous variables
-- mixed data types
-
-In addition, trees do not require:
-
-- feature scaling
-- manual interaction engineering
-- strict parametric assumptions
-
----
-
-# Limitations of Trees
-
-Although trees are flexible, a single tree is often unstable.
-
-Small changes in the data may produce very different splits.
-
-As a result:
-
-- tree structures can vary substantially
-- prediction variance may be high
-- deep trees may overfit
-
-Thus a single tree is often not the best predictive model.
-
-This motivates ensemble methods.
-
----
-
-# Bagging
-
-Bagging stands for bootstrap aggregation.
-
-The main idea is simple:
-
-1. Draw many bootstrap samples
-2. Fit a large tree to each sample
-3. Average the predictions
-
-The key insight is that different bootstrap samples produce different trees.
-
-Each tree may discover somewhat different interaction structures.
-
-For example:
-
-Tree A may discover:
-
-```text
-income → age → balance
-```
-
-while Tree B may discover:
-
-```text
-region → debt → income
-```
-
-and Tree C may discover:
-
-```text
-education → age → loan history
-```
-
-Thus bagging averages over many interaction hierarchies.
-
----
-
-# Bagging as Interaction Averaging
-
-From the interaction perspective, bagging can be viewed as:
-
-> averaging many unstable interaction structures.
-
-This is extremely important.
-
-A single tree may overreact to small fluctuations in the data.
-
-Bagging stabilizes interaction discovery by averaging many trees together.
-
-The averaging process reduces variance and improves stability.
-
-Thus the primary goal of bagging is not to discover increasingly complicated interactions.
-
-Instead, the goal is:
-
-> stabilize interaction discovery through averaging.
-
----
-
-# Random Forests
-
-Random forests extend bagging.
-
-A random forest still uses:
-
-- bootstrap sampling
-- many trees
-- averaging
-
-However, random forests introduce an additional source of randomness.
-
-At each split, the algorithm only considers a random subset of predictors.
-
-For example:
-
-```python
-max_features = sqrt(p)
-```
-
-This changes tree construction substantially.
-
----
-
-# Why Random Forests Improve Bagging
-
-In ordinary bagging, strong predictors may dominate many trees.
-
-For example, if predictor $x_1$ is extremely important, then many trees will repeatedly split on $x_1$ near the top.
-
-As a result:
-
-- many trees become similar
-- interaction structures become correlated
-- averaging becomes less effective
-
-Random forests reduce this problem.
-
-Because each split only sees a subset of predictors, different trees are forced to explore different interaction structures.
-
-Thus random forests encourage diversity among trees.
-
----
-
-# Random Forests as Decorrelated Interaction Averaging
-
-From the interaction viewpoint:
-
-- bagging averages many interaction structures
-- random forests average many decorrelated interaction structures
-
-This is the key conceptual improvement.
-
-Random forests intentionally encourage trees to explore different predictor combinations.
-
-This reduces tree correlation and further lowers variance.
-
----
-
-# Boosting
-
-Boosting uses a completely different philosophy.
-
-Bagging and random forests build trees independently and average them.
-
-Boosting builds trees sequentially.
-
-Each new tree attempts to improve the mistakes made by earlier trees.
-
-Conceptually:
-
-```mermaid
-flowchart TD
-    A[Current Interaction Structure]
-    B[Identify Remaining Errors]
-    C[Fit New Local Interaction]
-    D[Refine Decision Boundary]
-
-    A --> B
-    B --> C
-    C --> D
-    D --> B
-```
-
-Thus boosting continuously refines the model.
-
----
-
-# Boosting as Interaction Refinement
-
-From the interaction perspective:
-
-> Boosting sequentially refines interaction structures.
-
-This is fundamentally different from bagging.
-
-Bagging:
-
-- parallel
-- independent
-- averaging
-
-Boosting:
-
-- sequential
-- adaptive
-- corrective
-
-Each new tree adds local corrections to the current model.
-
-These corrections often represent increasingly refined interactions.
-
----
-
-# AdaBoost
-
-AdaBoost focuses on observations that were previously misclassified.
-
-At each stage:
-
-- difficult observations receive larger weights
-- the next tree focuses more strongly on those observations
-
-Thus AdaBoost progressively refines difficult regions of predictor space.
-
-The interaction structures become increasingly adaptive and localized.
-
----
-
-# Gradient Boosting and XGBoost
-
-Gradient boosting generalizes this idea.
-
-Instead of directly emphasizing misclassified observations, gradient boosting fits trees to residuals or gradients.
-
-Each new tree attempts to correct the remaining errors.
-
-Thus boosting gradually builds a highly refined decision boundary.
-
-XGBoost further improves this framework through:
-
-- regularization
-- shrinkage
-- subsampling
-- optimized tree construction
-
----
-
-# Why Boosting Is So Powerful
-
-Boosting is powerful because it repeatedly adds local interaction corrections.
-
-The final model becomes:
-
-```text
-many local interaction refinements
-+
-many adaptive corrections
-+
-many nonlinear partitions
-```
-
-combined together.
-
-As a result, boosting methods can approximate extremely complicated nonlinear functions.
-
----
-
-# Comparing the Methods
-
-We may summarize the methods through their interaction philosophies.
-
----
-
-## Linear Models
-
-```text
-global additive effects
-```
-
-Interactions must be manually specified.
-
----
-
-## Trees
-
-```text
-discover one interaction hierarchy
-```
-
-Interactions are discovered automatically.
-
----
-
-## Bagging
-
-```text
-average many unstable interaction hierarchies
-```
-
-Variance reduction through averaging.
-
----
-
-## Random Forests
-
-```text
-average many decorrelated interaction hierarchies
-```
-
-Variance reduction through decorrelated averaging.
-
----
-
-## Boosting
-
-```text
-iteratively refine interaction hierarchies
-```
-
-Sequential correction and local refinement.
-
----
-
-# Final Remarks
-
-This interaction-based viewpoint provides a unified understanding of many important statistical learning methods.
-
-Linear models assume simple additive relationships.
-
-Trees automatically discover hierarchical interactions.
-
-Bagging stabilizes interaction discovery through averaging.
-
-Random forests further improve averaging by decorrelating trees.
-
-Boosting continuously refines interaction structures through sequential error correction.
-
-Although these methods appear very different algorithmically, they can all be understood through one central question:
-
-> How does the model discover and combine predictor interactions?
 
 
 
@@ -2235,7 +845,8 @@ Although these methods appear very different algorithmically, they can all be un
 
 
 ```{python}
-
+#| eval: false
+#| echo: false
 import numpy as np
 import pandas as pd
 
@@ -2324,6 +935,7 @@ print(results)
 
 ```{python}
 #| eval: false
+#| echo: false
 import numpy as np
 import pandas as pd
 
@@ -2446,6 +1058,7 @@ for _, row in results.iterrows():
 
 ```{python}
 #| eval: false
+#| echo: false
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -2584,6 +1197,7 @@ plt.show()
 
 ```{python}
 #| eval: false
+#| echo: false
 import numpy as np
 import matplotlib.pyplot as plt
 
