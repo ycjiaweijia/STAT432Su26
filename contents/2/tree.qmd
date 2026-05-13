@@ -527,18 +527,26 @@ However, when the search space becomes too large, this approach can become compu
 
 ## Trees in Python
 
-We use `DecisionTreeClassifier` and `DecisionTreeRegressor` from `sklearn.tree` to implement Decision Tree models. The API is almost identical to other models. So `.fit()`, `.predict()`, `.score()`, etc. are used as usual.
 
-1. We could set `max_depth`, `min_samples_leaf`, `ccp_alpha`, etc. for the model.
-2. The random state can be fixed by setting `random_state`. The randomness mainly comes from the internal feature ordering used during split search. Even when `splitter="best"` is used, `sklearn` randomly permutes the feature order before evaluating splits. Therefore, when multiple splits produce the same impurity reduction, different trees may be generated unless `random_state` is fixed.
-3. The method `.cost_complexity_pruning_path()` can be used to find all critical `ccp_alpha` values.
+We use `DecisionTreeClassifier` and `DecisionTreeRegressor` from `sklearn.tree` to implement decision tree models. The API is almost identical to other `sklearn` models: `.fit()`, `.predict()`, `.score()`, and other familiar methods are used in the same way. 
+
+1. We could set `max_depth`, `min_samples_leaf`, `ccp_alpha`, etc. for the tree model where their meaning is straightforward. 
+2. The method `.cost_complexity_pruning_path()` can be used to find the critical `ccp_alpha` values for pruning.
+3. We could also set `random_state`. The randomness in `sklearn` decision trees mainly comes from the internal feature ordering used during the split search. Even when `splitter="best"` is used, `sklearn` randomly permutes the feature order before evaluating splits. Therefore, when multiple splits produce the same impurity reduction, different trees may be generated unless `random_state` is fixed.
 
 
+::: {.callout-note}
+Decision trees are often described as methods that naturally handle categorical predictors. This is true conceptually, but `sklearn` decision trees still require numeric input. Therefore categorical predictors must be encoded before fitting the model. For nominal categorical variables, one-hot encoding is usually a safe choice.
+
+However, one-hot encoding for the target variable is not necessary because `sklearn` classifiers can directly work with class labels.
+:::
 
 
 ### Example 1: Classify `iris` dataset
 
-This is the famous Iris dataset. The purpose is to use 4 numeric measurements to classify types of iris. This dataset contains 150 records with 3 classes. More information can be found [here](https://scikit-learn.org/stable/datasets/toy_dataset.html#iris-dataset).
+The `iris` dataset is a classic classification dataset. The goal is to use four numeric flower measurements to classify the species of iris. The dataset contains 150 observations and 3 classes. More information can be found in the `sklearn` [documentation]((https://scikit-learn.org/stable/datasets/toy_dataset.html#iris-dataset)) for datasets.
+
+
 
 ```{python}
 from sklearn.datasets import load_iris
@@ -552,9 +560,7 @@ y = iris.target
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 ```
 
-Note that for decision tree models, categorical data doesn't have to be converted into one-hot vectors.
-
-The following code shows the basic API. 
+The following code shows the basic `sklearn` API.
 
 ```{python}
 from sklearn.tree import DecisionTreeClassifier
@@ -564,7 +570,8 @@ clf.fit(X_train, y_train)
 clf.score(X_test, y_test)
 ```
 
-After we get this tree model, we could actually display the tree using `plot_tree()` function. Because in most cases the tree is too large to read texts in the nodes, we use `matplotlib` to control the configuration of the plot to make it larger and clearer.
+After fitting the model, we can display the tree using `plot_tree()`. In many real examples, the tree may be too large to read clearly, so we use `matplotlib` to control the size and resolution of the plot.
+
 
 <!-- fmt: off -->
 ```{python}
@@ -574,11 +581,11 @@ import matplotlib.pyplot as plt
 plt.figure(figsize=(5, 5), dpi=300)
 plot_tree(clf, filled=True, impurity=True, node_ids=True); # <1>
 ```
-1. `filled` is used to fill colors in blocks. `impurity` is to display Gini impurity. `node_ids` is to display the node id.
+1. `filled=True` fills the nodes with colors. `impurity=Ture` displays the Gini impurity. `node_ids=True` displays the node ID.
 <!-- fmt: on -->
 
 
-Then we would like to prune the tree. We start from find all critical `ccp_alpha`s.
+Now we prune the tree. We first find all critical `ccp_alpha` values.
 
 
 ```{python}
@@ -586,10 +593,10 @@ ccp_path = clf.cost_complexity_pruning_path(X_train, y_train)
 ccp_alphas = ccp_path.ccp_alphas[:-1]
 ```
 
-The last `ccp_alpha` is too big that it always force the tree to have only one node. In most cases this is not interesting at all. Therefore usually we would like to remove the last `ccp_alpha`. 
 
+The last `ccp_alpha` is usually removed because it is large enough to prune the tree down to a single root node. In most applications, that model is too simple to be useful.
 
-We then train models for each `ccp_alpha`. We could use the argument `ccp_alpha` to control the value when initialize the model. After we train all these tree models for each effective `ccp_alpha`, we evaluate the models and record the results. Here we use `accuracy` as our metric, which comes automatically from `clf.score()`.
+We then train one model for each effective `ccp_alpha`. After fitting the trees, we record both predictive performance and model complexity. Here we use `accuracy` as our metric, which comes automatically from `clf.score()`.
 
 
 
@@ -608,9 +615,12 @@ train_acc = [clf.score(X_train, y_train) for clf in clfs]
 test_acc = [clf.score(X_test, y_test) for clf in clfs]
 ```
 
-Here we use the regualr validtion method to fit the model on the training set and test it on the test set. All results are recorded. Other than the accuracy, I also record the number of nodes since this is a good property to show the complexity of the model.
+Here we use a single train/test split. This is a simple validation strategy: the model is fitted on the training set and evaluated on the test set. In addition to accuracy, we also record the number of nodes because it is a useful measure of tree complexity.
 
-The results are better to be shown in plots. 
+A larger tree usually has lower bias but higher variance. A smaller tree is often more interpretable and more stable.
+
+The results are easier to compare visually.
+
 
 
 ```{python}
@@ -634,12 +644,13 @@ ax[1].set_ylabel("accuracy")
 ax[0].legend()
 ax[1].legend(loc="lower left")
 ```
-1. For pruning-related plots, `drawstyle="steps-post"` is important because the tree structure stays the same within each interval of `ccp_alpha` values. The change only occurs after reaching the next pruning threshold.
+1. For pruning-related plots, `drawstyle="steps-post"` is important because the tree structure stays the same within each interval of `ccp_alpha` values. The tree only changes after reaching the next pruning threshold. Each critical `ccp_alpha` corresponds to pruning one or more weak internal nodes, so the pruning path is piecewise constant.
 
-Based on the plot, from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`, the test accuracy stay the same. Therefore we choose the model with the least number of nodes. So we could choose any `ccp_alpha` from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`. Therefore we would like to choose the one with the least number of nodes, which is `{python} ccp_alphas[-3].item()`. Since all values in the range is the same, we could use `ccp_alpha=0.05` for simplicity.
 
-We can now build our final tree and display it.
+Based on the plot, from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`, the test accuracy stay the same. Therefore we choose the model with the least number of nodes. So we could choose any `ccp_alpha` from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`. Therefore we would like to choose the one with the least number of nodes, which is `{python} ccp_alphas[-3].item()`. Since all values in the range is the same, we hand pick `ccp_alpha=0.05` for simplicity.
 
+
+We can now build the final tree and display it.
 
 <!-- fmt:off -->
 ```{python}
@@ -659,9 +670,9 @@ In larger datasets, small differences in validation scores are often more meanin
 :::
 
 
-### Example 2: Regression `diabetes` dataset
+### Example 2: Regression with the `diabetes` dataset
 
-We now look at a dataset for regression. This is to use 10 baseline variables to predict a quantitative measure of disease progression one year after baseline. More information can be found from [here](https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset) and [here](https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html).
+We now look at a regression example. The `diabetes` dataset uses 10 baseline variables to predict a quantitative measure of disease progression one year after baseline. More information can be found in the `sklearn` [documentation]((https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset)) and the original diabetes dataset [description]((https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html)).
 
 
 ```{python}
@@ -672,7 +683,12 @@ X, y = load_diabetes(return_X_y=True)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 ```
 
-The whole process is very similar to the `iris` example. One modification we want to make is to use cross-validation instead of random-split validation in this example. 
+
+The overall workflow is similar to the `iris` example. The main difference is that we use cross-validation instead of a single validation split.
+
+We first create a temporary tree to compute the critical `ccp_alpha` values. The method `cost_complexity_pruning_path()` internally grows a tree in order to compute the effective pruning path, although the estimator itself is not stored as a fitted model.
+
+
 
 We first generate a `tmp_tree` which is only used to get the critical `ccp_alpha`. Note that the method `cost_complexity_pruning_path()` internally grows a tree in order to compute the effective pruning path, although the estimator itself is not stored as a fitted model.
 

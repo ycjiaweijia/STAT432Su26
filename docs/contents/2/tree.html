@@ -621,7 +621,7 @@ window.Quarto = {
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 10.1 (Example: A Classification Tree)</strong></span> &nbsp;</p>
 <!-- fmt: off -->
-<div id="77716799" class="cell" data-execution_count="1">
+<div id="c3a3386f" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -639,7 +639,7 @@ window.Quarto = {
 <p>Each split divides the feature space into smaller regions.</p>
 <p>This tree actually create the following splits in the feature space.</p>
 <!-- fmt: off -->
-<div id="c653cef1" class="cell" data-execution_count="2">
+<div id="bfc4fee2" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -929,7 +929,7 @@ Thus a regression tree approximates a complicated nonlinear function using many 
 </summary>
 <p>In this example, we let the tree grow as further as possible. It only stops when (almost) all end nodes are pure, even if the end nodes only contain ONE element (like #6 and #11).</p>
 <!-- fmt: off -->
-<div id="b97c991e" class="cell" data-execution_count="3">
+<div id="9237057c" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -940,8 +940,8 @@ Thus a regression tree approximates a complicated nonlinear function using many 
 </div>
 <!-- fmt: on -->
 <p>In this example there is one exception. #13 node is not pure. We could list all data in node #13.</p>
-<div id="e49304bc" class="cell" data-execution_count="4">
-<div class="cell-output cell-output-display" data-execution_count="13">
+<div id="d22c82fb" class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="34">
 <div>
 
 
@@ -1036,16 +1036,30 @@ C_\alpha(T)=J(T)+\alpha |T|,
 </section>
 <section id="trees-in-python" class="level2" data-number="10.3">
 <h2 data-number="10.3" class="anchored" data-anchor-id="trees-in-python"><span class="header-section-number">10.3</span> Trees in Python</h2>
-<p>We use <code>DecisionTreeClassifier</code> and <code>DecisionTreeRegressor</code> from <code>sklearn.tree</code> to implement Decision Tree models. The API is almost identical to other models. So <code>.fit()</code>, <code>.predict()</code>, <code>.score()</code>, etc. are used as usual.</p>
+<p>We use <code>DecisionTreeClassifier</code> and <code>DecisionTreeRegressor</code> from <code>sklearn.tree</code> to implement decision tree models. The API is almost identical to other <code>sklearn</code> models: <code>.fit()</code>, <code>.predict()</code>, <code>.score()</code>, and other familiar methods are used in the same way.</p>
 <ol type="1">
-<li>We could set <code>max_depth</code>, <code>min_samples_leaf</code>, <code>ccp_alpha</code>, etc. for the model.</li>
-<li>The random state can be fixed by setting <code>random_state</code>. The randomness happens because the model select a ramdom feature to split when multiple features are ranking the same.</li>
-<li>The method <code>.cost_complexity_pruning_path()</code> can be used to find all critical <code>ccp_alpha</code> values.</li>
+<li>We could set <code>max_depth</code>, <code>min_samples_leaf</code>, <code>ccp_alpha</code>, etc. for the tree model where their meaning is straightforward.</li>
+<li>The method <code>.cost_complexity_pruning_path()</code> can be used to find the critical <code>ccp_alpha</code> values for pruning.</li>
+<li>We could also set <code>random_state</code>. The randomness in <code>sklearn</code> decision trees mainly comes from the internal feature ordering used during the split search. Even when <code>splitter="best"</code> is used, <code>sklearn</code> randomly permutes the feature order before evaluating splits. Therefore, when multiple splits produce the same impurity reduction, different trees may be generated unless <code>random_state</code> is fixed.</li>
 </ol>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Decision trees are often described as methods that naturally handle categorical predictors. This is true conceptually, but <code>sklearn</code> decision trees still require numeric input. Therefore categorical predictors must be encoded before fitting the model. For nominal categorical variables, one-hot encoding is usually a safe choice.</p>
+<p>However, one-hot encoding for the target variable is not necessary because <code>sklearn</code> classifiers can directly work with class labels.</p>
+</div>
+</div>
 <section id="example-1-classify-iris-dataset" class="level3" data-number="10.3.1">
 <h3 data-number="10.3.1" class="anchored" data-anchor-id="example-1-classify-iris-dataset"><span class="header-section-number">10.3.1</span> Example 1: Classify <code>iris</code> dataset</h3>
-<p>This is the famous Iris dataset. The purpose is to use 4 numeric measurements to classify types of iris. This dataset contains 150 records with 3 classes. More information can be found <a href="https://scikit-learn.org/stable/datasets/toy_dataset.html#iris-dataset">here</a>.</p>
-<div id="9f1c429e" class="cell" data-execution_count="5">
+<p>The <code>iris</code> dataset is a classic classification dataset. The goal is to use four numeric flower measurements to classify the species of iris. The dataset contains 150 observations and 3 classes. More information can be found in the <code>sklearn</code> <a href="(https://scikit-learn.org/stable/datasets/toy_dataset.html#iris-dataset)">documentation</a> for datasets.</p>
+<div id="eba15e8a" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_iris</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1056,21 +1070,20 @@ C_\alpha(T)=J(T)+\alpha |T|,
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span><span class="fl">0.2</span>, random_state<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Note that for decision tree models, categorical data doesn’t have to be converted into one-hot vectors.</p>
-<p>The following code shows the basic API.</p>
-<div id="abec41ae" class="cell" data-execution_count="6">
+<p>The following code shows the basic <code>sklearn</code> API.</p>
+<div id="cef40310" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">2</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>clf.fit(X_train, y_train)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>clf.score(X_test, y_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
+<div class="cell-output cell-output-display" data-execution_count="36">
 <pre><code>0.9666666666666667</code></pre>
 </div>
 </div>
-<p>After we get this tree model, we could actually display the tree using <code>plot_tree()</code> function. Because in most cases the tree is too large to read texts in the nodes, we use <code>matplotlib</code> to control the configuration of the plot to make it larger and clearer.</p>
+<p>After fitting the model, we can display the tree using <code>plot_tree()</code>. In many real examples, the tree may be too large to read clearly, so we use <code>matplotlib</code> to control the size and resolution of the plot.</p>
 <!-- fmt: off -->
-<div id="2f055cab" class="cell" data-execution_count="7">
+<div id="41d90ecc" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-3"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-3-1"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> plot_tree</span>
 <span id="annotated-cell-3-2"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="annotated-cell-3-3"><a href="#annotated-cell-3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1080,7 +1093,7 @@ C_\alpha(T)=J(T)+\alpha |T|,
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
 <dt data-target-cell="annotated-cell-3" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-3" data-code-lines="5" data-code-annotation="1"><code>filled</code> is used to fill colors in blocks. <code>impurity</code> is to display Gini impurity. <code>node_ids</code> is to display the node id. <!-- fmt: on --></span>
+<span data-code-cell="annotated-cell-3" data-code-lines="5" data-code-annotation="1"><code>filled=True</code> fills the nodes with colors. <code>impurity=Ture</code> displays the Gini impurity. <code>node_ids=True</code> displays the node ID. <!-- fmt: on --></span>
 </dd>
 </dl>
 </div>
@@ -1092,15 +1105,15 @@ C_\alpha(T)=J(T)+\alpha |T|,
 </div>
 </div>
 </div>
-<p>Then we would like to prune the tree. We start from find all critical <code>ccp_alpha</code>s.</p>
-<div id="1a556604" class="cell" data-execution_count="8">
+<p>Now we prune the tree. We first find all critical <code>ccp_alpha</code> values.</p>
+<div id="d021a699" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ccp_path <span class="op">=</span> clf.cost_complexity_pruning_path(X_train, y_train)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ccp_alphas <span class="op">=</span> ccp_path.ccp_alphas[:<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The last <code>ccp_alpha</code> is too big that it always force the tree to have only one node. In most cases this is not interesting at all. Therefore usually we would like to remove the last <code>ccp_alpha</code>.</p>
-<p>We then train models for each <code>ccp_alpha</code>. We could use the argument <code>ccp_alpha</code> to control the value when initialize the model. After we train all these tree models for each effective <code>ccp_alpha</code>, we evaluate the models and record the results. Here we use <code>accuracy</code> as our metric.</p>
-<div id="403ed44c" class="cell" data-execution_count="9">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># from sklearn.metrics import accuracy_score</span></span>
+<p>The last <code>ccp_alpha</code> is usually removed because it is large enough to prune the tree down to a single root node. In most applications, that model is too simple to be useful.</p>
+<p>We then train one model for each effective <code>ccp_alpha</code>. After fitting the trees, we record both predictive performance and model complexity. Here we use <code>accuracy</code> as our metric, which comes automatically from <code>clf.score()</code>.</p>
+<div id="57c01699" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> accuracy_score</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>clfs <span class="op">=</span> []</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -1113,9 +1126,10 @@ C_\alpha(T)=J(T)+\alpha |T|,
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>train_acc <span class="op">=</span> [clf.score(X_train, y_train) <span class="cf">for</span> clf <span class="kw">in</span> clfs]</span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>test_acc <span class="op">=</span> [clf.score(X_test, y_test) <span class="cf">for</span> clf <span class="kw">in</span> clfs]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Here we use the regualr validtion method to fit the model on the training set and test it on the test set. All results are recorded. Other than the accuracy, I also record the number of nodes since this is a good property to show the complexity of the model.</p>
-<p>The results are better to be shown in plots.</p>
-<div id="27637346" class="cell" data-execution_count="10">
+<p>Here we use a single train/test split. This is a simple validation strategy: the model is fitted on the training set and evaluated on the test set. In addition to accuracy, we also record the number of nodes because it is a useful measure of tree complexity.</p>
+<p>A larger tree usually has lower bias but higher variance. A smaller tree is often more interpretable and more stable.</p>
+<p>The results are easier to compare visually.</p>
+<div id="beef6834" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-6"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-6-1"><a href="#annotated-cell-6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="annotated-cell-6-2"><a href="#annotated-cell-6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="annotated-cell-6-3"><a href="#annotated-cell-6-3" aria-hidden="true" tabindex="-1"></a>best_alpha <span class="op">=</span> <span class="fl">0.05</span></span>
@@ -1139,7 +1153,7 @@ C_\alpha(T)=J(T)+\alpha |T|,
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
 <dt data-target-cell="annotated-cell-6" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-6" data-code-lines="7" data-code-annotation="1">For pruning-related plots, <code>drawstyle="steps-post"</code> is important because the tree structure stays the same within each interval of <code>ccp_alpha</code> values. The change only occurs after reaching the next pruning threshold.</span>
+<span data-code-cell="annotated-cell-6" data-code-lines="7" data-code-annotation="1">For pruning-related plots, <code>drawstyle="steps-post"</code> is important because the tree structure stays the same within each interval of <code>ccp_alpha</code> values. The tree only changes after reaching the next pruning threshold. Each critical <code>ccp_alpha</code> corresponds to pruning one or more weak internal nodes, so the pruning path is piecewise constant.</span>
 </dd>
 </dl>
 </div>
@@ -1151,10 +1165,10 @@ C_\alpha(T)=J(T)+\alpha |T|,
 </div>
 </div>
 </div>
-<p>Based on the plot, from 0.0 <span class="math inline">\(\leq\)</span> <code>ccp_alpha</code> <span class="math inline">\(&lt;\)</span> 0.04666666666666669, the test accuracy stay the same. Therefore we choose the model with the least number of nodes. So we could choose any <code>ccp_alpha</code> from 0.0 <span class="math inline">\(\leq\)</span> <code>ccp_alpha</code> <span class="math inline">\(&lt;\)</span> 0.04666666666666669. Therefore we would like to choose the one with the least number of nodes, which is 0.008130081300813012. Since all values in the range is the same, we could use <code>ccp_alpha=0.05</code> for simplicity.</p>
-<p>We can now build our final tree and display it.</p>
+<p>Based on the plot, from 0.0 <span class="math inline">\(\leq\)</span> <code>ccp_alpha</code> <span class="math inline">\(&lt;\)</span> 0.04666666666666669, the test accuracy stay the same. Therefore we choose the model with the least number of nodes. So we could choose any <code>ccp_alpha</code> from 0.0 <span class="math inline">\(\leq\)</span> <code>ccp_alpha</code> <span class="math inline">\(&lt;\)</span> 0.04666666666666669. Therefore we would like to choose the one with the least number of nodes, which is 0.008130081300813012. Since all values in the range is the same, we hand pick <code>ccp_alpha=0.05</code> for simplicity.</p>
+<p>We can now build the final tree and display it.</p>
 <!-- fmt:off -->
-<div id="1c7b56f3" class="cell" data-execution_count="11">
+<div id="21cac59b" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>, ccp_alpha<span class="op">=</span>best_alpha)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>clf.fit(X_train, y_train)</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plot_tree(clf, filled<span class="op">=</span><span class="va">True</span>, impurity<span class="op">=</span><span class="va">True</span>, node_ids<span class="op">=</span><span class="va">True</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1179,13 +1193,14 @@ Note
 <div class="callout-body-container callout-body">
 <p>Although the hyperparameters with the highest validation score are often preferred, model complexity should also be taken into consideration. This is why the number of nodes is displayed.</p>
 <p>In this <code>iris</code> example, the dataset is very small and the differences between validation scores are negligible. In such situations, a slightly simpler tree is often preferred because it is more interpretable and potentially more stable while achieving similar predictive performance.</p>
+<p>In larger datasets, small differences in validation scores are often more meaningful, so predictive performance may be prioritized more heavily.</p>
 </div>
 </div>
 </section>
 <section id="example-2-regression-diabetes-dataset" class="level3" data-number="10.3.2">
 <h3 data-number="10.3.2" class="anchored" data-anchor-id="example-2-regression-diabetes-dataset"><span class="header-section-number">10.3.2</span> Example 2: Regression <code>diabetes</code> dataset</h3>
 <p>We now look at a dataset for regression. This is to use 10 baseline variables to predict a quantitative measure of disease progression one year after baseline. More information can be found from <a href="https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset">here</a> and <a href="https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html">here</a>.</p>
-<div id="0c647529" class="cell" data-execution_count="12">
+<div id="04b25111" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_diabetes</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1193,8 +1208,8 @@ Note
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span><span class="fl">0.2</span>, random_state<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The whole process is very similar to the <code>iris</code> example. One modification we want to make is to use cross-validation instead of random-split validation in this example.</p>
-<p>We first generate a <code>tmp_tree</code> which is only used to get the critical <code>ccp_alpha</code>. Note that this <code>tmp_tree</code> is not fitted.</p>
-<div id="e950d06f" class="cell" data-execution_count="13">
+<p>We first generate a <code>tmp_tree</code> which is only used to get the critical <code>ccp_alpha</code>. Note that the method <code>cost_complexity_pruning_path()</code> internally grows a tree in order to compute the effective pruning path, although the estimator itself is not stored as a fitted model.</p>
+<div id="54d5ad5f" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeRegressor</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>tmp_tree <span class="op">=</span> DecisionTreeRegressor(random_state<span class="op">=</span><span class="dv">1</span>)</span>
@@ -1202,7 +1217,7 @@ Note
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>ccp_alphas <span class="op">=</span> path.ccp_alphas[:<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now run <code>GridSearchCV</code> on these <code>ccp_alphas</code>. Note that we use <span class="math inline">\(R^2\)</span> as our model metric in this example.</p>
-<div id="fa169cc7" class="cell" data-execution_count="14">
+<div id="bc6bffcb" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> r2_score</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1228,7 +1243,7 @@ Testing R^2: 0.1922738375305083</code></pre>
 </div>
 </div>
 <p>We could visualize the validation curve. Note that only the metric is recorded in the cross-validation results. If we want to display the model complexity like the number of nodes, we need to refit all the model again.</p>
-<div id="2422b479" class="cell" data-execution_count="15">
+<div id="f28e638a" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-11"><pre class="sourceCode python code-annotation-code code-with-copy"><code class="sourceCode python"><span id="annotated-cell-11-1"><a href="#annotated-cell-11-1" aria-hidden="true" tabindex="-1"></a>cv_test_score <span class="op">=</span> grid.cv_results_[<span class="st">'mean_test_score'</span>]</span>
 <span id="annotated-cell-11-2"><a href="#annotated-cell-11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="annotated-cell-11-3"><a href="#annotated-cell-11-3" aria-hidden="true" tabindex="-1"></a>node_counts <span class="op">=</span> []</span>
@@ -1262,6 +1277,19 @@ Testing R^2: 0.1922738375305083</code></pre>
 </div>
 </div>
 <p>From the plot, our choice of <code>ccp_alpha</code>=np.float64(105.18472145590351) is reasonable.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A single regression tree often has relatively unstable predictive performance on moderate-sized datasets. This is one reason why ensemble methods such as Random Forest and Boosting are often preferred in practice.</p>
+</div>
+</div>
 <!-- 
 
 
