@@ -1,0 +1,780 @@
+---
+jupyter: stats
+---
+
+# Python Basics for `sklearn`
+
+This note introduces only the Python syntax needed for the rest of these notes. The goal is not to cover Python as a full programming language. The goal is to make code using `numpy`, `matplotlib`, and `sklearn` readable.
+
+The intended reader already knows R. Many ideas are the same: objects have names, functions take arguments, vectors and matrices are central, and modeling workflows usually follow a fit-then-predict pattern.
+
+## Running Python Code
+
+A Python code chunk looks like this:
+
+```{python}
+x = 10
+x
+```
+
+Assignment uses `=`.
+
+```{python}
+a = 2
+b = 3
+a + b
+```
+
+Python comments start with `#`.
+
+```{python}
+# This is a comment.
+x = 5
+```
+
+Unlike R, Python uses zero-based indexing. The first element has index `0`.
+
+```{python}
+values = [10, 20, 30]
+values[0]
+```
+
+## Importing Packages
+
+Python packages are loaded with `import`.
+
+The usual imports in these notes are:
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+```
+
+This means:
+
+- `numpy` is used as `np`;
+- `pandas` is used as `pd`;
+- `matplotlib.pyplot` is used as `plt`.
+
+Specific functions or classes can be imported from a package:
+
+```{python}
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+```
+
+This is similar in spirit to loading a function from an R package, but Python usually names the module path explicitly.
+
+## Basic Objects
+
+Python has several basic data types.
+
+```{python}
+x = 3          # integer
+y = 2.5        # float
+name = "tree"  # string
+flag = True    # Boolean
+```
+
+Use `type()` to check the type of an object.
+
+```{python}
+type(y)
+```
+
+Python is case-sensitive. `x` and `X` are different objects.
+
+## Lists
+
+A list is an ordered collection of objects.
+
+```{python}
+features = ["age", "income", "education"]
+features
+```
+
+Lists can contain objects of different types, although in data analysis we usually keep them simple.
+
+```{python}
+mixed = [1, "a", True]
+mixed
+```
+
+Indexing starts at 0.
+
+```{python}
+features[0]
+```
+
+Use negative indexing to count from the end.
+
+```{python}
+features[-1]
+```
+
+Slicing uses `start:stop`, where `stop` is not included.
+
+```{python}
+features[0:2]
+```
+
+This returns the first two elements.
+
+Some common list operations are:
+
+```{python}
+features.append("gender")
+len(features)
+```
+
+Lists are often used to specify columns or hyperparameter grids.
+
+```{python}
+num_features = ["age", "chol", "thalach"]
+k_values = [1, 3, 5, 10]
+```
+
+## Dictionaries
+
+A dictionary stores key-value pairs. It is similar to a named list in R.
+
+```{python}
+params = {
+    "n_neighbors": 5,
+    "weights": "uniform",
+}
+
+params
+```
+
+Access a value by its key:
+
+```{python}
+params["n_neighbors"]
+```
+
+Dictionaries are used frequently in `sklearn`, especially for parameter grids.
+
+```{python}
+param_grid = {
+    "max_depth": [2, 3, 4],
+    "min_samples_leaf": [1, 5, 10],
+}
+```
+
+For pipelines, parameter names often use two underscores:
+
+```{python}
+param_grid = {
+    "model__C": [0.1, 1, 10],
+}
+```
+
+This means the parameter `C` inside the pipeline step named `"model"`.
+
+## Functions
+
+Python functions are called with parentheses.
+
+```{python}
+round(3.14159, 2)
+```
+
+Named arguments use `name=value`.
+
+```{python}
+np.linspace(0, 1, num=5)
+```
+
+Many `sklearn` objects are created by calling a class with arguments:
+
+```{python}
+model = LinearRegression()
+model
+```
+
+## Indentation
+
+Python uses indentation to mark code blocks. R uses braces `{}`; Python uses indentation.
+
+For example, a `for` loop:
+
+```{python}
+for k in [1, 3, 5]:
+    print(k)
+```
+
+The indented line belongs to the loop. These notes use loops only when they are helpful for plotting or comparing models.
+
+## `numpy.array`
+
+The most important data structure for numerical computation is `numpy.array`.
+
+```{python}
+import numpy as np
+
+x = np.array([1, 2, 3, 4])
+x
+```
+
+An array has a shape.
+
+```{python}
+x.shape
+```
+
+For this object, the shape is `(4,)`. This means it is a one-dimensional array with 4 elements.
+
+### One-Dimensional Arrays
+
+A one-dimensional array behaves like a vector.
+
+```{python}
+x = np.array([10, 20, 30])
+x.ndim
+```
+
+```{python}
+x.shape
+```
+
+Indexing is zero-based.
+
+```{python}
+x[0]
+```
+
+Vectorized arithmetic works similarly to R.
+
+```{python}
+x + 1
+```
+
+```{python}
+x * 2
+```
+
+```{python}
+np.mean(x)
+```
+
+### Two-Dimensional Arrays
+
+A two-dimensional array is like a matrix.
+
+```{python}
+X = np.array(
+    [
+        [1, 2],
+        [3, 4],
+        [5, 6],
+    ]
+)
+
+X
+```
+
+Check the dimension and shape.
+
+```{python}
+X.ndim
+```
+
+```{python}
+X.shape
+```
+
+The shape is `(3, 2)`, meaning 3 rows and 2 columns.
+
+Indexing uses `[row, column]`.
+
+```{python}
+X[0, 1]
+```
+
+This is the entry in row 0 and column 1.
+
+Select a column:
+
+```{python}
+X[:, 0]
+```
+
+Select a row:
+
+```{python}
+X[1, :]
+```
+
+The colon `:` means "all indices" in that direction.
+
+## Dimensions and `sklearn`
+
+The most common Python issue in `sklearn` is array dimension.
+
+In `sklearn`, the predictor matrix `X` should be two-dimensional:
+
+$$
+X:\quad n\times p.
+$$
+
+The response vector `y` should usually be one-dimensional:
+
+$$
+y:\quad n.
+$$
+
+This means:
+
+```{python}
+X = np.array(
+    [
+        [1.0],
+        [2.0],
+        [3.0],
+        [4.0],
+    ]
+)
+
+y = np.array([1.2, 1.9, 3.1, 3.8])
+
+X.shape, y.shape
+```
+
+Here `X` has shape `(4, 1)`, not `(4,)`.
+
+### Why `(n, 1)` Matters
+
+Suppose we have one predictor.
+
+```{python}
+x = np.array([1.0, 2.0, 3.0, 4.0])
+x.shape
+```
+
+This has shape `(4,)`, so `sklearn` treats it as a one-dimensional object, not as a predictor matrix.
+
+Use `.reshape(-1, 1)` to convert it to a matrix with one column.
+
+```{python}
+X = x.reshape(-1, 1)
+X.shape
+```
+
+The `-1` means "infer this dimension from the data." In this case, Python infers 4 rows.
+
+This pattern appears often in the notes:
+
+```{python}
+test_x = np.linspace(0, 1, 101).reshape(-1, 1)
+test_x.shape
+```
+
+### Flattening Back to One Dimension
+
+Sometimes we want a one-dimensional array for plotting.
+
+```{python}
+X[:, 0]
+```
+
+or
+
+```{python}
+X.reshape(-1)
+```
+
+Both produce a one-dimensional array.
+
+### Arrays versus Lists
+
+Lists are general containers. Arrays are numerical objects.
+
+```{python}
+[1, 2, 3] + [4, 5, 6]
+```
+
+List addition concatenates.
+
+```{python}
+np.array([1, 2, 3]) + np.array([4, 5, 6])
+```
+
+Array addition is elementwise.
+
+For modeling and numerical work, use arrays or pandas data frames, not plain lists.
+
+## Random Numbers
+
+These notes often use `numpy` random number generators for simulation.
+
+```{python}
+rng = np.random.default_rng(1)
+
+x = rng.normal(size=5)
+x
+```
+
+The number `1` is a seed. It makes the random output reproducible.
+
+Some common random functions are:
+
+```{python}
+rng.normal(loc=0, scale=1, size=5)
+```
+
+```{python}
+rng.uniform(0, 1, size=5)
+```
+
+For a two-dimensional predictor matrix:
+
+```{python}
+X = rng.normal(size=(10, 3))
+X.shape
+```
+
+## Basic `sklearn` Workflow
+
+Most `sklearn` models use the same workflow.
+
+1. Create the model object.
+2. Fit the model with `.fit(X_train, y_train)`.
+3. Predict with `.predict(X_test)`.
+4. For classifiers, get probabilities with `.predict_proba(X_test)`.
+
+Example:
+
+```{python}
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.datasets import load_iris
+
+iris = load_iris()
+
+X = iris.data
+y = iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.3,
+    random_state=1,
+    stratify=y,
+)
+
+model = KNeighborsClassifier(n_neighbors=5)
+model.fit(X_train, y_train)
+
+pred = model.predict(X_test)
+prob = model.predict_proba(X_test)
+
+pred[:5]
+```
+
+Here:
+
+- `X_train` and `X_test` are two-dimensional arrays;
+- `y_train` and `y_test` are one-dimensional arrays;
+- `pred` contains predicted class labels;
+- `prob` contains predicted class probabilities.
+
+Check shapes:
+
+```{python}
+X_train.shape, y_train.shape, pred.shape, prob.shape
+```
+
+## Train-Test Split
+
+`train_test_split` is the standard way to create training and test sets.
+
+```{python}
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.3,
+    random_state=1,
+)
+```
+
+For classification, use `stratify=y` to preserve class proportions.
+
+```{python}
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.3,
+    random_state=1,
+    stratify=y,
+)
+```
+
+This is similar to making a random split in R, but the function returns all four objects at once.
+
+## Pipelines
+
+A pipeline chains preprocessing and modeling steps.
+
+```{python}
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+pipe = Pipeline(
+    steps=[
+        ("scaler", StandardScaler()),
+        ("model", LogisticRegression(max_iter=1000)),
+    ]
+)
+
+pipe.fit(X_train, y_train)
+pipe.predict(X_test)
+```
+
+Each step is a pair:
+
+```{python}
+#| eval: false
+("step_name", object)
+```
+
+Pipeline parameters use two underscores.
+
+```{python}
+pipe.get_params()["model__max_iter"]
+```
+
+## Cross-Validation and Grid Search
+
+Cross-validation evaluates a model over several train-validation splits.
+
+```{python}
+from sklearn.model_selection import cross_val_score
+
+scores = cross_val_score(
+    pipe,
+    X,
+    y,
+    cv=5,
+    scoring="accuracy",
+)
+
+scores
+```
+
+The mean score is:
+
+```{python}
+scores.mean()
+```
+
+Grid search tries several hyperparameter values.
+
+```{python}
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {
+    "model__C": [0.1, 1, 10],
+}
+
+grid = GridSearchCV(
+    pipe,
+    param_grid=param_grid,
+    cv=5,
+    scoring="accuracy",
+)
+
+grid.fit(X, y)
+grid.best_params_
+```
+
+The best fitted model is:
+
+```{python}
+grid.best_estimator_
+```
+
+## `matplotlib` Basics
+
+These notes use only basic `matplotlib`.
+
+The standard import is:
+
+```{python}
+import matplotlib.pyplot as plt
+```
+
+### Scatter Plot
+
+```{python}
+x = np.array([1, 2, 3, 4])
+y = np.array([1.1, 2.0, 2.8, 4.2])
+
+plt.scatter(x, y)
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Scatter Plot")
+plt.show()
+```
+
+### Line Plot
+
+```{python}
+x_grid = np.linspace(0, 2 * np.pi, 200)
+y_grid = np.sin(x_grid)
+
+plt.plot(x_grid, y_grid)
+plt.xlabel("x")
+plt.ylabel("sin(x)")
+plt.title("Line Plot")
+plt.show()
+```
+
+### Scatter and Line Together
+
+```{python}
+rng = np.random.default_rng(1)
+
+x = rng.uniform(0, 2 * np.pi, size=30)
+y = np.sin(x) + rng.normal(scale=0.2, size=30)
+x_grid = np.linspace(0, 2 * np.pi, 200)
+
+plt.scatter(x, y, facecolors="none", edgecolors="black")
+plt.plot(x_grid, np.sin(x_grid), color="C1")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Data and Curve")
+plt.show()
+```
+
+This pattern appears often when we plot data points and a fitted curve.
+
+### Multiple Plots
+
+Use `plt.subplots` for multiple panels.
+
+```{python}
+fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+
+axs[0].scatter(x, y)
+axs[0].set_title("scatter")
+
+axs[1].plot(x_grid, np.sin(x_grid))
+axs[1].set_title("line")
+
+plt.show()
+```
+
+Notice that when using axes objects, we write `ax.set_title()` instead of `plt.title()`.
+
+### Histograms
+
+```{python}
+z = rng.normal(size=200)
+
+plt.hist(z, bins=20, edgecolor="black")
+plt.xlabel("z")
+plt.ylabel("count")
+plt.title("Histogram")
+plt.show()
+```
+
+## Common Errors
+
+### One-Dimensional `X`
+
+The most common error is passing a one-dimensional predictor array to `sklearn`.
+
+Bad:
+
+```{python}
+#| eval: false
+x = np.array([1, 2, 3, 4])
+model.fit(x, y)
+```
+
+Good:
+
+```{python}
+#| eval: false
+X = x.reshape(-1, 1)
+model.fit(X, y)
+```
+
+### Forgetting Parentheses
+
+In Python, methods need parentheses.
+
+```{python}
+#| eval: false
+model.fit(X_train, y_train)
+model.predict(X_test)
+```
+
+Writing `model.predict` without parentheses refers to the method itself, but does not call it.
+
+### Class Name versus Model Object
+
+Another common mistake is confusing an `sklearn` class with an object created from that class.
+
+For example, `DecisionTreeClassifier` is the class itself.
+
+```{python}
+#| eval: false
+from sklearn.tree import DecisionTreeClassifier
+
+DecisionTreeClassifier
+```
+
+To create a model object, call the class with parentheses.
+
+```{python}
+#| eval: false
+model = DecisionTreeClassifier()
+```
+
+Arguments go inside the parentheses.
+
+```{python}
+#| eval: false
+model = DecisionTreeClassifier(max_depth=3)
+model.fit(X_train, y_train)
+```
+
+Do not write:
+
+```{python}
+#| eval: false
+model = DecisionTreeClassifier
+model.fit(X_train, y_train)
+```
+
+The first version creates an estimator object. The second version only stores the class itself, so `.fit()` will not work as intended.
+
+### Mixing Lists and Arrays
+
+Use arrays for elementwise numerical operations.
+
+```{python}
+np.array([1, 2, 3]) * 2
+```
+
+Plain lists do not always behave like numerical vectors.
+
+## Summary
+
+For the rest of these notes, the most important Python ideas are:
+
+- indexing starts at 0;
+- lists store ordered objects;
+- dictionaries store key-value pairs;
+- `numpy.array` is the basic numerical vector or matrix object;
+- `X` in `sklearn` should be two-dimensional;
+- `y` is usually one-dimensional;
+- `.reshape(-1, 1)` converts one predictor into a one-column matrix;
+- `sklearn` models use `.fit()`, `.predict()`, and often `.predict_proba()`;
+- `matplotlib.pyplot` is used for basic scatter plots, line plots, histograms, and subplots.

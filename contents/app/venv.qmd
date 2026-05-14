@@ -2,200 +2,400 @@
 jupyter: stats
 ---
 
+# Python Virtual Environments with `uv`
 
+A Python virtual environment is a project-specific Python installation plus a project-specific set of packages. It prevents one project from breaking another project when packages are installed or upgraded.
 
+For this course, the recommended tool is `uv`.
 
+[`uv`](https://docs.astral.sh/uv/) is a Python package and project manager written in Rust. It can:
 
+- install and manage Python versions,
+- create virtual environments,
+- install packages,
+- manage `pyproject.toml`,
+- create and use lock files,
+- run commands inside the project environment.
 
-# Python Virtual Environment
+You may still see `pip`, `venv`, and `conda` in Python tutorials. They are useful tools, but for this course `uv` is the default recommendation because it is fast, consistent, and works well with modern Python projects.
 
+## Package and Environment Tools
 
+There are several common tools in the Python ecosystem.
 
+| Tool | Main role |
+|---|---|
+| `uv` | Project manager, package installer, virtual environment manager, Python version manager. |
+| `pip` | Traditional Python package installer. |
+| `venv` | Built-in Python virtual environment tool. |
+| `conda` | Environment and package manager, especially common in scientific computing. |
 
-## Package management
-There are two most popular package management tools for Python, `pip` and `conda`. 
+`pip` and `venv` are standard Python tools. `conda` is common in data science and can install non-Python libraries. `uv` covers the workflow we need in this course and is the tool emphasized here.
 
-- [`pip`](https://pip.pypa.io/) is the official package management tool for Python. 
-- [`conda`](https://github.com/conda/conda) was originally developed by Anaconda Inc., and later became open-sourced. 
+::: {.callout-note}
+## Recommendation
 
-In this course, we mainly focus on `conda` since it is designed towards Data Science.
+Use `uv` for this course unless you have a strong reason to use `conda`.
 
-1. Install packages. You may specify the particular version number.
-
-```{.bash}
-conda install <pkg name>
-conda install <pkg name>=<version number>
-```
-
-2. List all installed packages, or list several specific installed packages:
-
-```{.bash}
-conda list
-conda list <pkg names>
-```
-
-3. Update packages.
-
-```{.bash}
-conda updata <pkg name>
-```
-
-4. Remove packages.
-
-```{.bash}
-conda remove <pkg name>
-```
-5. If the packages you want is in `PyPI` but not in `conda` channels, you may use `pip` to install that package.
-
-```{.bash}
-pip install <pkg name>
-```
-Note that if the package is in both `conda` channels and `PyPI`, it is recommended not to mix `pip` and `conda`. If you start from `conda`, just stick to `conda`. Only use `pip` when you have to.
-
-
-
-::: {.callout-note collapse="true"}
-## `PyPI` and `conda-forge`
-
-The package managemers will download packages from online repository to install in your environment. By default, `pip` and `conda` use two different repositories. 
-
-- [`PyPI`](https://pypi.org/): `PyPI` stands for *Python Package Index*. It is the official third-party software repository for Python. `pip` use it as the default source for packages and their dependencies. Packages on `PyPI` are typically uploaded by the author of the Python package. 
-- [`conda-forge`](https://conda-forge.org/): Anaconda, Inc. provides several channels that host packages. `Conda-Forge` is one of the most important channels. Although it is a community project, it is now the recommended channel to get packages through `conda`. In `conda-forge`, package maintainers can be different than the original author of the package. 
-
-Usually `PyPI` contains more packages than `conda-forge`, and the versions of packages get to `PyPI` faster. However, when using `conda` through `conda-forge`, more safty checks are done and `conda` will try its best to make the installed packages compatible. 
-
-To install from `conda-forge` using `conda`, you should add an argument `-c`:
-
-```{.bash}
-conda install -c conda-forge <pkg name>
-```
+If you already use `conda` successfully, you do not need to remove it. Just avoid mixing tools inside the same environment unless you know why.
 :::
 
+## Installing `uv`
 
+Install `uv` from the official instructions:
 
+<https://docs.astral.sh/uv/getting-started/installation/>
 
-
-## Virtual environments
-Virtual environments provide a project-specific version of installed packages. This both helps you to faithfully reproduce your environment as well as isolate the use of packages so that upgrading a package in one project doesn’t break other projects. In this section we are going to use `conda` to manage environments. The main reference is the official [document](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html). We will just list the minimal working examples here. For more functions please read the official document. 
-
-1. To create an environment:
-
-```{.bash}
-conda create --name <env name>
-```
-
-2. To activate an environment:
+After installation, check that it works:
 
 ```{.bash}
-conda activate <env name>
+uv --version
 ```
 
-After you create a new environment and activate it, you may start to use the commands from the previous section to install packages.
+On Windows, you may need to restart VS Code or open a new terminal after installation.
 
-3. To deactivate an environment:
+## Creating a Project Environment
+
+In a project folder, create a virtual environment with:
 
 ```{.bash}
-conda deactivate
+uv venv
 ```
 
-4. To remove an environemnt, both of the following commands work:
+By default, this creates a folder named `.venv`.
+
+The `.venv` folder contains the Python environment for the project. It should usually not be committed to Git.
+
+To request a specific Python version:
 
 ```{.bash}
-conda remove --name <env name> --all
-conda env remove -n <env name>
+uv venv --python 3.12
 ```
 
-5. To get all enviroments in the system:
+If that Python version is not installed, `uv` can usually download and manage it.
+
+## Activating the Environment
+
+On Windows Command Prompt:
 
 ```{.bash}
-conda env list
-conda info --envs
+.venv\Scripts\activate
 ```
 
+On Windows PowerShell:
 
+```{.bash}
+.venv\Scripts\Activate.ps1
+```
 
-::: {.callout-note collapse="true"}
-## `pip` and `venv`
-Unlike `conda`, `pip` is only a package manager, and it doesn't provide any virtual environment functions. The default virtual environment tool for Python is `venv`. You may go to the official [document](https://docs.python.org/3/library/venv.html) for more infomation about `venv`.
+On macOS or Linux:
+
+```{.bash}
+source .venv/bin/activate
+```
+
+After activation, your terminal prompt usually shows the environment name.
+
+To deactivate:
+
+```{.bash}
+deactivate
+```
+
+::: {.callout-note}
+## Activation is optional with `uv run`
+
+With `uv`, you can often avoid manual activation by using `uv run`.
+
+For example:
+
+```{.bash}
+uv run python
+uv run quarto render
+```
+
+`uv run` runs the command inside the project environment.
 :::
 
+## Installing Packages
 
+For this course, the main packages are:
 
+- `numpy`,
+- `pandas`,
+- `matplotlib`,
+- `scikit-learn`,
+- `statsmodels`,
+- `jupyter`,
+- `ipykernel`.
 
-## Building identical environments
-Sometimes people want to build identical environments. This is done by recording the versions of all packages in the current environment into a spec list file. When rebuilding Python will pull the spec list file out and install the packages of the speicific versions based on the list.
-
-In the process, there are two steps. First generate the pacakge spec list file. Second create an environment based on the list. Note that the spec list file generated by different methods have different formats. Therefore you have to use the correct command to restore the environment.
-
-### Using `conda`
-To produce a spec list, use the following command:
-
-```{.bash}
-conda list --explicit > spec-file.txt
-```
-To install the packages, use the following command:
+Install them with:
 
 ```{.bash}
-conda create --name <env name> --file spec-file.txt
+uv pip install numpy pandas matplotlib scikit-learn statsmodels jupyter ipykernel
 ```
 
-A typical `conda` environment file looks like the following example.
+This command installs packages into the current virtual environment.
 
-```{.txt}
-# This file may be used to create an environment using:
-# $ conda create --name <env> --file <this file>
-# platform: win-64
-@EXPLICIT
-https://repo.anaconda.com/pkgs/main/win-64/conda-env-2.6.0-1.conda
-https://repo.anaconda.com/pkgs/r/win-64/_r-mutex-1.0.0-anacondar_1.conda
-https://repo.anaconda.com/pkgs/main/win-64/blas-1.0-mkl.conda
+If the environment is not activated, use:
+
+```{.bash}
+uv pip install --python .venv numpy pandas matplotlib scikit-learn statsmodels jupyter ipykernel
 ```
 
+In many project workflows, it is better to add dependencies to `pyproject.toml`:
 
+```{.bash}
+uv add numpy pandas matplotlib scikit-learn statsmodels jupyter ipykernel
+```
 
-### Using `pip freeze`
-The classic popular way is `pip freeze`. To produce a spec list, use the following command:
+This records the dependencies as part of the project.
+
+## Project Files: `pyproject.toml` and `uv.lock`
+
+Modern Python projects often use `pyproject.toml` to record project metadata and dependencies.
+
+A simple dependency section may look like:
+
+```{.toml}
+[project]
+dependencies = [
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "scikit-learn",
+    "statsmodels",
+    "jupyter",
+    "ipykernel",
+]
+```
+
+`uv.lock` records exact package versions. This helps rebuild the same environment later.
+
+The usual files are:
+
+- `pyproject.toml`: project dependencies and settings;
+- `uv.lock`: exact locked package versions;
+- `.venv/`: local virtual environment folder.
+
+Usually `pyproject.toml` and `uv.lock` are committed to Git. The `.venv/` folder is not.
+
+## Syncing an Existing Project
+
+If a project already has `pyproject.toml` and `uv.lock`, use:
+
+```{.bash}
+uv sync
+```
+
+This creates or updates `.venv` so that it matches the lock file.
+
+Then run Python commands with:
+
+```{.bash}
+uv run python
+```
+
+or activate the environment and use `python` directly.
+
+## Running Jupyter with the Environment
+
+VS Code can usually detect `.venv` automatically. In a notebook, click `Select Kernel` and choose the `.venv` environment.
+
+If the environment does not appear, install and register an IPython kernel:
+
+```{.bash}
+uv run python -m ipykernel install --user --name stats --display-name "Python (stats)"
+```
+
+Here `stats` is the kernel name. The display name is what you see in VS Code or Jupyter.
+
+This is useful for Quarto documents that contain:
+
+```{.yaml}
+jupyter: stats
+```
+
+After registering the kernel, check available kernels with:
+
+```{.bash}
+uv run jupyter kernelspec list
+```
+
+## Common `uv` Commands
+
+Create a virtual environment:
+
+```{.bash}
+uv venv
+```
+
+Create a virtual environment with a specific Python version:
+
+```{.bash}
+uv venv --python 3.12
+```
+
+Install packages into the environment:
+
+```{.bash}
+uv pip install numpy pandas matplotlib scikit-learn
+```
+
+Add dependencies to the project:
+
+```{.bash}
+uv add numpy pandas matplotlib scikit-learn
+```
+
+Remove a dependency:
+
+```{.bash}
+uv remove scikit-learn
+```
+
+Synchronize from `pyproject.toml` and `uv.lock`:
+
+```{.bash}
+uv sync
+```
+
+Run a command inside the environment:
+
+```{.bash}
+uv run python
+```
+
+Run Quarto inside the environment:
+
+```{.bash}
+uv run quarto render
+```
+
+Show installed packages:
+
+```{.bash}
+uv pip list
+```
+
+## `uv pip` versus `uv add`
+
+There are two common ways to install packages.
+
+Use `uv pip install` for quick one-time installation:
+
+```{.bash}
+uv pip install scikit-learn
+```
+
+Use `uv add` when the package should be recorded as a project dependency:
+
+```{.bash}
+uv add scikit-learn
+```
+
+For course projects, `uv add` is usually better because it updates `pyproject.toml` and the lock file.
+
+For quick experiments, `uv pip install` is fine.
+
+## How `pip` Fits In
+
+`pip` is the traditional Python package installer.
+
+The classic workflow is:
+
+```{.bash}
+python -m venv .venv
+.venv\Scripts\activate
+pip install numpy pandas matplotlib scikit-learn
+```
+
+This still works. `uv` provides a faster and more project-oriented version of this workflow.
+
+Many `pip` commands have a `uv pip` equivalent:
+
+```{.bash}
+pip install scikit-learn
+uv pip install scikit-learn
+```
+
+For this course, prefer the `uv` version.
+
+## How `conda` Fits In
+
+`conda` is an environment and package manager often used in data science. It is especially useful when a project needs non-Python system libraries or packages that are easier to install from `conda-forge`.
+
+A typical `conda` workflow is:
+
+```{.bash}
+conda create --name stats python=3.12
+conda activate stats
+conda install -c conda-forge numpy pandas matplotlib scikit-learn jupyter
+```
+
+This is a reasonable alternative if your machine already uses `conda`.
+
+However, avoid mixing `conda`, `pip`, and `uv` casually inside the same environment. Pick one main tool for a project.
+
+::: {.callout-caution}
+## Do not mix tools unnecessarily
+
+If a project is managed by `uv`, install project packages with `uv`.
+
+If a project is managed by `conda`, install packages with `conda` when possible.
+
+Mixing tools can make environments harder to reproduce.
+:::
+
+## Reproducibility
+
+The old `pip` workflow often used:
 
 ```{.bash}
 pip freeze > requirements.txt
-```
-To install the packages, use the following command:
-
-```{.bash}
 pip install -r requirements.txt
 ```
 
-A typical `pip requirements.txt` file looks like the following example.
+This can work, but it is not ideal for project management.
 
-```{.txt}
-anyio @ file:///C:/ci/anyio_1644481856696/work/dist
-argon2-cffi @ file:///opt/conda/conda-bld/argon2-cffi_1645000214183/work
-argon2-cffi-bindings @ file:///C:/ci/argon2-cffi-bindings_1644569876605/work
-asttokens==2.0.7
-attrs @ file:///C:/b/abs_09s3y775ra/croot/attrs_1668696195628/work
-Babel @ file:///tmp/build/80754af9/babel_1620871417480/work
-backcall==0.2.0
+With `uv`, the preferred reproducibility workflow is:
+
+```{.bash}
+uv add numpy pandas matplotlib scikit-learn statsmodels jupyter ipykernel
+uv lock
 ```
 
+Then another user can recreate the environment with:
 
-::: {.callout-note}
-Actually both ways are NOT satisfying. Therefore there are a lot of new tools coming out to deal with this task, like `uv`, which uses a now-standard project configuration file called `pyproject.toml` to replace `requirements.txt`. Here for simplicity we skip this part.
-:::
+```{.bash}
+uv sync
+```
 
+This uses `pyproject.toml` and `uv.lock` instead of a manually maintained `requirements.txt`.
 
+## Recommended Course Setup
 
+For a new course project:
 
+1. Open the project folder in VS Code.
+2. Create the environment:
 
+```{.bash}
+uv venv --python 3.12
+```
 
+3. Add the course packages:
 
+```{.bash}
+uv add numpy pandas matplotlib scikit-learn statsmodels jupyter ipykernel
+```
 
-## `uv` and `mamba`
+4. Register the Jupyter kernel if needed:
 
-### `uv`
-[`uv`](https://docs.astral.sh/uv/) is a new Python package and project manager, written in Rust. Besides all its other functionalities, it can be treated as a drop-in replacement of `pip`. All commands we mentioned above can be rewritten by replacing `pip` with `uv pip`. `uv` fix many issues of Python built-in package and project managers. In addition it runs much faster.
+```{.bash}
+uv run python -m ipykernel install --user --name stats --display-name "Python (stats)"
+```
 
-### `mambda`
-[`mamba`](https://github.com/mamba-org/mamba) is a reimplementation of the `conda` package manager in `C++`. It can be treated as a drop-in replacement of `conda`. All commands we mentioned above can be rewritten by replacing `conda` with `mamba`. One of the reasons to use `mamba` over `conda` is that `mamba` runs so much faster than `conda`.
+5. In VS Code, select the `.venv` or `"Python (stats)"` kernel.
 
-
-
+After this setup, Python, Jupyter, Quarto, and `sklearn` should use the same project environment.

@@ -143,8 +143,143 @@ Good statistical learning aims to minimize test error, not merely training error
 
 A central idea in statistical learning is the **bias-variance tradeoff**.
 
-- A simple model tends to have higher bias but lower variance.
-- A flexible model tends to have lower bias but higher variance.
+To see the mathematical form, suppose the true data-generating model is
+
+$$
+Y=f(X)+\varepsilon,
+$$
+
+where
+
+$$
+\Exp[\varepsilon]=0,
+\qquad
+\Var(\varepsilon)=\sigma^2.
+$$
+
+After fitting a model to a training set, we obtain an estimator $\hat f$. If we predict at a new point $x_0$, the test mean squared error is
+
+$$
+\Exp\left[
+\left(Y_0-\hat f(x_0)\right)^2
+\right],
+$$
+
+where
+
+$$
+Y_0=f(x_0)+\varepsilon_0.
+$$
+
+The expectation is over both the randomness in the training data used to fit $\hat f$ and the new noise $\varepsilon_0$.
+
+Add and subtract $\Exp[\hat f(x_0)]$:
+
+$$
+\begin{aligned}
+\Exp\left[
+\left(Y_0-\hat f(x_0)\right)^2
+\right]
+&=
+\Exp\left[
+\left(
+f(x_0)+\varepsilon_0-\hat f(x_0)
+\right)^2
+\right] \\
+&=
+\Exp\left[
+\left(
+f(x_0)-\hat f(x_0)
+\right)^2
+\right]
++
+\sigma^2.
+\end{aligned}
+$$
+
+Now write
+
+$$
+f(x_0)-\hat f(x_0)
+=
+\left\{f(x_0)-\Exp[\hat f(x_0)]\right\}
++
+\left\{\Exp[\hat f(x_0)]-\hat f(x_0)\right\}.
+$$
+
+The cross term has expectation zero, so
+
+$$
+\Exp\left[
+\left(
+f(x_0)-\hat f(x_0)
+\right)^2
+\right]
+=
+\left(
+f(x_0)-\Exp[\hat f(x_0)]
+\right)^2
++
+\Var(\hat f(x_0)).
+$$
+
+Therefore,
+
+$$
+\boxed{
+\Exp\left[
+\left(Y_0-\hat f(x_0)\right)^2
+\right]
+=
+\operatorname{Bias}^2(\hat f(x_0))
++
+\operatorname{Var}(\hat f(x_0))
++
+\sigma^2
+}
+$$
+
+where
+
+$$
+\operatorname{Bias}(\hat f(x_0))
+=
+\Exp[\hat f(x_0)]-f(x_0),
+$$
+
+and
+
+$$
+\operatorname{Var}(\hat f(x_0))
+=
+\Exp\left[
+\left(
+\hat f(x_0)-\Exp[\hat f(x_0)]
+\right)^2
+\right].
+$$
+
+The three terms have different meanings:
+
+- **bias squared** measures systematic error from using a model that is too simple or structurally wrong;
+- **variance** measures sensitivity to the particular training sample;
+- **irreducible error** $\sigma^2$ is noise in the response that cannot be removed by any model using $X$.
+
+::: {.callout-note}
+## Irreducible error
+
+Even if we knew the true function $f$, the new response would still be
+
+$$
+Y_0=f(x_0)+\varepsilon_0.
+$$
+
+The noise term $\varepsilon_0$ creates error that prediction methods cannot eliminate.
+:::
+
+A simple model tends to have high bias but low variance. For example, fitting a straight line to a strongly nonlinear relationship creates systematic error, but the fitted line may be stable across training samples.
+
+A flexible model tends to have lower bias but higher variance. For example, a very deep tree may adapt to nonlinear structure, but small changes in the training data can produce a very different tree.
 
 As model flexibility increases:
 
@@ -152,6 +287,14 @@ As model flexibility increases:
 - test error often decreases at first, then increases once overfitting begins.
 
 The goal is to find a level of complexity that balances bias and variance well.
+
+This gives the usual U-shaped test-error curve:
+
+| Model behavior | Bias | Variance | Typical result |
+|---|---:|---:|---|
+| Too simple | high | low | underfitting |
+| Balanced | moderate | moderate | good generalization |
+| Too flexible | low | high | overfitting |
 
 ::: {.callout-important}
 ## Why This Matters

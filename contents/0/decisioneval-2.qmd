@@ -547,6 +547,82 @@ These goals are related, but they are not identical.
 
 A model can have good AUC and poor calibration. A model can have good accuracy and poor recall. A model can have high recall and poor precision.
 
+## Bias-Variance in Classification Evaluation
+
+The bias-variance tradeoff also appears in classification, but it is easiest to state for probability estimation.
+
+Suppose the true conditional probability is
+
+$$
+p(x)=P(Y=1\mid X=x),
+$$
+
+and a fitted model estimates this probability by
+
+$$
+\hat p(x).
+$$
+
+At a fixed point $x_0$, the Brier loss is squared error for a binary outcome:
+
+$$
+\left(Y_0-\hat p(x_0)\right)^2.
+$$
+
+Since
+
+$$
+Y_0\mid X=x_0\sim \operatorname{Bernoulli}(p(x_0)),
+$$
+
+the conditional variance of $Y_0$ is
+
+$$
+\Var(Y_0\mid X=x_0)
+=
+p(x_0)(1-p(x_0)).
+$$
+
+The expected Brier loss decomposes as
+
+$$
+\begin{aligned}
+\Exp\left[
+\left(Y_0-\hat p(x_0)\right)^2
+\right]
+&=
+\Exp\left[
+\left(p(x_0)-\hat p(x_0)\right)^2
+\right]
++
+p(x_0)(1-p(x_0)) \\
+&=
+\operatorname{Bias}^2(\hat p(x_0))
++
+\operatorname{Var}(\hat p(x_0))
++
+p(x_0)(1-p(x_0)).
+\end{aligned}
+$$
+
+Thus, for probability estimation:
+
+- bias means the model systematically estimates probabilities too high or too low;
+- variance means the estimated probabilities change a lot across training samples;
+- $p(x_0)(1-p(x_0))$ is irreducible Bernoulli noise.
+
+This is why probability-quality metrics such as Brier score and log loss are closely connected to the bias-variance tradeoff.
+
+Flexible classifiers, such as deep trees and random forests, may reduce bias by capturing nonlinear structure, but their raw probability estimates may have higher variance or poor calibration. Simpler or regularized models may have higher bias but more stable probability estimates.
+
+::: {.callout-note}
+## Thresholds and bias-variance
+
+Changing the classification threshold does not change $\hat p(x)$ itself. It changes the decision rule built on top of $\hat p(x)$.
+
+So threshold tuning trades off false positives and false negatives. Model tuning trades off bias and variance in the fitted scores or probabilities.
+:::
+
 ## Calibration
 
 Calibration asks whether predicted probabilities are numerically meaningful.
@@ -690,6 +766,8 @@ pd.Series(y_test).value_counts().sort_index()
 ```
 
 We fit logistic regression and a random forest. Logistic regression is often a strong baseline for calibrated probabilities. Random forests often have strong classification performance but may produce less calibrated probabilities.
+
+This comparison is also a bias-variance example. Logistic regression is less flexible and may have more bias if the true boundary is nonlinear. The random forest is more flexible and can reduce bias, but its probability estimates may need calibration.
 
 ```{python}
 from sklearn.pipeline import make_pipeline
