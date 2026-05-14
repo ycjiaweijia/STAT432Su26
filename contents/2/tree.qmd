@@ -628,7 +628,7 @@ import matplotlib.pyplot as plt
 
 best_alpha = 0.05
 
-fig, ax = plt.subplots(2, 1, figsize=(7, 7))
+fig, ax = plt.subplots(2, 1, figsize=(7, 7), sharex=True)
 
 ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")  # <1>
 ax[1].plot(ccp_alphas, train_acc, marker="o", drawstyle="steps-post", label="train")
@@ -684,23 +684,31 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 ```
 
 
-The overall workflow is similar to the `iris` example. The main difference is that we use cross-validation instead of a single validation split.
+
+The overall workflow is similar to the `iris` example. In this example, we choose to use cross-validation instead of a single validation split in order to obtain a more stable estimate of model performance. This is not specific to regression trees; either approach can be used for both classification and regression problems.
 
 We first create a temporary tree to compute the critical `ccp_alpha` values. The method `cost_complexity_pruning_path()` internally grows a tree in order to compute the effective pruning path, although the estimator itself is not stored as a fitted model.
 
 
 
-We first generate a `tmp_tree` which is only used to get the critical `ccp_alpha`. Note that the method `cost_complexity_pruning_path()` internally grows a tree in order to compute the effective pruning path, although the estimator itself is not stored as a fitted model.
 
 ```{python}
 from sklearn.tree import DecisionTreeRegressor
 
-tmp_tree = DecisionTreeRegressor(random_state=1)
-path = tmp_tree.cost_complexity_pruning_path(X_train, y_train)
+base_tree = DecisionTreeRegressor(random_state=1)
+path = base_tree.cost_complexity_pruning_path(X_train, y_train)
 ccp_alphas = path.ccp_alphas[:-1]
 ```
 
-Now run `GridSearchCV` on these `ccp_alphas`. Note that we use $R^2$ as our model metric in this example.
+
+This follows the classical CART pruning strategy:
+
+1. Grow a large tree.
+2. Compute the pruning path.
+3. Use validation or cross-validation to select the final subtree.
+
+Now we run `GridSearchCV` over these `ccp_alpha` values. We use $R^2$ as the model metric in this example. 
+
 
 ```{python}
 from sklearn.model_selection import GridSearchCV
@@ -724,11 +732,10 @@ print(f"Testing R^2: {r2_score(y_test, y_pred_test)}")
 ```
 
 
-We could visualize the validation curve. Note that only the metric is recorded in the cross-validation results. If we want to display the model complexity like the number of nodes, we need to refit all the model again.
-
+We can visualize the cross-validation curve. `GridSearchCV` records validation scores, but it does not automatically record tree complexity measures such as the number of nodes. Therefore, if we want to display the complexity curve, we need to refit the models for the same `ccp_alpha` values and record their node counts.
 
 ```{python}
-cv_test_score = grid.cv_results_['mean_test_score']
+cv_score = grid.cv_results_["mean_test_score"]
 
 node_counts = []
 for ccp_alpha in ccp_alphas:
@@ -736,34 +743,32 @@ for ccp_alpha in ccp_alphas:
     tree.fit(X_train, y_train)
     node_counts.append(tree.tree_.node_count)
 
-best_alpha = grid.best_params_['ccp_alpha']
+best_alpha = grid.best_params_["ccp_alpha"]
 
-fig, ax = plt.subplots(2, 1, figsize=(7, 7))
+fig, ax = plt.subplots(2, 1, figsize=(7, 7), sharex=True)
 
-ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")  # <1>
-ax[1].plot(ccp_alphas, cv_test_score, marker="o", drawstyle="steps-post", label="cv score")
+ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")
+ax[1].plot(ccp_alphas, cv_score, marker="o", drawstyle="steps-post", label="CV score")
 
 ax[0].axvline(best_alpha, color="black", linestyle="--", label="best ccp_alpha")
 ax[1].axvline(best_alpha, color="black", linestyle="--", label="best ccp_alpha")
 
 ax[1].set_xlabel("ccp_alpha")
 ax[0].set_ylabel("number of nodes")
-ax[1].set_ylabel("R^2")
+ax[1].set_ylabel("CV $R^2$")
 
 ax[0].legend()
 ax[1].legend(loc="lower left")
 ```
 
 
-From the plot, our choice of `ccp_alpha`=`{python} best_alpha` is reasonable.
-
+From the plot, our selected `ccp_alpha`=`{python} best_alpha` is reasonable since it gives a relative strong cross-validation score without producing an unnecessarily large tree.
 
 
 
 ::: {.callout-warning}
-A single regression tree often has relatively unstable predictive performance on moderate-sized datasets. This is one reason why ensemble methods such as Random Forest and Boosting are often preferred in practice.
+A single regression tree often has unstable predictive performance on moderate-sized noisy datasets. Therefore, the test $R^2$ may not look high in this example. This is one reason why ensemble methods such as random forests and boosting are often preferred in practice.
 :::
-
 
 
 
@@ -852,480 +857,3 @@ For more reliable importance measures, ensembles and permutation importance are 
 
 
 
-
-
-
-
-
-
-
-
-```{python}
-#| eval: false
-#| echo: false
-import numpy as np
-import pandas as pd
-
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import RidgeCV
-from sklearn.metrics import mean_squared_error, r2_score
-from xgboost import XGBRegressor
-
-# ============================================================
-# Simulate a dense linear signal
-# ============================================================
-
-rng = np.random.default_rng(42)
-
-n = 600
-p = 200
-
-# Correlated predictors
-Sigma = 0.7 * np.ones((p, p)) + 0.3 * np.eye(p)
-
-X = rng.multivariate_normal(mean=np.zeros(p), cov=Sigma, size=n)
-
-# Dense linear coefficients:
-# many predictors contribute small effects
-beta = rng.normal(0, 0.15, size=p)
-
-# Linear signal
-y = X @ beta + rng.normal(0, 1.5, size=n)
-
-# ============================================================
-# Train / test split
-# ============================================================
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.3, random_state=1
-)
-
-# ============================================================
-# Ridge Regression
-# ============================================================
-
-ridge = RidgeCV(alphas=np.logspace(-3, 3, 100))
-
-ridge.fit(X_train, y_train)
-
-ridge_pred = ridge.predict(X_test)
-
-# ============================================================
-# XGBoost
-# ============================================================
-
-xgb = XGBRegressor(
-    n_estimators=500,
-    learning_rate=0.05,
-    max_depth=4,
-    subsample=0.8,
-    colsample_bytree=0.8,
-    random_state=1,
-)
-
-xgb.fit(X_train, y_train)
-
-xgb_pred = xgb.predict(X_test)
-
-# ============================================================
-# Evaluation
-# ============================================================
-
-results = pd.DataFrame(
-    {
-        "Model": ["Ridge", "XGBoost"],
-        "Test MSE": [
-            mean_squared_error(y_test, ridge_pred),
-            mean_squared_error(y_test, xgb_pred),
-        ],
-        "Test R2": [r2_score(y_test, ridge_pred), r2_score(y_test, xgb_pred)],
-    }
-)
-
-print(results)
-```
-
-
-
-
-
-```{python}
-#| eval: false
-#| echo: false
-import numpy as np
-import pandas as pd
-
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.linear_model import Ridge
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error, r2_score
-
-from xgboost import XGBRegressor
-
-
-def simulate_dense_linear(n=600, p=200, rho=0.7, noise_sd=1.5, seed=42):
-    rng = np.random.default_rng(seed)
-
-    Sigma = rho * np.ones((p, p)) + (1 - rho) * np.eye(p)
-
-    X = rng.multivariate_normal(mean=np.zeros(p), cov=Sigma, size=n)
-
-    # Dense linear signal: many predictors all matter a little
-    beta = rng.normal(0, 0.15, size=p)
-
-    y = X @ beta + rng.normal(0, noise_sd, size=n)
-
-    return X, y
-
-
-def fit_best_models(X_train, y_train):
-    ridge_pipe = make_pipeline(StandardScaler(), Ridge())
-
-    ridge_grid = {"ridge__alpha": np.logspace(-3, 4, 30)}
-
-    ridge_cv = GridSearchCV(
-        ridge_pipe,
-        ridge_grid,
-        cv=5,
-        scoring="neg_mean_squared_error",
-        n_jobs=-1,
-    )
-
-    xgb = XGBRegressor(objective="reg:squarederror", random_state=42, n_jobs=-1)
-
-    xgb_grid = {
-        "n_estimators": [200, 500, 1000],
-        "learning_rate": [0.03, 0.05, 0.1],
-        "max_depth": [2, 3, 4],
-        "subsample": [0.7, 0.9],
-        "colsample_bytree": [0.7, 0.9],
-        "reg_lambda": [1, 5, 10],
-    }
-
-    xgb_cv = GridSearchCV(
-        xgb, xgb_grid, cv=5, scoring="neg_mean_squared_error", n_jobs=-1
-    )
-
-    ridge_cv.fit(X_train, y_train)
-    xgb_cv.fit(X_train, y_train)
-
-    return ridge_cv, xgb_cv
-
-
-all_results = []
-
-n_repeats = 1
-
-for seed in range(n_repeats):
-    X, y = simulate_dense_linear(seed=seed)
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.3, random_state=seed
-    )
-
-    ridge_cv, xgb_cv = fit_best_models(X_train, y_train)
-
-    models = {"Ridge": ridge_cv, "XGBoost": xgb_cv}
-
-    for name, model in models.items():
-        pred = model.predict(X_test)
-
-        all_results.append(
-            {
-                "seed": seed,
-                "model": name,
-                "test_mse": mean_squared_error(y_test, pred),
-                "test_r2": r2_score(y_test, pred),
-                "best_params": model.best_params_,
-            }
-        )
-
-
-results = pd.DataFrame(all_results)
-
-print(results[["seed", "model", "test_mse", "test_r2"]])
-
-summary = results.groupby("model").agg(
-    mean_mse=("test_mse", "mean"),
-    sd_mse=("test_mse", "std"),
-    mean_r2=("test_r2", "mean"),
-    sd_r2=("test_r2", "std"),
-)
-
-print("\nSummary:")
-print(summary)
-
-print("\nBest parameters by run:")
-for _, row in results.iterrows():
-    print(row["seed"], row["model"], row["best_params"])
-```
-
-
-
-
-
-
-
-
-
-
-
-
-```{python}
-#| eval: false
-#| echo: false
-import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.datasets import make_moons
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import zero_one_loss
-
-
-# ============================================================
-# Clean nonlinear classification dataset
-# ============================================================
-
-X, y = make_moons(n_samples=1200, noise=0.08, random_state=2)
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.5, stratify=y, random_state=2
-)
-
-
-# ============================================================
-# AdaBoost with decision stumps
-# ============================================================
-
-ada = AdaBoostClassifier(
-    estimator=DecisionTreeClassifier(max_depth=1),
-    n_estimators=1000,
-    learning_rate=0.1,
-    random_state=2,
-)
-
-ada.fit(X_train, y_train)
-
-
-# ============================================================
-# Track training/test error and margins
-# ============================================================
-
-train_errors = []
-test_errors = []
-
-margin_mean = []
-margin_10pct = []
-margin_min = []
-
-y_train_signed = 2 * y_train - 1
-
-for pred_train, pred_test, F in zip(
-    ada.staged_predict(X_train),
-    ada.staged_predict(X_test),
-    ada.staged_decision_function(X_train),
-):
-    train_errors.append(zero_one_loss(y_train, pred_train))
-    test_errors.append(zero_one_loss(y_test, pred_test))
-
-    margins = y_train_signed * F
-    margin_mean.append(np.mean(margins))
-    margin_10pct.append(np.quantile(margins, 0.10))
-    margin_min.append(np.min(margins))
-
-
-first_zero = next((i + 1 for i, e in enumerate(train_errors) if e == 0), None)
-
-print("First iteration with training error = 0:", first_zero)
-print("Minimum test error:", np.min(test_errors))
-print("Iteration of minimum test error:", np.argmin(test_errors) + 1)
-
-
-# ============================================================
-# Plot dataset
-# ============================================================
-
-plt.figure(figsize=(6, 5))
-plt.scatter(X[y == 0, 0], X[y == 0, 1], alpha=0.7, label="Class 0")
-plt.scatter(X[y == 1, 0], X[y == 1, 1], alpha=0.7, label="Class 1")
-plt.title("Clean Two-Moons Dataset")
-plt.legend()
-plt.show()
-
-
-# ============================================================
-# Plot error curves
-# ============================================================
-
-plt.figure(figsize=(7, 5))
-plt.plot(train_errors, label="Training Error")
-plt.plot(test_errors, label="Test Error")
-
-if first_zero is not None:
-    plt.axvline(
-        first_zero, linestyle="--", label="Training Error First Reaches 0"
-    )
-
-plt.xlabel("Boosting Iteration")
-plt.ylabel("Classification Error")
-plt.title("AdaBoost Error Curves")
-plt.legend()
-plt.show()
-
-
-# ============================================================
-# Plot margin growth
-# ============================================================
-
-plt.figure(figsize=(7, 5))
-plt.plot(margin_mean, label="Average Margin")
-plt.plot(margin_10pct, label="10th Percentile Margin")
-plt.plot(margin_min, label="Minimum Margin")
-
-if first_zero is not None:
-    plt.axvline(
-        first_zero, linestyle="--", label="Training Error First Reaches 0"
-    )
-
-plt.xlabel("Boosting Iteration")
-plt.ylabel("Margin")
-plt.title("AdaBoost Margin Growth")
-plt.legend()
-plt.show()
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{python}
-#| eval: false
-#| echo: false
-import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import zero_one_loss
-from sklearn.model_selection import train_test_split
-
-# ============================================================
-# Generate a simple nonlinear binary classification dataset
-# ============================================================
-
-rng = np.random.default_rng(42)
-
-n = 500
-
-X = rng.uniform(-2, 2, size=(n, 2))
-
-# Smooth nonlinear boundary
-y = (X[:, 0] ** 2 + 0.8 * X[:, 1] + 0.3 * np.sin(3 * X[:, 0]) > 1).astype(int)
-
-# Add small label noise
-flip_idx = rng.choice(n, size=20, replace=False)
-y[flip_idx] = 1 - y[flip_idx]
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.3, random_state=1
-)
-
-# ============================================================
-# AdaBoost with decision stumps
-# ============================================================
-
-ada = AdaBoostClassifier(
-    estimator=DecisionTreeClassifier(max_depth=1),
-    n_estimators=5000,
-    learning_rate=0.05,
-    random_state=1,
-)
-
-ada.fit(X_train, y_train)
-
-# ============================================================
-# Track training/test error over boosting rounds
-# ============================================================
-
-train_errors = []
-test_errors = []
-
-for pred_train, pred_test in zip(
-    ada.staged_predict(X_train), ada.staged_predict(X_test)
-):
-    train_errors.append(zero_one_loss(y_train, pred_train))
-
-    test_errors.append(zero_one_loss(y_test, pred_test))
-
-# ============================================================
-# Compute margins
-# ============================================================
-
-# AdaBoost uses labels {-1,+1} internally
-y_train_signed = 2 * y_train - 1
-
-# staged_decision_function gives F(x)
-margins = []
-
-for F in ada.staged_decision_function(X_train):
-    margin = np.mean(y_train_signed * F)
-    margins.append(margin)
-
-# ============================================================
-# Plot classification data
-# ============================================================
-
-plt.figure(figsize=(6, 5))
-
-plt.scatter(X[y == 0, 0], X[y == 0, 1], alpha=0.7, label="Class 0")
-
-plt.scatter(X[y == 1, 0], X[y == 1, 1], alpha=0.7, label="Class 1")
-
-plt.title("Synthetic Dataset")
-plt.legend()
-plt.show()
-
-# ============================================================
-# Plot train/test error
-# ============================================================
-
-plt.figure(figsize=(7, 5))
-
-plt.plot(train_errors, label="Training Error")
-plt.plot(test_errors, label="Test Error")
-
-plt.xlabel("Boosting Iteration")
-plt.ylabel("Classification Error")
-plt.title("AdaBoost Error Curves")
-
-plt.legend()
-plt.show()
-
-# ============================================================
-# Plot margins
-# ============================================================
-
-plt.figure(figsize=(7, 5))
-
-plt.plot(margins)
-
-plt.xlabel("Boosting Iteration")
-plt.ylabel("Average Margin")
-
-plt.title("Margin Growth in AdaBoost")
-
-plt.show()
-```

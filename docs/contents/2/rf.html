@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>11&nbsp; Ensemble Methods – Statistical Learning</title>
+<title>11&nbsp; Boosting and Random Forest – Statistical Learning</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -339,7 +339,7 @@ window.Quarto = {
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-          <h1 class="quarto-secondary-nav-title"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Ensemble Methods</span></h1>
+          <h1 class="quarto-secondary-nav-title"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Boosting and Random Forest</span></h1>
         </a>     
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
@@ -460,7 +460,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/2/rf.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Ensemble Methods</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Boosting and Random Forest</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -521,7 +521,7 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">11.1</span> Introduction</a></li>
+  <li><a href="#introduction-ensemble-method" id="toc-introduction-ensemble-method" class="nav-link active" data-scroll-target="#introduction-ensemble-method"><span class="header-section-number">11.1</span> Introduction: Ensemble method</a></li>
   <li><a href="#basic-idea" id="toc-basic-idea" class="nav-link" data-scroll-target="#basic-idea"><span class="header-section-number">11.2</span> 1. Basic idea</a></li>
   <li><a href="#two-main-strategies" id="toc-two-main-strategies" class="nav-link" data-scroll-target="#two-main-strategies"><span class="header-section-number">11.3</span> 2. Two main strategies</a></li>
   <li><a href="#bagging" id="toc-bagging" class="nav-link" data-scroll-target="#bagging"><span class="header-section-number">11.4</span> 3. Bagging</a>
@@ -592,7 +592,7 @@ window.Quarto = {
   <li><a href="#linear-models-trees-bagging-random-forests-and-boosting" id="toc-linear-models-trees-bagging-random-forests-and-boosting" class="nav-link" data-scroll-target="#linear-models-trees-bagging-random-forests-and-boosting"><span class="header-section-number">14</span> Linear Models, Trees, Bagging, Random Forests, and Boosting:</a></li>
   <li><a href="#a-unified-view-through-predictor-interactions" id="toc-a-unified-view-through-predictor-interactions" class="nav-link" data-scroll-target="#a-unified-view-through-predictor-interactions"><span class="header-section-number">15</span> A Unified View Through Predictor Interactions</a>
   <ul class="collapse">
-  <li><a href="#introduction-1" id="toc-introduction-1" class="nav-link" data-scroll-target="#introduction-1"><span class="header-section-number">15.1</span> Introduction</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">15.1</span> Introduction</a></li>
   </ul></li>
   <li><a href="#linear-models" id="toc-linear-models" class="nav-link" data-scroll-target="#linear-models"><span class="header-section-number">16</span> Linear Models</a></li>
   <li><a href="#interaction-terms-in-linear-models" id="toc-interaction-terms-in-linear-models" class="nav-link" data-scroll-target="#interaction-terms-in-linear-models"><span class="header-section-number">17</span> Interaction Terms in Linear Models</a></li>
@@ -628,7 +628,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Ensemble Methods</span></h1>
+<h1 class="title d-none d-lg-block"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Boosting and Random Forest</span></h1>
 </div>
 
 
@@ -645,14 +645,16 @@ window.Quarto = {
 </header>
 
 
-<section id="introduction" class="level2" data-number="11.1">
-<h2 data-number="11.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">11.1</span> Introduction</h2>
+<section id="introduction-ensemble-method" class="level2" data-number="11.1">
+<h2 data-number="11.1" class="anchored" data-anchor-id="introduction-ensemble-method"><span class="header-section-number">11.1</span> Introduction: Ensemble method</h2>
 <p>In earlier chapters we studied single decision trees. Trees are powerful because they automatically capture nonlinear relationships and interactions among variables. Unlike linear models, trees do not assume a global linear relationship between predictors and the response. Instead, they partition the predictor space into regions and make predictions within each region.</p>
-<p>However, although trees are flexible, a single tree is often not very stable. Small changes in the data may produce a very different tree. In addition, shallow trees may underfit the data, while deep trees may overfit badly. As a result, a single tree is often not the best predictive model.</p>
+<p>However, although trees are flexible, a single tree is often not very stable. Small changes in the data may produce a very different tree. In addition, shallow trees may underfit the data, while deep trees may overfit badly. As a result, a single tree is often not the best predictive model, even with careful tuning of hyperparameters like <code>ccp_alpha</code>.</p>
 <p>Ensemble methods improve prediction by combining many trees together. Instead of relying on one tree, ensemble methods aggregate information from multiple trees to produce a stronger model.</p>
 <p>There are two major ensemble philosophies.</p>
-<p>The first philosophy is averaging. Methods such as bagging and random forests build many trees independently and then average their predictions. The main goal is to reduce variance.</p>
-<p>The second philosophy is boosting. Boosting builds trees sequentially. Each new tree is trained to improve the errors made by earlier trees. The main goal is to reduce bias by gradually improving the model.</p>
+<ul>
+<li>The first philosophy is averaging. Methods such as bagging and random forests build many trees independently and then average their predictions. The main goal is to reduce variance.</li>
+<li>The second philosophy is boosting. Boosting builds trees sequentially. Each new tree is trained to improve the errors made by earlier trees. The main goal is to reduce bias by gradually improving the model.</li>
+</ul>
 <!-- 
 
 
@@ -1288,7 +1290,7 @@ f(x)=\beta_0+\beta_1x_1+\cdots+\beta_px_p,
 \]</span> a tree learns a collection of simple if-then rules from the data. A very typical example is shown below.</p>
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 12.1 (Classification Tree example)</strong></span> &nbsp;</p>
-<div id="9dbb8691" class="cell" data-execution_count="1">
+<div id="d9bd739d" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>[Text(0.4, 0.8333333333333334, 'node #0\nx[1] &lt;= 0.8\ngini = 0.667\nsamples = 150\nvalue = [50, 50, 50]'),
  Text(0.2, 0.5, 'node #1\ngini = 0.0\nsamples = 50\nvalue = [50, 0, 0]'),
@@ -1649,7 +1651,7 @@ J(k, t_k)=\frac{m_l}mGini(S_l)+\frac{m_r}{m}Gini(S_r).
 <h3 data-number="12.10.1" class="anchored" data-anchor-id="initial-setup"><span class="header-section-number">12.10.1</span> Initial setup</h3>
 <p>Since the dataset will be splitted, we will put <code>X</code> and <code>y</code> together as a single variable <code>S</code>. In this case when we split the dataset by selecting rows, the features and the labels are still paired correctly.</p>
 <p>We also print the labels and the feature names for our convenience.</p>
-<div id="f7260745" class="cell" data-execution_count="2">
+<div id="9497c88f" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_iris</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1670,7 +1672,7 @@ J(k, t_k)=\frac{m_l}mGini(S_l)+\frac{m_r}{m}Gini(S_r).
 <section id="use-package-sklearn" class="level3" data-number="12.10.2">
 <h3 data-number="12.10.2" class="anchored" data-anchor-id="use-package-sklearn"><span class="header-section-number">12.10.2</span> Use package <code>sklearn</code></h3>
 <p>Now we would like to use the decision tree package provided by <code>sklearn</code>. The process is straightforward. The parameter <code>random_state=40</code> will be discussed {ref}<code>later&lt;note-random_state&gt;</code>, and it is not necessary in most cases.</p>
-<div id="bbe35b4a" class="cell" data-execution_count="3">
+<div id="bfb75a16" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">40</span>, min_samples_split<span class="op">=</span><span class="dv">2</span>)</span>
@@ -2276,7 +2278,7 @@ document.querySelectorAll('.fa-regular.fa-copy').forEach(function(element) {
 </div>
 </div>
 <p><code>sklearn</code> provide a way to automatically generate the tree view of the decision tree. The code is as follows.</p>
-<div id="3bbc775b" class="cell" data-execution_count="4">
+<div id="c3b832d0" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> plot_tree</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2314,7 +2316,7 @@ document.querySelectorAll('.fa-regular.fa-copy').forEach(function(element) {
 Visualize decision boundary is optional.
 </summary>
 <p>Similar to k-NN, we may use <code>sklearn.inspection.DecisionBoundaryDisplay</code> to visualize the decision boundary of this decision tree.</p>
-<div id="c54a09ff" class="cell" data-execution_count="5">
+<div id="e654d676" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.inspection <span class="im">import</span> DecisionBoundaryDisplay</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>DecisionBoundaryDisplay.from_estimator(</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    clf,</span>
@@ -2354,7 +2356,7 @@ Visualize decision boundary is optional.
 <p>If we don’t set them (which means that we use the default setting), the dataset will be split untill all subsets are pure.</p>
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 12.4 (ALMOST all end nodes are pure)</strong></span> In this example, we let the tree grow as further as possible. It only stops when (almost) all end nodes are pure, even if the end nodes only contain ONE element (like #6 and #11).</p>
-<div id="cbe7d8fe" class="cell" data-execution_count="6">
+<div id="f6e396b1" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">40</span>)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>clf.fit(X, y)</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">3</span>, <span class="dv">3</span>), dpi<span class="op">=</span><span class="dv">200</span>)</span>
@@ -2387,7 +2389,7 @@ Visualize decision boundary is optional.
 </div>
 </div>
 <p>In this example there is one exception. #13 node is not pure. The reason is as follows.</p>
-<div id="cb19152a" class="cell" data-execution_count="7">
+<div id="f4dee224" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>X[(X[:, <span class="dv">0</span>]<span class="op">&gt;</span><span class="fl">0.8</span>) <span class="op">&amp;</span> (X[:, <span class="dv">1</span>] <span class="op">&gt;</span><span class="fl">1.75</span>) <span class="op">&amp;</span> (X[:, <span class="dv">0</span>]<span class="op">&lt;=</span><span class="fl">4.85</span>)]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>array([[4.8, 1.8],
@@ -2399,7 +2401,7 @@ Visualize decision boundary is optional.
 </div>
 <p>Therefore we could treat these hyperparameters as an indicator about how far the dataset is split. The further the dataset is split, the further the learning goes, the more details are learned. Since we don’t want the model to be overfitting, we don’t want to split the dataset that far. In this case, we could use the learning curve to help us make the decision.</p>
 <p>In this example, let us choose <code>min_samples_leaf</code> as the indicator. When <code>min_samples_leaf</code> is big, the learning just starts. When <code>min_samples_leaf=1</code>, we reach the far most side of learning. We will see how the training and testing accuracy changes along the learning process.</p>
-<div id="72712c04" class="cell" data-execution_count="8">
+<div id="983c7a84" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2431,13 +2433,13 @@ Visualize decision boundary is optional.
 <p>Other than tuning hyperparameters, we also want to prune our tree in order to reduce overfitting further. The pruning algorithm introduced together with CART is called <strong>Minimal-Cost-Complexity Pruning</strong> (MCCP).</p>
 <p>The idea is to use the cost-complexity measure to replace Gini impurity to grow the tree. The cost-complexity measure is gotten by adding the total number of end nodes with the coefficent <code>ccp_alpha</code> to the Gini impurity. The parameter <code>ccp_alpha&gt;=0</code> is known as the <strong>complexity parameter</strong>, and it can help the tree to self-balance the number of end nodes and the Gini impurity.</p>
 <p>In <code>sklearn</code>, we use <code>cost_complexity_pruning_path</code> to help us find the effective alphas and the corresponding impurities.</p>
-<div id="18ce56d4" class="cell" data-execution_count="9">
+<div id="855d33c9" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>)</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>ccp_path <span class="op">=</span> clf.cost_complexity_pruning_path(X_train, y_train)</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>ccp_alphas, impurities <span class="op">=</span> ccp_path.ccp_alphas, ccp_path.impurities</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The list <code>ccp_alphas</code> contains all important <code>ccp_alpha</code>s. We could train a model for each of them. We could use the argument <code>ccp_alpha</code> to control the value when initialize the model. After we train all these tree models for each effective <code>ccp_alpha</code>, we evaluate the model and record the results.</p>
-<div id="d59207b9" class="cell" data-execution_count="10">
+<div id="bb55bfbe" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>clfs <span class="op">=</span> []</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ccp_alpha <span class="kw">in</span> ccp_alphas:</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>, ccp_alpha<span class="op">=</span>ccp_alpha)</span>
@@ -2450,7 +2452,7 @@ Visualize decision boundary is optional.
 <span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>test_acc <span class="op">=</span> [clf.score(X_test, y_test) <span class="cf">for</span> clf <span class="kw">in</span> clfs]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We would like to visualize these info.</p>
-<div id="01a1faee" class="cell" data-execution_count="11">
+<div id="6e2ef05c" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].plot(ccp_alphas, node_counts, marker<span class="op">=</span><span class="st">"o"</span>, drawstyle<span class="op">=</span><span class="st">"steps-post"</span>)</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_xlabel(<span class="st">"alpha"</span>)</span>
@@ -2476,7 +2478,7 @@ Visualize decision boundary is optional.
 <summary>
 We could combine all the code above into a function.
 </summary>
-<div id="e7262789" class="cell" data-execution_count="12">
+<div id="b21fc6a1" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.base <span class="im">import</span> clone</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> eval_ccp_alphas(clf, X, y):</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    ccp_path <span class="op">=</span> clf.cost_complexity_pruning_path(X, y)</span>
@@ -2508,7 +2510,7 @@ We could combine all the code above into a function.
 <span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ccp_alphas</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="6f61c142" class="cell" data-execution_count="13">
+<div id="dde4f97f" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>eval_ccp_alphas(DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>), X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <pre><code>array([0.        , 0.00485564, 0.01049869, 0.01534424, 0.03364964,
@@ -2674,8 +2676,8 @@ We could combine all the code above into a function.
 </section>
 <section id="a-unified-view-through-predictor-interactions" class="level1" data-number="15">
 <h1 data-number="15"><span class="header-section-number">15</span> A Unified View Through Predictor Interactions</h1>
-<section id="introduction-1" class="level2" data-number="15.1">
-<h2 data-number="15.1" class="anchored" data-anchor-id="introduction-1"><span class="header-section-number">15.1</span> Introduction</h2>
+<section id="introduction" class="level2" data-number="15.1">
+<h2 data-number="15.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">15.1</span> Introduction</h2>
 <p>One of the most important questions in statistical learning is:</p>
 <blockquote class="blockquote">
 <p>How does a model combine predictors together?</p>
