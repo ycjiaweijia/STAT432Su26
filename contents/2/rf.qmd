@@ -15,7 +15,221 @@ There are two major ensemble philosophies.
 - The second philosophy is boosting. Boosting builds trees sequentially. Each new tree is trained to improve the errors made by earlier trees. The main goal is to reduce bias by gradually improving the model.
 
 
+# Ensemble methods
 
+After we get some relatively simple classifiers (sometimes also called *weak classifiers*), we might put them together to form a more complicated classifier. This type of methods is called an *ensemble method*. The basic way to ``ensemble'' classifiers together to through the voting machine.
+
+There are mainly two ways to generate many classifiers.
+
+- `bagging`: This is also called *bootstrap aggregating*. The idea is 
+  - First we randomly pick samples from the original dataset to form a bunch of new trainning datasets;
+  - Then we apply the same learning methods to those trainning datasets to get a bunch of classifiers;
+  - Finally apply all these classifiers to the data we are interested in and use the most frequent class as the result.
+- `boosting`: There are a bunch of classifiers. We assign weights to each of the classifiers and change the weights adaptively according to the results of the current combination.
+
+
+
+## Bootstrap aggregating
+
+### Basic bagging
+One approach to get many estimators is to use the same training algorithm for every predictor and train them on different random subsets of the training set. When sampling is performed with replacement, this method is called *bagging* (short for *bootstrap aggregating*). When sampling is performed without replacement, it is called *pasting*.
+
+Consider the following example. The dataset is the one we used in Chpater 3: `make_moon`. We split the dataset into training and test sets.
+
+
+```{python}
+from sklearn.datasets import make_moons
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+X, y = make_moons(n_samples=10000, noise=0.4, random_state=42)
+plt.scatter(x=X[:, 0], y=X[:, 1], c=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15)
+```
+
+
+
+We would like to sample from the dataset to get some smaller minisets. We will use `sklearn.model_selection.ShuffleSplit` to perform the action. 
+
+The output of `ShuffleSplit` is a generator. To get the index out of it we need a `for` loop. You may check out the following code. 
+
+Note that `ShuffleSplit` is originally used to shuffle data into training and test sets. We would only use the shuffle function out of it, so we will set `test_size` to be `1` and use `_` later in the `for` loop since we won't use that part of the information.
+
+What we finally get is a generator `rs` that produces indexes of subsets of `X_train` and `y_train`. 
+
+
+
+
+```{python}
+from sklearn.model_selection import ShuffleSplit
+n_trees = 1000
+n_instances = 100
+rs = ShuffleSplit(n_splits=n_trees, test_size=1, train_size=n_instances).split(X_train)
+```
+
+
+`sklearn` provides `BaggingClassifier` to directly perform bagging or pasting. The code is as follows.
+
+
+
+```{python}
+from sklearn.ensemble import BaggingClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+bag_clf = BaggingClassifier(DecisionTreeClassifier(),
+                            n_estimators=1000,
+                            max_samples=1.0,
+                            bootstrap=True)
+```
+
+
+In the above code, `bag_clf` is a bagging classifier, made of 500 `DecisionTreeClassifer`s, and is trained over subsets of size `1.0`. The option `bootstrap=True` means that it is bagging. If you would like to use pasting, the option is `bootstrap=False`.
+
+This `bag_clf` also has `.fit()` and `.predict()` methods. It is used the same as our previous classifiers. Let us try the `make_moon` dataset.
+
+
+
+```{python}
+from sklearn.metrics import accuracy_score
+
+bag_clf.fit(X_train, y_train)
+y_pred_bag = bag_clf.predict(X_test)
+accuracy_score(y_pred_bag, y_test)
+```
+
+### `max_samples`
+The original bagging algoithm requires the "subset" has the same number of datapoints as the original set. Since duplicates are allowed, we are expected to use 63% of the data from the original dataset.
+
+
+<details>
+<summary>Click to expand for more details.</summary>
+Let the original dataset have $N$ elements. The probability to pick any specific data is $1/N$, and therefore the probability not to pick it is $1-1/N$. If we pick $N$ elements with replacement, the probability that we never pick a specific element is 
+$$
+(1-\frac1N)^N\rightarrow \mathrm e^{-1},\quad \text{when }N\rightarrow\infty.
+$$
+Therefore when $N$ is large, the probability for each element not to be picked is approximately $\mathrm e^{-1}$, and then the probability for it to be picked is approximately $1-\mathrm e^{-1}$. 
+
+Let $I_i$ be the random variable representing whether the element $i$ is picked or not. So
+$$
+I_i=\begin{cases}1&i \text{ is picked}\\
+0&i\text{ is not picked}\end{cases}.
+$$
+So
+$$
+ P(I_i=1)=1-\mathrm e^{-1},\quad P(I_i=0)=\mathrm e^{-1},\quad \text{ and }E[I_i]=1\cdot(1-\mathrm e^{-1})+0\cdot(\mathrm e^{-1})=1-\mathrm e^{-1}.
+$$
+The expectation of the final sample size proportion is
+$$
+E[\frac1N\sum_{i=1}^NI_i]=\frac1N\sum_{i=1}^IE[I_i]=1-\mathrm e^{-1}\approx 0.63.
+$$
+
+With similar calculation, if we pick $\alpha N$ data, the expectation of the final sample size proportion is $1-\mathrm e^{-\alpha}$.
+<hr>
+</details>
+
+In `sklearn`, the requiremnt is relaxed, that you may have any number of data in each sample. This gives more flexiblity to adjust your model, that the sample size may affect the performance of the model. It is set by the argument `max_samples`. 
+
+- If it is float that between 0 and 1, it will be used as the proportion. The default value is $1.0$ which means that we use the original size as the sample size.
+- IF it is an integer that is bigger than $1$, it will be used as the fixed sample size, no matter what the orginal data size is.
+
+
+
+
+### OOB score
+When we use `bagging`, it is possible that some of the training data are not used. In this case, we could record which data are not used, and just use them as the test set, instead of providing extra data for test. The data that are not used is called *out-of-bag* instances, or *oob* for short. The accuracy over the oob data is called the oob score.
+
+We could set `oob_score=True` to enable the function when creating a `BaggingClassifier`, and use `.oob_score_` to get the oob score after training. 
+
+
+
+```{python}
+bag_clf_oob = BaggingClassifier(DecisionTreeClassifier(),
+                                n_estimators=1000,
+                                bootstrap=True,
+                                oob_score=True)
+bag_clf_oob.fit(X_train, y_train)
+bag_clf_oob.oob_score_
+```
+
+
+### Random Forests
+When the classifiers used in a bagging classifier are all Decision Trees, the bagging classifier is called a `random forest`. `sklearn` provide `RandomForestClassifier` class. It is almost the same as `BaggingClassifier` + `DecisionTreeClassifer`.
+
+
+```{python}
+
+from sklearn.ensemble import RandomForestClassifier
+
+rnd_clf = RandomForestClassifier(n_estimators=1000, random_state=1)
+rnd_clf.fit(X_train, y_train)
+rnd_clf.score(X_test, y_test)
+```
+
+
+
+When we use the Decision Tree as our base estimators, the class `RandomForestClassifier` provides more control over growing the random forest, with a certain optimizations. If you would like to use other estimators, then `BaggingClassifier` should be used.
+
+
+
+### Extra-trees
+When growing a Decision Tree, our method is to search through all possible ways to find the best split point that get the lowest Gini impurity. Anohter method is to use a random split. Of course a random tree performs much worse, but if we use it to form a random forest, the voting system can help to increase the accuracy. On the other hand, random split is much faster than a regular Decision Tree. 
+
+This type of forest is called *Extremely Randomized Trees*, or *Extra-Trees* for short. We could modify the above random forest classifier code to implement the extra-tree algorithm. The key point is that we don't apply the Decision Tree algorithm. Instead we perform a random split: select a random feature, and split at a random value. In `sklearn` there is an `ExtraTreesClassifier` to create such a classifier. 
+
+Note that for Extra-Tree, we use the whole dataset instead of samples, because the random split already ensures diversity so we need to reduce variance from resampling. So technically Extra-Tree is not a Bagging method in the standard way, although it looks like one.
+
+
+
+```{python}
+from sklearn.ensemble import ExtraTreesClassifier
+
+ext_clf = ExtraTreesClassifier(n_estimators=1000, random_state=1)
+ext_clf.fit(X_train, y_train)
+ext_clf.score(X_test, y_test)
+```
+
+
+
+In the above example, `RandomForestClassifier` and `ExtraTreesClassifier` get similar accuracy. However from the code below, you will see that in this example `ExtraTreesClassifier` is much faster than `RandomForestClassifier`.
+
+
+
+```{python}
+from time import time
+
+t0 = time()
+rnd_clf = RandomForestClassifier(n_estimators=1000, random_state=1)
+rnd_clf.fit(X_train, y_train)
+t1 = time()
+print("Random Frorest: {}".format(t1 - t0))
+
+t0 = time()
+ext_clf = ExtraTreesClassifier(n_estimators=1000, random_state=1)
+ext_clf.fit(X_train, y_train)
+t1 = time()
+print("Extremely Randomized Trees: {}".format(t1 - t0))
+```
+
+
+
+### Gini importance
+After training a Decision Tree, we could look at each node. Each split is against a feature, which decrease the Gini impurity the most. In other words, we could say that the feature is the most important during the split.
+
+Using the average Gini impurity decreased as a metric, we could measure the importance of each feature. This is called *Gini importance*. If the feature is useful, it tends to split mixed labeled nodes into pure single class nodes. 
+
+In the case of random forest, since there are many trees, we might compute the weighted average of the Gini importance across all trees. The weight depends on how many times the feature is used in a specific node.
+
+Using `RandomForestClassifier`, we can directly get access to the Gini importance of each feature by `.feature_importance_`. Please see the following example.
+
+
+
+```{python}
+rnd_clf.fit(X_train, y_train)
+rnd_clf.feature_importances_
+```
+
+
+In this example, you may see that the two features are relavely equally important, where the second feature is slightly more important since on average it decrease the Gini impurity a little bit more.
 
 <!-- 
 
@@ -73,7 +287,20 @@ Week 5：RF vs boosting -->
 
 
 
-## 1. Basic idea
+## Bagging
+
+Bagging is short for bootstrap aggregation. Bootstrap is a resampling method. The basic idea is to repeatedly draw subsets from the original training set with replacement, train a model on each subset, and then aggregate the predictions from all models to form the final result.
+
+For regression, the predictions are usually averaged. For classification, the final prediction is usually determined by majority vote.
+
+
+::: {.callout-note}
+Bootstrap sampling means sampling with replacement. This is an essential part of bagging. If the subsets are sampled without replacement, the method is sometimes called pasting.
+:::
+
+
+Bagging can be used with any base estimators. The default training set size is the same as the original one; therefore it is highly possible that the training set for an individual model contains duplicates. We could use it 
+3. 
 
 An ensemble method combines many relatively simple models into one stronger model.
 
