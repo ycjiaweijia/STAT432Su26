@@ -44,6 +44,7 @@ Each individual model may be noisy. However, the average can be much more stable
 
 To see why, suppose each $\hat f_b(x)$ has variance $\sigma^2$, and suppose for a moment that the fitted models are independent. Then
 
+
 $$
 \Var\left(
 \frac1B\sum_{b=1}^B \hat f_b(x)
@@ -56,6 +57,61 @@ Thus averaging can greatly reduce variance.
 
 In practice, the fitted models are not independent. If the pairwise correlation between two fitted models is approximately $\rho$, then
 
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
+$$
+\cor(\hat f_i(x),\hat f_j(x))\approx \rho, \qquad i\ne j.
+$$
+
+Then
+
+$$
+\Cov(\hat f_i(x),\hat f_j(x))
+=
+\cor(\hat f_i(x),\hat f_j(x))
+\sqrt{\Var(\hat f_i(x))\Var(\hat f_j(x))}
+\approx
+\rho\sigma^2.
+$$
+
+Therefore,
+
+$$
+\begin{aligned}
+\Var\left(
+\frac1B\sum_{b=1}^B \hat f_b(x)
+\right)
+&=
+\frac1{B^2}
+\left[
+\sum_{b=1}^B \Var(\hat f_b(x))
++
+\sum_{i\ne j}\Cov(\hat f_i(x),\hat f_j(x))
+\right] \\[4pt]
+&\approx
+\frac1{B^2}
+\left[
+B\sigma^2
++
+B(B-1)\rho\sigma^2
+\right] \\[4pt]
+&=
+\sigma^2
+\left[
+\frac1B+\frac{B-1}{B}\rho
+\right] \\[4pt]
+&=
+\rho\sigma^2+\frac{1-\rho}{B}\sigma^2.
+\end{aligned}
+$$
+
+Then
+
+</details>
+
+
+
 $$
 \Var\left(
 \frac1B\sum_{b=1}^B \hat f_b(x)
@@ -66,41 +122,25 @@ $$
 \frac{1-\rho}{B}\sigma^2.
 $$
 
+
+
 This formula is very important. Increasing $B$ reduces the second term, but the first term remains. Therefore, if the individual trees are highly correlated, averaging has limited benefit.
 
-::: {.callout-note}
+<!-- ::: {.callout-note}
 ## Main idea
 
 Bagging reduces variance by averaging many fitted models.
 
 Random forests improve bagging by reducing the correlation among the trees.
-:::
+::: -->
 
 ## Bagging
 
-Bagging means bootstrap aggregation.
+Bagging is short for bootstrap aggregation.
 
-A bootstrap sample is a sample drawn from the original training data with replacement. Each bootstrap sample has size $n$, but because sampling is done with replacement, some observations appear more than once and some observations do not appear at all.
+Assume the original training set has $n$ data. A bootstrap sample is a sample drawn from the original training data with replacement. Each bootstrap sample has size $n$, but because sampling is done with replacement, some observations appear more than once and some observations do not appear at all.
 
-Let
-
-$$
-Z=\{(x_1,y_1),\ldots,(x_n,y_n)\}
-$$
-
-be the original training set. Bagging constructs bootstrap samples
-
-$$
-Z^{*1},Z^{*2},\ldots,Z^{*B}.
-$$
-
-For each bootstrap sample $Z^{*b}$, we fit a model
-
-$$
-\hat f_b(x).
-$$
-
-The bagged regression estimate is then
+Let $Z=\{(x_1,y_1),\ldots,(x_n,y_n)\}$ be the original training set. Bagging constructs bootstrap samples $Z^{*1},Z^{*2},\ldots,Z^{*B}$. For each bootstrap sample $Z^{*b}$, we fit a model $\hat f_b(x)$. The bagged regression estimate is then
 
 $$
 \hat f_{\text{bag}}(x)
@@ -113,31 +153,42 @@ For classification, the final prediction is usually based on majority vote:
 $$
 \hat G_{\text{bag}}(x)
 =
-\operatorname{mode}
-\{\hat G_1(x),\ldots,\hat G_B(x)\}.
+\Mode\{\hat G_1(x),\ldots,\hat G_B(x)\}.
 $$
 
 Equivalently, we may average estimated class probabilities and choose the class with the largest average probability.
 
-### Why Bootstrap Samples Help
-
-Bagging is useful when the base learner is unstable. A decision tree is a typical unstable learner. Different bootstrap samples lead to different trees, because each tree sees a slightly different version of the data.
-
-This is exactly what we want. If all trees were identical, averaging them would change nothing. Bagging works because the bootstrap samples create variation among the fitted trees.
-
-For a decision tree, bagging usually uses large trees rather than heavily pruned trees. The reason is that a large tree has low bias but high variance. Bagging is designed to reduce variance, so it is natural to start with a flexible base learner.
-
 ::: {.callout-note}
 ## Bias-variance view
 
-A single deep tree usually has low bias and high variance.
+Bagging is useful when the base learner is unstable. A decision tree is a typical unstable learner. Different bootstrap samples lead to different trees, because each tree sees a slightly different version of the data.
 
-Bagging keeps the low bias and reduces the variance by averaging many deep trees.
+
+For a decision tree, bagging usually uses large trees rather than heavily pruned trees. The reason is that a large tree has low bias but high variance. Bagging is designed to reduce variance, so it is natural to start with a flexible base learner.
+
+A single deep tree usually has low bias and high variance. Bagging keeps the low bias and reduces the variance by averaging many deep trees.
 :::
 
-### How Many Distinct Observations Are in a Bootstrap Sample?
+
+::: {.callout-caution}
+## Bagging estimators
+Although bagging is most commonly applied to decision trees, it can also be used with other types of models. 
+:::
+
+
+### Out-of-Bag Error
 
 Although a bootstrap sample has size $n$, it does not contain all $n$ observations.
+
+
+
+::: {#def-}
+## Out-of-bag observations
+Each bootstrap sample contains about $63.2\%$ of the original observations as distinct observations. The remaining observations are called **out-of-bag** (OOB) observations for that bootstrap sample.
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
+
 
 For a fixed observation $i$, the probability that it is not selected in one draw is
 
@@ -166,16 +217,19 @@ Therefore, the probability that observation $i$ appears at least once is approxi
 $$
 1-e^{-1}
 \approx
-0.632.
+0.632,
 $$
+and it is the expected proportion of distinct observations in a sample.
 
-So each bootstrap sample contains about $63.2\%$ of the original observations as distinct observations. The remaining observations are called out-of-bag observations for that bootstrap sample.
+</details>
 
-### Out-of-Bag Error
 
-For each tree, about $36.8\%$ of the training observations are not used to fit that tree. These observations are out-of-bag, or OOB, for that tree.
+:::
 
-This gives a natural way to estimate prediction error.
+
+<!-- For each tree, about $36.8\%$ of the training observations are not used to fit that tree. These observations are out-of-bag, or OOB, for that tree. -->
+
+The OOB observations give a natural way to estimate prediction error. 
 
 For observation $i$, consider only the trees for which observation $i$ was out-of-bag. Average those trees to get an OOB prediction:
 
@@ -198,20 +252,21 @@ $$
 \left(y_i-\hat f_{\text{OOB},i}\right)^2.
 $$
 
+All other metrics have OOB versions in the straightforward way.
+
 OOB error is useful because it behaves like an internal validation estimate. We do not need to set aside a separate validation set just to estimate the error of the bagged model.
+
 
 ## Random Forests
 
-Random forests are a modification of bagging for decision trees.
-
-Bagging creates diversity by sampling observations. Random forests create additional diversity by sampling features during tree construction.
+Random forests are a modification of bagging for decision trees. In addition to the diversity by sampling observations from Bagging, Random forests create additional diversity by sampling features during tree construction.
 
 The random forest algorithm for regression is:
 
 1. Draw a bootstrap sample from the training data.
 2. Grow a large regression tree on this bootstrap sample.
-3. At each split, randomly choose $m$ predictors from the full set of $p$ predictors.
-4. Find the best split only among those $m$ predictors.
+3. **At each split, randomly choose $m$ predictors from the full set of $p$ predictors.**
+4. **Find the best split only among those $m$ predictors.**
 5. Repeat this process for $B$ trees.
 6. Average the predictions.
 
@@ -225,9 +280,7 @@ $$
 
 The formula looks the same as bagging. The difference is how the trees are grown.
 
-### Why Random Forests Improve Bagging
-
-In ordinary bagging, all predictors are available at every split. If there is one very strong predictor, many trees may split on that same predictor near the top of the tree. As a result, the trees become similar.
+The key difference from Bagging(Trees) is the Step 3 and 4. In ordinary bagging, all predictors are available at every split. If there is one very strong predictor, many trees may split on that same predictor near the top of the tree. As a result, the trees become similar. 
 
 Similar trees are highly correlated. From the variance formula,
 
@@ -239,48 +292,35 @@ $$
 
 we know that high correlation limits the benefit of averaging.
 
-Random forests reduce this problem by forcing each split to consider only a random subset of predictors. This prevents the strongest predictors from dominating every tree. The trees become less correlated, and averaging becomes more effective.
+Now random forests reduce this issue by forcing each split to consider only a random subset of predictors. This prevents the strongest predictors from dominating every tree. The trees become less correlated, and averaging becomes more effective.
 
-::: {.callout-note}
-## Bagging versus random forests
 
-Bagging randomizes the data.
+### `max_features`
 
-Random forests randomize both the data and the split candidates.
-:::
+How many predictors are considered at each split? In `sklearn`, this is controlled by `max_features`. This is a very important hyperparameter since it is related to the correlations between trees.
 
-### The Role of $m$
+Large `max_features` means each tree can choose from many predictors. The individual trees may be strong, but they may also become more similar to each other.
 
-The number $m$ controls how many predictors are considered at each split. In `sklearn`, this is controlled by `max_features`.
+Small `max_features` means each tree is forced to explore different predictors. The trees become less correlated, but each individual tree may be weaker.
 
-Large $m$ means each tree can choose from many predictors. The individual trees may be strong, but they may also become more similar to each other.
-
-Small $m$ means each tree is forced to explore different predictors. The trees become less correlated, but each individual tree may be weaker.
-
-Thus $m$ controls an important tradeoff:
-
-$$
-\text{tree strength}
-\quad\text{versus}\quad
-\text{tree correlation}.
-$$
+Thus `max_features` controls an important tradeoff between tree strength and tree correlation. In practice, `max_features` should be treated as a tuning parameter.
 
 Common default choices are:
 
 $$
-m=\sqrt p
+max_features=\sqrt p
 \quad\text{for classification},
 $$
 
 and
 
 $$
-m=p
+max_features=p
 \quad\text{or}\quad m=p/3
 \quad\text{for regression},
 $$
 
-depending on the software and convention. In practice, `max_features` should be treated as a tuning parameter.
+depending on the software and convention. 
 
 ### Random Forest as Adaptive Local Averaging
 
@@ -338,6 +378,227 @@ Impurity-based importance can be biased toward variables with many possible spli
 
 Permutation importance is usually more directly connected to predictive performance, but it can be affected by correlation among predictors.
 :::
+
+
+
+
+
+
+
+
+## Different Types of Randomization in Tree Ensembles
+
+One of the main ideas behind ensemble tree methods is:
+
+> introduce randomness to reduce variance.
+
+However, there are many different ways to introduce randomness. Different methods randomize different parts of the tree-building process.
+
+The general tradeoff is:
+
+- more randomness usually decreases variance
+- but too much randomness may increase bias
+
+The goal is therefore:
+
+> make trees different, while still keeping each tree reasonably strong.
+
+
+### No randomness: Single Decision Tree
+
+A standard CART tree contains essentially no randomness.
+
+At each node:
+
+1. all predictors are considered
+2. all candidate split points are searched
+3. the best split is selected greedily
+
+As a result:
+
+- trees are highly adaptive
+- trees are usually low bias
+- but trees often have very high variance
+
+Small changes in the training data may completely change the structure of the tree.
+
+
+### Bootstrap Randomness: Bagging
+
+Bagging introduces randomness through bootstrap resampling.
+
+For each tree:
+
+1. sample observations with replacement
+2. grow a large tree using the bootstrap sample
+3. aggregate all trees together
+
+The splitting procedure itself is unchanged:
+
+- all predictors are still considered
+- the best split is still searched greedily
+
+Therefore, bagging mainly creates diversity by changing the training data seen by each tree.
+
+The individual trees are still strong learners, but the averaging process reduces variance.
+
+
+### Feature Randomness: Random Forest
+
+Random Forest adds another layer of randomness.
+
+At each split:
+
+1. randomly select a subset of predictors
+2. search for the best split only among those predictors
+
+For example, if there are $p$ predictors, we may randomly choose only $m<p$ predictors at each node.
+
+This has an important effect:
+
+- strong predictors cannot dominate every split
+- trees become less correlated
+- averaging becomes more effective
+
+However, the split threshold is still optimized greedily.
+
+For a chosen predictor, Random Forest still searches all candidate split points.
+
+Thus Random Forest introduces:
+
+- bootstrap randomness
+- local feature randomness
+
+
+### Why Random Forest Randomizes at Every Split
+
+A natural question is:
+
+> why not randomly choose a subset of predictors once for the entire tree?
+
+This would usually create trees that are too weak.
+
+Suppose an important predictor is excluded at the beginning. Then the entire tree loses access to that predictor forever.
+
+Random Forest instead performs randomization locally:
+
+- each node receives a new random subset of predictors
+- important predictors still have many opportunities to appear
+- trees remain reasonably strong
+
+This balance between:
+
+- tree strength
+- tree diversity
+
+is one of the key reasons Random Forest works well.
+
+
+### Threshold Randomness: Extra Trees
+
+Extra Trees (Extremely Randomized Trees) adds even more randomness.
+
+At each node:
+
+1. randomly choose a subset of predictors
+2. randomly generate split thresholds
+3. select the best among those random thresholds
+
+Unlike Random Forest:
+
+- the algorithm does not exhaustively search all candidate split points
+- split thresholds themselves are randomized
+
+For example:
+
+Random Forest may evaluate:
+
+```text
+x1 < 1.2
+x1 < 1.5
+x1 < 1.8
+x1 < 2.1
+```
+
+and choose the best threshold.
+
+Extra Trees may instead randomly generate:
+
+```text
+x1 < 1.73
+```
+
+without checking all possible thresholds.
+
+This additional randomness usually:
+
+- further decreases correlation between trees
+- further reduces variance
+- slightly increases bias
+
+
+### Bias-Variance Perspective
+
+The methods can be viewed as a spectrum:
+
+| Method | Randomness Level |
+|---|---|
+| Single Tree | none |
+| Bagging | bootstrap samples |
+| Random Forest | bootstrap + random features |
+| Extra Trees | bootstrap + random features + random thresholds |
+
+As randomness increases:
+
+- tree correlation tends to decrease
+- ensemble variance tends to decrease
+- individual tree bias tends to increase
+
+The success of ensemble trees comes from balancing these effects.
+
+
+### Local vs Global Randomness
+
+An important idea is that successful tree ensembles usually use *local randomness* rather than *global randomness*.
+
+Good randomness:
+
+- randomize locally at each split
+- preserve tree flexibility
+
+Bad randomness:
+
+- heavily restrict the entire tree globally
+- make trees too weak
+
+Random Forest and Extra Trees both use local randomization, which helps maintain expressive trees while still reducing correlation.
+
+
+### Practical Discussion
+
+In practice:
+
+- Bagging is simple and effective for unstable learners
+- Random Forest is usually more robust than a single tree
+- Extra Trees is often faster because it avoids exhaustive threshold searches
+- Extra Trees sometimes performs surprisingly well on noisy datasets
+
+The performance differences are often moderate, so practitioners commonly compare them using cross-validation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Bagging in Python
 
