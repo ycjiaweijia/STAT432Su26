@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.3">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>4&nbsp; Dimension reduction – Statistical Learning</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../contents/1/logistic.html" rel="next">
+<link href="../../contents/1/shrinkage.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bc74d3edfa28a5cab5f8e807a64bb1a0.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-c0ebe27be8de1e3ea6af4b63718550d7.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bc74d3edfa28a5cab5f8e807a64bb1a0.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7e342b42b1d8244df6d5a8d63372ab02.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
+<link href="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+    <style type="text/css">
+    .ps-root .ps-algorithm {
+      border-top: 2px solid;
+      border-bottom: 2px solid;
+    }
+    .pseudocode-container {
+      text-align: left;
+    }
+    </style>
+  
+      <style type="text/css">
+      .ps-algorithm > .ps-line {
+        text-align: left;
+      }
+      </style>
+    
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles/fonts.css">
+<link rel="stylesheet" href="../../styles/blocks.css">
+</head>
+
+<body class="nav-sidebar docked quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+          <h1 class="quarto-secondary-nav-title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Dimension reduction</span></h1>
+        </a>     
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">Statistical Learning</a> 
+        <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Parametric Supervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/basic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Statistical Learning Basics</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/lr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Linear Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/shrinkage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Regularization</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/dr.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Dimension reduction</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/logistic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Logistic Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/lda.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">LDA</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/decisioneval.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Classification Decisions and Evaluation</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Nonparametric Supervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/knn.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">KNN Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/kernel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">kernel.html</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/tree.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/rf.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Boosting and Random Forest</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/boost.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Optional: pip install xgboost</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Unsupervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/3/cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">cluster.html</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/app/ide.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Python IDE Setup</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/app/venv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Python Virtual Environment</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#principal-component-regression-pcr" id="toc-principal-component-regression-pcr" class="nav-link active" data-scroll-target="#principal-component-regression-pcr"><span class="header-section-number">4.1</span> Principal Component Regression (PCR)</a>
+  <ul class="collapse">
+  <li><a href="#data-matrix-and-its-geometric-views" id="toc-data-matrix-and-its-geometric-views" class="nav-link" data-scroll-target="#data-matrix-and-its-geometric-views"><span class="header-section-number">4.1.1</span> Data matrix and its geometric views</a></li>
+  <li><a href="#singular-value-decomposition-svd" id="toc-singular-value-decomposition-svd" class="nav-link" data-scroll-target="#singular-value-decomposition-svd"><span class="header-section-number">4.1.2</span> Singular Value Decomposition (SVD)</a></li>
+  <li><a href="#principal-components-pc" id="toc-principal-components-pc" class="nav-link" data-scroll-target="#principal-components-pc"><span class="header-section-number">4.1.3</span> Principal components (PC)</a></li>
+  <li><a href="#covariance-and-optimality" id="toc-covariance-and-optimality" class="nav-link" data-scroll-target="#covariance-and-optimality"><span class="header-section-number">4.1.4</span> Covariance and Optimality</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">4.1.5</span> Summary</a></li>
+  <li><a href="#choosing-the-number-of-components-m" id="toc-choosing-the-number-of-components-m" class="nav-link" data-scroll-target="#choosing-the-number-of-components-m"><span class="header-section-number">4.1.6</span> Choosing the number of components (<span class="math inline">\(m\)</span>)</a></li>
+  </ul></li>
+  <li><a href="#pcr-in-python" id="toc-pcr-in-python" class="nav-link" data-scroll-target="#pcr-in-python"><span class="header-section-number">4.2</span> PCR in Python</a>
+  <ul class="collapse">
+  <li><a href="#pca" id="toc-pca" class="nav-link" data-scroll-target="#pca"><span class="header-section-number">4.2.1</span> PCA</a></li>
+  <li><a href="#pcr" id="toc-pcr" class="nav-link" data-scroll-target="#pcr"><span class="header-section-number">4.2.2</span> PCR</a></li>
+  <li><a href="#choosing-number-of-components-by-cross-validation" id="toc-choosing-number-of-components-by-cross-validation" class="nav-link" data-scroll-target="#choosing-number-of-components-by-cross-validation"><span class="header-section-number">4.2.3</span> Choosing number of components by cross-validation</a></li>
+  </ul></li>
+  <li><a href="#partial-least-squares-pls" id="toc-partial-least-squares-pls" class="nav-link" data-scroll-target="#partial-least-squares-pls"><span class="header-section-number">4.3</span> Partial Least Squares (PLS)</a>
+  <ul class="collapse">
+  <li><a href="#algorithm-intuition" id="toc-algorithm-intuition" class="nav-link" data-scroll-target="#algorithm-intuition"><span class="header-section-number">4.3.1</span> Algorithm intuition</a></li>
+  <li><a href="#key-properties" id="toc-key-properties" class="nav-link" data-scroll-target="#key-properties"><span class="header-section-number">4.3.2</span> Key properties</a></li>
+  <li><a href="#comparison-with-pca" id="toc-comparison-with-pca" class="nav-link" data-scroll-target="#comparison-with-pca"><span class="header-section-number">4.3.3</span> Comparison with PCA</a></li>
+  <li><a href="#geometric-meaning-krylov-subspace" id="toc-geometric-meaning-krylov-subspace" class="nav-link" data-scroll-target="#geometric-meaning-krylov-subspace"><span class="header-section-number">4.3.4</span> Geometric meaning (Krylov Subspace)</a></li>
+  </ul></li>
+  <li><a href="#pls-in-python" id="toc-pls-in-python" class="nav-link" data-scroll-target="#pls-in-python"><span class="header-section-number">4.4</span> PLS in Python</a>
+  <ul class="collapse">
+  <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example"><span class="header-section-number">4.4.1</span> Example</a></li>
+  <li><a href="#another-example" id="toc-another-example" class="nav-link" data-scroll-target="#another-example"><span class="header-section-number">4.4.2</span> Another example</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Dimension reduction</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="hidden">
+<!-- Constants and basic symbols -->
+<p><span class="math display">\[
+\require{physics}
+\require{braket}
+\]</span></p>
+<p><span class="math display">\[
+\newcommand{\dl}[1]{{\hspace{#1mu}\mathrm d}}
+\newcommand{\me}{{\mathrm e}}
+% \newcommand{\argmin}{\operatorname{argmin}}
+\newcommand{\rss}{\mathrm{RSS}}
+\newcommand{\ols}{\mathrm{OLS}}
+\newcommand{\ridge}{\mathrm{ridge}}
+\newcommand{\lasso}{\mathrm{lasso}}
+\newcommand{\mle}{\mathrm{MLE}}
+\newcommand{\constant}{\mathrm{constant}}
+\newcommand{\resid}{\mathrm{residual}}
+\newcommand{\span}{\mathrm{span}}
+\]</span></p>
+<!-- Probability -->
+<p>$$ </p>
+<p> $$</p>
+<!-- Distributions pdf -->
+<p><span class="math display">\[
+\newcommand{\pdfbinom}{{\tt binom}}
+\newcommand{\pdfbeta}{{\tt beta}}
+\newcommand{\pdfpois}{{\tt poisson}}
+\newcommand{\pdfgamma}{{\tt gamma}}
+\newcommand{\pdfnormal}{{\tt norm}}
+  \newcommand{\pdfexp}{{\tt expon}}
+\]</span></p>
+<!-- Distributions -->
+<p><span class="math display">\[
+\newcommand{\distbinom}{\operatorname{B}}
+\newcommand{\distbeta}{\operatorname{Beta}}
+\newcommand{\distgamma}{\operatorname{Gamma}}
+\newcommand{\distexp}{\operatorname{Exp}}
+\newcommand{\distpois}{\operatorname{Poisson}}
+\newcommand{\distnormal}{\operatorname{\mathcal N}}
+\]</span></p>
+</div>
+<p>When the number of predictors is large or when predictors are highly correlated, directly fitting a regression model using the original predictors may lead to unstable estimates and poor predictive performance.</p>
+<p>One approach to address this problem is dimension reduction. Instead of using the original predictors directly, we first construct a smaller number of derived variables (called components) and then perform regression using these components.</p>
+<p>Two commonly used methods are</p>
+<ul>
+<li>Principal Component Regression (PCR)</li>
+<li>Partial Least Squares (PLS)</li>
+</ul>
+<p>Both methods construct new variables that are linear combinations of the original predictors, but they differ in how those combinations are chosen.</p>
+<section id="principal-component-regression-pcr" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="principal-component-regression-pcr"><span class="header-section-number">4.1</span> Principal Component Regression (PCR)</h2>
+<p>PCR first applies principal component analysis (PCA) to the predictor matrix <span class="math inline">\(X\)</span>, and then uses the leading principal components as predictors in a regression model.</p>
+<p>The key idea is that most of the variation in the predictors often lies in a lower-dimensional subspace.</p>
+<div id="def-pcr" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 4.1 (Principal Component Regression)</strong></span> Let <span class="math inline">\(X\)</span> be the <span class="math inline">\(n \times p\)</span> predictor matrix.</p>
+<p>The principal components are defined as</p>
+<p><span class="math display">\[
+Z_k = X v_k,
+\]</span></p>
+<p>where <span class="math inline">\(v_k\)</span> is the <span class="math inline">\(k\)</span>-th eigenvector of the Gram matrix <span class="math inline">\(X^\top X\)</span>.</p>
+<p>Principal component regression fits a linear model using the first <span class="math inline">\(m\)</span> components:</p>
+<p><span class="math display">\[
+y = \theta_0 + \theta_1 Z_1 + \theta_2 Z_2 + \cdots + \theta_m Z_m + \varepsilon.
+\]</span></p>
+<p>Here</p>
+<ul>
+<li><span class="math inline">\(Z_1,\ldots,Z_m\)</span> are the first <span class="math inline">\(m\)</span> principal components</li>
+<li><span class="math inline">\(m &lt; p\)</span> is chosen by cross-validation</li>
+</ul>
+</div>
+<p>Thus PCR replaces the original predictors with a smaller set of orthogonal components.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Key feature of PCR
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>PCR constructs components using only the predictor matrix <span class="math inline">\(X\)</span>, without considering the response <span class="math inline">\(y\)</span>.</p>
+<p>As a result, the directions that explain the most variation in <span class="math inline">\(X\)</span> are not necessarily the directions that are most predictive of <span class="math inline">\(y\)</span>.</p>
+</div>
+</div>
+<section id="data-matrix-and-its-geometric-views" class="level3" data-number="4.1.1">
+<h3 data-number="4.1.1" class="anchored" data-anchor-id="data-matrix-and-its-geometric-views"><span class="header-section-number">4.1.1</span> Data matrix and its geometric views</h3>
+<p>Let <span class="math inline">\(X \in \mathbb{R}^{n \times p}\)</span> be a data matrix with <span class="math inline">\(n\)</span> observations and <span class="math inline">\(p\)</span> predictors. We assume columns are centered (<span class="math inline">\(\sum_{i=1}^n x_{ij} = 0\)</span>) so that the origin represents the sample mean.</p>
+<p><strong>Column (variable) view: observation space <span class="math inline">\(\mathbb{R}^n\)</span></strong></p>
+<p>Each column of <span class="math inline">\(X_j\)</span> is a vector in <span class="math inline">\(n\)</span>-dimensional space, which represents one predictor across all observations.</p>
+<ul>
+<li>This space is often called the observation space.</li>
+<li>Geometry in this space describes relationships between predictors:
+<ul>
+<li>Inner products encode covariance.</li>
+<li>After standardization, angles encode correlation.</li>
+<li>Orthogonality corresponds to zero correlation.</li>
+</ul></li>
+</ul>
+<p><strong>Row (observation) view: feature space <span class="math inline">\(\mathbb{R}^p\)</span></strong></p>
+<p>Each row of <span class="math inline">\(x_i^\top\)</span> is a vector in <span class="math inline">\(p\)</span>-dimensional space, which represents one observation across all predictors.</p>
+<ul>
+<li>This space is called the feature space.</li>
+<li>Geometry in this space describes relationships between observations:
+<ul>
+<li>Euclidean distance measures dissimilarity.</li>
+<li>Clustering and nearest-neighbor methods operate in this space.</li>
+</ul></li>
+</ul>
+<div id="exm-" class="theorem example">
+<p><span class="theorem-title"><strong>Example 4.1</strong></span> &nbsp;</p>
+<details>
+<summary>
+<strong>Click to expand.</strong>
+</summary>
+<p>To demonstrate the idea, we generate the following dataset. It contains 2 variables.</p>
+<div id="c8fbf468" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">0</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>Sigma <span class="op">=</span> np.array([[<span class="fl">0.5</span>, <span class="op">-</span><span class="fl">0.65</span>], [<span class="op">-</span><span class="fl">0.65</span>, <span class="fl">1.0</span>]])</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>mu <span class="op">=</span> np.array([<span class="dv">1</span>, <span class="dv">2</span>])</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> rng.multivariate_normal(mean<span class="op">=</span>mu, cov<span class="op">=</span>Sigma, size<span class="op">=</span>n)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>plt.scatter(X[:, <span class="dv">0</span>], X[:, <span class="dv">1</span>])</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"x1"</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"x2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>Text(0, 0.5, 'x2')</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="dr_files/figure-html/cell-2-output-2.png" width="585" height="429" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Each point is an observation and is represented by a point in the feature space.</p>
+</details>
+</div>
+<hr>
+</section>
+<section id="singular-value-decomposition-svd" class="level3" data-number="4.1.2">
+<h3 data-number="4.1.2" class="anchored" data-anchor-id="singular-value-decomposition-svd"><span class="header-section-number">4.1.2</span> Singular Value Decomposition (SVD)</h3>
+<p>The SVD provides the most direct link between the two geometric perspectives.</p>
+<p>For a matrix with <span class="math inline">\(\text{rank}(X) = r\)</span> <span class="math display">\[
+X = U D V^\top,
+\]</span> where</p>
+<ul>
+<li><span class="math inline">\(U \in \mathbb{R}^{n \times r}\)</span>, <span class="math inline">\(U^\top U = I\)</span></li>
+<li><span class="math inline">\(D = \operatorname{diag}(d_1,\dots,d_r)\)</span>, <span class="math inline">\(d_1 \ge \cdots \ge d_r &gt; 0\)</span></li>
+<li><span class="math inline">\(V \in \mathbb{R}^{p \times r}\)</span>, <span class="math inline">\(V^\top V = I\)</span></li>
+</ul>
+<hr>
+</section>
+<section id="principal-components-pc" class="level3" data-number="4.1.3">
+<h3 data-number="4.1.3" class="anchored" data-anchor-id="principal-components-pc"><span class="header-section-number">4.1.3</span> Principal components (PC)</h3>
+<p>Principal component analysis (PCA) constructs new variables as linear combinations of the original predictors. It builds upon SVD.</p>
+<p>Let <span class="math inline">\(Z =XV=UD= \qty[Z_1, \dots, Z_r]=\mqty[z_{ij}]\)</span> denote the principal components. Each principal component has the form <span class="math display">\[
+Z_j = X v_j=v_{1j}X_1+v_{2j}X_2+\ldots+v_{pj}X_p
+\]</span> where <span class="math inline">\(v_j=\mqty[v_{1j}&amp;\ldots&amp;v_{pj}]^{\top} \in \mathbb{R}^p\)</span> is a unit vector.</p>
+<p><strong>Loadings (directions)</strong></p>
+<ul>
+<li>Each PC is a linear combination of the columns of <span class="math inline">\(X\)</span>.</li>
+<li><strong>Loadings</strong> (<span class="math inline">\(v_{ij}\)</span>): The coefficients used to form PC <span class="math inline">\(Z_j\)</span> are called loadings.</li>
+<li>Loadings describe directions in feature space.</li>
+</ul>
+<p><strong>Scores (coordinates)</strong></p>
+<ul>
+<li>As a vector, each PC lies in <span class="math inline">\(\mathbb{R}^n\)</span> (observation space).</li>
+<li><strong>Scores</strong> (<span class="math inline">\(z_{ij}\)</span>): The coordinate of observation <span class="math inline">\(i\)</span> along direction <span class="math inline">\(v_j\)</span> is called the score.</li>
+</ul>
+<p>Thus:</p>
+<ul>
+<li>rows of <span class="math inline">\(Z\)</span> = transformed observations,</li>
+<li>columns of <span class="math inline">\(Z\)</span> = principal components.</li>
+</ul>
+<div id="exm-" class="theorem example">
+<p><span class="theorem-title"><strong>Example 4.2 (Centering and Scaling)</strong></span> &nbsp;</p>
+<details>
+<summary>
+<strong>Click to expand.</strong>
+</summary>
+<p>We use the same previous dataset <code>X</code>, centering it as <code>Xc</code> and standarizing it as <code>Xs</code>.</p>
+<div id="d028c1d1" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Xc <span class="op">=</span> X <span class="op">-</span> X.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>Xs <span class="op">=</span> Xc <span class="op">/</span> Xc.std(axis<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now we plot them together with the princial compoenent. <code>pca()</code> from <code>sklearn</code> will automatically centering columns. In order to show the sceanario, we use <code>svd()</code> from <code>numpy.linalg</code> to do the computation.</p>
+<div id="e8e46673" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pca_svd(X):</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    U, D, Vt <span class="op">=</span> np.linalg.svd(X, full_matrices<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Vt.T, D</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_svd(ax, X, V, title, scale<span class="op">=</span><span class="dv">3</span>, length<span class="op">=</span><span class="dv">5</span>):</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    ax.scatter(X[:, <span class="dv">0</span>], X[:, <span class="dv">1</span>])</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> np.linspace(<span class="op">-</span>length, length, <span class="dv">100</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    line <span class="op">=</span> np.outer(t, V[:, <span class="dv">0</span>])</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    ax.plot(line[:, <span class="dv">0</span>], line[:, <span class="dv">1</span>], linewidth<span class="op">=</span><span class="dv">2</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    ax.set_title(title)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"x1"</span>)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">"x2"</span>)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>V_raw <span class="op">=</span> np.linalg.svd(X, full_matrices<span class="op">=</span><span class="va">False</span>)[<span class="dv">2</span>].T</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>V_c <span class="op">=</span> np.linalg.svd(Xc, full_matrices<span class="op">=</span><span class="va">False</span>)[<span class="dv">2</span>].T</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>V_s <span class="op">=</span> np.linalg.svd(Xs, full_matrices<span class="op">=</span><span class="va">False</span>)[<span class="dv">2</span>].T</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">0</span>], X, V_raw, <span class="st">"Uncentered (Wrong PCA)"</span>)</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">1</span>], Xc, V_c, <span class="st">"Centered"</span>)</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">2</span>], Xs, V_s, <span class="st">"Centered + Scaled"</span>)</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="dr_files/figure-html/cell-4-output-1.png" width="1430" height="374" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The principal component finds the direction that maximizes the variance of the projected data.</p>
+<p>If the data are not centered, the optimization is no longer based purely on variance. In this case, the objective involves both the covariance structure and the mean of the data.</p>
+<p>As a result, when the mean is large, the first principal direction may be strongly influenced by the location of the data, and can point roughly toward the data cloud rather than reflecting its intrinsic variation.</p>
+<p>Note that the last two plots may appear similar at first glance. However, their coordinate scales are different, so this visual similarity can be misleading.</p>
+</details>
+</div>
+<hr>
+</section>
+<section id="covariance-and-optimality" class="level3" data-number="4.1.4">
+<h3 data-number="4.1.4" class="anchored" data-anchor-id="covariance-and-optimality"><span class="header-section-number">4.1.4</span> Covariance and Optimality</h3>
+<p>The sample covariance matrix is <span class="math inline">\(S = \frac{1}{n-1} X^\top X\)</span>. By SVD, <span class="math display">\[
+S=\frac{1}{n-1} X^\top X = V \frac{D^2}{n-1} V^\top
+\]</span></p>
+<ul>
+<li><span class="math inline">\(V\)</span>: eigenvectors of covariance matrix<br>
+</li>
+<li><span class="math inline">\(d_j^2/(n-1)\)</span>: eigenvalues of <span class="math inline">\(S\)</span></li>
+<li><span class="math inline">\(\operatorname{Var}(Z_j)=d_j^2/(n-1)\)</span></li>
+</ul>
+<p>Therefore</p>
+<ul>
+<li>First PC: Direction <span class="math inline">\(v_1\)</span> that maximizes <span class="math inline">\(\operatorname{Var}(Xv_1)\)</span> subject to <span class="math inline">\(\norm{v_1}=1\)</span>.</li>
+<li>Subsequent PCs: Maximize remaining variance subject to orthogonality (that they are orthogonal to all previous PCs <span class="math inline">\(v_k^\top v_j = 0\)</span> for <span class="math inline">\(j &lt; k\)</span>).</li>
+</ul>
+<hr>
+</section>
+<section id="summary" class="level3" data-number="4.1.5">
+<h3 data-number="4.1.5" class="anchored" data-anchor-id="summary"><span class="header-section-number">4.1.5</span> Summary</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 19%">
+<col style="width: 17%">
+<col style="width: 39%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Matrix</th>
+<th>Space</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Loadings</td>
+<td><span class="math inline">\(V\)</span></td>
+<td>Feature (<span class="math inline">\(\mathbb{R}^p\)</span>)</td>
+<td>Principal directions (rotation of axes)</td>
+</tr>
+<tr class="even">
+<td>Scores</td>
+<td><span class="math inline">\(Z = UD\)</span></td>
+<td>Observation (<span class="math inline">\(\mathbb{R}^n\)</span>)</td>
+<td>Transformed coordinates of observations</td>
+</tr>
+<tr class="odd">
+<td>Normalized scores</td>
+<td><span class="math inline">\(U\)</span></td>
+<td>Observation (<span class="math inline">\(\mathbb{R}^n\)</span>)</td>
+<td>Directions of score vectors (unit length)</td>
+</tr>
+<tr class="even">
+<td>Singular values</td>
+<td><span class="math inline">\(D\)</span></td>
+<td>—</td>
+<td>Scaling of each component (spread)</td>
+</tr>
+<tr class="odd">
+<td>Variance</td>
+<td><span class="math inline">\(D^2/(n-1)\)</span></td>
+<td>—</td>
+<td>Importance of each principal component</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Columns of <span class="math inline">\(X\)</span>: variables in <span class="math inline">\(\mathbb{R}^n\)</span> (relationships via angles)</li>
+<li>Rows of <span class="math inline">\(X\)</span>: observations in <span class="math inline">\(\mathbb{R}^p\)</span> (relationships via distance)</li>
+<li>PCA finds orthogonal directions in feature space</li>
+<li><span class="math inline">\(V\)</span> gives directions, <span class="math inline">\(Z\)</span> gives coordinates</li>
+<li>SVD unifies everything: <span class="math display">\[
+X = UDV^\top, \quad Z = XV = UD
+\]</span></li>
+</ul>
+<hr>
+</section>
+<section id="choosing-the-number-of-components-m" class="level3" data-number="4.1.6">
+<h3 data-number="4.1.6" class="anchored" data-anchor-id="choosing-the-number-of-components-m"><span class="header-section-number">4.1.6</span> Choosing the number of components (<span class="math inline">\(m\)</span>)</h3>
+<p>Let <span class="math inline">\(\rank(X)=r\)</span>. PCA produces <span class="math inline">\(r\)</span> components, but in practice we keep only the first <span class="math inline">\(m \le r\)</span>.</p>
+<p>Define the truncated SVD: <span class="math display">\[
+X \approx X_m = U_m D_m V_m^\top,
+\]</span> where</p>
+<ul>
+<li><span class="math inline">\(U_m \in \mathbb{R}^{n \times m}\)</span></li>
+<li><span class="math inline">\(D_m \in \mathbb{R}^{m \times m}\)</span></li>
+<li><span class="math inline">\(V_m \in \mathbb{R}^{p \times m}\)</span></li>
+</ul>
+<p>Correspondingly, <span class="math display">\[
+Z_m = X V_m = U_m D_m
+\]</span> contains the first <span class="math inline">\(m\)</span> principal components.</p>
+<p>Keeping the <span class="math inline">\(m\)</span> largest singular values gives the best rank-<span class="math inline">\(m\)</span> approximation of <span class="math inline">\(X\)</span> in least squares sense.</p>
+<section id="variance-explained" class="level4" data-number="4.1.6.1">
+<h4 data-number="4.1.6.1" class="anchored" data-anchor-id="variance-explained"><span class="header-section-number">4.1.6.1</span> Variance explained</h4>
+<p>The total variance is <span class="math display">\[
+\sum_{j=1}^r \frac{d_j^2}{n-1},
+\]</span> and the proportion explained by the first <span class="math inline">\(m\)</span> components is <span class="math display">\[
+\frac{\sum_{j=1}^m d_j^2}{\sum_{j=1}^r d_j^2}.
+\]</span></p>
+</section>
+<section id="choosing-m-for-prediction-pcr" class="level4" data-number="4.1.6.2">
+<h4 data-number="4.1.6.2" class="anchored" data-anchor-id="choosing-m-for-prediction-pcr"><span class="header-section-number">4.1.6.2</span> Choosing <span class="math inline">\(m\)</span> for prediction (PCR)</h4>
+<p>In predictive settings, <span class="math inline">\(m\)</span> is typically selected via cross-validation:</p>
+<ol type="1">
+<li>Compute principal components.</li>
+<li>Fit regression models using <span class="math inline">\(m = 1,2,\ldots,r\)</span> components.</li>
+<li>Evaluate validation error.</li>
+<li>Choose <span class="math inline">\(m\)</span> with the lowest validation error.</li>
+</ol>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Scree plot (Elbow method)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The scree plot (elbow method) plots <span class="math inline">\(d_j^2\)</span> against <span class="math inline">\(j\)</span> and selects <span class="math inline">\(m\)</span> at the point where the marginal gain in variance explained drops sharply (the “elbow”). This identifies the number of components that captures most of the variation in <span class="math inline">\(X\)</span>.</p>
+<p>However, PCA is unsupervised: directions that explain high variance in <span class="math inline">\(X\)</span> do not necessarily have strong predictive power for <span class="math inline">\(y\)</span>. Therefore, in predictive settings such as PCR, <span class="math inline">\(m\)</span> is typically chosen via cross-validation rather than the elbow method.</p>
+<p>For unsupervised tasks (e.g., representation or clustering), the scree plot remains a reasonable and commonly used choice.</p>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="pcr-in-python" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="pcr-in-python"><span class="header-section-number">4.2</span> PCR in Python</h2>
+<section id="pca" class="level3" data-number="4.2.1">
+<h3 data-number="4.2.1" class="anchored" data-anchor-id="pca"><span class="header-section-number">4.2.1</span> PCA</h3>
+<p><code>scikit-learn</code> provides <code>PCA</code> for computing principal components. To demonstrate the code we use the same dataset from lasso.</p>
+<div id="eae2c250" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">0</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">150</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, k))</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> rng.normal(size<span class="op">=</span>(k, p))</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> Z <span class="op">@</span> A <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>(n, p))</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> np.zeros(p)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>beta[:<span class="dv">10</span>] <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">7</span>, <span class="dv">6</span>, <span class="dv">5</span>, <span class="dv">4</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="dv">1</span>, <span class="fl">0.5</span>]</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X <span class="op">@</span> beta <span class="op">+</span> <span class="dv">12</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>n)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    X, y, test_size<span class="op">=</span><span class="fl">0.3</span>, random_state<span class="op">=</span><span class="dv">0</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p><code>pca</code> is an unsupervised learnning method. Therefore to perform it we only need <code>X</code>.</p>
+<div id="5045dd96" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>pca <span class="op">=</span> PCA().fit(X_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>All important information can be accessed from the returned object.</p>
+<div id="9fec5f96" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>V <span class="op">=</span> pca.components_.T                   <span class="co"># loadings (V)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> pca.transform(X_train)              <span class="co"># scores (Z)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> pca.singular_values_                <span class="co"># singular values (D)</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>var <span class="op">=</span> pca.explained_variance_           <span class="co"># variance that are explained</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>ratio <span class="op">=</span> pca.explained_variance_ratio_   <span class="co"># the ratio of variance that are explained</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>With <code>var</code> and <code>ratio</code>, we may plot the scree plot (although we won’t really use it to select the number of components).</p>
+<div id="be0776ee" class="cell" data-execution_count="7">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-4"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-4-1"><a href="#annotated-cell-4-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> np.arange(<span class="dv">1</span>, <span class="bu">len</span>(var) <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="annotated-cell-4-2"><a href="#annotated-cell-4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-4-3"><a href="#annotated-cell-4-3" aria-hidden="true" tabindex="-1"></a>plt.figure()</span>
+<span id="annotated-cell-4-4"><a href="#annotated-cell-4-4" aria-hidden="true" tabindex="-1"></a>plt.plot(k, ratio, marker<span class="op">=</span><span class="st">"o"</span>)</span>
+<span id="annotated-cell-4-5"><a href="#annotated-cell-4-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Component index"</span>)</span>
+<span id="annotated-cell-4-6"><a href="#annotated-cell-4-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Proportion of variance explained"</span>)</span>
+<span id="annotated-cell-4-7"><a href="#annotated-cell-4-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Scree Plot (Variance Ratio)"</span>)</span>
+<span id="annotated-cell-4-8"><a href="#annotated-cell-4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-4-9"><a href="#annotated-cell-4-9" aria-hidden="true" tabindex="-1"></a>cum <span class="op">=</span> np.cumsum(ratio)</span>
+<span id="annotated-cell-4-10"><a href="#annotated-cell-4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-4-11"><a href="#annotated-cell-4-11" aria-hidden="true" tabindex="-1"></a>diff2 <span class="op">=</span> np.diff(cum, <span class="dv">2</span>)</span>
+<span id="annotated-cell-4-12"><a href="#annotated-cell-4-12" aria-hidden="true" tabindex="-1"></a>elbow_idx <span class="op">=</span> np.argmin(diff2) <span class="op">+</span> <span class="dv">2</span></span>
+<span id="annotated-cell-4-13"><a href="#annotated-cell-4-13" aria-hidden="true" tabindex="-1"></a>elbow_k <span class="op">=</span> k[elbow_idx]</span>
+<span id="annotated-cell-4-14"><a href="#annotated-cell-4-14" aria-hidden="true" tabindex="-1"></a>elbow_val <span class="op">=</span> ratio[elbow_idx]</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="1">1</button><span id="annotated-cell-4-15" class="code-annotation-target"><a href="#annotated-cell-4-15" aria-hidden="true" tabindex="-1"></a>plt.axvline(elbow_k, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="annotated-cell-4-16"><a href="#annotated-cell-4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-4-17"><a href="#annotated-cell-4-17" aria-hidden="true" tabindex="-1"></a>plt.scatter(elbow_k, elbow_val)</span>
+<span id="annotated-cell-4-18"><a href="#annotated-cell-4-18" aria-hidden="true" tabindex="-1"></a>plt.text(elbow_k <span class="op">+</span> <span class="fl">0.2</span>, elbow_val <span class="op">+</span> <span class="fl">0.004</span>, <span class="ss">f"k=</span><span class="sc">{</span>elbow_k<span class="sc">}</span><span class="ch">\n</span><span class="sc">{</span>elbow_val<span class="sc">:.3f}</span><span class="ss">"</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-4" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="15" data-code-annotation="1">Use 2nd order difference to find the elbow.</span>
+</dd>
+</dl>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>Text(13.2, 0.005666697882320329, 'k=13\n0.002')</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="dr_files/figure-html/cell-8-output-2.png" width="606" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="pcr" class="level3" data-number="4.2.2">
+<h3 data-number="4.2.2" class="anchored" data-anchor-id="pcr"><span class="header-section-number">4.2.2</span> PCR</h3>
+<p>Using PCA to do regression, we have to standarize the data. Therefore we set up the pipeline.</p>
+<p>We first use 13 components (which comes from the scree plot) as our starting point. We will tune it later using cross-validation.</p>
+<div id="9e373cb7" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> Pipeline</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error, r2_score</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>pcr_pipe <span class="op">=</span> Pipeline(</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    [</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"scaler"</span>, StandardScaler()),</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"pca"</span>, PCA(n_components<span class="op">=</span><span class="dv">13</span>)),</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"model"</span>, LinearRegression()),</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>pcr_pipe.fit(X_train, y_train)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>y_pred_pcr <span class="op">=</span> pcr_pipe.predict(X_test)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test R^2 : </span><span class="sc">{</span>r2_score(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Test RMSE: 348.7698605548008
+Test R^2 : 0.8536528530700276</code></pre>
+</div>
+</div>
+<p>You may compare it with the results we get from <code>lasso</code> and <code>ridge</code>.</p>
+</section>
+<section id="choosing-number-of-components-by-cross-validation" class="level3" data-number="4.2.3">
+<h3 data-number="4.2.3" class="anchored" data-anchor-id="choosing-number-of-components-by-cross-validation"><span class="header-section-number">4.2.3</span> Choosing number of components by cross-validation</h3>
+<p>We use <span class="math inline">\(K\)</span>-fold cross validation to find the best number of components. Our criterion is negative MSE.</p>
+<div id="acf561ca" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-6"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-6-1"><a href="#annotated-cell-6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
+<span id="annotated-cell-6-2"><a href="#annotated-cell-6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-6-3"><a href="#annotated-cell-6-3" aria-hidden="true" tabindex="-1"></a>n_splits <span class="op">=</span> <span class="dv">5</span></span>
+<span id="annotated-cell-6-4"><a href="#annotated-cell-6-4" aria-hidden="true" tabindex="-1"></a>n_train_fold <span class="op">=</span> <span class="bu">int</span>(X_train.shape[<span class="dv">0</span>] <span class="op">*</span> (n_splits <span class="op">-</span> <span class="dv">1</span>) <span class="op">/</span> n_splits)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="1">1</button><span id="annotated-cell-6-5" class="code-annotation-target"><a href="#annotated-cell-6-5" aria-hidden="true" tabindex="-1"></a>max_components <span class="op">=</span> <span class="bu">min</span>(n_train_fold, X_train.shape[<span class="dv">1</span>])</span>
+<span id="annotated-cell-6-6"><a href="#annotated-cell-6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-6-7"><a href="#annotated-cell-6-7" aria-hidden="true" tabindex="-1"></a>param_grid <span class="op">=</span> {<span class="st">"pca__n_components"</span>: <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, max_components <span class="op">+</span> <span class="dv">1</span>))}</span>
+<span id="annotated-cell-6-8"><a href="#annotated-cell-6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-6-9"><a href="#annotated-cell-6-9" aria-hidden="true" tabindex="-1"></a>gs_pcr <span class="op">=</span> GridSearchCV(</span>
+<span id="annotated-cell-6-10"><a href="#annotated-cell-6-10" aria-hidden="true" tabindex="-1"></a>    pcr_pipe, param_grid, cv<span class="op">=</span>n_splits, scoring<span class="op">=</span><span class="st">"neg_mean_squared_error"</span></span>
+<span id="annotated-cell-6-11"><a href="#annotated-cell-6-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="annotated-cell-6-12"><a href="#annotated-cell-6-12" aria-hidden="true" tabindex="-1"></a>gs_pcr.fit(X_train, y_train)</span>
+<span id="annotated-cell-6-13"><a href="#annotated-cell-6-13" aria-hidden="true" tabindex="-1"></a>gs_pcr.best_params_[<span class="st">"pca__n_components"</span>]</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-6" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="5" data-code-annotation="1">The maximal possible number of components depends on the shape of X. However for cross-validation, the number of rows of X is reduced due to the split. Therefore we have to estimate this number in order to avoid “<code>n_components</code> out of bounds” warning.</span>
+</dd>
+</dl>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>19</code></pre>
+</div>
+</div>
+<p>It shows that 19 is the best number. Then we check the test result.</p>
+<div id="e77c3fa1" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>y_pred_pcr <span class="op">=</span> gs_pcr.predict(X_test)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test R^2 : </span><span class="sc">{</span>r2_score(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Test RMSE: 321.0762521471908
+Test R^2 : 0.8652733542572647</code></pre>
+</div>
+</div>
+<p>It is slightly better than <code>13</code>, but still worse than tuned <code>ridge</code> and <code>lasso</code>.</p>
+<p>We could also look at the validation curve on the mean test score.</p>
+<div id="3438dcfc" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>plt.plot(param_grid[<span class="st">"pca__n_components"</span>], gs_pcr.cv_results_[<span class="st">"mean_test_score"</span>])</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>plt.axvline(<span class="dv">19</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"red"</span>, label<span class="op">=</span><span class="st">"best_gs"</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>plt.axvline(<span class="dv">13</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"blue"</span>, label<span class="op">=</span><span class="st">"best_elbow"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="dr_files/figure-html/cell-12-output-1.png" width="594" height="411" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="partial-least-squares-pls" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="partial-least-squares-pls"><span class="header-section-number">4.3</span> Partial Least Squares (PLS)</h2>
+<p>One limitation of Principal Component Regression (PCR) is that it is unsupervised: the principal components depend only on <span class="math inline">\(X\)</span> and ignore the response <span class="math inline">\(y\)</span>. As a result, directions with large variance in <span class="math inline">\(X\)</span> may not be relevant for predicting <span class="math inline">\(y\)</span>.</p>
+<p>Partial Least Squares (PLS) addresses this by constructing components that are guided by the response. It seeks directions in the predictor space that are both:</p>
+<ul>
+<li>informative about <span class="math inline">\(X\)</span>, and</li>
+<li>strongly related to <span class="math inline">\(y\)</span></li>
+</ul>
+<div id="def-pls" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 4.2 (Partial Least Squares)</strong></span> Partial least squares constructs a sequence of components</p>
+<p><span class="math display">\[
+Z_k = X w_k
+\]</span></p>
+<p>where the weight vector <span class="math inline">\(w_k\)</span> is chosen to maximize the covariance between the component and the response: <span class="math display">\[
+w_k =\arg\max_{\norm{w}=1}\operatorname{Cov}(Xw, y).
+\]</span></p>
+<p>After constructing the component <span class="math inline">\(Z_k\)</span>, both the predictor matrix <span class="math inline">\(X\)</span> and the response <span class="math inline">\(y\)</span> are deflated, and the procedure is repeated to construct additional components.</p>
+</div>
+<section id="algorithm-intuition" class="level3" data-number="4.3.1">
+<h3 data-number="4.3.1" class="anchored" data-anchor-id="algorithm-intuition"><span class="header-section-number">4.3.1</span> Algorithm intuition</h3>
+<p>PLS constructs components sequentially, with each step explicitly targeting predictive power for <span class="math inline">\(y\)</span>, rather than variance in <span class="math inline">\(X\)</span>.</p>
+<p><strong>Step 1</strong>: Find the direction. Choose a direction <span class="math inline">\(w_k \in \mathbb{R}^p\)</span> such that the component <span class="math inline">\(Z_k = X_k w_k\)</span> maximizes covariance with <span class="math inline">\(y_k\)</span>. <span class="math display">\[
+w_k =\arg\max_{\norm{w}=1}\operatorname{Cov}(X_kw, y_k)
+\]</span></p>
+<!-- - This is the key idea: maximize relevance to the response
+  - PCA: maximize $\Var(Xw)$
+  - PLS: maximize $\Cov(Xw, y)$ -->
+<p><strong>Step 2</strong>: Define the <span class="math inline">\(k\)</span>-th component (also called the score vector): <span class="math display">\[
+Z_k=X_kw_k\in\mathbb R^n
+\]</span></p>
+<ul>
+<li>This is a linear combination of predictors</li>
+<li>Represents the direction in <span class="math inline">\(X\)</span> most aligned with <span class="math inline">\(y_k\)</span></li>
+</ul>
+<p><strong>Step 3</strong>: Fit a simple regression of <span class="math inline">\(y_k\)</span> on <span class="math inline">\(Z_k\)</span>: <span class="math display">\[
+y_k=c_kZ_k+\resid
+\]</span> This captures how strongly the component explains <span class="math inline">\(y_k\)</span>.</p>
+<p><strong>Step 4</strong>: Deflation: remove the variation explained by <span class="math inline">\(Z_k\)</span> from both <span class="math inline">\(X_k\)</span> and <span class="math inline">\(y_k\)</span>.</p>
+<ul>
+<li>Update response: <span class="math inline">\(y_{k+1}=y_k-c_kZ_k\)</span></li>
+<li>Update predictors: <span class="math inline">\(X_{k+1}=X_k-Z_kp_k^\top\)</span>, where <span class="math inline">\(p_k=\frac{X_k^\top Z_k}{Z_k^\top Z_k}\)</span>.
+<ul>
+<li><span class="math inline">\(p_k\)</span> are the loadings for reconstructing <span class="math inline">\(X\)</span></li>
+<li>Deflation ensures the next components capture on new information</li>
+</ul></li>
+</ul>
+<p><strong>Step 5</strong>: Repeat the process for <span class="math inline">\(k = 1, 2, \dots, m\)</span>.</p>
+</section>
+<section id="key-properties" class="level3" data-number="4.3.2">
+<h3 data-number="4.3.2" class="anchored" data-anchor-id="key-properties"><span class="header-section-number">4.3.2</span> Key properties</h3>
+<p>PLS has several important structural properties:</p>
+<ul>
+<li>The components <span class="math inline">\(\{Z_1, Z_2, \dots\}\)</span> are constructed sequentially.<br>
+</li>
+<li>Each component explains the remaining variation in <span class="math inline">\(y\)</span>.<br>
+</li>
+<li>After deflation, the components are orthogonal.<br>
+</li>
+<li>The ordering reflects predictive importance.</li>
+</ul>
+<!-- #### Roles of key quantities -->
+<p>At each step, the main quantities have distinct roles:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Quantity</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(w_k\)</span></td>
+<td>Direction in feature space used to combine predictors</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(Z_k = X_k w_k\)</span></td>
+<td>Score (component), representing projected data</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(p_k\)</span></td>
+<td>Loading, describing how the component explains <span class="math inline">\(X\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>Together, these quantities describe how information is extracted from <span class="math inline">\(X\)</span> and transferred to explain <span class="math inline">\(y\)</span>.</p>
+</section>
+<section id="comparison-with-pca" class="level3" data-number="4.3.3">
+<h3 data-number="4.3.3" class="anchored" data-anchor-id="comparison-with-pca"><span class="header-section-number">4.3.3</span> Comparison with PCA</h3>
+<p>The key difference between PCA and PLS lies in how the directions are chosen:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 53%">
+<col style="width: 37%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Criterion</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PCA</td>
+<td>maximize <span class="math inline">\(\operatorname{Var}(Xw)\)</span></td>
+<td>captures structure of <span class="math inline">\(X\)</span></td>
+</tr>
+<tr class="even">
+<td>PLS</td>
+<td>maximize <span class="math inline">\(\operatorname{Cov}(Xw, y)\)</span></td>
+<td>targets prediction of <span class="math inline">\(y\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>PCA captures the internal structure of <span class="math inline">\(X\)</span>, while PLS focuses on directions that are useful for predicting <span class="math inline">\(y\)</span>.</p>
+</section>
+<section id="geometric-meaning-krylov-subspace" class="level3" data-number="4.3.4">
+<h3 data-number="4.3.4" class="anchored" data-anchor-id="geometric-meaning-krylov-subspace"><span class="header-section-number">4.3.4</span> Geometric meaning (Krylov Subspace)</h3>
+<p>The matrix <span class="math inline">\(X\)</span> defines a cloud of points in <span class="math inline">\(\mathbb{R}^p\)</span> and the response <span class="math inline">\(y\)</span> defines a direction in <span class="math inline">\(\mathbb{R}^n\)</span>.</p>
+<p>PLS finds directions <span class="math inline">\(w_k\)</span> such that the projections <span class="math inline">\(Z_k = X w_k\)</span> are maximally aligned with <span class="math inline">\(y\)</span> in the observation space. In this sense, PLS can be understood geometrically as searching for directions in predictor space that align with the response.</p>
+<p>To be more precise, it can be explained using Krylov subspaces.</p>
+<details>
+<summary>
+<strong>Click to expand.</strong>
+</summary>
+<p>The Krylov subspace provides a structured way to generate directions for solving regression problems. Instead of searching the entire feature space <span class="math inline">\(\mathbb{R}^p\)</span>, it builds a sequence of low-dimensional subspaces that are tailored to the problem.</p>
+<p>Given a matrix <span class="math inline">\(A \in \mathbb{R}^{p \times p}\)</span> and a vector <span class="math inline">\(b \in \mathbb{R}^p\)</span>, the Krylov subspace of order <span class="math inline">\(k\)</span> is defined as <span class="math display">\[
+\mathcal{K}_k(A, b)
+=
+\operatorname{span}\{b,\; Ab,\; A^2 b,\; \dots,\; A^{k-1} b\}.
+\]</span></p>
+<p>The subspaces are nested, meaning <span class="math inline">\(\mathcal{K}_1 \subseteq \mathcal{K}_2 \subseteq \cdots\)</span>, and the dimension cannot exceed <span class="math inline">\(\rank(A)\)</span>. Therefore, the sequence stabilizes after at most <span class="math inline">\(\rank(A)\)</span> steps.</p>
+<section id="krylov-subspace-in-regression" class="level4" data-number="4.3.4.1">
+<h4 data-number="4.3.4.1" class="anchored" data-anchor-id="krylov-subspace-in-regression"><span class="header-section-number">4.3.4.1</span> Krylov Subspace in Regression</h4>
+<p>In linear regression, we take <span class="math display">\[
+A = X^\top X, \qquad b = X^\top y.
+\]</span></p>
+<p>Then the Krylov subspace becomes <span class="math display">\[
+\mathcal{K}_k(X^\top X, X^\top y)
+=
+\operatorname{span}\{X^\top y,\ (X^\top X)X^\top y,\ (X^\top X)^2 X^\top y,\dots\}.
+\]</span></p>
+<p>The vector <span class="math inline">\(X^\top y\)</span> represents directions in the predictor space that are most correlated with the response, while <span class="math inline">\(X^\top X\)</span> encodes the covariance structure of the predictors. As a result, the Krylov subspace captures directions that are both aligned with <span class="math inline">\(y\)</span> and consistent with the geometry of <span class="math inline">\(X\)</span>.</p>
+</section>
+<section id="connection-to-pls" class="level4" data-number="4.3.4.2">
+<h4 data-number="4.3.4.2" class="anchored" data-anchor-id="connection-to-pls"><span class="header-section-number">4.3.4.2</span> Connection to PLS</h4>
+<p>Partial Least Squares constructs its directions sequentially within the Krylov subspace: <span class="math display">\[
+w_k \in \mathcal{K}_k(X^\top X,\; X^\top y).
+\]</span></p>
+<p>This means that PLS does not search over all possible directions in <span class="math inline">\(\mathbb{R}^p\)</span>. Instead, it expands a problem-dependent subspace step by step, starting from <span class="math inline">\(X^\top y\)</span> and incorporating higher-order interactions through <span class="math inline">\(X^\top X\)</span>.</p>
+<p>The number of components is therefore bounded by <span class="math display">\[
+m \le \dim(\mathcal{K}_k) \le \rank(X).
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The Krylov subspace can be viewed as a guided search path inside <span class="math inline">\(\operatorname{span}(X)\)</span>. The first direction is determined by <span class="math inline">\(X^\top y\)</span>, and subsequent directions refine this information by incorporating the covariance structure of the predictors.</p>
+<p>In this sense, the Krylov subspace represents the portion of the feature space that is relevant for predicting <span class="math inline">\(y\)</span>. Methods such as PLS operate within this space, focusing on directions that carry predictive signal rather than exploring the entire feature space.</p>
+</div>
+</div>
+</section></details>
+</section>
+</section>
+
+<section id="pls-in-python" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="pls-in-python"><span class="header-section-number">4.4</span> PLS in Python</h2>
+<p>Although the algorithm is different, the code is very similar to PCR. PLS is implemented by <code>PLSRegression</code> from <code>sklearn.cross_decomposition</code>. The argument <code>scale=True</code> is by default so we don’t need to attach standardizer to it.</p>
+<p>We choose the default number of componenets (which is 2) here. The specific hyperparameter will be tuned later by cross-validation.</p>
+<div id="2bd93808" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cross_decomposition <span class="im">import</span> PLSRegression</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>pls <span class="op">=</span> PLSRegression()</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>pls.fit(X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We could use the following code to get access to the parameters.</p>
+<div id="0d286134" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>W <span class="op">=</span> pls.x_weights_    <span class="co"># weights, directions (W)</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> pls.x_scores_     <span class="co"># scores, components (Z)</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> pls.x_loadings_   <span class="co"># loadings (P)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="example" class="level3" data-number="4.4.1">
+<h3 data-number="4.4.1" class="anchored" data-anchor-id="example"><span class="header-section-number">4.4.1</span> Example</h3>
+<p>We use the same simulated dataset as before.</p>
+<div id="38803524" class="cell" data-execution_count="14">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">0</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">150</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, k))</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> rng.normal(size<span class="op">=</span>(k, p))</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> Z <span class="op">@</span> A <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>(n, p))</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> np.zeros(p)</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>beta[:<span class="dv">10</span>] <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">7</span>, <span class="dv">6</span>, <span class="dv">5</span>, <span class="dv">4</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="dv">1</span>, <span class="fl">0.5</span>]</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X <span class="op">@</span> beta <span class="op">+</span> <span class="dv">12</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>n)</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    X, y, test_size<span class="op">=</span><span class="fl">0.3</span>, random_state<span class="op">=</span><span class="dv">0</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>Similar to PCR, we need to choose the number of components. Since PLS is fit inside cross-validation, the maximum number of components should be no larger than the number of observations in each training fold.</p>
+<div id="772fc6c4" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cross_decomposition <span class="im">import</span> PLSRegression</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>n_splits <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>n_train_fold <span class="op">=</span> <span class="bu">int</span>(X_train.shape[<span class="dv">0</span>] <span class="op">*</span> (n_splits <span class="op">-</span> <span class="dv">1</span>) <span class="op">/</span> n_splits)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>max_components <span class="op">=</span> <span class="bu">min</span>(n_train_fold, X_train.shape[<span class="dv">1</span>])</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>param_grid <span class="op">=</span> {<span class="st">"n_components"</span>: <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, max_components <span class="op">+</span> <span class="dv">1</span>))}</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>gs_pls <span class="op">=</span> GridSearchCV(</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    PLSRegression(), param_grid, cv<span class="op">=</span>n_splits, scoring<span class="op">=</span><span class="st">"neg_mean_squared_error"</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>gs_pls.fit(X_train, y_train)</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>gs_pls.best_params_[<span class="st">"n_components"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<pre><code>4</code></pre>
+</div>
+</div>
+<p>After selecting the number of components by cross-validation, we evaluate the fitted model on the test set.</p>
+<div id="d033a665" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>y_pred_pls <span class="op">=</span> gs_pls.predict(X_test)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pls)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test R^2 : </span><span class="sc">{</span>r2_score(y_test, y_pred_pls)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Test RMSE: 333.9484272722302
+Test R^2 : 0.8598720672844287</code></pre>
+</div>
+</div>
+<p>The validation curve shows how the cross-validation error changes as the number of PLS components increases.</p>
+<div id="a63cdbba" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>plt.plot(param_grid[<span class="st">"n_components"</span>], gs_pls.cv_results_[<span class="st">"mean_test_score"</span>])</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>plt.axvline(</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    gs_pls.best_params_[<span class="st">"n_components"</span>],</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    linestyle<span class="op">=</span><span class="st">"--"</span>,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">"red"</span>,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    label<span class="op">=</span><span class="st">"best_gs"</span>,</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>plt.legend()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="dr_files/figure-html/cell-18-output-1.png" width="594" height="411" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Important Notes
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><code>PLSRegression</code> automatically centers and scales the predictors by default.</li>
+<li>Unlike PCR, PLS uses both <span class="math inline">\(X\)</span> and <span class="math inline">\(y\)</span> when constructing components.</li>
+<li>The number of components should be chosen by cross-validation.</li>
+<li>Very large numbers of components are usually unnecessary and may lead to numerical warnings.</li>
+</ul>
+</div>
+</div>
+<p>The results for this dataset are summarized in the following table.</p>
+<div id="35704168" class="cell" data-execution_count="18">
+<div class="cell-output cell-output-stderr">
+<pre><code>&lt;&gt;:90: SyntaxWarning: "is not" with 'str' literal. Did you mean "!="?
+C:\Users\xiaox\AppData\Local\Temp\ipykernel_43136\4187596780.py:90: SyntaxWarning: "is not" with 'str' literal. Did you mean "!="?
+  if (ols_in is True) or ((ols_in is False) and (name is not "OLS")):</code></pre>
+</div>
+</div>
+<div id="a2de8011" class="cell" data-execution_count="19">
+<div class="cell-output cell-output-display" data-execution_count="17">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Test RMSE</th>
+<th data-quarto-table-cell-role="th">Test R²</th>
+<th data-quarto-table-cell-role="th">Best param</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">OLS</th>
+<td>1212.5155</td>
+<td>0.491217</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">RidgeCV</th>
+<td>274.2522</td>
+<td>0.884921</td>
+<td>alpha=10.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">LassoCV</th>
+<td>221.7648</td>
+<td>0.906945</td>
+<td>alpha=0.4608014833934263</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">PCR</th>
+<td>321.0763</td>
+<td>0.865273</td>
+<td>n_components=19</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">PLS</th>
+<td>333.9484</td>
+<td>0.859872</td>
+<td>n_components=4</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Note that PCR and PLS do not perform as well as ridge and lasso in this example. A key reason lies in how the dataset is generated.</p>
+<ul>
+<li>The coefficient vector <span class="math inline">\(\beta\)</span> is sparse: only a small number of predictors (10 out of 100) are truly relevant.</li>
+<li>The noise level is relatively high, making signal recovery more difficult.</li>
+<li>More importantly, the variation in <span class="math inline">\(X\)</span> is driven by a low-dimensional latent structure (<span class="math inline">\(Z A\)</span>), while the true signal depends on a sparse set of original predictors. As a result, the directions of largest variance in <span class="math inline">\(X\)</span> are not necessarily aligned with the directions that predict <span class="math inline">\(y\)</span>.</li>
+</ul>
+<p>Since PCR relies only on variance in <span class="math inline">\(X\)</span>, and PLS is still influenced by this structure, both methods may fail to recover the true signal efficiently. In contrast, ridge and lasso operate directly on the original predictors, with lasso particularly well-suited for identifying sparse signals.</p>
+</section>
+<section id="another-example" class="level3" data-number="4.4.2">
+<h3 data-number="4.4.2" class="anchored" data-anchor-id="another-example"><span class="header-section-number">4.4.2</span> Another example</h3>
+<p>Now let us look at another example. In this setting, we construct <span class="math inline">\(X\)</span> so that most of its variance comes from irrelevant noise, while the true signal has low variance but determines <span class="math inline">\(y\)</span>. Specifically, <span class="math display">\[
+y = Z_1 b + \varepsilon_Y, \quad
+X = Z_1 A_1 + Z_2 A_2 + \varepsilon_X.
+\]</span></p>
+<p>This setup has the following properties:</p>
+<ul>
+<li><span class="math inline">\(Z_1\)</span> (signal) has low variance, while <span class="math inline">\(Z_2\)</span> (noise) has high variance.</li>
+<li><span class="math inline">\(y\)</span> depends only on <span class="math inline">\(Z_1\)</span>.</li>
+<li>Therefore, the predictive signal lies in low-variance but structured (low-rank) directions of <span class="math inline">\(X\)</span>.</li>
+<li>For simplicity, we take <span class="math inline">\(Z_1\)</span> to be one-dimensional in the following example.</li>
+</ul>
+<div id="a4924070" class="cell" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">42</span>)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">120</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">300</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>Z_1 <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, <span class="dv">1</span>))</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>A_1 <span class="op">=</span> rng.normal(size<span class="op">=</span>(<span class="dv">1</span>, p))</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>X_signal <span class="op">=</span> Z_1 <span class="op">@</span> A_1 <span class="op">*</span> <span class="fl">0.15</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>k_2 <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>Z_2 <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, k_2))</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>A_2 <span class="op">=</span> rng.normal(size<span class="op">=</span>(k_2, p))</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>X_noise <span class="op">=</span> Z_2 <span class="op">@</span> A_2 <span class="op">*</span> <span class="dv">15</span></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> X_noise <span class="op">+</span> X_signal <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>(n, p))</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="dv">12</span> <span class="op">*</span> Z_1.ravel() <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>n)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="425a20d3" class="cell" data-execution_count="21">
+<div class="cell-output cell-output-display" data-execution_count="19">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Test RMSE</th>
+<th data-quarto-table-cell-role="th">Test R²</th>
+<th data-quarto-table-cell-role="th">Best param</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">RidgeCV</th>
+<td>34.7296</td>
+<td>0.682587</td>
+<td>alpha=0.1</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">LassoCV</th>
+<td>22.8245</td>
+<td>0.791395</td>
+<td>alpha=0.0022916910232695206</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">PCR</th>
+<td>17.2454</td>
+<td>0.842385</td>
+<td>n_components=51</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">PLS</th>
+<td>16.2460</td>
+<td>0.851518</td>
+<td>n_components=12</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>In this example, PCR and especially PLS tend to outperform ridge and lasso.</p>
+<ul>
+<li>PCR can recover the signal if enough components are included, even though the signal lies in low-variance directions.</li>
+<li>PLS performs particularly well because it uses <span class="math inline">\(y\)</span> when constructing components, allowing it to directly identify directions associated with the response.</li>
+<li>Ridge and lasso shrink coefficients based on the observed predictors. Since the signal is weak (low variance) and spread across many features through <span class="math inline">\(A_1\)</span>, it is harder for them to isolate and recover it.</li>
+</ul>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Caution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Important predictive directions do not have to correspond to directions of large variance.</p>
+</div>
+</div>
+<!-- 
+
+::: {.callout-note}
+## Why does OLS still perform well?
+
+In this example, OLS achieves strong performance, even though $X$ is high-dimensional and largely driven by noise. This may seem surprising at first, but it can be explained by the structure of the data.
+
+- The response $y$ is driven by a low-dimensional latent factor $Z_1$.
+- This factor is embedded in $X$ through the term $Z_1 A_1$, so the signal lies in the column space of $X$.
+- As a result, there exists a linear combination of the predictors that can approximate $y$ well.
+
+Even when $p > n$ or $X$ is nearly singular, OLS (as implemented in `LinearRegression`) computes a minimum-norm least squares solution using the pseudo-inverse. This solution effectively restricts the fitted model to a low-complexity subspace, which can generalize well when the true signal is low-dimensional.
+
+In contrast:
+
+- Ridge and lasso operate in the original coordinate system and are influenced by the high-variance noise directions in $X$.
+- PCR relies on variance in $X$ and may require many components before reaching the predictive direction.
+- PLS performs better than PCR because it uses $y$ to guide the construction of components, allowing it to identify predictive directions more efficiently.
+
+This example illustrates that OLS does not necessarily fail in high-dimensional settings. When the signal lies in a well-represented low-dimensional subspace and the noise level is moderate, the minimum-norm solution can still achieve good predictive performance.
+::: -->
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
+        for (let i=0; i<annoteTargets.length; i++) {
+          const annoteTarget = annoteTargets[i];
+          const targetCell = annoteTarget.getAttribute("data-target-cell");
+          const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
+          const contentFn = () => {
+            const content = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+            if (content) {
+              const tipContent = content.cloneNode(true);
+              tipContent.classList.add("code-annotation-tip-content");
+              return tipContent.outerHTML;
+            }
+          }
+          const config = {
+            allowHTML: true,
+            content: contentFn,
+            onShow: (instance) => {
+              selectCodeLines(instance.reference);
+              instance.reference.classList.add('code-annotation-active');
+              window.tippy.hideAll();
+            },
+            onHide: (instance) => {
+              unselectCodeLines();
+              instance.reference.classList.remove('code-annotation-active');
+            },
+            maxWidth: 300,
+            delay: [50, 0],
+            duration: [200, 0],
+            offset: [5, 10],
+            arrow: true,
+            trigger: 'click',
+            appendTo: function(el) {
+              return el.parentElement.parentElement.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'quarto',
+            placement: 'right',
+            positionFixed: true,
+            popperOptions: {
+              modifiers: [
+              {
+                name: 'flip',
+                options: {
+                  flipVariations: false, // true by default
+                  allowedAutoPlacements: ['right'],
+                  fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
+                },
+              },
+              {
+                name: 'preventOverflow',
+                options: {
+                  mainAxis: false,
+                  altAxis: false
+                }
+              }
+              ]        
+            }      
+          };
+          window.tippy(annoteTarget, config); 
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../contents/1/shrinkage.html" class="pagination-link" aria-label="Regularization">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Regularization</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../contents/1/logistic.html" class="pagination-link" aria-label="Logistic Regression">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Logistic Regression</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+    <script type="text/javascript">
+    (function(d) {
+      d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+        let pseudocodeOptions = {
+          indentSize: el.dataset.indentSize,
+          commentDelimiter: " " + el.dataset.commentDelimiter + " ",
+          lineNumber: el.dataset.lineNumber.toLowerCase() === "true",
+          lineNumberPunc: el.dataset.lineNumberPunc,
+          noEnd: el.dataset.noEnd.toLowerCase() === "true",
+          scopeLines: el.dataset.indentLines.toLowerCase() === "true",
+          titlePrefix: el.dataset.captionPrefix,
+        };
+        pseudocode.renderElement(el.querySelector(".pseudocode"), pseudocodeOptions);
+      });
+    })(document);
+    (function(d) {
+      d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+        let captionSpan = el.querySelector(".ps-root > .ps-algorithm > .ps-line > .ps-keyword")
+        if (captionSpan !== null) {
+          let captionPrefix = el.dataset.captionPrefix + " ";
+          let captionNumber = "";
+          if (el.dataset.pseudocodeNumber) {
+            captionNumber = el.dataset.pseudocodeNumber + " ";
+            if (el.dataset.chapterLevel) {
+              captionNumber = el.dataset.chapterLevel + "." + captionNumber;
+            }
+          }
+          captionSpan.innerHTML = captionPrefix + captionNumber;
+        }
+      });
+    })(document);
+    </script>
+  
+
+
+
+
+</body></html>

@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.3">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>7&nbsp; Ensemble Methods – Statistical Learning</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../contents/4/knn.html" rel="next">
+<link href="../../contents/3/tree.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bc74d3edfa28a5cab5f8e807a64bb1a0.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-c0ebe27be8de1e3ea6af4b63718550d7.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bc74d3edfa28a5cab5f8e807a64bb1a0.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7e342b42b1d8244df6d5a8d63372ab02.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles/fonts.css">
+<link rel="stylesheet" href="../../styles/blocks.css">
+</head>
+
+<body class="nav-sidebar docked quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+          <h1 class="quarto-secondary-nav-title"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ensemble Methods</span></h1>
+        </a>     
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">Statistical Learning</a> 
+        <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Linear models</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/lr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Linear Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/shrinkage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Regularization</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/dr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Dimension reduction</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Classification</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/logistic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Logistic Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/lda.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">LDA</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Tree Based Methods</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/3/tree.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/3/ensemble.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ensemble Methods</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Distance Based Methods</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/4/knn.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">KNN Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/4/kernel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">kernel.html</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/4/cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">cluster.html</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#basic-idea" id="toc-basic-idea" class="nav-link active" data-scroll-target="#basic-idea"><span class="header-section-number">7.1</span> 1. Basic idea</a></li>
+  <li><a href="#two-main-strategies" id="toc-two-main-strategies" class="nav-link" data-scroll-target="#two-main-strategies"><span class="header-section-number">7.2</span> 2. Two main strategies</a></li>
+  <li><a href="#bagging" id="toc-bagging" class="nav-link" data-scroll-target="#bagging"><span class="header-section-number">7.3</span> 3. Bagging</a>
+  <ul class="collapse">
+  <li><a href="#why-bagging-works" id="toc-why-bagging-works" class="nav-link" data-scroll-target="#why-bagging-works"><span class="header-section-number">7.3.1</span> Why bagging works</a></li>
+  </ul></li>
+  <li><a href="#random-forests" id="toc-random-forests" class="nav-link" data-scroll-target="#random-forests"><span class="header-section-number">7.4</span> 4. Random forests</a>
+  <ul class="collapse">
+  <li><a href="#role-of-mtry" id="toc-role-of-mtry" class="nav-link" data-scroll-target="#role-of-mtry"><span class="header-section-number">7.4.1</span> Role of <code>mtry</code></a></li>
+  <li><a href="#other-tuning-parameters" id="toc-other-tuning-parameters" class="nav-link" data-scroll-target="#other-tuning-parameters"><span class="header-section-number">7.4.2</span> Other tuning parameters</a></li>
+  </ul></li>
+  <li><a href="#random-forest-as-adaptive-local-averaging" id="toc-random-forest-as-adaptive-local-averaging" class="nav-link" data-scroll-target="#random-forest-as-adaptive-local-averaging"><span class="header-section-number">7.5</span> 5. Random forest as adaptive local averaging</a></li>
+  <li><a href="#variable-importance" id="toc-variable-importance" class="nav-link" data-scroll-target="#variable-importance"><span class="header-section-number">7.6</span> 6. Variable importance</a></li>
+  <li><a href="#extra-trees" id="toc-extra-trees" class="nav-link" data-scroll-target="#extra-trees"><span class="header-section-number">7.7</span> 7. Extra-trees</a></li>
+  <li><a href="#boosting" id="toc-boosting" class="nav-link" data-scroll-target="#boosting"><span class="header-section-number">7.8</span> 8. Boosting</a></li>
+  <li><a href="#gradient-boosting-for-regression" id="toc-gradient-boosting-for-regression" class="nav-link" data-scroll-target="#gradient-boosting-for-regression"><span class="header-section-number">7.9</span> 9. Gradient boosting for regression</a></li>
+  <li><a href="#learning-rate-and-number-of-trees" id="toc-learning-rate-and-number-of-trees" class="nav-link" data-scroll-target="#learning-rate-and-number-of-trees"><span class="header-section-number">7.10</span> 10. Learning rate and number of trees</a></li>
+  <li><a href="#tree-depth-in-boosting" id="toc-tree-depth-in-boosting" class="nav-link" data-scroll-target="#tree-depth-in-boosting"><span class="header-section-number">7.11</span> 11. Tree depth in boosting</a></li>
+  <li><a href="#stochastic-gradient-boosting" id="toc-stochastic-gradient-boosting" class="nav-link" data-scroll-target="#stochastic-gradient-boosting"><span class="header-section-number">7.12</span> 12. Stochastic gradient boosting</a></li>
+  <li><a href="#adaboost" id="toc-adaboost" class="nav-link" data-scroll-target="#adaboost"><span class="header-section-number">7.13</span> 13. AdaBoost</a>
+  <ul class="collapse">
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation"><span class="header-section-number">7.13.1</span> Interpretation</a></li>
+  </ul></li>
+  <li><a href="#gradient-boosting-for-classification" id="toc-gradient-boosting-for-classification" class="nav-link" data-scroll-target="#gradient-boosting-for-classification"><span class="header-section-number">7.14</span> 14. Gradient boosting for classification</a></li>
+  <li><a href="#xgboost-and-modern-boosting" id="toc-xgboost-and-modern-boosting" class="nav-link" data-scroll-target="#xgboost-and-modern-boosting"><span class="header-section-number">7.15</span> 15. XGBoost and modern boosting</a></li>
+  <li><a href="#bagging-vs-boosting" id="toc-bagging-vs-boosting" class="nav-link" data-scroll-target="#bagging-vs-boosting"><span class="header-section-number">7.16</span> 16. Bagging vs boosting</a></li>
+  <li><a href="#minimal-python-examples" id="toc-minimal-python-examples" class="nav-link" data-scroll-target="#minimal-python-examples"><span class="header-section-number">7.17</span> 17. Minimal Python examples</a>
+  <ul class="collapse">
+  <li><a href="#random-forest-regression" id="toc-random-forest-regression" class="nav-link" data-scroll-target="#random-forest-regression"><span class="header-section-number">7.17.1</span> Random forest regression</a></li>
+  <li><a href="#gradient-boosting-regression" id="toc-gradient-boosting-regression" class="nav-link" data-scroll-target="#gradient-boosting-regression"><span class="header-section-number">7.17.2</span> Gradient boosting regression</a></li>
+  <li><a href="#adaboost-classification" id="toc-adaboost-classification" class="nav-link" data-scroll-target="#adaboost-classification"><span class="header-section-number">7.17.3</span> AdaBoost classification</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">7.18</span> 18. Summary</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ensemble Methods</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- 
+
+
+
+# Ensemble methods
+
+
+## Bagging Bagging = 降方差
+
+## Random Forest decorrelation
+
+
+## Boosting reduce bias
+
+
+Linear → high bias
+Tree → high variance
+RF → reduce variance
+Boosting → reduce bias
+
+
+
+🎯 你可以这样总结整门课
+Part 1: simple models + regularization
+Part 2: flexible models + aggregation
+
+
+👉 我会改成：
+
+上半最重要是 “regularization（ridge + lasso）”
+
+因为：
+
+Ridge → 稳定性
+Lasso → 稀疏性
+
+👉 两个一起才完整
+
+
+week 1: ols+ridge
+week 2: lasso+pcr/pls
+week 3 logistic/lda + knn
+week 4 tree+ bagging
+week 5 boosting
+week 6 clustering
+
+
+Week 1：bias–variance
+Week 2：sparsity vs latent
+Week 5：RF vs boosting -->
+<section id="basic-idea" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="basic-idea"><span class="header-section-number">7.1</span> 1. Basic idea</h2>
+<p>An ensemble method combines many relatively simple models into one stronger model.</p>
+<p>A general ensemble has the form <span class="math display">\[
+F_T(x)=\sum_{t=1}^T \alpha_t f_t(x),
+\]</span> where</p>
+<ul>
+<li><span class="math inline">\(f_t(x)\)</span> is the <span class="math inline">\(t\)</span>-th base learner,</li>
+<li><span class="math inline">\(\alpha_t\)</span> is its weight,</li>
+<li><span class="math inline">\(T\)</span> is the number of learners.</li>
+</ul>
+<p>For tree-based ensembles, each <span class="math inline">\(f_t\)</span> is usually a decision tree.</p>
+<p>The main motivation is that a single tree is often unstable. A small change in the data can lead to a different tree. Ensemble methods reduce this instability by combining many trees.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Main idea
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A single tree is easy to interpret but has high variance.</p>
+<p>An ensemble sacrifices some interpretability to improve prediction.</p>
+</div>
+</div>
+</section>
+<section id="two-main-strategies" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="two-main-strategies"><span class="header-section-number">7.2</span> 2. Two main strategies</h2>
+<p>There are two major ways to build tree ensembles.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>How trees are built</th>
+<th>Main effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Bagging</td>
+<td>independently and in parallel</td>
+<td>reduce variance</td>
+</tr>
+<tr class="even">
+<td>Random forest</td>
+<td>bagging + random feature selection</td>
+<td>reduce variance and decorrelate trees</td>
+</tr>
+<tr class="odd">
+<td>Boosting</td>
+<td>sequentially, each tree corrects previous errors</td>
+<td>reduce bias, often also variance</td>
+</tr>
+</tbody>
+</table>
+<p>The key distinction is whether the trees are built independently or sequentially.</p>
+</section>
+<section id="bagging" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="bagging"><span class="header-section-number">7.3</span> 3. Bagging</h2>
+<p>Bagging means bootstrap aggregating.</p>
+<p>The algorithm is:</p>
+<ol type="1">
+<li>Draw <span class="math inline">\(B\)</span> bootstrap samples from the training data.</li>
+<li>Fit one tree to each bootstrap sample.</li>
+<li>Average the predictions for regression.</li>
+</ol>
+<p>For regression, <span class="math display">\[
+\hat f_{\text{bag}}(x)
+=
+\frac{1}{B}\sum_{b=1}^B \hat f_b(x).
+\]</span></p>
+<p>For classification, we usually use majority vote.</p>
+<section id="why-bagging-works" class="level3" data-number="7.3.1">
+<h3 data-number="7.3.1" class="anchored" data-anchor-id="why-bagging-works"><span class="header-section-number">7.3.1</span> Why bagging works</h3>
+<p>Bagging mainly reduces variance.</p>
+<p>If <span class="math inline">\(\hat f_1(x),\ldots,\hat f_B(x)\)</span> are noisy but approximately unbiased estimators, then averaging them stabilizes the prediction.</p>
+<p>If the base learners were independent and each had variance <span class="math inline">\(\sigma^2\)</span>, then <span class="math display">\[
+\operatorname{Var}\left(
+\frac{1}{B}\sum_{b=1}^B \hat f_b(x)
+\right)
+=
+\frac{\sigma^2}{B}.
+\]</span></p>
+<p>In practice, trees are not independent. If the correlation between tree predictions is <span class="math inline">\(\rho\)</span>, then approximately <span class="math display">\[
+\operatorname{Var}\left(
+\frac{1}{B}\sum_{b=1}^B \hat f_b(x)
+\right)
+=
+\rho\sigma^2+\frac{1-\rho}{B}\sigma^2.
+\]</span></p>
+<p>As <span class="math inline">\(B\)</span> becomes large, the second term goes to zero, but the first term remains. Therefore, reducing correlation between trees is important.</p>
+<p>This is the motivation for random forests.</p>
+</section>
+</section>
+<section id="random-forests" class="level2" data-number="7.4">
+<h2 data-number="7.4" class="anchored" data-anchor-id="random-forests"><span class="header-section-number">7.4</span> 4. Random forests</h2>
+<p>A random forest improves bagging by adding randomness to the splitting process.</p>
+<p>For each tree:</p>
+<ol type="1">
+<li>Draw a bootstrap sample.</li>
+<li>Grow a large tree.</li>
+<li>At each split, randomly select only <span class="math inline">\(m_{\text{try}}\)</span> predictors.</li>
+<li>Find the best split only among those selected predictors.</li>
+<li>Do not prune the tree.</li>
+</ol>
+<p>For regression, the final prediction is <span class="math display">\[
+\hat f_{\text{RF}}(x)
+=
+\frac{1}{B}\sum_{b=1}^B \hat f_b(x).
+\]</span></p>
+<section id="role-of-mtry" class="level3" data-number="7.4.1">
+<h3 data-number="7.4.1" class="anchored" data-anchor-id="role-of-mtry"><span class="header-section-number">7.4.1</span> Role of <code>mtry</code></h3>
+<p>The parameter <code>mtry</code> controls how many variables are considered at each split.</p>
+<ul>
+<li>Large <code>mtry</code>:
+<ul>
+<li>each tree is stronger</li>
+<li>splits are more greedy</li>
+<li>trees become more correlated</li>
+</ul></li>
+<li>Small <code>mtry</code>:
+<ul>
+<li>trees are less correlated</li>
+<li>individual trees may be weaker</li>
+<li>may miss important variables at some splits</li>
+</ul></li>
+</ul>
+<p>Thus <code>mtry</code> controls a bias-variance tradeoff.</p>
+</section>
+<section id="other-tuning-parameters" class="level3" data-number="7.4.2">
+<h3 data-number="7.4.2" class="anchored" data-anchor-id="other-tuning-parameters"><span class="header-section-number">7.4.2</span> Other tuning parameters</h3>
+<p>Important tuning parameters include:</p>
+<ul>
+<li><code>n_estimators</code>: number of trees</li>
+<li><code>max_features</code>: number of predictors considered at each split</li>
+<li><code>max_samples</code>: sample size for each bootstrap sample</li>
+<li><code>min_samples_leaf</code>: minimum leaf size</li>
+<li><code>max_depth</code>: maximum depth of each tree</li>
+</ul>
+<p>For random forests, trees are usually grown deep. The ensemble controls variance by averaging, rather than by pruning each tree.</p>
+</section>
+</section>
+<section id="random-forest-as-adaptive-local-averaging" class="level2" data-number="7.5">
+<h2 data-number="7.5" class="anchored" data-anchor-id="random-forest-as-adaptive-local-averaging"><span class="header-section-number">7.5</span> 5. Random forest as adaptive local averaging</h2>
+<p>A random forest can also be viewed as an adaptive kernel estimator.</p>
+<p>For one tree, two points are close if they fall in the same terminal node.</p>
+<p>Let <span class="math inline">\(K_{\mathcal T_b}(x,x_i)\)</span> indicate whether <span class="math inline">\(x\)</span> and <span class="math inline">\(x_i\)</span> fall in the same leaf of tree <span class="math inline">\(b\)</span>.</p>
+<p>Then a random forest induces a similarity measure: <span class="math display">\[
+K_{\text{RF}}(x,x_i)
+=
+\sum_{b=1}^B K_{\mathcal T_b}(x,x_i).
+\]</span></p>
+<p>This counts how many trees place <span class="math inline">\(x\)</span> and <span class="math inline">\(x_i\)</span> in the same terminal node.</p>
+<p>Thus, a random forest prediction can be viewed as a weighted average: <span class="math display">\[
+\hat f_{\text{RF}}(x)
+=
+\sum_{i=1}^n w_i(x)y_i,
+\]</span> where observations that often share leaves with <span class="math inline">\(x\)</span> receive larger weights.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Adaptive neighborhood
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>KNN defines neighborhoods by Euclidean distance.</p>
+<p>A random forest defines neighborhoods by tree leaves.</p>
+<p>Therefore, the neighborhood is learned from the response and can adapt to important variables.</p>
+</div>
+</div>
+</section>
+<section id="variable-importance" class="level2" data-number="7.6">
+<h2 data-number="7.6" class="anchored" data-anchor-id="variable-importance"><span class="header-section-number">7.6</span> 6. Variable importance</h2>
+<p>Random forests provide measures of variable importance.</p>
+<p>Two common ideas are:</p>
+<ol type="1">
+<li><p>Impurity-based importance<br>
+Measures how much a variable reduces node impurity or RSS across the forest.</p></li>
+<li><p>Permutation importance<br>
+Randomly permute one variable and measure how much prediction performance decreases.</p></li>
+</ol>
+<p>Permutation importance is often easier to interpret:</p>
+<ul>
+<li>if permuting <span class="math inline">\(x_j\)</span> greatly worsens prediction, then <span class="math inline">\(x_j\)</span> is important;</li>
+<li>if performance barely changes, then <span class="math inline">\(x_j\)</span> may not be useful.</li>
+</ul>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span>Caution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Impurity-based importance can be biased toward variables with many possible split points.</p>
+<p>Permutation importance is usually more directly connected to predictive performance.</p>
+</div>
+</div>
+</section>
+<section id="extra-trees" class="level2" data-number="7.7">
+<h2 data-number="7.7" class="anchored" data-anchor-id="extra-trees"><span class="header-section-number">7.7</span> 7. Extra-trees</h2>
+<p>Extremely randomized trees, or extra-trees, add even more randomness.</p>
+<p>Compared with random forests:</p>
+<ul>
+<li>random forest chooses the best split among random features;</li>
+<li>extra-trees often choose split thresholds more randomly.</li>
+</ul>
+<p>This usually increases bias but can reduce variance and speed up computation.</p>
+</section>
+<section id="boosting" class="level2" data-number="7.8">
+<h2 data-number="7.8" class="anchored" data-anchor-id="boosting"><span class="header-section-number">7.8</span> 8. Boosting</h2>
+<p>Boosting builds an additive model sequentially: <span class="math display">\[
+F_T(x)=\sum_{t=1}^T \alpha_t f_t(x).
+\]</span></p>
+<p>Unlike random forests, the models are not built independently. Each new learner is chosen to improve the current ensemble.</p>
+<p>The general idea is:</p>
+<ol type="1">
+<li>Start with a simple model <span class="math inline">\(F_0(x)\)</span>.</li>
+<li>Find what the current model is doing wrong.</li>
+<li>Fit a weak learner to correct those errors.</li>
+<li>Add it to the model with a small step size.</li>
+<li>Repeat.</li>
+</ol>
+<p>For tree boosting, each <span class="math inline">\(f_t(x)\)</span> is usually a small regression tree.</p>
+</section>
+<section id="gradient-boosting-for-regression" class="level2" data-number="7.9">
+<h2 data-number="7.9" class="anchored" data-anchor-id="gradient-boosting-for-regression"><span class="header-section-number">7.9</span> 9. Gradient boosting for regression</h2>
+<p>For squared error loss, <span class="math display">\[
+L(y,F(x))=(y-F(x))^2.
+\]</span></p>
+<p>The derivative with respect to <span class="math inline">\(F(x)\)</span> is <span class="math display">\[
+\frac{\partial L(y,F(x))}{\partial F(x)}
+=
+-2(y-F(x)).
+\]</span></p>
+<p>Therefore, the negative gradient is proportional to the residual: <span class="math display">\[
+r_i
+=
+y_i-F_{t-1}(x_i).
+\]</span></p>
+<p>The gradient boosting algorithm for regression is:</p>
+<ol type="1">
+<li><p>Initialize <span class="math display">\[
+F_0(x)=\bar y.
+\]</span></p></li>
+<li><p>For <span class="math inline">\(t=1,\ldots,T\)</span>:</p>
+<p>Fit a regression tree <span class="math inline">\(h_t(x)\)</span> to the residuals <span class="math display">\[
+r_i^{(t)}=y_i-F_{t-1}(x_i).
+\]</span></p>
+<p>Update <span class="math display">\[
+F_t(x)=F_{t-1}(x)+\eta h_t(x).
+\]</span></p></li>
+</ol>
+<p>Here <span class="math inline">\(\eta\)</span> is the learning rate, also called shrinkage.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Key point
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For squared-error regression, gradient boosting fits trees to residuals.</p>
+<p>More generally, it fits trees to negative gradients of the loss function.</p>
+</div>
+</div>
+</section>
+<section id="learning-rate-and-number-of-trees" class="level2" data-number="7.10">
+<h2 data-number="7.10" class="anchored" data-anchor-id="learning-rate-and-number-of-trees"><span class="header-section-number">7.10</span> 10. Learning rate and number of trees</h2>
+<p>The learning rate <span class="math inline">\(\eta\)</span> controls how much each tree contributes.</p>
+<ul>
+<li>Small <span class="math inline">\(\eta\)</span>:
+<ul>
+<li>slower learning</li>
+<li>usually needs more trees</li>
+<li>often better generalization</li>
+</ul></li>
+<li>Large <span class="math inline">\(\eta\)</span>:
+<ul>
+<li>faster learning</li>
+<li>higher risk of overfitting</li>
+</ul></li>
+</ul>
+<p>The number of trees <span class="math inline">\(T\)</span> is also a tuning parameter.</p>
+<p>The pair <span class="math inline">\((\eta,T)\)</span> must be considered together.</p>
+<p>A common practical strategy is:</p>
+<ul>
+<li>use a small learning rate;</li>
+<li>tune the number of trees by validation or cross-validation.</li>
+</ul>
+</section>
+<section id="tree-depth-in-boosting" class="level2" data-number="7.11">
+<h2 data-number="7.11" class="anchored" data-anchor-id="tree-depth-in-boosting"><span class="header-section-number">7.11</span> 11. Tree depth in boosting</h2>
+<p>In boosting, each tree is often shallow.</p>
+<ul>
+<li>depth 1: decision stump, captures main effects</li>
+<li>depth 2 or 3: captures simple interactions</li>
+<li>larger depth: more complex interactions</li>
+</ul>
+<p>Unlike random forests, boosting does not need each tree to be strong. It builds strength by adding many weak learners sequentially.</p>
+</section>
+<section id="stochastic-gradient-boosting" class="level2" data-number="7.12">
+<h2 data-number="7.12" class="anchored" data-anchor-id="stochastic-gradient-boosting"><span class="header-section-number">7.12</span> 12. Stochastic gradient boosting</h2>
+<p>Many implementations also use subsampling.</p>
+<p>At each iteration, fit the next tree using only a random subset of observations.</p>
+<p>This adds randomness and can improve generalization.</p>
+<p>Important parameters include:</p>
+<ul>
+<li><code>subsample</code></li>
+<li><code>learning_rate</code></li>
+<li><code>n_estimators</code></li>
+<li><code>max_depth</code></li>
+<li><code>min_samples_leaf</code></li>
+</ul>
+</section>
+<section id="adaboost" class="level2" data-number="7.13">
+<h2 data-number="7.13" class="anchored" data-anchor-id="adaboost"><span class="header-section-number">7.13</span> 13. AdaBoost</h2>
+<p>AdaBoost is a classical boosting method for binary classification.</p>
+<p>Here the response is coded as <span class="math display">\[
+y_i\in\{-1,+1\}.
+\]</span></p>
+<p>AdaBoost builds <span class="math display">\[
+F_T(x)=\sum_{t=1}^T \alpha_t f_t(x),
+\]</span> and classifies by <span class="math display">\[
+\operatorname{sign}(F_T(x)).
+\]</span></p>
+<p>The algorithm is:</p>
+<ol type="1">
+<li><p>Initialize observation weights: <span class="math display">\[
+w_i^{(1)}=\frac{1}{n}.
+\]</span></p></li>
+<li><p>For <span class="math inline">\(t=1,\ldots,T\)</span>:</p>
+<p>Fit a classifier <span class="math inline">\(f_t(x)\in\{-1,+1\}\)</span> using weights <span class="math inline">\(w_i^{(t)}\)</span>.</p>
+<p>Compute weighted error: <span class="math display">\[
+\epsilon_t
+=
+\sum_{i=1}^n w_i^{(t)}
+I(y_i\neq f_t(x_i)).
+\]</span></p>
+<p>Compute learner weight: <span class="math display">\[
+\alpha_t
+=
+\frac{1}{2}\log\frac{1-\epsilon_t}{\epsilon_t}.
+\]</span></p>
+<p>Update observation weights: <span class="math display">\[
+w_i^{(t+1)}
+=
+\frac{1}{Z_t}
+w_i^{(t)}
+\exp\{-\alpha_t y_i f_t(x_i)\}.
+\]</span></p></li>
+<li><p>Output: <span class="math display">\[
+F_T(x)=\sum_{t=1}^T \alpha_t f_t(x).
+\]</span></p></li>
+</ol>
+<section id="interpretation" class="level3" data-number="7.13.1">
+<h3 data-number="7.13.1" class="anchored" data-anchor-id="interpretation"><span class="header-section-number">7.13.1</span> Interpretation</h3>
+<p>If observation <span class="math inline">\(i\)</span> is correctly classified, then <span class="math display">\[
+y_i f_t(x_i)=1,
+\]</span> and its weight decreases.</p>
+<p>If it is misclassified, then <span class="math display">\[
+y_i f_t(x_i)=-1,
+\]</span> and its weight increases.</p>
+<p>So AdaBoost forces later learners to focus more on difficult observations.</p>
+</section>
+</section>
+<section id="gradient-boosting-for-classification" class="level2" data-number="7.14">
+<h2 data-number="7.14" class="anchored" data-anchor-id="gradient-boosting-for-classification"><span class="header-section-number">7.14</span> 14. Gradient boosting for classification</h2>
+<p>For classification, there is no ordinary residual <span class="math inline">\(y-\hat y\)</span> in the same sense as squared-error regression.</p>
+<p>Instead, boosting uses the negative gradient of a classification loss.</p>
+<p>For binary logistic boosting, we model <span class="math display">\[
+p(x)=P(Y=1\mid X=x)
+=
+\frac{1}{1+\exp\{-F(x)\}}.
+\]</span></p>
+<p>Using negative log-likelihood loss, the pseudo-residual becomes <span class="math display">\[
+r_i=y_i-p_i.
+\]</span></p>
+<p>Thus classification boosting can be understood as fitting the next learner to the current probability errors.</p>
+</section>
+<section id="xgboost-and-modern-boosting" class="level2" data-number="7.15">
+<h2 data-number="7.15" class="anchored" data-anchor-id="xgboost-and-modern-boosting"><span class="header-section-number">7.15</span> 15. XGBoost and modern boosting</h2>
+<p>XGBoost is not a fundamentally different statistical idea from gradient boosting.</p>
+<p>It is a powerful engineering implementation of gradient boosted trees, with many practical improvements such as:</p>
+<ul>
+<li>regularization on tree complexity</li>
+<li>efficient split search</li>
+<li>shrinkage</li>
+<li>subsampling</li>
+<li>column subsampling</li>
+<li>handling sparse data</li>
+<li>fast implementation</li>
+</ul>
+<p>For a statistical learning course, the core idea is still gradient boosting:</p>
+<p><span class="math display">\[
+\text{add weak learners sequentially to reduce a loss function}.
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Teaching point
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>XGBoost is best understood as an optimized implementation of gradient boosted trees.</p>
+<p>The central statistical concept is boosting, not XGBoost itself.</p>
+</div>
+</div>
+</section>
+<section id="bagging-vs-boosting" class="level2" data-number="7.16">
+<h2 data-number="7.16" class="anchored" data-anchor-id="bagging-vs-boosting"><span class="header-section-number">7.16</span> 16. Bagging vs boosting</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Bagging / Random Forest</th>
+<th>Boosting</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Construction</td>
+<td>parallel</td>
+<td>sequential</td>
+</tr>
+<tr class="even">
+<td>Main purpose</td>
+<td>reduce variance</td>
+<td>reduce bias, often variance</td>
+</tr>
+<tr class="odd">
+<td>Base trees</td>
+<td>usually deep</td>
+<td>usually shallow</td>
+</tr>
+<tr class="even">
+<td>Tree dependence</td>
+<td>independent</td>
+<td>each depends on previous model</td>
+</tr>
+<tr class="odd">
+<td>Overfitting risk</td>
+<td>relatively robust</td>
+<td>sensitive to tuning</td>
+</tr>
+<tr class="even">
+<td>Key parameters</td>
+<td>number of trees, <code>mtry</code>, leaf size</td>
+<td>learning rate, number of trees, depth</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="minimal-python-examples" class="level2" data-number="7.17">
+<h2 data-number="7.17" class="anchored" data-anchor-id="minimal-python-examples"><span class="header-section-number">7.17</span> 17. Minimal Python examples</h2>
+<section id="random-forest-regression" class="level3" data-number="7.17.1">
+<h3 data-number="7.17.1" class="anchored" data-anchor-id="random-forest-regression"><span class="header-section-number">7.17.1</span> Random forest regression</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestRegressor</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>rf <span class="op">=</span> RandomForestRegressor(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span><span class="dv">500</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>param_grid <span class="op">=</span> {</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"max_features"</span>: [<span class="st">"sqrt"</span>, <span class="fl">0.5</span>, <span class="fl">1.0</span>],</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"min_samples_leaf"</span>: [<span class="dv">1</span>, <span class="dv">5</span>, <span class="dv">10</span>],</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"max_depth"</span>: [<span class="va">None</span>, <span class="dv">5</span>, <span class="dv">10</span>],</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> GridSearchCV(</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    rf,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    param_grid<span class="op">=</span>param_grid,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    scoring<span class="op">=</span><span class="st">"neg_mean_squared_error"</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>grid.fit(X_train, y_train)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>best_rf <span class="op">=</span> grid.best_estimator_</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>y_pred <span class="op">=</span> best_rf.predict(X_test)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>test_mse <span class="op">=</span> mean_squared_error(y_test, y_pred)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(grid.best_params_)</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_mse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="gradient-boosting-regression" class="level3" data-number="7.17.2">
+<h3 data-number="7.17.2" class="anchored" data-anchor-id="gradient-boosting-regression"><span class="header-section-number">7.17.2</span> Gradient boosting regression</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> GradientBoostingRegressor</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>gbr <span class="op">=</span> GradientBoostingRegressor(random_state<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>param_grid <span class="op">=</span> {</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"n_estimators"</span>: [<span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">500</span>],</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"learning_rate"</span>: [<span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.1</span>],</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"max_depth"</span>: [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>],</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"subsample"</span>: [<span class="fl">0.8</span>, <span class="fl">1.0</span>],</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> GridSearchCV(</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    gbr,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    param_grid<span class="op">=</span>param_grid,</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    scoring<span class="op">=</span><span class="st">"neg_mean_squared_error"</span>,</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>grid.fit(X_train, y_train)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>best_gbr <span class="op">=</span> grid.best_estimator_</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>y_pred <span class="op">=</span> best_gbr.predict(X_test)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>test_mse <span class="op">=</span> mean_squared_error(y_test, y_pred)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(grid.best_params_)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_mse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="adaboost-classification" class="level3" data-number="7.17.3">
+<h3 data-number="7.17.3" class="anchored" data-anchor-id="adaboost-classification"><span class="header-section-number">7.17.3</span> AdaBoost classification</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> AdaBoostClassifier</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>base_tree <span class="op">=</span> DecisionTreeClassifier(max_depth<span class="op">=</span><span class="dv">1</span>, random_state<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>ada <span class="op">=</span> AdaBoostClassifier(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    estimator<span class="op">=</span>base_tree,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span><span class="dv">200</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    learning_rate<span class="op">=</span><span class="fl">0.1</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>ada.fit(X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="summary" class="level2" data-number="7.18">
+<h2 data-number="7.18" class="anchored" data-anchor-id="summary"><span class="header-section-number">7.18</span> 18. Summary</h2>
+<p>Ensemble methods improve prediction by combining many weak or unstable learners.</p>
+<p>Bagging averages many independently fitted trees and mainly reduces variance.</p>
+<p>Random forests improve bagging by selecting random subsets of variables at each split, which reduces correlation among trees.</p>
+<p>Boosting builds an additive model sequentially. Each new learner corrects the current model, often by fitting residuals or negative gradients.</p>
+<p>The main conceptual summary is:</p>
+<p><span class="math display">\[
+\text{single tree}
+\quad\longrightarrow\quad
+\text{high variance}
+\quad\longrightarrow\quad
+\text{ensemble trees}
+\quad\longrightarrow\quad
+\text{strong prediction}.
+\]</span></p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
+        for (let i=0; i<annoteTargets.length; i++) {
+          const annoteTarget = annoteTargets[i];
+          const targetCell = annoteTarget.getAttribute("data-target-cell");
+          const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
+          const contentFn = () => {
+            const content = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+            if (content) {
+              const tipContent = content.cloneNode(true);
+              tipContent.classList.add("code-annotation-tip-content");
+              return tipContent.outerHTML;
+            }
+          }
+          const config = {
+            allowHTML: true,
+            content: contentFn,
+            onShow: (instance) => {
+              selectCodeLines(instance.reference);
+              instance.reference.classList.add('code-annotation-active');
+              window.tippy.hideAll();
+            },
+            onHide: (instance) => {
+              unselectCodeLines();
+              instance.reference.classList.remove('code-annotation-active');
+            },
+            maxWidth: 300,
+            delay: [50, 0],
+            duration: [200, 0],
+            offset: [5, 10],
+            arrow: true,
+            trigger: 'click',
+            appendTo: function(el) {
+              return el.parentElement.parentElement.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'quarto',
+            placement: 'right',
+            positionFixed: true,
+            popperOptions: {
+              modifiers: [
+              {
+                name: 'flip',
+                options: {
+                  flipVariations: false, // true by default
+                  allowedAutoPlacements: ['right'],
+                  fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
+                },
+              },
+              {
+                name: 'preventOverflow',
+                options: {
+                  mainAxis: false,
+                  altAxis: false
+                }
+              }
+              ]        
+            }      
+          };
+          window.tippy(annoteTarget, config); 
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../contents/3/tree.html" class="pagination-link" aria-label="Tree-Based Methods">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../contents/4/knn.html" class="pagination-link" aria-label="KNN Regression">
+        <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">KNN Regression</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

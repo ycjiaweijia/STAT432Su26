@@ -1,0 +1,2376 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.3">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>9&nbsp; Optional: pip install xgboost – Statistical Learning</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../contents/4/knn.html" rel="next">
+<link href="../../contents/3/rf.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bc74d3edfa28a5cab5f8e807a64bb1a0.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-c0ebe27be8de1e3ea6af4b63718550d7.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bc74d3edfa28a5cab5f8e807a64bb1a0.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7e342b42b1d8244df6d5a8d63372ab02.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<meta name="mermaid-theme" content="default">
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles/fonts.css">
+<link rel="stylesheet" href="../../styles/blocks.css">
+</head>
+
+<body class="nav-sidebar docked quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+          <h1 class="quarto-secondary-nav-title"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Optional: pip install xgboost</span></h1>
+        </a>     
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">Statistical Learning</a> 
+        <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Linear models</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/basic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Statistical Learning Basics</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/lr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Linear Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/shrinkage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Regularization</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/dr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Dimension reduction</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Classification</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/logistic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Logistic Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/lda.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">LDA</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Tree Based Methods</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/3/tree.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/3/rf.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Ensemble Methods</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/3/boost.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Optional: pip install xgboost</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Distance Based Methods</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/4/knn.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">KNN Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/4/kernel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">kernel.html</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/4/cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">cluster.html</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/app/ide.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Python IDE Setup</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/app/venv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Python Virtual Environment</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#boosting" id="toc-boosting" class="nav-link active" data-scroll-target="#boosting"><span class="header-section-number">10</span> Boosting</a></li>
+  <li><a href="#weak-learners" id="toc-weak-learners" class="nav-link" data-scroll-target="#weak-learners"><span class="header-section-number">11</span> Weak Learners</a></li>
+  <li><a href="#adaboost" id="toc-adaboost" class="nav-link" data-scroll-target="#adaboost"><span class="header-section-number">12</span> AdaBoost</a></li>
+  <li><a href="#the-adaboost-algorithm" id="toc-the-adaboost-algorithm" class="nav-link" data-scroll-target="#the-adaboost-algorithm"><span class="header-section-number">13</span> The AdaBoost Algorithm</a></li>
+  <li><a href="#step-1-initialize-observation-weights" id="toc-step-1-initialize-observation-weights" class="nav-link" data-scroll-target="#step-1-initialize-observation-weights"><span class="header-section-number">14</span> Step 1: Initialize Observation Weights</a></li>
+  <li><a href="#step-2-fit-a-weak-learner" id="toc-step-2-fit-a-weak-learner" class="nav-link" data-scroll-target="#step-2-fit-a-weak-learner"><span class="header-section-number">15</span> Step 2: Fit a Weak Learner</a></li>
+  <li><a href="#step-3-compute-the-weighted-error" id="toc-step-3-compute-the-weighted-error" class="nav-link" data-scroll-target="#step-3-compute-the-weighted-error"><span class="header-section-number">16</span> Step 3: Compute the Weighted Error</a></li>
+  <li><a href="#step-4-compute-the-learner-weight" id="toc-step-4-compute-the-learner-weight" class="nav-link" data-scroll-target="#step-4-compute-the-learner-weight"><span class="header-section-number">17</span> Step 4: Compute the Learner Weight</a></li>
+  <li><a href="#step-5-update-observation-weights" id="toc-step-5-update-observation-weights" class="nav-link" data-scroll-target="#step-5-update-observation-weights"><span class="header-section-number">18</span> Step 5: Update Observation Weights</a></li>
+  <li><a href="#step-6-repeat-the-process" id="toc-step-6-repeat-the-process" class="nav-link" data-scroll-target="#step-6-repeat-the-process"><span class="header-section-number">19</span> Step 6: Repeat the Process</a></li>
+  <li><a href="#final-adaboost-prediction" id="toc-final-adaboost-prediction" class="nav-link" data-scroll-target="#final-adaboost-prediction"><span class="header-section-number">20</span> Final AdaBoost Prediction</a></li>
+  <li><a href="#intuition-behind-adaboost" id="toc-intuition-behind-adaboost" class="nav-link" data-scroll-target="#intuition-behind-adaboost"><span class="header-section-number">21</span> Intuition Behind AdaBoost</a></li>
+  <li><a href="#adaboost-and-the-bias-variance-tradeoff" id="toc-adaboost-and-the-bias-variance-tradeoff" class="nav-link" data-scroll-target="#adaboost-and-the-bias-variance-tradeoff"><span class="header-section-number">22</span> AdaBoost and the Bias-Variance Tradeoff</a></li>
+  <li><a href="#advantages-and-limitations-of-adaboost" id="toc-advantages-and-limitations-of-adaboost" class="nav-link" data-scroll-target="#advantages-and-limitations-of-adaboost"><span class="header-section-number">23</span> Advantages and Limitations of AdaBoost</a></li>
+  <li><a href="#from-adaboost-to-gradient-boosting" id="toc-from-adaboost-to-gradient-boosting" class="nav-link" data-scroll-target="#from-adaboost-to-gradient-boosting"><span class="header-section-number">24</span> From AdaBoost to Gradient Boosting</a></li>
+  <li><a href="#gradient-boosting-for-regression" id="toc-gradient-boosting-for-regression" class="nav-link" data-scroll-target="#gradient-boosting-for-regression"><span class="header-section-number">25</span> Gradient Boosting for Regression</a></li>
+  <li><a href="#learning-rate-and-shrinkage" id="toc-learning-rate-and-shrinkage" class="nav-link" data-scroll-target="#learning-rate-and-shrinkage"><span class="header-section-number">26</span> Learning Rate and Shrinkage</a></li>
+  <li><a href="#xgboost" id="toc-xgboost" class="nav-link" data-scroll-target="#xgboost"><span class="header-section-number">27</span> XGBoost</a></li>
+  <li><a href="#why-xgboost-works-so-well" id="toc-why-xgboost-works-so-well" class="nav-link" data-scroll-target="#why-xgboost-works-so-well"><span class="header-section-number">28</span> Why XGBoost Works So Well</a></li>
+  <li><a href="#regularization-in-xgboost" id="toc-regularization-in-xgboost" class="nav-link" data-scroll-target="#regularization-in-xgboost"><span class="header-section-number">29</span> Regularization in XGBoost</a></li>
+  <li><a href="#tree-depth" id="toc-tree-depth" class="nav-link" data-scroll-target="#tree-depth"><span class="header-section-number">30</span> Tree Depth</a></li>
+  <li><a href="#number-of-trees" id="toc-number-of-trees" class="nav-link" data-scroll-target="#number-of-trees"><span class="header-section-number">31</span> Number of Trees</a></li>
+  <li><a href="#learning-rate-versus-number-of-trees" id="toc-learning-rate-versus-number-of-trees" class="nav-link" data-scroll-target="#learning-rate-versus-number-of-trees"><span class="header-section-number">32</span> Learning Rate Versus Number of Trees</a></li>
+  <li><a href="#subsampling" id="toc-subsampling" class="nav-link" data-scroll-target="#subsampling"><span class="header-section-number">33</span> Subsampling</a></li>
+  <li><a href="#feature-subsampling" id="toc-feature-subsampling" class="nav-link" data-scroll-target="#feature-subsampling"><span class="header-section-number">34</span> Feature Subsampling</a></li>
+  <li><a href="#important-hyperparameters" id="toc-important-hyperparameters" class="nav-link" data-scroll-target="#important-hyperparameters"><span class="header-section-number">35</span> Important Hyperparameters</a></li>
+  <li><a href="#general-tuning-strategy" id="toc-general-tuning-strategy" class="nav-link" data-scroll-target="#general-tuning-strategy"><span class="header-section-number">36</span> General Tuning Strategy</a></li>
+  <li><a href="#adaboost-versus-xgboost" id="toc-adaboost-versus-xgboost" class="nav-link" data-scroll-target="#adaboost-versus-xgboost"><span class="header-section-number">37</span> AdaBoost Versus XGBoost</a></li>
+  <li><a href="#comparison-with-random-forests" id="toc-comparison-with-random-forests" class="nav-link" data-scroll-target="#comparison-with-random-forests"><span class="header-section-number">38</span> Comparison with Random Forests</a></li>
+  <li><a href="#example-in-python" id="toc-example-in-python" class="nav-link" data-scroll-target="#example-in-python"><span class="header-section-number">39</span> Example in Python</a></li>
+  <li><a href="#final-remarks" id="toc-final-remarks" class="nav-link" data-scroll-target="#final-remarks"><span class="header-section-number">40</span> Final Remarks</a></li>
+  <li><a href="#boosting-adaboost-and-xgboost" id="toc-boosting-adaboost-and-xgboost" class="nav-link" data-scroll-target="#boosting-adaboost-and-xgboost"><span class="header-section-number">41</span> Boosting: AdaBoost and XGBoost</a>
+  <ul class="collapse">
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">41.1</span> Introduction</a></li>
+  </ul></li>
+  <li><a href="#the-main-idea-of-boosting" id="toc-the-main-idea-of-boosting" class="nav-link" data-scroll-target="#the-main-idea-of-boosting"><span class="header-section-number">42</span> The Main Idea of Boosting</a></li>
+  <li><a href="#weak-learners-1" id="toc-weak-learners-1" class="nav-link" data-scroll-target="#weak-learners-1"><span class="header-section-number">43</span> Weak Learners</a></li>
+  <li><a href="#adaboost-1" id="toc-adaboost-1" class="nav-link" data-scroll-target="#adaboost-1"><span class="header-section-number">44</span> AdaBoost</a></li>
+  <li><a href="#adaboost-algorithm" id="toc-adaboost-algorithm" class="nav-link" data-scroll-target="#adaboost-algorithm"><span class="header-section-number">45</span> AdaBoost Algorithm</a>
+  <ul class="collapse">
+  <li><a href="#step-1-initialize-weights" id="toc-step-1-initialize-weights" class="nav-link" data-scroll-target="#step-1-initialize-weights"><span class="header-section-number">45.1</span> Step 1: Initialize Weights</a></li>
+  <li><a href="#step-2-fit-a-weak-learner-1" id="toc-step-2-fit-a-weak-learner-1" class="nav-link" data-scroll-target="#step-2-fit-a-weak-learner-1"><span class="header-section-number">45.2</span> Step 2: Fit a Weak Learner</a></li>
+  <li><a href="#step-3-compute-weighted-error" id="toc-step-3-compute-weighted-error" class="nav-link" data-scroll-target="#step-3-compute-weighted-error"><span class="header-section-number">45.3</span> Step 3: Compute Weighted Error</a></li>
+  <li><a href="#step-4-compute-learner-weight" id="toc-step-4-compute-learner-weight" class="nav-link" data-scroll-target="#step-4-compute-learner-weight"><span class="header-section-number">45.4</span> Step 4: Compute Learner Weight</a></li>
+  <li><a href="#step-5-update-observation-weights-1" id="toc-step-5-update-observation-weights-1" class="nav-link" data-scroll-target="#step-5-update-observation-weights-1"><span class="header-section-number">45.5</span> Step 5: Update Observation Weights</a></li>
+  <li><a href="#step-6-repeat" id="toc-step-6-repeat" class="nav-link" data-scroll-target="#step-6-repeat"><span class="header-section-number">45.6</span> Step 6: Repeat</a></li>
+  </ul></li>
+  <li><a href="#final-adaboost-model" id="toc-final-adaboost-model" class="nav-link" data-scroll-target="#final-adaboost-model"><span class="header-section-number">46</span> Final AdaBoost Model</a></li>
+  <li><a href="#intuition-behind-adaboost-1" id="toc-intuition-behind-adaboost-1" class="nav-link" data-scroll-target="#intuition-behind-adaboost-1"><span class="header-section-number">47</span> Intuition Behind AdaBoost</a></li>
+  <li><a href="#adaboost-and-bias-variance-tradeoff" id="toc-adaboost-and-bias-variance-tradeoff" class="nav-link" data-scroll-target="#adaboost-and-bias-variance-tradeoff"><span class="header-section-number">48</span> AdaBoost and Bias-Variance Tradeoff</a></li>
+  <li><a href="#advantages-of-adaboost" id="toc-advantages-of-adaboost" class="nav-link" data-scroll-target="#advantages-of-adaboost"><span class="header-section-number">49</span> Advantages of AdaBoost</a></li>
+  <li><a href="#limitations-of-adaboost" id="toc-limitations-of-adaboost" class="nav-link" data-scroll-target="#limitations-of-adaboost"><span class="header-section-number">50</span> Limitations of AdaBoost</a></li>
+  <li><a href="#from-adaboost-to-gradient-boosting-1" id="toc-from-adaboost-to-gradient-boosting-1" class="nav-link" data-scroll-target="#from-adaboost-to-gradient-boosting-1"><span class="header-section-number">51</span> From AdaBoost to Gradient Boosting</a></li>
+  <li><a href="#gradient-boosting-for-regression-1" id="toc-gradient-boosting-for-regression-1" class="nav-link" data-scroll-target="#gradient-boosting-for-regression-1"><span class="header-section-number">52</span> Gradient Boosting for Regression</a>
+  <ul class="collapse">
+  <li><a href="#initial-model" id="toc-initial-model" class="nav-link" data-scroll-target="#initial-model"><span class="header-section-number">52.1</span> Initial Model</a></li>
+  <li><a href="#residuals" id="toc-residuals" class="nav-link" data-scroll-target="#residuals"><span class="header-section-number">52.2</span> Residuals</a></li>
+  <li><a href="#fit-a-tree-to-residuals" id="toc-fit-a-tree-to-residuals" class="nav-link" data-scroll-target="#fit-a-tree-to-residuals"><span class="header-section-number">52.3</span> Fit a Tree to Residuals</a></li>
+  <li><a href="#update-prediction" id="toc-update-prediction" class="nav-link" data-scroll-target="#update-prediction"><span class="header-section-number">52.4</span> Update Prediction</a></li>
+  </ul></li>
+  <li><a href="#learning-rate-shrinkage" id="toc-learning-rate-shrinkage" class="nav-link" data-scroll-target="#learning-rate-shrinkage"><span class="header-section-number">53</span> Learning Rate (Shrinkage)</a></li>
+  <li><a href="#xgboost-1" id="toc-xgboost-1" class="nav-link" data-scroll-target="#xgboost-1"><span class="header-section-number">54</span> XGBoost</a></li>
+  <li><a href="#why-xgboost-became-popular" id="toc-why-xgboost-became-popular" class="nav-link" data-scroll-target="#why-xgboost-became-popular"><span class="header-section-number">55</span> Why XGBoost Became Popular</a></li>
+  <li><a href="#core-ideas-behind-xgboost" id="toc-core-ideas-behind-xgboost" class="nav-link" data-scroll-target="#core-ideas-behind-xgboost"><span class="header-section-number">56</span> Core Ideas Behind XGBoost</a></li>
+  <li><a href="#regularization-in-xgboost-1" id="toc-regularization-in-xgboost-1" class="nav-link" data-scroll-target="#regularization-in-xgboost-1"><span class="header-section-number">57</span> Regularization in XGBoost</a></li>
+  <li><a href="#tree-depth-1" id="toc-tree-depth-1" class="nav-link" data-scroll-target="#tree-depth-1"><span class="header-section-number">58</span> Tree Depth</a></li>
+  <li><a href="#number-of-trees-1" id="toc-number-of-trees-1" class="nav-link" data-scroll-target="#number-of-trees-1"><span class="header-section-number">59</span> Number of Trees</a></li>
+  <li><a href="#learning-rate-vs-number-of-trees" id="toc-learning-rate-vs-number-of-trees" class="nav-link" data-scroll-target="#learning-rate-vs-number-of-trees"><span class="header-section-number">60</span> Learning Rate vs Number of Trees</a></li>
+  <li><a href="#subsampling-1" id="toc-subsampling-1" class="nav-link" data-scroll-target="#subsampling-1"><span class="header-section-number">61</span> Subsampling</a></li>
+  <li><a href="#feature-subsampling-1" id="toc-feature-subsampling-1" class="nav-link" data-scroll-target="#feature-subsampling-1"><span class="header-section-number">62</span> Feature Subsampling</a></li>
+  <li><a href="#important-hyperparameters-in-xgboost" id="toc-important-hyperparameters-in-xgboost" class="nav-link" data-scroll-target="#important-hyperparameters-in-xgboost"><span class="header-section-number">63</span> Important Hyperparameters in XGBoost</a></li>
+  <li><a href="#general-tuning-rules" id="toc-general-tuning-rules" class="nav-link" data-scroll-target="#general-tuning-rules"><span class="header-section-number">64</span> General Tuning Rules</a>
+  <ul class="collapse">
+  <li><a href="#rule-1" id="toc-rule-1" class="nav-link" data-scroll-target="#rule-1"><span class="header-section-number">64.1</span> Rule 1</a></li>
+  <li><a href="#rule-2" id="toc-rule-2" class="nav-link" data-scroll-target="#rule-2"><span class="header-section-number">64.2</span> Rule 2</a></li>
+  <li><a href="#rule-3" id="toc-rule-3" class="nav-link" data-scroll-target="#rule-3"><span class="header-section-number">64.3</span> Rule 3</a></li>
+  <li><a href="#rule-4" id="toc-rule-4" class="nav-link" data-scroll-target="#rule-4"><span class="header-section-number">64.4</span> Rule 4</a></li>
+  </ul></li>
+  <li><a href="#adaboost-vs-xgboost" id="toc-adaboost-vs-xgboost" class="nav-link" data-scroll-target="#adaboost-vs-xgboost"><span class="header-section-number">65</span> AdaBoost vs XGBoost</a></li>
+  <li><a href="#comparison-with-random-forest" id="toc-comparison-with-random-forest" class="nav-link" data-scroll-target="#comparison-with-random-forest"><span class="header-section-number">66</span> Comparison with Random Forest</a></li>
+  <li><a href="#typical-workflow-in-practice" id="toc-typical-workflow-in-practice" class="nav-link" data-scroll-target="#typical-workflow-in-practice"><span class="header-section-number">67</span> Typical Workflow in Practice</a></li>
+  <li><a href="#example-in-python-1" id="toc-example-in-python-1" class="nav-link" data-scroll-target="#example-in-python-1"><span class="header-section-number">68</span> Example in Python</a>
+  <ul class="collapse">
+  <li><a href="#adaboost-2" id="toc-adaboost-2" class="nav-link" data-scroll-target="#adaboost-2"><span class="header-section-number">68.1</span> AdaBoost</a></li>
+  <li><a href="#xgboost-2" id="toc-xgboost-2" class="nav-link" data-scroll-target="#xgboost-2"><span class="header-section-number">68.2</span> XGBoost</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">69</span> Summary</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Optional: pip install xgboost</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div id="2d29b9b7" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> make_boosting_showcase(n<span class="op">=</span><span class="dv">3000</span>, random_state<span class="op">=</span><span class="dv">42</span>):</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(random_state)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    X1 <span class="op">=</span> rng.uniform(<span class="op">-</span><span class="dv">3</span>, <span class="dv">3</span>, n)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    X2 <span class="op">=</span> rng.uniform(<span class="op">-</span><span class="dv">3</span>, <span class="dv">3</span>, n)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    X3 <span class="op">=</span> rng.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    X4 <span class="op">=</span> rng.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    X5 <span class="op">=</span> rng.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)  <span class="co"># mostly noise</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    X6 <span class="op">=</span> rng.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)  <span class="co"># mostly noise</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Nonlinear decision function:</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># - circular boundary</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># - interaction between X1 and X2</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># - small contribution from X3</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    score <span class="op">=</span> (</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        <span class="fl">2.0</span> <span class="op">*</span> np.sin(<span class="dv">2</span> <span class="op">*</span> X1)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> <span class="fl">1.5</span> <span class="op">*</span> np.cos(<span class="dv">2</span> <span class="op">*</span> X2)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> <span class="fl">1.2</span> <span class="op">*</span> (X1 <span class="op">*</span> X2 <span class="op">&gt;</span> <span class="dv">1</span>).astype(<span class="bu">float</span>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>        <span class="op">-</span> <span class="fl">1.0</span> <span class="op">*</span> (X1<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> X2<span class="op">**</span><span class="dv">2</span> <span class="op">&gt;</span> <span class="dv">5</span>).astype(<span class="bu">float</span>)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> X3</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> rng.normal(<span class="dv">0</span>, <span class="fl">0.8</span>, n)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> (score <span class="op">&gt;</span> np.median(score)).astype(<span class="bu">int</span>)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> pd.DataFrame(</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>            <span class="st">"x1"</span>: X1,</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>            <span class="st">"x2"</span>: X2,</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>            <span class="st">"x3"</span>: X3,</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>            <span class="st">"x4"</span>: X4,</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>            <span class="st">"x5_noise"</span>: X5,</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>            <span class="st">"x6_noise"</span>: X6,</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> train_test_split(</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>        X, y, test_size<span class="op">=</span><span class="fl">0.3</span>, random_state<span class="op">=</span>random_state, stratify<span class="op">=</span>y</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> make_boosting_showcase()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="8f706cc6" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> accuracy_score</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> AdaBoostClassifier, RandomForestClassifier</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> xgboost <span class="im">import</span> XGBClassifier</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>models <span class="op">=</span> {</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Logistic Regression"</span>: make_pipeline(</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        StandardScaler(), LogisticRegression(max_iter<span class="op">=</span><span class="dv">2000</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Single Tree"</span>: DecisionTreeClassifier(max_depth<span class="op">=</span><span class="dv">3</span>, random_state<span class="op">=</span><span class="dv">42</span>),</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Random Forest"</span>: RandomForestClassifier(</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        n_estimators<span class="op">=</span><span class="dv">300</span>, max_depth<span class="op">=</span><span class="dv">5</span>, random_state<span class="op">=</span><span class="dv">42</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"AdaBoost"</span>: AdaBoostClassifier(</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        estimator<span class="op">=</span>DecisionTreeClassifier(max_depth<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        n_estimators<span class="op">=</span><span class="dv">300</span>,</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        learning_rate<span class="op">=</span><span class="fl">0.05</span>,</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>        random_state<span class="op">=</span><span class="dv">42</span>,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">"XGBoost"</span>: XGBClassifier(</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        n_estimators<span class="op">=</span><span class="dv">300</span>,</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        max_depth<span class="op">=</span><span class="dv">3</span>,</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>        learning_rate<span class="op">=</span><span class="fl">0.05</span>,</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>        subsample<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        colsample_bytree<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        eval_metric<span class="op">=</span><span class="st">"logloss"</span>,</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        random_state<span class="op">=</span><span class="dv">42</span>,</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, model <span class="kw">in</span> models.items():</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    model.fit(X_train, y_train)</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    pred <span class="op">=</span> model.predict(X_test)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">:20s}</span><span class="ss">: </span><span class="sc">{</span>accuracy_score(y_test, pred)<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Logistic Regression : 0.599
+Single Tree         : 0.777
+Random Forest       : 0.813
+AdaBoost            : 0.827
+XGBoost             : 0.876</code></pre>
+</div>
+</div>
+<section id="boosting" class="level1" data-number="10">
+<h1 data-number="10"><span class="header-section-number">10</span> Boosting</h1>
+<p>The central idea of boosting is simple:</p>
+<blockquote class="blockquote">
+<p>Build many weak learners sequentially so that each learner improves the mistakes made by earlier learners.</p>
+</blockquote>
+<p>This is very different from bagging or random forests. In random forests, all trees are built independently. Each tree is unaware of the other trees. Their predictions are later averaged together.</p>
+<p>Boosting is different. In boosting, the trees cooperate.</p>
+<p>The process looks conceptually like this:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TD
+    A[First Tree]
+    B[Identify Mistakes]
+    C[Second Tree Focuses on Mistakes]
+    D[Identify Remaining Mistakes]
+    E[Third Tree Focuses Again]
+    F[Continue Improving]
+
+    A --&gt; B
+    B --&gt; C
+    C --&gt; D
+    D --&gt; E
+    E --&gt; F
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>Thus boosting is an adaptive learning process. The model gradually learns where it is weak and allocates more attention to those difficult observations.</p>
+<p>This sequential correction mechanism is the key reason boosting can achieve very high predictive accuracy.</p>
+<hr>
+</section>
+<section id="weak-learners" class="level1" data-number="11">
+<h1 data-number="11"><span class="header-section-number">11</span> Weak Learners</h1>
+<p>Boosting is based on the idea of weak learners.</p>
+<p>A weak learner is a model that performs only slightly better than random guessing. Individually, weak learners are not impressive. However, boosting combines many weak learners into a powerful ensemble.</p>
+<p>In boosting, the weak learner is often a very shallow tree.</p>
+<p>For example, a decision stump is simply a tree with one split:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>DecisionTreeClassifier(max_depth<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A single stump is usually a poor classifier. It can only create a very simple decision boundary. However, boosting combines many stumps together sequentially, and the final model can become highly flexible.</p>
+<p>This is one of the most important ideas in boosting:</p>
+<blockquote class="blockquote">
+<p>Many weak learners can combine to form a strong learner.</p>
+</blockquote>
+<hr>
+</section>
+<section id="adaboost" class="level1" data-number="12">
+<h1 data-number="12"><span class="header-section-number">12</span> AdaBoost</h1>
+<p>AdaBoost stands for Adaptive Boosting. It was one of the earliest boosting algorithms to achieve major success.</p>
+<p>The key idea behind AdaBoost is:</p>
+<blockquote class="blockquote">
+<p>Increase attention on observations that were previously misclassified.</p>
+</blockquote>
+<p>At every stage, AdaBoost identifies observations that are difficult to classify and forces the next learner to focus more strongly on them.</p>
+<hr>
+</section>
+<section id="the-adaboost-algorithm" class="level1" data-number="13">
+<h1 data-number="13"><span class="header-section-number">13</span> The AdaBoost Algorithm</h1>
+<p>Suppose we observe training data</p>
+<p><span class="math display">\[
+(x_1,y_1),\dots,(x_n,y_n)
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+y_i \in \{-1,+1\}.
+\]</span></p>
+<p>AdaBoost proceeds in several stages.</p>
+<hr>
+</section>
+<section id="step-1-initialize-observation-weights" class="level1" data-number="14">
+<h1 data-number="14"><span class="header-section-number">14</span> Step 1: Initialize Observation Weights</h1>
+<p>Initially, every observation receives equal importance.</p>
+<p>Thus the initial weights are</p>
+<p><span class="math display">\[
+w_i=\frac1n.
+\]</span></p>
+<p>At this stage, every observation contributes equally to the learning process.</p>
+<hr>
+</section>
+<section id="step-2-fit-a-weak-learner" class="level1" data-number="15">
+<h1 data-number="15"><span class="header-section-number">15</span> Step 2: Fit a Weak Learner</h1>
+<p>Next, AdaBoost fits a weak learner to the weighted data.</p>
+<p>Usually this learner is a decision stump or another shallow tree.</p>
+<p>The learner attempts to minimize weighted classification error. This means observations with larger weights are treated as more important.</p>
+<p>Initially all weights are equal, so the first learner behaves similarly to ordinary classification.</p>
+<hr>
+</section>
+<section id="step-3-compute-the-weighted-error" class="level1" data-number="16">
+<h1 data-number="16"><span class="header-section-number">16</span> Step 3: Compute the Weighted Error</h1>
+<p>After fitting the learner, AdaBoost computes the weighted classification error:</p>
+<p><span class="math display">\[
+\text{err}_m
+=
+\frac{
+\sum_{i=1}^n
+w_i I(y_i \ne G_m(x_i))
+}{
+\sum_{i=1}^n w_i
+}.
+\]</span></p>
+<p>Here:</p>
+<ul>
+<li><span class="math inline">\(G_m(x)\)</span> is the prediction from learner <span class="math inline">\(m\)</span></li>
+<li><span class="math inline">\(I(\cdot)\)</span> is the indicator function</li>
+</ul>
+<p>The numerator adds together the weights of misclassified observations.</p>
+<p>Thus observations with larger weights contribute more strongly to the error.</p>
+<hr>
+</section>
+<section id="step-4-compute-the-learner-weight" class="level1" data-number="17">
+<h1 data-number="17"><span class="header-section-number">17</span> Step 4: Compute the Learner Weight</h1>
+<p>The learner itself also receives a weight:</p>
+<p><span class="math display">\[
+\alpha_m
+=
+\frac12
+\log
+\left(
+\frac{1-\text{err}_m}{\text{err}_m}
+\right).
+\]</span></p>
+<p>This quantity determines how influential the learner will be in the final model.</p>
+<p>If the learner performs well, then <span class="math inline">\(\text{err}_m\)</span> is small, and <span class="math inline">\(\alpha_m\)</span> becomes large.</p>
+<p>If the learner performs poorly, then <span class="math inline">\(\alpha_m\)</span> becomes small.</p>
+<p>Thus stronger learners receive more influence in the final prediction.</p>
+<hr>
+</section>
+<section id="step-5-update-observation-weights" class="level1" data-number="18">
+<h1 data-number="18"><span class="header-section-number">18</span> Step 5: Update Observation Weights</h1>
+<p>Now AdaBoost changes the observation weights.</p>
+<p>Misclassified observations receive larger weights, while correctly classified observations receive smaller weights.</p>
+<p>The update rule is</p>
+<p><span class="math display">\[
+w_i
+\leftarrow
+w_i
+\exp(-\alpha_m y_i G_m(x_i)).
+\]</span></p>
+<p>Although the formula looks complicated, the interpretation is straightforward.</p>
+<p>If an observation is classified correctly, then its weight decreases.</p>
+<p>If an observation is classified incorrectly, then its weight increases.</p>
+<p>As a result, the next learner focuses more strongly on observations that were difficult to classify previously.</p>
+<p>This is the heart of AdaBoost.</p>
+<hr>
+</section>
+<section id="step-6-repeat-the-process" class="level1" data-number="19">
+<h1 data-number="19"><span class="header-section-number">19</span> Step 6: Repeat the Process</h1>
+<p>AdaBoost repeats the procedure many times.</p>
+<p>Each new learner focuses more heavily on observations that earlier learners struggled with.</p>
+<p>Over time, the ensemble gradually improves.</p>
+<p>Instead of solving the entire problem at once, AdaBoost repeatedly corrects mistakes step by step.</p>
+<hr>
+</section>
+<section id="final-adaboost-prediction" class="level1" data-number="20">
+<h1 data-number="20"><span class="header-section-number">20</span> Final AdaBoost Prediction</h1>
+<p>The final AdaBoost classifier combines all learners together:</p>
+<p><span class="math display">\[
+F(x)
+=
+\sum_{m=1}^M
+\alpha_m G_m(x).
+\]</span></p>
+<p>The final prediction is determined by the sign of this weighted sum:</p>
+<p><span class="math display">\[
+\text{sign}(F(x)).
+\]</span></p>
+<p>Thus AdaBoost forms a weighted voting system.</p>
+<p>Learners with stronger performance receive larger voting power.</p>
+<p>Learners with weaker performance receive smaller voting power.</p>
+<hr>
+</section>
+<section id="intuition-behind-adaboost" class="level1" data-number="21">
+<h1 data-number="21"><span class="header-section-number">21</span> Intuition Behind AdaBoost</h1>
+<p>The most important intuition is that AdaBoost repeatedly reallocates attention toward difficult observations.</p>
+<p>At early stages, the model correctly classifies easy observations. Those observations gradually become less important.</p>
+<p>The algorithm then spends more effort on observations that remain difficult.</p>
+<p>This repeated focusing mechanism allows AdaBoost to construct highly flexible decision boundaries from very simple learners.</p>
+<hr>
+</section>
+<section id="adaboost-and-the-bias-variance-tradeoff" class="level1" data-number="22">
+<h1 data-number="22"><span class="header-section-number">22</span> AdaBoost and the Bias-Variance Tradeoff</h1>
+<p>Boosting primarily reduces bias.</p>
+<p>A shallow tree by itself usually underfits. Its decision boundary is too simple.</p>
+<p>AdaBoost gradually combines many shallow trees to create a more flexible model. The resulting ensemble can fit complicated patterns while still maintaining relatively low variance.</p>
+<p>This differs from bagging and random forests.</p>
+<p>Bagging mainly reduces variance by averaging unstable trees.</p>
+<p>Boosting mainly reduces bias by sequentially improving prediction errors.</p>
+<hr>
+</section>
+<section id="advantages-and-limitations-of-adaboost" class="level1" data-number="23">
+<h1 data-number="23"><span class="header-section-number">23</span> Advantages and Limitations of AdaBoost</h1>
+<p>AdaBoost has several important advantages.</p>
+<p>It is conceptually elegant, relatively simple to implement, and often achieves strong predictive performance.</p>
+<p>In addition, AdaBoost usually requires little preprocessing. Tree-based methods naturally handle nonlinearities and interactions without explicit feature engineering.</p>
+<p>However, AdaBoost also has weaknesses.</p>
+<p>Because AdaBoost aggressively focuses on difficult observations, it can become sensitive to noisy data and outliers. If some observations are mislabeled, AdaBoost may repeatedly focus on those noisy points and overfit.</p>
+<p>Furthermore, boosting is inherently sequential. Each learner depends on earlier learners, so training cannot be fully parallelized.</p>
+<hr>
+</section>
+<section id="from-adaboost-to-gradient-boosting" class="level1" data-number="24">
+<h1 data-number="24"><span class="header-section-number">24</span> From AdaBoost to Gradient Boosting</h1>
+<p>AdaBoost was historically very important, but modern boosting methods are usually based on gradient boosting.</p>
+<p>AdaBoost directly emphasizes misclassified observations.</p>
+<p>Gradient boosting generalizes this idea into a much broader framework.</p>
+<p>Instead of directly focusing on classification mistakes, gradient boosting attempts to model the remaining errors of the current model.</p>
+<p>These remaining errors are often represented by residuals or gradients.</p>
+<p>This perspective allows boosting to handle many types of loss functions and prediction problems.</p>
+<hr>
+</section>
+<section id="gradient-boosting-for-regression" class="level1" data-number="25">
+<h1 data-number="25"><span class="header-section-number">25</span> Gradient Boosting for Regression</h1>
+<p>To understand gradient boosting, consider regression.</p>
+<p>Suppose we want to predict</p>
+<p><span class="math display">\[
+y.
+\]</span></p>
+<p>Initially we start with a very simple prediction:</p>
+<p><span class="math display">\[
+\hat y^{(0)}.
+\]</span></p>
+<p>For squared error loss, this initial prediction is often the sample mean.</p>
+<p>The model then computes residuals:</p>
+<p><span class="math display">\[
+r_i
+=
+y_i-\hat y_i.
+\]</span></p>
+<p>These residuals represent the mistakes made by the current model.</p>
+<p>Instead of fitting another tree directly to <span class="math inline">\(y\)</span>, gradient boosting fits a tree to the residuals.</p>
+<p>Thus the next tree attempts to explain the remaining errors.</p>
+<p>After fitting the new tree, the prediction is updated:</p>
+<p><span class="math display">\[
+\hat y^{(m)}
+=
+\hat y^{(m-1)}
++
+\eta f_m(x),
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(f_m(x)\)</span> is the new tree</li>
+<li><span class="math inline">\(\eta\)</span> is the learning rate</li>
+</ul>
+<p>The process then repeats again and again.</p>
+<p>Each new tree improves the remaining errors left by earlier trees.</p>
+<hr>
+</section>
+<section id="learning-rate-and-shrinkage" class="level1" data-number="26">
+<h1 data-number="26"><span class="header-section-number">26</span> Learning Rate and Shrinkage</h1>
+<p>The learning rate controls how aggressively boosting updates the model.</p>
+<p>This parameter is sometimes called shrinkage.</p>
+<p>A small learning rate means each tree contributes only a small adjustment. The model learns slowly and cautiously.</p>
+<p>A large learning rate means each tree makes larger corrections. The model learns faster but may overfit more easily.</p>
+<p>Typical values are:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>learning_rate <span class="op">=</span> <span class="fl">0.01</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>learning_rate <span class="op">=</span> <span class="fl">0.05</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>learning_rate <span class="op">=</span> <span class="fl">0.1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>In practice, smaller learning rates combined with more trees often produce better predictive performance.</p>
+<hr>
+</section>
+<section id="xgboost" class="level1" data-number="27">
+<h1 data-number="27"><span class="header-section-number">27</span> XGBoost</h1>
+<p>XGBoost stands for Extreme Gradient Boosting.</p>
+<p>It is essentially a highly optimized and regularized version of gradient boosting.</p>
+<p>XGBoost became extremely popular because it combines several important ideas:</p>
+<ul>
+<li>gradient boosting</li>
+<li>regularization</li>
+<li>subsampling</li>
+<li>efficient optimization</li>
+<li>flexible tree construction</li>
+</ul>
+<p>For many years, XGBoost dominated machine learning competitions involving tabular data.</p>
+<hr>
+</section>
+<section id="why-xgboost-works-so-well" class="level1" data-number="28">
+<h1 data-number="28"><span class="header-section-number">28</span> Why XGBoost Works So Well</h1>
+<p>XGBoost is powerful because it combines flexibility with regularization.</p>
+<p>Traditional boosting methods can easily overfit if too many trees are added.</p>
+<p>XGBoost combats overfitting in several ways.</p>
+<p>First, it regularizes tree complexity.</p>
+<p>Second, it uses shrinkage through the learning rate.</p>
+<p>Third, it uses random subsampling similar to random forests.</p>
+<p>Together these mechanisms create a model that is both flexible and stable.</p>
+<hr>
+</section>
+<section id="regularization-in-xgboost" class="level1" data-number="29">
+<h1 data-number="29"><span class="header-section-number">29</span> Regularization in XGBoost</h1>
+<p>One major improvement in XGBoost is explicit regularization.</p>
+<p>XGBoost penalizes overly complicated trees.</p>
+<p>Complicated trees may fit training data extremely well but generalize poorly to new data.</p>
+<p>Regularization encourages smoother and simpler models.</p>
+<p>In practice, regularization can involve:</p>
+<ul>
+<li>limiting tree depth</li>
+<li>penalizing many leaves</li>
+<li>shrinking leaf predictions</li>
+</ul>
+<p>The exact formulas are less important than the overall intuition:</p>
+<blockquote class="blockquote">
+<p>XGBoost discourages unnecessarily complicated trees.</p>
+</blockquote>
+<hr>
+</section>
+<section id="tree-depth" class="level1" data-number="30">
+<h1 data-number="30"><span class="header-section-number">30</span> Tree Depth</h1>
+<p>Tree depth is one of the most important tuning parameters.</p>
+<p>Shallow trees produce smoother models with lower variance.</p>
+<p>Deep trees can capture stronger interactions and more complicated nonlinearities, but they may overfit.</p>
+<p>Typical values are:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>max_depth <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>max_depth <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>max_depth <span class="op">=</span> <span class="dv">6</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>In many applications, surprisingly shallow trees perform very well.</p>
+<hr>
+</section>
+<section id="number-of-trees" class="level1" data-number="31">
+<h1 data-number="31"><span class="header-section-number">31</span> Number of Trees</h1>
+<p>Boosting combines many trees sequentially.</p>
+<p>More trees generally increase model flexibility.</p>
+<p>However, too many trees may eventually overfit and also increase computation time.</p>
+<p>The number of trees strongly interacts with the learning rate.</p>
+<p>A smaller learning rate usually requires more trees.</p>
+<p>A larger learning rate usually requires fewer trees.</p>
+<hr>
+</section>
+<section id="learning-rate-versus-number-of-trees" class="level1" data-number="32">
+<h1 data-number="32"><span class="header-section-number">32</span> Learning Rate Versus Number of Trees</h1>
+<p>There is an important tradeoff between learning rate and the number of trees.</p>
+<p>A small learning rate means each tree contributes only a tiny adjustment. Therefore more trees are needed to build a strong model.</p>
+<p>A larger learning rate means each tree contributes more aggressively, so fewer trees are needed.</p>
+<p>In practice, many practitioners prefer:</p>
+<ul>
+<li>small learning rate</li>
+<li>large number of trees</li>
+</ul>
+<p>because this approach often produces smoother and more stable models.</p>
+<hr>
+</section>
+<section id="subsampling" class="level1" data-number="33">
+<h1 data-number="33"><span class="header-section-number">33</span> Subsampling</h1>
+<p>XGBoost may randomly sample observations before fitting each tree.</p>
+<p>For example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>subsample <span class="op">=</span> <span class="fl">0.8</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>means each tree uses only 80% of the observations.</p>
+<p>This reduces variance and helps prevent overfitting.</p>
+<p>Subsampling also increases randomness, which improves robustness.</p>
+<hr>
+</section>
+<section id="feature-subsampling" class="level1" data-number="34">
+<h1 data-number="34"><span class="header-section-number">34</span> Feature Subsampling</h1>
+<p>XGBoost may also randomly sample predictors:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>colsample_bytree <span class="op">=</span> <span class="fl">0.8</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This means each tree uses only a subset of predictors.</p>
+<p>This idea resembles random forests.</p>
+<p>Feature subsampling helps decorrelate trees and reduce variance.</p>
+<hr>
+</section>
+<section id="important-hyperparameters" class="level1" data-number="35">
+<h1 data-number="35"><span class="header-section-number">35</span> Important Hyperparameters</h1>
+<p>Several tuning parameters strongly affect XGBoost performance.</p>
+<p>The learning rate controls how aggressively the model updates predictions.</p>
+<p>The number of trees controls ensemble size.</p>
+<p>Tree depth controls interaction complexity.</p>
+<p>Subsampling controls randomness and regularization.</p>
+<p>Feature subsampling reduces correlation among trees.</p>
+<p>These parameters work together. Tuning one parameter often changes the effect of others.</p>
+<hr>
+</section>
+<section id="general-tuning-strategy" class="level1" data-number="36">
+<h1 data-number="36"><span class="header-section-number">36</span> General Tuning Strategy</h1>
+<p>A common practical strategy is:</p>
+<ol type="1">
+<li>Start with shallow trees.</li>
+<li>Use a relatively small learning rate.</li>
+<li>Increase the number of trees.</li>
+<li>Use subsampling to reduce overfitting.</li>
+<li>Use cross-validation to monitor performance.</li>
+</ol>
+<p>For example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>XGBClassifier(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span><span class="dv">500</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    learning_rate<span class="op">=</span><span class="fl">0.05</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    max_depth<span class="op">=</span><span class="dv">3</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    subsample<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    colsample_bytree<span class="op">=</span><span class="fl">0.8</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This represents a conservative and stable boosting model.</p>
+<hr>
+</section>
+<section id="adaboost-versus-xgboost" class="level1" data-number="37">
+<h1 data-number="37"><span class="header-section-number">37</span> AdaBoost Versus XGBoost</h1>
+<p>Although both methods are boosting algorithms, they differ substantially.</p>
+<p>AdaBoost directly increases weights on misclassified observations.</p>
+<p>XGBoost instead fits gradients or residuals.</p>
+<p>AdaBoost is conceptually simpler and historically important.</p>
+<p>XGBoost is more flexible, more regularized, and usually achieves stronger predictive performance in modern applications.</p>
+<p>AdaBoost is often excellent for teaching because the core idea is easy to visualize.</p>
+<p>XGBoost is often preferred in practice because of its predictive power and robustness.</p>
+<hr>
+</section>
+<section id="comparison-with-random-forests" class="level1" data-number="38">
+<h1 data-number="38"><span class="header-section-number">38</span> Comparison with Random Forests</h1>
+<p>Random forests and boosting are both tree ensembles, but their philosophies differ fundamentally.</p>
+<p>Random forests build trees independently and then average predictions.</p>
+<p>Boosting builds trees sequentially and continuously corrects errors.</p>
+<p>Random forests mainly reduce variance.</p>
+<p>Boosting mainly reduces bias.</p>
+<p>Random forests are often easier to tune and more stable.</p>
+<p>Boosting methods often achieve higher predictive accuracy but require more careful tuning.</p>
+<hr>
+</section>
+<section id="example-in-python" class="level1" data-number="39">
+<h1 data-number="39"><span class="header-section-number">39</span> Example in Python</h1>
+<p>AdaBoost can be implemented in scikit-learn as follows:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> AdaBoostClassifier</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> AdaBoostClassifier(</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    estimator<span class="op">=</span>DecisionTreeClassifier(max_depth<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span><span class="dv">200</span>,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    learning_rate<span class="op">=</span><span class="fl">0.05</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>model.fit(X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>XGBoost can be implemented using the <code>xgboost</code> package:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> xgboost <span class="im">import</span> XGBClassifier</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> XGBClassifier(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span><span class="dv">500</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    learning_rate<span class="op">=</span><span class="fl">0.05</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    max_depth<span class="op">=</span><span class="dv">3</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    subsample<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    colsample_bytree<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    eval_metric<span class="op">=</span><span class="st">"logloss"</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>model.fit(X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="final-remarks" class="level1" data-number="40">
+<h1 data-number="40"><span class="header-section-number">40</span> Final Remarks</h1>
+<p>Boosting is one of the most important ideas in modern statistical learning.</p>
+<p>Instead of relying on one powerful learner, boosting constructs a strong model by combining many weak learners sequentially.</p>
+<p>AdaBoost introduced the key idea of adaptive focusing on difficult observations.</p>
+<p>Gradient boosting generalized this idea by fitting residuals or gradients.</p>
+<p>XGBoost further improved the framework through regularization, shrinkage, and subsampling.</p>
+<p>The most important conceptual ideas are:</p>
+<ul>
+<li>sequential learning</li>
+<li>weak learners</li>
+<li>residual correction</li>
+<li>shrinkage</li>
+<li>regularization</li>
+<li>bias reduction</li>
+</ul>
+<p>These ideas appear repeatedly throughout modern machine learning and form the foundation of many powerful predictive methods.</p>
+</section>
+<section id="boosting-adaboost-and-xgboost" class="level1" data-number="41">
+<h1 data-number="41"><span class="header-section-number">41</span> Boosting: AdaBoost and XGBoost</h1>
+<section id="introduction" class="level2" data-number="41.1">
+<h2 data-number="41.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">41.1</span> Introduction</h2>
+<p>Tree-based methods are highly flexible and can model complicated nonlinear relationships. However, a single tree often has high variance and may not achieve the best predictive performance.</p>
+<p>Ensemble methods improve prediction by combining many trees together.</p>
+<p>There are two major ensemble ideas:</p>
+<ol type="1">
+<li>Bagging / Random Forest
+<ul>
+<li>Build many trees independently</li>
+<li>Average their predictions</li>
+<li>Main goal: reduce variance</li>
+</ul></li>
+<li>Boosting
+<ul>
+<li>Build trees sequentially</li>
+<li>Each new tree focuses on correcting previous errors</li>
+<li>Main goal: reduce bias</li>
+</ul></li>
+</ol>
+<p>This chapter focuses on boosting methods, especially AdaBoost and XGBoost.</p>
+<hr>
+</section>
+</section>
+<section id="the-main-idea-of-boosting" class="level1" data-number="42">
+<h1 data-number="42"><span class="header-section-number">42</span> The Main Idea of Boosting</h1>
+<p>The central idea of boosting is:</p>
+<blockquote class="blockquote">
+<p>Build many weak learners sequentially so that each learner improves the mistakes made by earlier learners.</p>
+</blockquote>
+<p>Unlike bagging, boosting is not parallel.</p>
+<p>Instead:</p>
+<pre class="text"><code>Tree 1
+   ↓
+Identify mistakes
+   ↓
+Tree 2 focuses on mistakes
+   ↓
+Identify remaining mistakes
+   ↓
+Tree 3 focuses again
+   ↓
+...</code></pre>
+<p>The learners cooperate instead of working independently.</p>
+<hr>
+</section>
+<section id="weak-learners-1" class="level1" data-number="43">
+<h1 data-number="43"><span class="header-section-number">43</span> Weak Learners</h1>
+<p>Boosting usually uses weak learners.</p>
+<p>A weak learner is a model that performs only slightly better than random guessing.</p>
+<p>In boosting, the weak learner is often:</p>
+<ul>
+<li>a decision stump</li>
+<li>a shallow tree</li>
+</ul>
+<p>For example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>DecisionTreeClassifier(max_depth<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A single stump is weak, but many stumps together can become very powerful.</p>
+<hr>
+</section>
+<section id="adaboost-1" class="level1" data-number="44">
+<h1 data-number="44"><span class="header-section-number">44</span> AdaBoost</h1>
+<p>AdaBoost stands for:</p>
+<p>Adaptive Boosting</p>
+<p>It was one of the first highly successful boosting algorithms.</p>
+<p>The key idea is simple:</p>
+<blockquote class="blockquote">
+<p>Increase attention on observations that were previously misclassified.</p>
+</blockquote>
+<hr>
+</section>
+<section id="adaboost-algorithm" class="level1" data-number="45">
+<h1 data-number="45"><span class="header-section-number">45</span> AdaBoost Algorithm</h1>
+<p>Suppose we have training observations:</p>
+<p><span class="math display">\[
+(x_1,y_1),\dots,(x_n,y_n)
+\]</span></p>
+<p>where:</p>
+<p><span class="math display">\[
+y_i \in \{-1,+1\}
+\]</span></p>
+<hr>
+<section id="step-1-initialize-weights" class="level2" data-number="45.1">
+<h2 data-number="45.1" class="anchored" data-anchor-id="step-1-initialize-weights"><span class="header-section-number">45.1</span> Step 1: Initialize Weights</h2>
+<p>Initially, all observations receive equal weights:</p>
+<p><span class="math display">\[
+w_i=\frac1n
+\]</span></p>
+<p>Thus every observation is equally important.</p>
+<hr>
+</section>
+<section id="step-2-fit-a-weak-learner-1" class="level2" data-number="45.2">
+<h2 data-number="45.2" class="anchored" data-anchor-id="step-2-fit-a-weak-learner-1"><span class="header-section-number">45.2</span> Step 2: Fit a Weak Learner</h2>
+<p>Fit a weak learner using the weighted observations.</p>
+<p>Typically:</p>
+<ul>
+<li>decision stump</li>
+<li>shallow tree</li>
+</ul>
+<p>The learner attempts to minimize weighted classification error.</p>
+<hr>
+</section>
+<section id="step-3-compute-weighted-error" class="level2" data-number="45.3">
+<h2 data-number="45.3" class="anchored" data-anchor-id="step-3-compute-weighted-error"><span class="header-section-number">45.3</span> Step 3: Compute Weighted Error</h2>
+<p>The weighted error is:</p>
+<p><span class="math display">\[
+\text{err}_m
+=
+\frac{
+\sum_{i=1}^n
+w_i I(y_i \ne G_m(x_i))
+}{
+\sum_{i=1}^n w_i
+}
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(G_m(x)\)</span> is the prediction from tree <span class="math inline">\(m\)</span></li>
+<li><span class="math inline">\(I(\cdot)\)</span> is the indicator function</li>
+</ul>
+<hr>
+</section>
+<section id="step-4-compute-learner-weight" class="level2" data-number="45.4">
+<h2 data-number="45.4" class="anchored" data-anchor-id="step-4-compute-learner-weight"><span class="header-section-number">45.4</span> Step 4: Compute Learner Weight</h2>
+<p>The learner receives weight:</p>
+<p><span class="math display">\[
+\alpha_m
+=
+\frac12
+\log
+\left(
+\frac{1-\text{err}_m}{\text{err}_m}
+\right)
+\]</span></p>
+<p>Interpretation:</p>
+<ul>
+<li>low error → large weight</li>
+<li>high error → small weight</li>
+</ul>
+<p>Thus better learners contribute more.</p>
+<hr>
+</section>
+<section id="step-5-update-observation-weights-1" class="level2" data-number="45.5">
+<h2 data-number="45.5" class="anchored" data-anchor-id="step-5-update-observation-weights-1"><span class="header-section-number">45.5</span> Step 5: Update Observation Weights</h2>
+<p>Observations that were misclassified receive larger weights.</p>
+<p>Specifically:</p>
+<p><span class="math display">\[
+w_i
+\leftarrow
+w_i
+\exp(-\alpha_m y_i G_m(x_i))
+\]</span></p>
+<p>Interpretation:</p>
+<ul>
+<li>correctly classified points:
+<ul>
+<li>weights decrease</li>
+</ul></li>
+<li>misclassified points:
+<ul>
+<li>weights increase</li>
+</ul></li>
+</ul>
+<p>Thus the next learner focuses more on difficult observations.</p>
+<hr>
+</section>
+<section id="step-6-repeat" class="level2" data-number="45.6">
+<h2 data-number="45.6" class="anchored" data-anchor-id="step-6-repeat"><span class="header-section-number">45.6</span> Step 6: Repeat</h2>
+<p>Repeat the process many times.</p>
+<p>Each new learner focuses more strongly on hard observations.</p>
+<hr>
+</section>
+</section>
+<section id="final-adaboost-model" class="level1" data-number="46">
+<h1 data-number="46"><span class="header-section-number">46</span> Final AdaBoost Model</h1>
+<p>The final prediction is a weighted vote:</p>
+<p><span class="math display">\[
+F(x)
+=
+\sum_{m=1}^M
+\alpha_m G_m(x)
+\]</span></p>
+<p>Classification is based on:</p>
+<p><span class="math display">\[
+\text{sign}(F(x))
+\]</span></p>
+<p>Thus:</p>
+<ul>
+<li>strong learners receive larger voting power</li>
+<li>weak learners receive smaller voting power</li>
+</ul>
+<hr>
+</section>
+<section id="intuition-behind-adaboost-1" class="level1" data-number="47">
+<h1 data-number="47"><span class="header-section-number">47</span> Intuition Behind AdaBoost</h1>
+<p>The most important intuition is:</p>
+<blockquote class="blockquote">
+<p>AdaBoost repeatedly focuses on difficult observations.</p>
+</blockquote>
+<p>At each iteration:</p>
+<ul>
+<li>easy observations matter less</li>
+<li>difficult observations matter more</li>
+</ul>
+<p>This adaptive focusing mechanism is why AdaBoost can build a strong classifier from weak learners.</p>
+<hr>
+</section>
+<section id="adaboost-and-bias-variance-tradeoff" class="level1" data-number="48">
+<h1 data-number="48"><span class="header-section-number">48</span> AdaBoost and Bias-Variance Tradeoff</h1>
+<p>Boosting primarily reduces bias.</p>
+<p>Single shallow trees often underfit.</p>
+<p>Boosting combines many shallow trees sequentially to improve flexibility.</p>
+<p>Compared with bagging:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Main Goal</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Bagging</td>
+<td>reduce variance</td>
+</tr>
+<tr class="even">
+<td>Random Forest</td>
+<td>reduce variance + decorrelate trees</td>
+</tr>
+<tr class="odd">
+<td>Boosting</td>
+<td>reduce bias sequentially</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="advantages-of-adaboost" class="level1" data-number="49">
+<h1 data-number="49"><span class="header-section-number">49</span> Advantages of AdaBoost</h1>
+<p>Advantages:</p>
+<ul>
+<li>simple idea</li>
+<li>often strong predictive performance</li>
+<li>works well with weak learners</li>
+<li>little preprocessing required</li>
+</ul>
+<hr>
+</section>
+<section id="limitations-of-adaboost" class="level1" data-number="50">
+<h1 data-number="50"><span class="header-section-number">50</span> Limitations of AdaBoost</h1>
+<p>Limitations:</p>
+<ul>
+<li>sensitive to noisy observations</li>
+<li>sensitive to outliers</li>
+<li>sequential training can be slower</li>
+<li>may overfit if boosting continues too long</li>
+</ul>
+<hr>
+</section>
+<section id="from-adaboost-to-gradient-boosting-1" class="level1" data-number="51">
+<h1 data-number="51"><span class="header-section-number">51</span> From AdaBoost to Gradient Boosting</h1>
+<p>AdaBoost focuses on misclassified observations.</p>
+<p>Gradient boosting generalizes this idea.</p>
+<p>Instead of:</p>
+<ul>
+<li>focusing directly on classification mistakes</li>
+</ul>
+<p>gradient boosting:</p>
+<ul>
+<li>fits residuals or gradients</li>
+</ul>
+<p>This makes the framework much more flexible.</p>
+<hr>
+</section>
+<section id="gradient-boosting-for-regression-1" class="level1" data-number="52">
+<h1 data-number="52"><span class="header-section-number">52</span> Gradient Boosting for Regression</h1>
+<p>Suppose we want to predict:</p>
+<p><span class="math display">\[
+y
+\]</span></p>
+<hr>
+<section id="initial-model" class="level2" data-number="52.1">
+<h2 data-number="52.1" class="anchored" data-anchor-id="initial-model"><span class="header-section-number">52.1</span> Initial Model</h2>
+<p>Start with a simple prediction:</p>
+<p><span class="math display">\[
+\hat y^{(0)}
+\]</span></p>
+<p>often the sample mean.</p>
+<hr>
+</section>
+<section id="residuals" class="level2" data-number="52.2">
+<h2 data-number="52.2" class="anchored" data-anchor-id="residuals"><span class="header-section-number">52.2</span> Residuals</h2>
+<p>Compute residuals:</p>
+<p><span class="math display">\[
+r_i
+=
+y_i-\hat y_i
+\]</span></p>
+<p>The residuals represent remaining errors.</p>
+<hr>
+</section>
+<section id="fit-a-tree-to-residuals" class="level2" data-number="52.3">
+<h2 data-number="52.3" class="anchored" data-anchor-id="fit-a-tree-to-residuals"><span class="header-section-number">52.3</span> Fit a Tree to Residuals</h2>
+<p>Instead of fitting:</p>
+<p><span class="math display">\[
+y
+\]</span></p>
+<p>directly, we fit a tree to:</p>
+<p><span class="math display">\[
+r_i
+\]</span></p>
+<p>The new tree attempts to predict the remaining mistakes.</p>
+<hr>
+</section>
+<section id="update-prediction" class="level2" data-number="52.4">
+<h2 data-number="52.4" class="anchored" data-anchor-id="update-prediction"><span class="header-section-number">52.4</span> Update Prediction</h2>
+<p>Update predictions:</p>
+<p><span class="math display">\[
+\hat y^{(m)}
+=
+\hat y^{(m-1)}
++
+\eta f_m(x)
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(f_m(x)\)</span> is the new tree</li>
+<li><span class="math inline">\(\eta\)</span> is the learning rate</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="learning-rate-shrinkage" class="level1" data-number="53">
+<h1 data-number="53"><span class="header-section-number">53</span> Learning Rate (Shrinkage)</h1>
+<p>The learning rate controls how aggressively boosting updates predictions.</p>
+<p>Small learning rate:</p>
+<ul>
+<li>slower learning</li>
+<li>safer</li>
+<li>less overfitting</li>
+</ul>
+<p>Large learning rate:</p>
+<ul>
+<li>faster learning</li>
+<li>more aggressive</li>
+<li>more overfitting risk</li>
+</ul>
+<p>Typical values:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>learning_rate <span class="op">=</span> <span class="fl">0.01</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>learning_rate <span class="op">=</span> <span class="fl">0.05</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>learning_rate <span class="op">=</span> <span class="fl">0.1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="xgboost-1" class="level1" data-number="54">
+<h1 data-number="54"><span class="header-section-number">54</span> XGBoost</h1>
+<p>XGBoost stands for:</p>
+<p>Extreme Gradient Boosting</p>
+<p>It is one of the most successful machine learning algorithms in practice.</p>
+<p>XGBoost is essentially:</p>
+<blockquote class="blockquote">
+<p>a highly optimized and regularized gradient boosting method.</p>
+</blockquote>
+<hr>
+</section>
+<section id="why-xgboost-became-popular" class="level1" data-number="55">
+<h1 data-number="55"><span class="header-section-number">55</span> Why XGBoost Became Popular</h1>
+<p>XGBoost became popular because it combines:</p>
+<ul>
+<li>strong predictive performance</li>
+<li>regularization</li>
+<li>efficient computation</li>
+<li>flexibility</li>
+<li>automatic handling of nonlinear interactions</li>
+</ul>
+<p>It has been widely used in:</p>
+<ul>
+<li>Kaggle competitions</li>
+<li>industry applications</li>
+<li>tabular data problems</li>
+</ul>
+<hr>
+</section>
+<section id="core-ideas-behind-xgboost" class="level1" data-number="56">
+<h1 data-number="56"><span class="header-section-number">56</span> Core Ideas Behind XGBoost</h1>
+<p>The main ideas are:</p>
+<ol type="1">
+<li>Sequential boosting</li>
+<li>Gradient-based learning</li>
+<li>Shrinkage</li>
+<li>Regularization</li>
+<li>Subsampling</li>
+<li>Tree optimization</li>
+</ol>
+<hr>
+</section>
+<section id="regularization-in-xgboost-1" class="level1" data-number="57">
+<h1 data-number="57"><span class="header-section-number">57</span> Regularization in XGBoost</h1>
+<p>A major improvement over traditional boosting is regularization.</p>
+<p>XGBoost penalizes overly complex trees.</p>
+<p>This helps reduce overfitting.</p>
+<p>Regularization may include:</p>
+<ul>
+<li>limiting tree depth</li>
+<li>penalizing many leaves</li>
+<li>penalizing large leaf weights</li>
+</ul>
+<p>Thus XGBoost is usually more stable than traditional boosting.</p>
+<hr>
+</section>
+<section id="tree-depth-1" class="level1" data-number="58">
+<h1 data-number="58"><span class="header-section-number">58</span> Tree Depth</h1>
+<p>Tree depth controls interaction complexity.</p>
+<p>Small depth:</p>
+<ul>
+<li>smoother model</li>
+<li>lower variance</li>
+<li>simpler interactions</li>
+</ul>
+<p>Large depth:</p>
+<ul>
+<li>more flexible</li>
+<li>captures stronger interactions</li>
+<li>higher variance</li>
+</ul>
+<p>Typical values:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>max_depth <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>max_depth <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>max_depth <span class="op">=</span> <span class="dv">6</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Very deep trees may overfit.</p>
+<hr>
+</section>
+<section id="number-of-trees-1" class="level1" data-number="59">
+<h1 data-number="59"><span class="header-section-number">59</span> Number of Trees</h1>
+<p>Boosting combines many trees.</p>
+<p>More trees increase model flexibility.</p>
+<p>However:</p>
+<ul>
+<li>too many trees may overfit</li>
+<li>training becomes slower</li>
+</ul>
+<p>The number of trees interacts strongly with the learning rate.</p>
+<hr>
+</section>
+<section id="learning-rate-vs-number-of-trees" class="level1" data-number="60">
+<h1 data-number="60"><span class="header-section-number">60</span> Learning Rate vs Number of Trees</h1>
+<p>Important tradeoff:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Learning Rate</th>
+<th>Number of Trees</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>small</td>
+<td>large</td>
+</tr>
+<tr class="even">
+<td>large</td>
+<td>small</td>
+</tr>
+</tbody>
+</table>
+<p>Common strategy:</p>
+<ul>
+<li>small learning rate</li>
+<li>many trees</li>
+</ul>
+<p>This is often more stable.</p>
+<hr>
+</section>
+<section id="subsampling-1" class="level1" data-number="61">
+<h1 data-number="61"><span class="header-section-number">61</span> Subsampling</h1>
+<p>XGBoost may randomly sample observations.</p>
+<p>This is called row subsampling.</p>
+<p>Example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>subsample <span class="op">=</span> <span class="fl">0.8</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Only 80% of observations are used for each tree.</p>
+<p>Benefits:</p>
+<ul>
+<li>lower variance</li>
+<li>less overfitting</li>
+<li>faster training</li>
+</ul>
+<hr>
+</section>
+<section id="feature-subsampling-1" class="level1" data-number="62">
+<h1 data-number="62"><span class="header-section-number">62</span> Feature Subsampling</h1>
+<p>XGBoost may also randomly sample predictors.</p>
+<p>Example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>colsample_bytree <span class="op">=</span> <span class="fl">0.8</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Benefits:</p>
+<ul>
+<li>decorrelates trees</li>
+<li>reduces variance</li>
+<li>improves robustness</li>
+</ul>
+<p>This idea is similar to Random Forest.</p>
+<hr>
+</section>
+<section id="important-hyperparameters-in-xgboost" class="level1" data-number="63">
+<h1 data-number="63"><span class="header-section-number">63</span> Important Hyperparameters in XGBoost</h1>
+<p>The most important hyperparameters are:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Parameter</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>learning_rate</td>
+<td>step size</td>
+</tr>
+<tr class="even">
+<td>n_estimators</td>
+<td>number of trees</td>
+</tr>
+<tr class="odd">
+<td>max_depth</td>
+<td>tree complexity</td>
+</tr>
+<tr class="even">
+<td>subsample</td>
+<td>row subsampling</td>
+</tr>
+<tr class="odd">
+<td>colsample_bytree</td>
+<td>feature subsampling</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="general-tuning-rules" class="level1" data-number="64">
+<h1 data-number="64"><span class="header-section-number">64</span> General Tuning Rules</h1>
+<section id="rule-1" class="level2" data-number="64.1">
+<h2 data-number="64.1" class="anchored" data-anchor-id="rule-1"><span class="header-section-number">64.1</span> Rule 1</h2>
+<p>Start with shallow trees.</p>
+<p>Example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>max_depth<span class="op">=</span><span class="dv">3</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="rule-2" class="level2" data-number="64.2">
+<h2 data-number="64.2" class="anchored" data-anchor-id="rule-2"><span class="header-section-number">64.2</span> Rule 2</h2>
+<p>Use small learning rate.</p>
+<p>Example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>learning_rate<span class="op">=</span><span class="fl">0.05</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="rule-3" class="level2" data-number="64.3">
+<h2 data-number="64.3" class="anchored" data-anchor-id="rule-3"><span class="header-section-number">64.3</span> Rule 3</h2>
+<p>Increase number of trees when learning rate is small.</p>
+<p>Example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>n_estimators<span class="op">=</span><span class="dv">500</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="rule-4" class="level2" data-number="64.4">
+<h2 data-number="64.4" class="anchored" data-anchor-id="rule-4"><span class="header-section-number">64.4</span> Rule 4</h2>
+<p>Use subsampling to reduce overfitting.</p>
+<p>Example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>subsample<span class="op">=</span><span class="fl">0.8</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>colsample_bytree<span class="op">=</span><span class="fl">0.8</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="adaboost-vs-xgboost" class="level1" data-number="65">
+<h1 data-number="65"><span class="header-section-number">65</span> AdaBoost vs XGBoost</h1>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>AdaBoost</th>
+<th>XGBoost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>focuses on misclassified observations</td>
+<td>fits gradients/residuals</td>
+</tr>
+<tr class="even">
+<td>usually shallow stumps</td>
+<td>deeper trees possible</td>
+</tr>
+<tr class="odd">
+<td>simpler</td>
+<td>more flexible</td>
+</tr>
+<tr class="even">
+<td>less regularization</td>
+<td>strong regularization</td>
+</tr>
+<tr class="odd">
+<td>older method</td>
+<td>modern industrial method</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="comparison-with-random-forest" class="level1" data-number="66">
+<h1 data-number="66"><span class="header-section-number">66</span> Comparison with Random Forest</h1>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Random Forest</th>
+<th>XGBoost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>trees independent</td>
+<td>trees sequential</td>
+</tr>
+<tr class="even">
+<td>averaging</td>
+<td>error correction</td>
+</tr>
+<tr class="odd">
+<td>mainly reduces variance</td>
+<td>mainly reduces bias</td>
+</tr>
+<tr class="even">
+<td>easy parallelization</td>
+<td>sequential training</td>
+</tr>
+<tr class="odd">
+<td>usually more stable</td>
+<td>usually more accurate</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="typical-workflow-in-practice" class="level1" data-number="67">
+<h1 data-number="67"><span class="header-section-number">67</span> Typical Workflow in Practice</h1>
+<p>Typical workflow:</p>
+<ol type="1">
+<li>Start with train/test split</li>
+<li>Use cross-validation</li>
+<li>Tune:
+<ul>
+<li>learning_rate</li>
+<li>max_depth</li>
+<li>n_estimators</li>
+</ul></li>
+<li>Monitor validation error</li>
+<li>Stop before overfitting</li>
+</ol>
+<hr>
+</section>
+<section id="example-in-python-1" class="level1" data-number="68">
+<h1 data-number="68"><span class="header-section-number">68</span> Example in Python</h1>
+<section id="adaboost-2" class="level2" data-number="68.1">
+<h2 data-number="68.1" class="anchored" data-anchor-id="adaboost-2"><span class="header-section-number">68.1</span> AdaBoost</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> AdaBoostClassifier</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> AdaBoostClassifier(</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    estimator<span class="op">=</span>DecisionTreeClassifier(max_depth<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span><span class="dv">200</span>,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    learning_rate<span class="op">=</span><span class="fl">0.05</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>model.fit(X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="xgboost-2" class="level2" data-number="68.2">
+<h2 data-number="68.2" class="anchored" data-anchor-id="xgboost-2"><span class="header-section-number">68.2</span> XGBoost</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> xgboost <span class="im">import</span> XGBClassifier</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> XGBClassifier(</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span><span class="dv">500</span>,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    learning_rate<span class="op">=</span><span class="fl">0.05</span>,</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    max_depth<span class="op">=</span><span class="dv">3</span>,</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    subsample<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    colsample_bytree<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    eval_metric<span class="op">=</span><span class="st">"logloss"</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>model.fit(X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="summary" class="level1" data-number="69">
+<h1 data-number="69"><span class="header-section-number">69</span> Summary</h1>
+<p>Boosting builds models sequentially.</p>
+<p>Each new learner attempts to improve previous mistakes.</p>
+<p>AdaBoost:</p>
+<ul>
+<li>reweights observations</li>
+<li>emphasizes difficult observations</li>
+</ul>
+<p>Gradient boosting:</p>
+<ul>
+<li>fits residuals or gradients</li>
+</ul>
+<p>XGBoost:</p>
+<ul>
+<li>regularized gradient boosting</li>
+<li>powerful predictive performance</li>
+<li>strong practical success</li>
+</ul>
+<p>The most important ideas are:</p>
+<ul>
+<li>sequential learning</li>
+<li>weak learners</li>
+<li>residual correction</li>
+<li>shrinkage</li>
+<li>regularization</li>
+<li>bias reduction</li>
+</ul>
+<p>Boosting methods are among the most powerful tools for supervised learning on tabular data.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
+        for (let i=0; i<annoteTargets.length; i++) {
+          const annoteTarget = annoteTargets[i];
+          const targetCell = annoteTarget.getAttribute("data-target-cell");
+          const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
+          const contentFn = () => {
+            const content = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+            if (content) {
+              const tipContent = content.cloneNode(true);
+              tipContent.classList.add("code-annotation-tip-content");
+              return tipContent.outerHTML;
+            }
+          }
+          const config = {
+            allowHTML: true,
+            content: contentFn,
+            onShow: (instance) => {
+              selectCodeLines(instance.reference);
+              instance.reference.classList.add('code-annotation-active');
+              window.tippy.hideAll();
+            },
+            onHide: (instance) => {
+              unselectCodeLines();
+              instance.reference.classList.remove('code-annotation-active');
+            },
+            maxWidth: 300,
+            delay: [50, 0],
+            duration: [200, 0],
+            offset: [5, 10],
+            arrow: true,
+            trigger: 'click',
+            appendTo: function(el) {
+              return el.parentElement.parentElement.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'quarto',
+            placement: 'right',
+            positionFixed: true,
+            popperOptions: {
+              modifiers: [
+              {
+                name: 'flip',
+                options: {
+                  flipVariations: false, // true by default
+                  allowedAutoPlacements: ['right'],
+                  fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
+                },
+              },
+              {
+                name: 'preventOverflow',
+                options: {
+                  mainAxis: false,
+                  altAxis: false
+                }
+              }
+              ]        
+            }      
+          };
+          window.tippy(annoteTarget, config); 
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../contents/3/rf.html" class="pagination-link" aria-label="Ensemble Methods">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Ensemble Methods</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../contents/4/knn.html" class="pagination-link" aria-label="KNN Regression">
+        <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">KNN Regression</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
