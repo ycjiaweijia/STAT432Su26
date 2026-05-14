@@ -1,0 +1,828 @@
+---
+jupyter: stats
+---
+
+{{< include ../math.qmd >}} 
+
+# Kernel Smoothing
+
+Kernel smoothing is a family of nonparametric methods for estimating smooth functions from data. Like KNN, it is based on local information. The difference is that kernel methods usually use smoothly decaying weights instead of a hard set of nearest neighbors.
+
+The main idea is:
+
+> Nearby observations should have more influence than distant observations, and the influence should decrease smoothly with distance.
+
+This chapter focuses on kernel smoothing, not kernel machines such as support vector machines or kernel ridge regression. The connection is that both use a kernel function to measure similarity, but the modeling goals are different.
+
+## KNN versus Kernel Smoothing
+
+KNN regression predicts by averaging the $K$ nearest responses:
+
+$$
+\hat f_{\text{KNN}}(x_0)
+=
+\frac{1}{K}
+\sum_{i\in N_K(x_0)} y_i.
+$$
+
+This gives equal weight to all $K$ nearest neighbors and zero weight to every other observation.
+
+Kernel smoothing instead assigns a weight to each observation based on its distance from $x_0$:
+
+$$
+w_i(x_0)
+\propto
+K\left(\frac{x_0-x_i}{h}\right).
+$$
+
+Here:
+
+- $K(\cdot)$ is the kernel function,
+- $h>0$ is the bandwidth,
+- nearby points receive large weights,
+- distant points receive small weights.
+
+::: {.callout-note}
+## Main difference
+
+KNN uses a fixed number of neighbors.
+
+Kernel smoothing uses a fixed distance scale, controlled by the bandwidth $h$.
+:::
+
+KNN fits are often discontinuous because the neighbor set can change abruptly as $x_0$ moves. Kernel smoothers, especially with smooth kernels such as the Gaussian kernel, usually produce smooth fitted curves.
+
+The following example compares a KNN regression curve with a Gaussian kernel regression curve on the same data.
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.neighbors import KNeighborsRegressor
+
+rng = np.random.default_rng(1)
+
+x_compare = rng.uniform(0, 2 * np.pi, size=40)
+y_compare = 2 * np.sin(x_compare) + rng.normal(size=len(x_compare))
+x_compare_grid = np.linspace(0, 2 * np.pi, 500)
+
+knn_compare = KNeighborsRegressor(n_neighbors=10)
+knn_compare.fit(x_compare.reshape(-1, 1), y_compare)
+y_knn = knn_compare.predict(x_compare_grid.reshape(-1, 1))
+
+
+def kernel_regression_predict(X_train, y_train, X_new, bandwidth):
+    distances = X_new[:, None] - X_train[None, :]
+    weights = np.exp(-0.5 * (distances / bandwidth) ** 2)
+    weights = weights / weights.sum(axis=1, keepdims=True)
+    return weights @ y_train
+
+
+y_kernel = kernel_regression_predict(
+    x_compare,
+    y_compare,
+    x_compare_grid,
+    bandwidth=np.std(x_compare) * 0.25,
+)
+
+fig, axs = plt.subplots(1, 2, figsize=(12, 4), sharey=True)
+
+axs[0].scatter(x_compare, y_compare, s=35, facecolors="none", edgecolors="black")
+axs[0].plot(x_compare_grid, 2 * np.sin(x_compare_grid), color="C0", label="true function")
+axs[0].plot(x_compare_grid, y_knn, color="C1", label="KNN")
+axs[0].set_title("KNN Regression")
+
+axs[1].scatter(x_compare, y_compare, s=35, facecolors="none", edgecolors="black")
+axs[1].plot(x_compare_grid, 2 * np.sin(x_compare_grid), color="C0", label="true function")
+axs[1].plot(x_compare_grid, y_kernel, color="C1", label="Gaussian kernel")
+axs[1].set_title("Gaussian Kernel Regression")
+
+for ax in axs:
+    ax.set_xlabel("x")
+    ax.legend()
+
+axs[0].set_ylabel("y")
+plt.show()
+```
+
+The KNN fit is piecewise constant. The Gaussian kernel fit changes smoothly because the weights change smoothly as the target point moves.
+
+## Kernel Functions
+
+A kernel function is a nonnegative function that gives larger values to points near zero. For density estimation, we usually require
+
+$$
+K(u)\ge 0,
+\qquad
+\int_{-\infty}^{\infty}K(u)\,du=1.
+$$
+
+The scaled kernel is
+
+$$
+K_h(x,x_i)
+=
+\frac{1}{h}
+K\left(\frac{x-x_i}{h}\right).
+$$
+
+The bandwidth $h$ controls how wide the kernel is.
+
+### Common Kernels
+
+The Gaussian kernel is
+
+$$
+K(u)
+=
+\frac{1}{\sqrt{2\pi}}
+\exp\left(-\frac{u^2}{2}\right).
+$$
+
+The uniform kernel is
+
+$$
+K(u)
+=
+\frac{1}{2}I(|u|\le 1).
+$$
+
+The Epanechnikov kernel is
+
+$$
+K(u)
+=
+\frac{3}{4}(1-u^2)I(|u|\le 1).
+$$
+
+The exact kernel shape is usually less important than the bandwidth. The bandwidth controls the main bias-variance tradeoff.
+
+```{python}
+u = np.linspace(-3, 3, 1001)
+
+gaussian = np.exp(-0.5 * u**2) / np.sqrt(2 * np.pi)
+uniform = 0.5 * (np.abs(u) <= 1)
+epanechnikov = 0.75 * (1 - u**2) * (np.abs(u) <= 1)
+
+plt.plot(u, gaussian, label="Gaussian")
+plt.plot(u, uniform, label="uniform")
+plt.plot(u, epanechnikov, label="Epanechnikov")
+plt.xlabel("u")
+plt.ylabel("K(u)")
+plt.title("Common Kernel Functions")
+plt.legend()
+plt.show()
+```
+
+## Bandwidth
+
+The bandwidth $h$ is the most important tuning parameter in kernel smoothing.
+
+- Small $h$: uses very local information and gives a flexible, variable estimate.
+- Large $h$: averages over a wider region and gives a smoother, more biased estimate.
+
+This is the same bias-variance tradeoff seen in KNN.
+
+::: {.callout-note}
+## Bandwidth and smoothness
+
+Smaller bandwidth means less smoothing.
+
+Larger bandwidth means more smoothing.
+:::
+
+## Kernel Density Estimation
+
+Kernel density estimation estimates the density of a random variable from observed data
+
+$$
+x_1,\ldots,x_n.
+$$
+
+The kernel density estimator is
+
+$$
+\hat f(x)
+=
+\frac{1}{n}
+\sum_{i=1}^n
+K_h(x,x_i).
+$$
+
+Equivalently,
+
+$$
+\hat f(x)
+=
+\frac{1}{nh}
+\sum_{i=1}^n
+K\left(\frac{x-x_i}{h}\right).
+$$
+
+The interpretation is simple: place a small smooth bump at every observation, then add the bumps together and divide by $n$.
+
+### Uniform Kernel and Histograms
+
+A histogram counts observations inside bins. A uniform-kernel density estimate counts observations in a moving window:
+
+$$
+\hat f(x)
+=
+\frac{
+\#\{x_i:x_i\in[x-h/2,x+h/2]\}
+}{nh}.
+$$
+
+This is like a histogram whose bin center moves continuously with $x$.
+
+```{python}
+rng = np.random.default_rng(2)
+
+x = np.concatenate(
+    [
+        rng.normal(loc=-1.0, scale=0.55, size=150),
+        rng.normal(loc=1.2, scale=0.35, size=100),
+    ]
+)
+
+x_grid = np.linspace(x.min() - 1, x.max() + 1, 500)
+h = 0.35
+
+counts = np.array(
+    [
+        np.mean((x >= x0 - h / 2) & (x <= x0 + h / 2)) / h
+        for x0 in x_grid
+    ]
+)
+
+plt.hist(x, bins=20, density=True, alpha=0.35, edgecolor="black")
+plt.plot(x_grid, counts, color="C1", linewidth=2, label="uniform kernel")
+plt.xlabel("x")
+plt.ylabel("density")
+plt.title("Moving-Window Density Estimate")
+plt.legend()
+plt.show()
+```
+
+### Gaussian Kernel Density Estimate
+
+The Gaussian kernel replaces the moving-window count with a smooth weight.
+
+```{python}
+from sklearn.neighbors import KernelDensity
+
+kde = KernelDensity(kernel="gaussian", bandwidth=0.25)
+kde.fit(x.reshape(-1, 1))
+
+log_density = kde.score_samples(x_grid.reshape(-1, 1))
+density = np.exp(log_density)
+
+plt.hist(x, bins=20, density=True, alpha=0.35, edgecolor="black")
+plt.plot(x_grid, density, color="C1", linewidth=2, label="Gaussian KDE")
+plt.xlabel("x")
+plt.ylabel("density")
+plt.title("Kernel Density Estimate")
+plt.legend()
+plt.show()
+```
+
+### Effect of Bandwidth
+
+```{python}
+bandwidths = [0.1, 0.25, 0.6]
+
+plt.hist(x, bins=20, density=True, alpha=0.25, edgecolor="black")
+
+for bw in bandwidths:
+    kde = KernelDensity(kernel="gaussian", bandwidth=bw)
+    kde.fit(x.reshape(-1, 1))
+    density = np.exp(kde.score_samples(x_grid.reshape(-1, 1)))
+    plt.plot(x_grid, density, linewidth=2, label=f"h = {bw}")
+
+plt.xlabel("x")
+plt.ylabel("density")
+plt.title("Bandwidth Controls Smoothness")
+plt.legend()
+plt.show()
+```
+
+The small bandwidth produces many local bumps. The large bandwidth hides local structure.
+
+### Expectation of the Kernel Density Estimator
+
+Assume $x_1,\ldots,x_n$ are independent samples from a density $f$. The estimator is
+
+$$
+\hat f(x)
+=
+\frac{1}{n}
+\sum_{i=1}^n
+\frac{1}{h}
+K\left(\frac{x-x_i}{h}\right).
+$$
+
+Its expectation is
+
+$$
+\begin{aligned}
+\Exp[\hat f(x)]
+&=
+\Exp\left[
+\frac{1}{h}K\left(\frac{x-X}{h}\right)
+\right] \\
+&=
+\int
+\frac{1}{h}
+K\left(\frac{x-t}{h}\right)
+f(t)\,dt.
+\end{aligned}
+$$
+
+Let
+
+$$
+u=\frac{x-t}{h},
+\qquad
+t=x-hu.
+$$
+
+Then
+
+$$
+\Exp[\hat f(x)]
+=
+\int
+K(u)f(x-hu)\,du.
+$$
+
+If $h$ is small and $f$ is smooth, then $f(x-hu)$ is close to $f(x)$. Since $\int K(u)\,du=1$,
+
+$$
+\Exp[\hat f(x)]
+\approx
+f(x).
+$$
+
+This explains why kernel density estimation can recover the true density when the bandwidth is small enough, but not too small.
+
+## Kernel Regression
+
+Kernel regression estimates
+
+$$
+f(x)=\Exp[Y\mid X=x].
+$$
+
+The most common kernel regression estimator is the Nadaraya-Watson estimator.
+
+::: {#def-nadaraya-watson}
+## Nadaraya-Watson estimator
+
+Given training data $(x_i,y_i)$, the Nadaraya-Watson estimator is
+
+$$
+\hat f(x)
+=
+\frac{
+\sum_{i=1}^n K_h(x,x_i)y_i
+}{
+\sum_{i=1}^n K_h(x,x_i)
+}.
+$$
+:::
+
+This is a weighted average of the responses. The weights are
+
+$$
+w_i(x)
+=
+\frac{
+K_h(x,x_i)
+}{
+\sum_{j=1}^n K_h(x,x_j)
+}.
+$$
+
+Thus
+
+$$
+\hat f(x)
+=
+\sum_{i=1}^n w_i(x)y_i,
+\qquad
+\sum_{i=1}^n w_i(x)=1.
+$$
+
+### Gaussian Kernel Regression
+
+For the Gaussian kernel,
+
+$$
+K_h(x,x_i)
+=
+\frac{1}{h\sqrt{2\pi}}
+\exp\left\{
+-\frac{(x-x_i)^2}{2h^2}
+\right\}.
+$$
+
+Because the Nadaraya-Watson estimator normalizes the weights, the constant $1/(h\sqrt{2\pi})$ cancels out. For regression weights, it is enough to use
+
+$$
+\exp\left\{
+-\frac{(x-x_i)^2}{2h^2}
+\right\}.
+$$
+
+```{python}
+rng = np.random.default_rng(1)
+
+n = 120
+X = rng.uniform(0, 2 * np.pi, size=n)
+y = 2 * np.sin(X) + rng.normal(scale=0.6, size=n)
+
+X_grid = np.linspace(0, 2 * np.pi, 500)
+
+y_smooth = kernel_regression_predict(X, y, X_grid, bandwidth=0.35)
+
+plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
+plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(X_grid, y_smooth, color="C1", linewidth=2, label="kernel regression")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Gaussian Kernel Regression")
+plt.legend()
+plt.show()
+```
+
+### Local Averaging at One Target Point
+
+At a target point $x_0$, observations closer to $x_0$ receive larger kernel weights. For example, with a Gaussian kernel and bandwidth $h=0.5$,
+
+$$
+K_h(x_0,x_i)
+=
+\frac{1}{h\sqrt{2\pi}}
+\exp\left\{
+-\frac{(x_0-x_i)^2}{2h^2}
+\right\}.
+$$
+
+The Nadaraya-Watson estimate at $x_0$ is the weighted average
+
+$$
+\hat f(x_0)
+=
+\frac{\sum_i K_h(x_0,x_i)y_i}{\sum_i K_h(x_0,x_i)}.
+$$
+
+```{python}
+x0 = 3.0
+h = 0.5
+
+raw_weights = np.exp(-0.5 * ((x0 - X) / h) ** 2) / h
+fhat_x0 = np.sum(raw_weights * y) / np.sum(raw_weights)
+
+point_sizes = 200 * raw_weights / raw_weights.max()
+
+plt.scatter(X, y, s=point_sizes, facecolors="none", edgecolors="black")
+plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(X_grid, y_smooth, color="C1", label="kernel regression")
+plt.axvline(x0, color="black", linestyle="--")
+plt.scatter([x0], [fhat_x0], color="red", s=80, zorder=3, label=r"$\hat f(x_0)$")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Kernel Weights Around a Target Point")
+plt.legend()
+plt.show()
+```
+
+The circle sizes are proportional to the kernel weights. Points near $x_0$ have more influence on the local average.
+
+### Bandwidth in Kernel Regression
+
+```{python}
+fig, axs = plt.subplots(1, 3, figsize=(14, 4), sharey=True)
+
+for ax, bw in zip(axs, [0.15, 0.4, 1.0]):
+    y_hat = kernel_regression_predict(X, y, X_grid, bandwidth=bw)
+
+    ax.scatter(X, y, s=25, facecolors="none", edgecolors="black")
+    ax.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+    ax.plot(X_grid, y_hat, color="C1", linewidth=2, label="kernel fit")
+    ax.set_title(f"h = {bw}")
+    ax.set_xlabel("x")
+
+axs[0].set_ylabel("y")
+axs[-1].legend()
+plt.show()
+```
+
+Small bandwidths can chase noise. Large bandwidths can oversmooth the curve.
+
+## Choosing the Bandwidth
+
+The bandwidth can be chosen by cross-validation. For regression, one simple method is to split the data, fit the smoother on the training part, and choose the bandwidth with the smallest validation mean squared error.
+
+For one-dimensional smoothing, a common rule-of-thumb bandwidth is Silverman's rule:
+
+$$
+h
+=
+1.06\,\hat\sigma_x\,n^{-1/5}.
+$$
+
+This formula is useful as a starting value, but it depends on assumptions that may not hold in practice. Cross-validation is usually safer when prediction performance matters.
+
+```{python}
+silverman_h = 1.06 * np.std(X, ddof=1) * len(X) ** (-1 / 5)
+silverman_h
+```
+
+The following code uses `GridSearchCV` with a small custom estimator. This keeps the bandwidth selection in the usual `sklearn` workflow.
+
+```{python}
+from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error
+
+class NadarayaWatsonRegressor(BaseEstimator, RegressorMixin):
+    def __init__(self, bandwidth=1.0):
+        self.bandwidth = bandwidth
+
+    def fit(self, X, y):
+        self.X_train_ = np.asarray(X).reshape(-1, 1)
+        self.y_train_ = np.asarray(y)
+        return self
+
+    def predict(self, X):
+        X = np.asarray(X).reshape(-1, 1)
+        distances = X - self.X_train_.T
+        weights = np.exp(-0.5 * (distances / self.bandwidth) ** 2)
+        weights = weights / weights.sum(axis=1, keepdims=True)
+        return weights @ self.y_train_
+
+
+bandwidth_grid = {
+    "bandwidth": np.linspace(0.1, 1.2, 23),
+}
+
+grid = GridSearchCV(
+    NadarayaWatsonRegressor(),
+    param_grid=bandwidth_grid,
+    cv=5,
+    scoring="neg_mean_squared_error",
+)
+
+grid.fit(X.reshape(-1, 1), y)
+
+grid.best_params_
+```
+
+Plot the cross-validation curve.
+
+```{python}
+cv_mse = -grid.cv_results_["mean_test_score"]
+bandwidth_values = bandwidth_grid["bandwidth"]
+
+plt.plot(bandwidth_values, cv_mse, marker="o")
+plt.axvline(
+    grid.best_params_["bandwidth"],
+    color="black",
+    linestyle="--",
+)
+plt.xlabel("bandwidth")
+plt.ylabel("mean CV MSE")
+plt.title("Bandwidth Selection by Cross-Validation")
+plt.show()
+```
+
+Fit the selected model.
+
+```{python}
+best_kernel = grid.best_estimator_
+y_best = best_kernel.predict(X_grid.reshape(-1, 1))
+
+plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
+plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(X_grid, y_best, color="C1", linewidth=2, label="CV-selected fit")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title(f"Selected Bandwidth = {grid.best_params_['bandwidth']:.2f}")
+plt.legend()
+plt.show()
+```
+
+## Local Linear Regression
+
+The Nadaraya-Watson estimator is a local constant estimator. Around each target point $x_0$, it fits a constant by weighted least squares.
+
+Local linear regression fits a line near each target point:
+
+$$
+\min_{\beta_0,\beta_1}
+\sum_{i=1}^n
+K_h(x_0,x_i)
+\left[
+y_i-\beta_0-\beta_1(x_i-x_0)
+\right]^2.
+$$
+
+The fitted value at $x_0$ is the fitted intercept:
+
+$$
+\hat f(x_0)=\hat\beta_0.
+$$
+
+Local linear regression often improves boundary behavior. Near the edge of the data, a local average can be biased because there are observations on only one side of the target point. A local line can adjust for the slope.
+
+::: {.callout-note}
+## Boundary bias
+
+Local averaging can be biased near the boundary of the data.
+
+Local linear regression reduces this problem by fitting a local trend instead of a local constant.
+:::
+
+```{python}
+def local_linear_predict(X_train, y_train, X_new, bandwidth):
+    X_train = np.asarray(X_train)
+    y_train = np.asarray(y_train)
+    preds = []
+
+    for x0 in X_new:
+        z = X_train - x0
+        weights = np.exp(-0.5 * (z / bandwidth) ** 2)
+        design = np.column_stack([np.ones_like(z), z])
+        weighted_design = design * weights[:, None]
+        beta = np.linalg.pinv(weighted_design.T @ design) @ weighted_design.T @ y_train
+        preds.append(beta[0])
+
+    return np.asarray(preds)
+
+
+y_local_constant = kernel_regression_predict(X, y, X_grid, bandwidth=0.4)
+y_local_linear = local_linear_predict(X, y, X_grid, bandwidth=0.4)
+
+plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
+plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(X_grid, y_local_constant, color="C1", label="local constant")
+plt.plot(X_grid, y_local_linear, color="C3", label="local linear")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Local Constant versus Local Linear Smoothing")
+plt.legend()
+plt.show()
+```
+
+## Local Polynomial Regression
+
+Local linear regression can be extended to local polynomial regression. At each target point $x_0$, fit
+
+$$
+\min_{\beta_0,\ldots,\beta_d}
+\sum_{i=1}^n
+K_h(x_0,x_i)
+\left[
+y_i-\beta_0-\sum_{r=1}^d \beta_r(x_i-x_0)^r
+\right]^2.
+$$
+
+Then
+
+$$
+\hat f(x_0)=\hat\beta_0.
+$$
+
+The degree $d$ controls the local shape:
+
+- $d=0$: local constant regression,
+- $d=1$: local linear regression,
+- $d=2$: local quadratic regression.
+
+Higher-degree local polynomials can reduce bias, but they may also become unstable if the bandwidth is too small or the data are sparse.
+
+The following code compares local constant, local linear, and local quadratic smoothing.
+
+```{python}
+def local_polynomial_predict(X_train, y_train, X_new, bandwidth, degree):
+    X_train = np.asarray(X_train)
+    y_train = np.asarray(y_train)
+    preds = []
+
+    for x0 in X_new:
+        z = X_train - x0
+        weights = np.exp(-0.5 * (z / bandwidth) ** 2)
+        design = np.column_stack([z**d for d in range(degree + 1)])
+        weighted_design = design * weights[:, None]
+        beta = np.linalg.pinv(weighted_design.T @ design) @ weighted_design.T @ y_train
+        preds.append(beta[0])
+
+    return np.asarray(preds)
+
+
+h_rule = silverman_h
+y_constant = kernel_regression_predict(X, y, X_grid, bandwidth=h_rule)
+y_linear = local_polynomial_predict(X, y, X_grid, bandwidth=h_rule, degree=1)
+y_quadratic = local_polynomial_predict(X, y, X_grid, bandwidth=h_rule, degree=2)
+
+plt.scatter(X, y, s=30, facecolors="none", edgecolors="black")
+plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(X_grid, y_constant, color="C1", label="local constant")
+plt.plot(X_grid, y_linear, color="C3", label="local linear")
+plt.plot(X_grid, y_quadratic, color="C2", label="local quadratic")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Local Polynomial Regression")
+plt.legend()
+plt.show()
+```
+
+## Kernel Smoothing in Multiple Dimensions
+
+For $x_i\in\mathbb R^p$, a common Gaussian kernel is
+
+$$
+K_h(x,x_i)
+\propto
+\exp\left(
+-\frac{\|x-x_i\|^2}{2h^2}
+\right).
+$$
+
+This is similar to KNN in that it relies on distances in feature space. Therefore, scaling matters.
+
+In multiple dimensions, kernel smoothing faces the curse of dimensionality. As $p$ increases, local neighborhoods become sparse. To get enough nearby points, the bandwidth must grow, which increases bias.
+
+For $p$ dimensions, bandwidth rates are often of order
+
+$$
+n^{-1/(p+4)}.
+$$
+
+This gets slower as $p$ increases, which is another way to see the curse of dimensionality.
+
+::: {.callout-caution}
+## Bandwidth conventions
+
+Different software packages may define bandwidth differently. Some use a raw scale $h$ inside the kernel. Others use a span, a nearest-neighbor fraction, or an internally rescaled bandwidth. Always check the documentation before comparing bandwidth values across implementations.
+:::
+
+## Relation to KNN
+
+Both KNN and kernel smoothing are weighted-average methods.
+
+KNN can be written as
+
+$$
+\hat f(x_0)
+=
+\sum_{i=1}^n w_i(x_0)y_i,
+$$
+
+where
+
+$$
+w_i(x_0)
+=
+\begin{cases}
+1/K, & i\in N_K(x_0),\\
+0, & i\notin N_K(x_0).
+\end{cases}
+$$
+
+Kernel regression uses
+
+$$
+w_i(x_0)
+=
+\frac{
+K_h(x_0,x_i)
+}{
+\sum_{j=1}^n K_h(x_0,x_j)
+}.
+$$
+
+The difference is the shape of the weights:
+
+- KNN uses a hard cutoff based on rank.
+- Kernel regression uses smooth weights based on distance.
+
+## Summary
+
+Kernel smoothing:
+
+- estimates densities or regression functions using local weighted averages,
+- uses a kernel function to assign distance-based weights,
+- is controlled mainly by the bandwidth $h$,
+- produces smoother estimates than KNN when the kernel is smooth,
+- has the same bias-variance tradeoff as other nonparametric methods,
+- can suffer from boundary bias,
+- becomes harder in high-dimensional feature spaces.
+
+The practical workflow is:
+
+1. Scale features if distances are based on multiple variables.
+2. Choose a kernel, often Gaussian.
+3. Tune the bandwidth by validation or cross-validation.
+4. Check whether the fitted curve is undersmoothed or oversmoothed.
