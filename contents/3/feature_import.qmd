@@ -1,0 +1,554 @@
+---
+jupyter: stats
+---
+
+{{< include ../math.qmd >}}
+
+# Feature Importance in Tree-Based Models
+
+Tree-based models such as Random Forests and Gradient Boosting often provide measures of feature importance. These measures are useful, but they do not all mean the same thing.
+
+Two common types of feature importance are:
+
+1. Mean Decrease in Impurity (MDI)
+2. Permutation importance
+
+They answer different questions.
+
+| Method | Main Idea | Measures |
+|---|---|---|
+| MDI | Uses tree split statistics | How much the feature helped reduce impurity during training |
+| Permutation importance | Shuffles a feature and checks the performance drop | How much the model relies on the feature during prediction |
+
+## Mean Decrease in Impurity
+
+Mean Decrease in Impurity (MDI) is also called:
+
+- impurity importance
+- Gini importance
+- split importance
+
+In a decision tree, every split reduces impurity.
+
+For classification, the reduction may be based on:
+
+- Gini impurity
+- entropy
+
+For regression, the reduction is often based on mean squared error.
+
+If a feature frequently appears in splits and creates large impurity reductions, then its importance becomes large.
+
+In a Random Forest, the impurity reductions are averaged across all trees.
+
+In `sklearn`, the default feature importance is MDI:
+
+```python
+rf.feature_importances_
+```
+
+## Permutation Importance
+
+Permutation importance uses a different idea.
+
+Suppose a trained model has validation accuracy
+
+$$
+0.92.
+$$
+
+Now randomly shuffle one feature. For example,
+
+```text
+age: 23, 45, 31, ...
+```
+
+may become
+
+```text
+age: 31, 23, 45, ...
+```
+
+This destroys the relationship between `age` and the response while leaving all other variables unchanged.
+
+Then evaluate the model again.
+
+If accuracy drops from
+
+$$
+0.92 \to 0.70,
+$$
+
+then the feature is very important.
+
+If accuracy barely changes from
+
+$$
+0.92 \to 0.91,
+$$
+
+then the feature is probably not very important.
+
+## Training Importance Versus Prediction Importance
+
+The biggest conceptual difference is that MDI is training-based, while permutation importance is prediction-based.
+
+### MDI
+
+MDI measures:
+
+> How useful the feature was during tree construction.
+
+In other words:
+
+> Did the tree algorithm like using this feature for splits?
+
+### Permutation Importance
+
+Permutation importance measures:
+
+> How much the trained model depends on this feature during prediction.
+
+This is often closer to practical predictive importance.
+
+## Advantages of MDI
+
+### Very Fast
+
+After training,
+
+```python
+rf.feature_importances_
+```
+
+is immediately available.
+
+There is almost no additional computational cost.
+
+### Natural for Tree Interpretation
+
+Since trees are built using splits, impurity reduction is directly tied to the tree construction process.
+
+MDI therefore provides a natural explanation of:
+
+- which variables dominate the splits
+- which variables drive tree growth
+
+## Limitations of MDI
+
+### Bias Toward High-Cardinality Features
+
+Features such as:
+
+- `zipcode`
+- `timestamp`
+- `id`
+
+have many possible split points.
+
+This makes it easier to find splits that appear useful even when the feature is mostly noise.
+
+As a result, MDI often overestimates such variables.
+
+### Correlated Features
+
+Suppose
+
+$$
+x_1 \approx x_2.
+$$
+
+The trees may:
+
+- use $x_1$ in some trees
+- use $x_2$ in others
+
+Importance becomes spread across correlated variables.
+
+Sometimes a variable may appear unimportant simply because another correlated feature was chosen earlier.
+
+### Training-Based Measure
+
+MDI is computed entirely from the training process.
+
+Therefore:
+
+- it does not directly measure predictive reliance
+- it may not reflect generalization importance
+
+## Advantages of Permutation Importance
+
+### Directly Measures Prediction Impact
+
+Permutation importance asks:
+
+> How much worse does the model become without this feature?
+
+This is often the most practically meaningful interpretation.
+
+### Model-Agnostic
+
+Permutation importance works for almost any model:
+
+- Random Forests
+- XGBoost
+- neural networks
+- support vector machines
+- linear regression
+
+because it only requires:
+
+- predictions
+- an evaluation metric
+
+### Better Reflects Generalization
+
+Permutation importance is usually computed on validation data or test data.
+
+Therefore it is often more closely related to real predictive importance.
+
+## Limitations of Permutation Importance
+
+### Computationally Expensive
+
+For every feature, we must:
+
+1. shuffle the feature
+2. recompute predictions
+3. evaluate performance
+
+This can become expensive for:
+
+- large datasets
+- many features
+- slow models
+
+### Correlated Features Can Be Underestimated
+
+Suppose
+
+$$
+x_1 \approx x_2.
+$$
+
+If the model can use either variable interchangeably, then after shuffling $x_1$, the model can still rely on $x_2$.
+
+As a result:
+
+- performance may barely change
+- permutation importance becomes artificially small
+
+even though $x_1$ actually contains useful information.
+
+### Randomness
+
+Since permutation is random, results vary slightly.
+
+Usually multiple repetitions are used:
+
+```python
+from sklearn.inspection import permutation_importance
+
+result = permutation_importance(
+    rf,
+    X_test,
+    y_test,
+    n_repeats=10,
+    random_state=1
+)
+```
+
+## When Should We Use Each Method?
+
+### Use MDI When
+
+#### You Want Fast Exploratory Analysis
+
+For example,
+
+```python
+rf.feature_importances_
+```
+
+provides a quick overview of potentially useful variables.
+
+#### You Want Tree-Internal Interpretation
+
+MDI is natural when explaining:
+
+- tree construction
+- split behavior
+- impurity reduction
+
+#### Feature Cardinality Is Reasonable
+
+MDI usually behaves better when features are:
+
+- continuous variables
+- low-cardinality categorical variables
+
+### Use Permutation Importance When
+
+#### You Care About Real Predictive Importance
+
+Permutation importance is usually preferred for:
+
+- reports
+- papers
+- production interpretation
+
+because it reflects prediction reliance more directly.
+
+#### You Want to Compare Different Models
+
+Since permutation importance is model-agnostic, it can be applied consistently across models.
+
+#### You Want Validation or Test Interpretation
+
+Permutation importance better answers:
+
+> Which variables does the model truly rely on for prediction?
+
+## Practical Recommendation
+
+In practice, it is often useful to examine both methods.
+
+They answer different questions.
+
+| Feature | MDI | Permutation |
+|---|---:|---:|
+| $x_1$ | High | High |
+| $x_2$ | High | Low |
+| $x_3$ | Low | High |
+
+The disagreement itself can be informative.
+
+### High MDI but Low Permutation
+
+Possible reasons include:
+
+- high-cardinality bias
+- overfitting
+- training artifacts
+
+### Low MDI but High Permutation
+
+Possible reasons include:
+
+- the feature is important only in certain regions
+- strong interactions
+- important predictive contribution after training
+
+## What Is Variable Importance Actually Used For?
+
+Many beginners assume:
+
+> important = should keep
+
+and
+
+> unimportant = should remove
+
+However, in modern machine learning, variable importance is usually more useful for understanding model behavior than strict variable selection.
+
+## Model Interpretation
+
+This is the most common use.
+
+For example, suppose a Random Forest predicts housing prices:
+
+| Feature | Importance |
+|---|---:|
+| `OverallQual` | 0.31 |
+| `GrLivArea` | 0.22 |
+| `GarageCars` | 0.11 |
+
+We may conclude:
+
+> The model mainly relies on house quality and living area.
+
+This is a form of global model interpretation.
+
+## Feature Selection
+
+Importance can be used for feature selection.
+
+For example, importance near zero may indicate:
+
+- noise variables
+- redundant variables
+- irrelevant variables
+
+Removing such variables may:
+
+- reduce dimensionality
+- speed up training
+- simplify deployment
+- improve interpretability
+
+## Important Does Not Mean Necessary
+
+A feature with low importance may still contain useful information.
+
+This is especially true for correlated variables.
+
+Suppose
+
+$$
+x_1 \approx x_2.
+$$
+
+The model may mostly use $x_1$, causing $x_2$ to receive low importance.
+
+However, if $x_1$ were removed, $x_2$ could easily replace it.
+
+Therefore:
+
+> Low importance does not imply uselessness.
+
+## Detecting Leakage and Shortcuts
+
+Variable importance is extremely useful for debugging.
+
+Suppose a medical prediction model reports:
+
+| Feature | Importance |
+|---|---:|
+| `PatientID` | 0.42 |
+
+This often indicates:
+
+- data leakage
+- train-test contamination
+- preprocessing mistakes
+- shortcut learning
+
+because `PatientID` should not truly predict disease.
+
+Similarly, extremely important variables such as:
+
+- `timestamp`
+- `zipcode`
+- `hospital_code`
+
+may reveal spurious correlations.
+
+## Feature Engineering
+
+Importance can guide feature engineering.
+
+For example, if `income` importance is high, we may create:
+
+- `log(income)`
+- `income_per_household`
+- interaction features
+
+Conversely, consistently unimportant variables may no longer be collected or stored.
+
+## Reducing Data Collection Cost
+
+In real applications, some features are expensive.
+
+Examples include:
+
+- MRI scans
+- genomic sequencing
+- industrial sensors
+- third-party financial data
+
+If importance is consistently low, we may decide not to collect those features.
+
+This is common in production systems.
+
+## Building Simpler Models
+
+Suppose a complex model reveals that only a few variables matter.
+
+We may then build:
+
+- sparse models
+- smaller models
+- edge-device models
+- interpretable models
+
+using only the most useful features.
+
+## Scientific Discovery
+
+In fields such as:
+
+- genomics
+- ecology
+- neuroscience
+
+importance measures are often used for exploratory analysis.
+
+The goal is usually:
+
+> Which variables appear most related to the outcome?
+
+However:
+
+> Importance is not causal inference.
+
+A variable may have high importance simply because it is correlated with another hidden factor.
+
+## Importance Is Not Causality
+
+A highly important variable is not necessarily:
+
+- causal
+- fundamental
+- theoretically meaningful
+
+It only means:
+
+> The variable helps prediction.
+
+For example, ice cream sales may strongly predict drowning incidents because both are related to temperature.
+
+## Modern Interpretation of Variable Importance
+
+In modern machine learning, variable importance is better interpreted as:
+
+> What information does the model rely on?
+
+rather than:
+
+> Which variables should automatically be removed?
+
+## Variable Selection in Modern Practice
+
+Modern feature selection often uses dedicated methods instead of raw importance thresholds.
+
+For linear models, common methods include:
+
+- LASSO
+- elastic net
+- stability selection
+
+For tree-based models, common tools include:
+
+- regularization
+- shallow trees
+- minimum leaf sizes
+- feature subsampling
+
+These are usually more reliable than using a rule such as:
+
+> importance below threshold means remove the feature.
+
+## A Practical Workflow
+
+A common workflow is:
+
+1. Train a powerful model, such as a Random Forest or XGBoost model.
+2. Examine permutation importance.
+3. Understand which variables matter, whether leakage exists, and whether shortcut learning exists.
+4. Decide whether to engineer new features, simplify the model, remove variables, or build sparse models.
+
+## Final Remark
+
+The most important use of variable importance is usually not automatic variable selection.
+
+It is usually understanding how the model behaves.
