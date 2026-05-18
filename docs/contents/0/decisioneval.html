@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.3">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Classification Decisions and Evaluation – Statistical Learning</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../contents/0/datatype.html" rel="next">
+<link href="../../contents/0/basic.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bc74d3edfa28a5cab5f8e807a64bb1a0.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-c0ebe27be8de1e3ea6af4b63718550d7.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bc74d3edfa28a5cab5f8e807a64bb1a0.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7e342b42b1d8244df6d5a8d63372ab02.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
+<link href="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+    <style type="text/css">
+    .ps-root .ps-algorithm {
+      border-top: 2px solid;
+      border-bottom: 2px solid;
+    }
+    .pseudocode-container {
+      text-align: left;
+    }
+    </style>
+  
+      <style type="text/css">
+      .ps-algorithm > .ps-line {
+        text-align: left;
+      }
+      </style>
+    
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles/fonts.css">
+<link rel="stylesheet" href="../../styles/blocks.css">
+</head>
+
+<body class="nav-sidebar docked quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+          <h1 class="quarto-secondary-nav-title">Classification Decisions and Evaluation</h1>
+        </a>     
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">Statistical Learning</a> 
+        <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical learning Basics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/0/basic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Statistical Learning Basics</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/0/decisioneval.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Classification Decisions and Evaluation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/0/datatype.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Different Types of Data in Machine Learning</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/0/python.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Python Basics for <code>sklearn</code></span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Parametric Supervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/lr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Linear Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/shrinkage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Regularization</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/dr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Dimension reduction</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/logistic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Logistic Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/lda.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Linear Discriminant Analysis</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Nonparametric Supervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/knn.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">KNN Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/kernel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Kernel Smoothing</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/tree.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/rf.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Bagging and Random Forests</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/boost.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Boosting</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Unsupervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/3/pca.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Principal Component Analysis</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/3/cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Clustering</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/3/embedding.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Graph and Manifold Embedding</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/app/ide.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Python IDE Setup</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/app/venv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Python Virtual Environments with <code>uv</code></span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#binary-classification-setup" id="toc-binary-classification-setup" class="nav-link active" data-scroll-target="#binary-classification-setup">Binary Classification Setup</a></li>
+  <li><a href="#accuracy" id="toc-accuracy" class="nav-link" data-scroll-target="#accuracy">Accuracy</a></li>
+  <li><a href="#recall" id="toc-recall" class="nav-link" data-scroll-target="#recall">Recall</a>
+  <ul class="collapse">
+  <li><a href="#recall-and-statistical-power" id="toc-recall-and-statistical-power" class="nav-link" data-scroll-target="#recall-and-statistical-power">Recall and Statistical Power</a></li>
+  </ul></li>
+  <li><a href="#precision" id="toc-precision" class="nav-link" data-scroll-target="#precision">Precision</a>
+  <ul class="collapse">
+  <li><a href="#precision-versus-recall" id="toc-precision-versus-recall" class="nav-link" data-scroll-target="#precision-versus-recall">Precision Versus Recall</a></li>
+  </ul></li>
+  <li><a href="#bayes-rule-and-class-imbalance" id="toc-bayes-rule-and-class-imbalance" class="nav-link" data-scroll-target="#bayes-rule-and-class-imbalance">Bayes’ Rule and Class Imbalance</a>
+  <ul class="collapse">
+  <li><a href="#rare-event-example" id="toc-rare-event-example" class="nav-link" data-scroll-target="#rare-event-example">Rare Event Example</a></li>
+  </ul></li>
+  <li><a href="#classification-thresholds" id="toc-classification-thresholds" class="nav-link" data-scroll-target="#classification-thresholds">Classification Thresholds</a>
+  <ul class="collapse">
+  <li><a href="#precision-recall-tradeoff" id="toc-precision-recall-tradeoff" class="nav-link" data-scroll-target="#precision-recall-tradeoff">Precision-Recall Tradeoff</a></li>
+  </ul></li>
+  <li><a href="#decision-theory-and-error-costs" id="toc-decision-theory-and-error-costs" class="nav-link" data-scroll-target="#decision-theory-and-error-costs">Decision Theory and Error Costs</a>
+  <ul class="collapse">
+  <li><a href="#medical-screening" id="toc-medical-screening" class="nav-link" data-scroll-target="#medical-screening">Medical Screening</a></li>
+  <li><a href="#spam-filtering" id="toc-spam-filtering" class="nav-link" data-scroll-target="#spam-filtering">Spam Filtering</a></li>
+  </ul></li>
+  <li><a href="#f1-score" id="toc-f1-score" class="nav-link" data-scroll-target="#f1-score">F1 Score</a></li>
+  <li><a href="#roc-curves" id="toc-roc-curves" class="nav-link" data-scroll-target="#roc-curves">ROC Curves</a>
+  <ul class="collapse">
+  <li><a href="#roc-and-hypothesis-testing" id="toc-roc-and-hypothesis-testing" class="nav-link" data-scroll-target="#roc-and-hypothesis-testing">ROC and Hypothesis Testing</a></li>
+  </ul></li>
+  <li><a href="#auc" id="toc-auc" class="nav-link" data-scroll-target="#auc">AUC</a></li>
+  <li><a href="#precision-recall-curves" id="toc-precision-recall-curves" class="nav-link" data-scroll-target="#precision-recall-curves">Precision-Recall Curves</a></li>
+  <li><a href="#three-evaluation-goals" id="toc-three-evaluation-goals" class="nav-link" data-scroll-target="#three-evaluation-goals">Three Evaluation Goals</a></li>
+  <li><a href="#bias-variance-in-classification-evaluation" id="toc-bias-variance-in-classification-evaluation" class="nav-link" data-scroll-target="#bias-variance-in-classification-evaluation">Bias-Variance in Classification Evaluation</a></li>
+  <li><a href="#calibration" id="toc-calibration" class="nav-link" data-scroll-target="#calibration">Calibration</a>
+  <ul class="collapse">
+  <li><a href="#reliability-diagram" id="toc-reliability-diagram" class="nav-link" data-scroll-target="#reliability-diagram">Reliability Diagram</a></li>
+  <li><a href="#brier-score" id="toc-brier-score" class="nav-link" data-scroll-target="#brier-score">Brier Score</a></li>
+  <li><a href="#log-loss" id="toc-log-loss" class="nav-link" data-scroll-target="#log-loss">Log Loss</a></li>
+  </ul></li>
+  <li><a href="#calibration-methods" id="toc-calibration-methods" class="nav-link" data-scroll-target="#calibration-methods">Calibration Methods</a>
+  <ul class="collapse">
+  <li><a href="#platt-scaling" id="toc-platt-scaling" class="nav-link" data-scroll-target="#platt-scaling">Platt Scaling</a></li>
+  <li><a href="#isotonic-regression" id="toc-isotonic-regression" class="nav-link" data-scroll-target="#isotonic-regression">Isotonic Regression</a></li>
+  </ul></li>
+  <li><a href="#python-example-breast-cancer-classification" id="toc-python-example-breast-cancer-classification" class="nav-link" data-scroll-target="#python-example-breast-cancer-classification">Python Example: Breast Cancer Classification</a>
+  <ul class="collapse">
+  <li><a href="#confusion-matrix-and-basic-metrics" id="toc-confusion-matrix-and-basic-metrics" class="nav-link" data-scroll-target="#confusion-matrix-and-basic-metrics">Confusion Matrix and Basic Metrics</a></li>
+  <li><a href="#threshold-tuning" id="toc-threshold-tuning" class="nav-link" data-scroll-target="#threshold-tuning">Threshold Tuning</a></li>
+  <li><a href="#choosing-a-threshold-from-costs" id="toc-choosing-a-threshold-from-costs" class="nav-link" data-scroll-target="#choosing-a-threshold-from-costs">Choosing a Threshold from Costs</a></li>
+  <li><a href="#roc-curve-and-auc" id="toc-roc-curve-and-auc" class="nav-link" data-scroll-target="#roc-curve-and-auc">ROC Curve and AUC</a></li>
+  <li><a href="#precision-recall-curve" id="toc-precision-recall-curve" class="nav-link" data-scroll-target="#precision-recall-curve">Precision-Recall Curve</a></li>
+  <li><a href="#calibration-curves" id="toc-calibration-curves" class="nav-link" data-scroll-target="#calibration-curves">Calibration Curves</a></li>
+  <li><a href="#calibrating-a-random-forest" id="toc-calibrating-a-random-forest" class="nav-link" data-scroll-target="#calibrating-a-random-forest">Calibrating a Random Forest</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block">Classification Decisions and Evaluation</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="hidden">
+<!-- Constants and basic symbols -->
+<p><span class="math display">\[
+\require{physics}
+\require{braket}
+\]</span></p>
+<p><span class="math display">\[
+\newcommand{\dl}[1]{{\hspace{#1mu}\mathrm d}}
+\newcommand{\me}{{\mathrm e}}
+% \newcommand{\argmin}{\operatorname{argmin}}
+\newcommand{\rss}{\mathrm{RSS}}
+\newcommand{\ols}{\mathrm{OLS}}
+\newcommand{\ridge}{\mathrm{ridge}}
+\newcommand{\lasso}{\mathrm{lasso}}
+\newcommand{\mle}{\mathrm{MLE}}
+\newcommand{\constant}{\mathrm{constant}}
+\newcommand{\resid}{\mathrm{residual}}
+\newcommand{\span}{\mathrm{span}}
+\newcommand{\gini}{\mathrm{Gini}}
+\]</span></p>
+<!-- Probability -->
+<p>$$ </p>
+<p> $$</p>
+<!-- Distributions pdf -->
+<p><span class="math display">\[
+\newcommand{\pdfbinom}{{\tt binom}}
+\newcommand{\pdfbeta}{{\tt beta}}
+\newcommand{\pdfpois}{{\tt poisson}}
+\newcommand{\pdfgamma}{{\tt gamma}}
+\newcommand{\pdfnormal}{{\tt norm}}
+  \newcommand{\pdfexp}{{\tt expon}}
+\]</span></p>
+<!-- Distributions -->
+<p><span class="math display">\[
+\newcommand{\distbinom}{\operatorname{B}}
+\newcommand{\distbeta}{\operatorname{Beta}}
+\newcommand{\distgamma}{\operatorname{Gamma}}
+\newcommand{\distexp}{\operatorname{Exp}}
+\newcommand{\distpois}{\operatorname{Poisson}}
+\newcommand{\distnormal}{\operatorname{\mathcal N}}
+\]</span></p>
+</div>
+<p>Classification is not only about predicting a label. It is also about making a decision under uncertainty.</p>
+<p>In regression, the main goal is often to predict a continuous response accurately. In classification, a model may first estimate a probability or score, and then we must decide how that score should be converted into an action.</p>
+<p>This makes classification evaluation closely connected to:</p>
+<ul>
+<li>statistical decision theory,</li>
+<li>asymmetric error costs,</li>
+<li>hypothesis testing,</li>
+<li>detection theory,</li>
+<li>threshold selection,</li>
+<li>probability calibration.</li>
+</ul>
+<p>Metrics such as accuracy, precision, recall, ROC curves, AUC, calibration curves, and Brier score answer different questions. A good evaluation should be clear about which question is being asked.</p>
+<section id="binary-classification-setup" class="level2">
+<h2 class="anchored" data-anchor-id="binary-classification-setup">Binary Classification Setup</h2>
+<p>Suppose the response is binary:</p>
+<p><span class="math display">\[
+Y\in\{0,1\}.
+\]</span></p>
+<p>We call <span class="math inline">\(Y=1\)</span> the positive class and <span class="math inline">\(Y=0\)</span> the negative class.</p>
+<p>A classifier produces a predicted label</p>
+<p><span class="math display">\[
+\hat Y\in\{0,1\}.
+\]</span></p>
+<p>The four possible outcomes are summarized by the confusion matrix.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: right;">Predicted positive</th>
+<th style="text-align: right;">Predicted negative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>True positive class</td>
+<td style="text-align: right;">TP</td>
+<td style="text-align: right;">FN</td>
+</tr>
+<tr class="even">
+<td>True negative class</td>
+<td style="text-align: right;">FP</td>
+<td style="text-align: right;">TN</td>
+</tr>
+</tbody>
+</table>
+<p>Here:</p>
+<ul>
+<li>TP means true positive,</li>
+<li>FP means false positive,</li>
+<li>FN means false negative,</li>
+<li>TN means true negative.</li>
+</ul>
+<p>The confusion matrix is the starting point for most threshold-based classification metrics.</p>
+</section>
+<section id="accuracy" class="level2">
+<h2 class="anchored" data-anchor-id="accuracy">Accuracy</h2>
+<p>Accuracy is the proportion of correctly classified observations:</p>
+<p><span class="math display">\[
+\text{Accuracy}
+=
+\frac{TP+TN}{TP+FP+FN+TN}.
+\]</span></p>
+<p>Accuracy is simple and useful when:</p>
+<ul>
+<li>the classes are reasonably balanced,</li>
+<li>false positives and false negatives have similar costs,</li>
+<li>the classification threshold is already meaningful.</li>
+</ul>
+<p>However, accuracy can be misleading.</p>
+<p>Suppose only <span class="math inline">\(1\%\)</span> of observations are positive. A classifier that always predicts negative has <span class="math inline">\(99\%\)</span> accuracy, but it never detects a positive case. In many applications, that classifier is useless.</p>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span>Accuracy is not enough
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Accuracy implicitly treats all mistakes as equally costly.</p>
+<p>When classes are imbalanced or error costs are asymmetric, accuracy can hide the most important behavior of the classifier.</p>
+</div>
+</div>
+</section>
+<section id="recall" class="level2">
+<h2 class="anchored" data-anchor-id="recall">Recall</h2>
+<p>Recall is defined as</p>
+<p><span class="math display">\[
+\text{Recall}
+=
+\frac{TP}{TP+FN}.
+\]</span></p>
+<p>Recall answers the question:</p>
+<blockquote class="blockquote">
+<p>Among all truly positive observations, how many did we detect?</p>
+</blockquote>
+<p>In probability notation,</p>
+<p><span class="math display">\[
+\text{Recall}
+=
+P(\hat Y=1\mid Y=1).
+\]</span></p>
+<p>Recall is also called:</p>
+<ul>
+<li>sensitivity,</li>
+<li>true positive rate,</li>
+<li>TPR.</li>
+</ul>
+<p>High recall means few false negatives. Low recall means many true positive cases were missed.</p>
+<section id="recall-and-statistical-power" class="level3">
+<h3 class="anchored" data-anchor-id="recall-and-statistical-power">Recall and Statistical Power</h3>
+<p>Recall has a direct connection to hypothesis testing.</p>
+<p>Suppose we think of the classification problem as testing</p>
+<p><span class="math display">\[
+H_0:Y=0
+\quad\text{versus}\quad
+H_1:Y=1.
+\]</span></p>
+<p>Predicting positive is like rejecting <span class="math inline">\(H_0\)</span>. Predicting negative is like failing to reject <span class="math inline">\(H_0\)</span>.</p>
+<p>Under this interpretation:</p>
+<ul>
+<li>a false positive is a Type I error,</li>
+<li>a false negative is a Type II error,</li>
+<li>recall is statistical power.</li>
+</ul>
+<p>Thus</p>
+<p><span class="math display">\[
+\text{Recall}
+=
+1-\text{Type II error rate}.
+\]</span></p>
+<p>Recall measures the ability to detect true signals.</p>
+</section>
+</section>
+<section id="precision" class="level2">
+<h2 class="anchored" data-anchor-id="precision">Precision</h2>
+<p>Precision is defined as</p>
+<p><span class="math display">\[
+\text{Precision}
+=
+\frac{TP}{TP+FP}.
+\]</span></p>
+<p>Precision answers the question:</p>
+<blockquote class="blockquote">
+<p>Among all observations predicted positive, how many are truly positive?</p>
+</blockquote>
+<p>In probability notation,</p>
+<p><span class="math display">\[
+\text{Precision}
+=
+P(Y=1\mid \hat Y=1).
+\]</span></p>
+<p>Precision is also called positive predictive value.</p>
+<p>High precision means positive predictions are trustworthy. Low precision means many predicted positives are false alarms.</p>
+<section id="precision-versus-recall" class="level3">
+<h3 class="anchored" data-anchor-id="precision-versus-recall">Precision Versus Recall</h3>
+<p>Precision and recall condition on different events.</p>
+<p>Recall conditions on the truth:</p>
+<p><span class="math display">\[
+P(\hat Y=1\mid Y=1).
+\]</span></p>
+<p>Precision conditions on the prediction:</p>
+<p><span class="math display">\[
+P(Y=1\mid \hat Y=1).
+\]</span></p>
+<p>This distinction is very important.</p>
+<p>Recall asks whether we find the positives. Precision asks whether our positive discoveries are reliable.</p>
+</section>
+</section>
+<section id="bayes-rule-and-class-imbalance" class="level2">
+<h2 class="anchored" data-anchor-id="bayes-rule-and-class-imbalance">Bayes’ Rule and Class Imbalance</h2>
+<p>Precision and recall are connected by Bayes’ rule.</p>
+<p>Let</p>
+<p><span class="math display">\[
+\pi=P(Y=1)
+\]</span></p>
+<p>be the prevalence of the positive class. Let</p>
+<p><span class="math display">\[
+TPR=P(\hat Y=1\mid Y=1)
+\]</span></p>
+<p>and</p>
+<p><span class="math display">\[
+FPR=P(\hat Y=1\mid Y=0).
+\]</span></p>
+<p>Then</p>
+<p><span class="math display">\[
+\text{Precision}
+=
+P(Y=1\mid \hat Y=1)
+=
+\frac{TPR\cdot \pi}
+{TPR\cdot \pi+FPR\cdot(1-\pi)}.
+\]</span></p>
+<p>This formula explains why precision can be low for rare events.</p>
+<p>Even if recall is high, a small false positive rate may still create many false positives when the negative class is much larger than the positive class.</p>
+<section id="rare-event-example" class="level3">
+<h3 class="anchored" data-anchor-id="rare-event-example">Rare Event Example</h3>
+<p>Suppose there are 10,000 observations:</p>
+<ul>
+<li>100 positives,</li>
+<li>9,900 negatives.</li>
+</ul>
+<p>Assume the classifier has:</p>
+<p><span class="math display">\[
+TPR=0.90,
+\quad
+FPR=0.05.
+\]</span></p>
+<p>Then:</p>
+<p><span class="math display">\[
+TP=90,
+\quad
+FP=495.
+\]</span></p>
+<p>The recall is high:</p>
+<p><span class="math display">\[
+\text{Recall}
+=
+0.90.
+\]</span></p>
+<p>But precision is only</p>
+<p><span class="math display">\[
+\text{Precision}
+=
+\frac{90}{90+495}
+\approx
+0.154.
+\]</span></p>
+<p>Most predicted positives are false positives. This is why precision-recall analysis is especially important for imbalanced data.</p>
+</section>
+</section>
+<section id="classification-thresholds" class="level2">
+<h2 class="anchored" data-anchor-id="classification-thresholds">Classification Thresholds</h2>
+<p>Many classifiers first produce a score or estimated probability:</p>
+<p><span class="math display">\[
+s(x)
+\]</span></p>
+<p>or</p>
+<p><span class="math display">\[
+\hat p(x)=P(Y=1\mid X=x).
+\]</span></p>
+<p>To make a hard classification, we choose a threshold <span class="math inline">\(c\)</span>:</p>
+<p><span class="math display">\[
+\hat Y
+=
+\begin{cases}
+1, &amp; \hat p(x)&gt;c,\\
+0, &amp; \hat p(x)\le c.
+\end{cases}
+\]</span></p>
+<p>The default threshold is often <span class="math inline">\(c=0.5\)</span>, but this is not always the best choice.</p>
+<p>Changing the threshold changes the confusion matrix, and therefore changes accuracy, precision, recall, FPR, and F1 score.</p>
+<section id="precision-recall-tradeoff" class="level3">
+<h3 class="anchored" data-anchor-id="precision-recall-tradeoff">Precision-Recall Tradeoff</h3>
+<p>Lowering the threshold makes the classifier more aggressive.</p>
+<p>This usually:</p>
+<ul>
+<li>increases recall,</li>
+<li>increases false positives,</li>
+<li>may decrease precision.</li>
+</ul>
+<p>Raising the threshold makes the classifier more conservative.</p>
+<p>This usually:</p>
+<ul>
+<li>increases precision,</li>
+<li>decreases false positives,</li>
+<li>may decrease recall.</li>
+</ul>
+<p>Thus precision and recall naturally trade off against each other.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Thresholds are decisions
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The fitted model may estimate probabilities.</p>
+<p>The threshold determines the action.</p>
+<p>Model fitting and decision making are related, but they are not the same thing.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="decision-theory-and-error-costs" class="level2">
+<h2 class="anchored" data-anchor-id="decision-theory-and-error-costs">Decision Theory and Error Costs</h2>
+<p>Suppose a false positive has cost <span class="math inline">\(C_{FP}\)</span> and a false negative has cost <span class="math inline">\(C_{FN}\)</span>.</p>
+<p>If a model estimates</p>
+<p><span class="math display">\[
+p(x)=P(Y=1\mid X=x),
+\]</span></p>
+<p>then the expected cost of predicting positive is</p>
+<p><span class="math display">\[
+\text{Cost}(1\mid x)
+=
+C_{FP}P(Y=0\mid X=x)
+=
+C_{FP}(1-p(x)).
+\]</span></p>
+<p>The expected cost of predicting negative is</p>
+<p><span class="math display">\[
+\text{Cost}(0\mid x)
+=
+C_{FN}P(Y=1\mid X=x)
+=
+C_{FN}p(x).
+\]</span></p>
+<p>We should predict positive when</p>
+<p><span class="math display">\[
+C_{FP}(1-p(x))
+&lt;
+C_{FN}p(x).
+\]</span></p>
+<p>Solving this inequality gives</p>
+<p><span class="math display">\[
+p(x)
+&gt;
+\frac{C_{FP}}{C_{FP}+C_{FN}}.
+\]</span></p>
+<p>Thus the optimal threshold is</p>
+<p><span class="math display">\[
+c^*
+=
+\frac{C_{FP}}{C_{FP}+C_{FN}}.
+\]</span></p>
+<p>If false negatives are very costly, then <span class="math inline">\(C_{FN}\)</span> is large and the threshold becomes small. The classifier should predict positive more aggressively.</p>
+<section id="medical-screening" class="level3">
+<h3 class="anchored" data-anchor-id="medical-screening">Medical Screening</h3>
+<p>In medical screening, missing a serious disease may be much worse than sending a healthy patient for an additional test. Therefore false negatives are costly.</p>
+<p>The threshold should often be lower, so the classifier prioritizes recall.</p>
+</section>
+<section id="spam-filtering" class="level3">
+<h3 class="anchored" data-anchor-id="spam-filtering">Spam Filtering</h3>
+<p>In spam filtering, putting an important legitimate email into spam may be very costly to the user. Therefore false positives may be more costly.</p>
+<p>The threshold should often be higher, so the classifier prioritizes precision.</p>
+</section>
+</section>
+<section id="f1-score" class="level2">
+<h2 class="anchored" data-anchor-id="f1-score">F1 Score</h2>
+<p>The F1 score combines precision and recall:</p>
+<p><span class="math display">\[
+F_1
+=
+\frac{2PR}{P+R},
+\]</span></p>
+<p>where <span class="math inline">\(P\)</span> is precision and <span class="math inline">\(R\)</span> is recall.</p>
+<p>Equivalently,</p>
+<p><span class="math display">\[
+F_1
+=
+\frac{2TP}{2TP+FP+FN}.
+\]</span></p>
+<p>The F1 score is the harmonic mean of precision and recall.</p>
+<p>The harmonic mean strongly penalizes imbalance. If precision is high but recall is near zero, then F1 is near zero. If recall is high but precision is near zero, then F1 is also near zero.</p>
+<p>F1 is useful when we want a single number that balances precision and recall. However, it assumes precision and recall are equally important. In applications where one type of error is more costly, a different metric or an explicit cost function may be better.</p>
+</section>
+<section id="roc-curves" class="level2">
+<h2 class="anchored" data-anchor-id="roc-curves">ROC Curves</h2>
+<p>ROC stands for receiver operating characteristic.</p>
+<p>An ROC curve plots:</p>
+<p><span class="math display">\[
+TPR
+=
+\frac{TP}{TP+FN}
+\]</span></p>
+<p>against</p>
+<p><span class="math display">\[
+FPR
+=
+\frac{FP}{FP+TN}
+\]</span></p>
+<p>as the classification threshold changes.</p>
+<p>The true positive rate is recall. The false positive rate is</p>
+<p><span class="math display">\[
+FPR
+=
+P(\hat Y=1\mid Y=0).
+\]</span></p>
+<section id="roc-and-hypothesis-testing" class="level3">
+<h3 class="anchored" data-anchor-id="roc-and-hypothesis-testing">ROC and Hypothesis Testing</h3>
+<p>ROC curves have a natural hypothesis testing interpretation.</p>
+<p>Recall:</p>
+<ul>
+<li>TPR is power,</li>
+<li>FPR is Type I error rate.</li>
+</ul>
+<p>Therefore an ROC curve shows</p>
+<p><span class="math display">\[
+\text{power}
+\quad\text{versus}\quad
+\text{Type I error rate}
+\]</span></p>
+<p>across all possible thresholds.</p>
+<p>The ideal classifier reaches the upper-left corner:</p>
+<p><span class="math display">\[
+FPR=0,
+\quad
+TPR=1.
+\]</span></p>
+<p>A classifier close to the diagonal line behaves almost like random guessing.</p>
+</section>
+</section>
+<section id="auc" class="level2">
+<h2 class="anchored" data-anchor-id="auc">AUC</h2>
+<p>AUC is the area under the ROC curve.</p>
+<p>AUC summarizes ranking performance across all possible thresholds.</p>
+<p>Let <span class="math inline">\(s(X^+)\)</span> be the score for a randomly selected positive observation, and let <span class="math inline">\(s(X^-)\)</span> be the score for a randomly selected negative observation. Then</p>
+<p><span class="math display">\[
+AUC
+=
+P\left(s(X^+)&gt;s(X^-)\right),
+\]</span></p>
+<p>up to small corrections for ties.</p>
+<p>Thus AUC has a clean interpretation:</p>
+<blockquote class="blockquote">
+<p>AUC is the probability that a random positive observation receives a higher score than a random negative observation.</p>
+</blockquote>
+<p>This is why AUC is threshold-free. It evaluates ranking quality, not a particular threshold decision.</p>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span>AUC is not calibration
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>AUC can be excellent even when predicted probabilities are numerically wrong.</p>
+<p>AUC asks whether positives are ranked above negatives. It does not ask whether predicted probabilities are trustworthy.</p>
+</div>
+</div>
+</section>
+<section id="precision-recall-curves" class="level2">
+<h2 class="anchored" data-anchor-id="precision-recall-curves">Precision-Recall Curves</h2>
+<p>A precision-recall curve plots precision against recall as the classification threshold changes.</p>
+<p>PR curves are especially useful for imbalanced data.</p>
+<p>The reason is that precision directly accounts for false positives among predicted positives:</p>
+<p><span class="math display">\[
+\text{Precision}
+=
+\frac{TP}{TP+FP}.
+\]</span></p>
+<p>In rare-event detection, even a small false positive rate can create many false positives. ROC curves may look strong because FPR is normalized by all true negatives, but precision may still be poor.</p>
+<p>PR curves are often preferred for:</p>
+<ul>
+<li>fraud detection,</li>
+<li>medical diagnosis,</li>
+<li>anomaly detection,</li>
+<li>information retrieval,</li>
+<li>other rare positive class problems.</li>
+</ul>
+</section>
+<section id="three-evaluation-goals" class="level2">
+<h2 class="anchored" data-anchor-id="three-evaluation-goals">Three Evaluation Goals</h2>
+<p>Classification evaluation has at least three distinct goals.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Goal</th>
+<th>Main question</th>
+<th>Common tools</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Decision quality</td>
+<td>Are the hard classifications useful?</td>
+<td>Accuracy, precision, recall, F1</td>
+</tr>
+<tr class="even">
+<td>Ranking quality</td>
+<td>Are positives ranked above negatives?</td>
+<td>ROC curve, AUC, PR curve</td>
+</tr>
+<tr class="odd">
+<td>Probability quality</td>
+<td>Are predicted probabilities trustworthy?</td>
+<td>Calibration curve, Brier score, log loss</td>
+</tr>
+</tbody>
+</table>
+<p>These goals are related, but they are not identical.</p>
+<p>A model can have good AUC and poor calibration. A model can have good accuracy and poor recall. A model can have high recall and poor precision.</p>
+</section>
+<section id="bias-variance-in-classification-evaluation" class="level2">
+<h2 class="anchored" data-anchor-id="bias-variance-in-classification-evaluation">Bias-Variance in Classification Evaluation</h2>
+<p>The bias-variance tradeoff also appears in classification, but it is easiest to state for probability estimation.</p>
+<p>Suppose the true conditional probability is</p>
+<p><span class="math display">\[
+p(x)=P(Y=1\mid X=x),
+\]</span></p>
+<p>and a fitted model estimates this probability by</p>
+<p><span class="math display">\[
+\hat p(x).
+\]</span></p>
+<p>At a fixed point <span class="math inline">\(x_0\)</span>, the Brier loss is squared error for a binary outcome:</p>
+<p><span class="math display">\[
+\left(Y_0-\hat p(x_0)\right)^2.
+\]</span></p>
+<p>Since</p>
+<p><span class="math display">\[
+Y_0\mid X=x_0\sim \operatorname{Bernoulli}(p(x_0)),
+\]</span></p>
+<p>the conditional variance of <span class="math inline">\(Y_0\)</span> is</p>
+<p><span class="math display">\[
+\operatorname{Var}(Y_0\mid X=x_0)
+=
+p(x_0)(1-p(x_0)).
+\]</span></p>
+<p>The expected Brier loss decomposes as</p>
+<p><span class="math display">\[
+\begin{aligned}
+\operatorname{E}\left[
+\left(Y_0-\hat p(x_0)\right)^2
+\right]
+&amp;=
+\operatorname{E}\left[
+\left(p(x_0)-\hat p(x_0)\right)^2
+\right]
++
+p(x_0)(1-p(x_0)) \\
+&amp;=
+\operatorname{Bias}^2(\hat p(x_0))
++
+\operatorname{Var}(\hat p(x_0))
++
+p(x_0)(1-p(x_0)).
+\end{aligned}
+\]</span></p>
+<p>Thus, for probability estimation:</p>
+<ul>
+<li>bias means the model systematically estimates probabilities too high or too low;</li>
+<li>variance means the estimated probabilities change a lot across training samples;</li>
+<li><span class="math inline">\(p(x_0)(1-p(x_0))\)</span> is irreducible Bernoulli noise.</li>
+</ul>
+<p>This is why probability-quality metrics such as Brier score and log loss are closely connected to the bias-variance tradeoff.</p>
+<p>Flexible classifiers, such as deep trees and random forests, may reduce bias by capturing nonlinear structure, but their raw probability estimates may have higher variance or poor calibration. Simpler or regularized models may have higher bias but more stable probability estimates.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Thresholds and bias-variance
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Changing the classification threshold does not change <span class="math inline">\(\hat p(x)\)</span> itself. It changes the decision rule built on top of <span class="math inline">\(\hat p(x)\)</span>.</p>
+<p>So threshold tuning trades off false positives and false negatives. Model tuning trades off bias and variance in the fitted scores or probabilities.</p>
+</div>
+</div>
+</section>
+<section id="calibration" class="level2">
+<h2 class="anchored" data-anchor-id="calibration">Calibration</h2>
+<p>Calibration asks whether predicted probabilities are numerically meaningful.</p>
+<p>Suppose a model predicts</p>
+<p><span class="math display">\[
+\hat p(x)=0.8.
+\]</span></p>
+<p>If the model is well calibrated, then among many observations receiving predicted probability near <span class="math inline">\(0.8\)</span>, about <span class="math inline">\(80\%\)</span> should truly be positive.</p>
+<p>Thus calibration concerns probability quality.</p>
+<p>It is different from classification accuracy and ranking quality.</p>
+<section id="reliability-diagram" class="level3">
+<h3 class="anchored" data-anchor-id="reliability-diagram">Reliability Diagram</h3>
+<p>A calibration curve, also called a reliability diagram, is built as follows:</p>
+<ol type="1">
+<li>Group observations into bins based on predicted probability.</li>
+<li>For each bin, compute the average predicted probability.</li>
+<li>For each bin, compute the observed positive frequency.</li>
+<li>Plot observed frequency against average predicted probability.</li>
+</ol>
+<p>For a perfectly calibrated model, the curve follows the diagonal line:</p>
+<p><span class="math display">\[
+\text{observed frequency}
+=
+\text{predicted probability}.
+\]</span></p>
+<p>If the curve lies below the diagonal, the model is overconfident. For example, when it predicts <span class="math inline">\(0.9\)</span>, the true frequency may only be <span class="math inline">\(0.7\)</span>.</p>
+<p>If the curve lies above the diagonal, the model is underconfident. For example, when it predicts <span class="math inline">\(0.3\)</span>, the true frequency may be <span class="math inline">\(0.5\)</span>.</p>
+</section>
+<section id="brier-score" class="level3">
+<h3 class="anchored" data-anchor-id="brier-score">Brier Score</h3>
+<p>The Brier score is a proper scoring rule for predicted probabilities:</p>
+<p><span class="math display">\[
+\text{Brier}
+=
+\frac1n\sum_{i=1}^n
+\left(y_i-\hat p_i\right)^2.
+\]</span></p>
+<p>Lower Brier score is better.</p>
+<p>Unlike accuracy, the Brier score evaluates the probability itself. A confident wrong prediction receives a large penalty.</p>
+</section>
+<section id="log-loss" class="level3">
+<h3 class="anchored" data-anchor-id="log-loss">Log Loss</h3>
+<p>Another common proper scoring rule is log loss:</p>
+<p><span class="math display">\[
+\text{LogLoss}
+=
+-
+\frac1n
+\sum_{i=1}^n
+\left[
+y_i\log(\hat p_i)
++
+(1-y_i)\log(1-\hat p_i)
+\right].
+\]</span></p>
+<p>Log loss strongly penalizes confident wrong predictions.</p>
+<p>Both Brier score and log loss evaluate probability quality, not only hard classification decisions.</p>
+</section>
+</section>
+<section id="calibration-methods" class="level2">
+<h2 class="anchored" data-anchor-id="calibration-methods">Calibration Methods</h2>
+<p>If a model produces useful rankings but poor probabilities, we can sometimes calibrate its scores.</p>
+<p>Two common calibration methods are:</p>
+<ul>
+<li>Platt scaling,</li>
+<li>isotonic regression.</li>
+</ul>
+<section id="platt-scaling" class="level3">
+<h3 class="anchored" data-anchor-id="platt-scaling">Platt Scaling</h3>
+<p>Platt scaling fits a logistic regression model using the original classifier score as the predictor.</p>
+<p>If the original model produces a score <span class="math inline">\(s(x)\)</span>, Platt scaling estimates</p>
+<p><span class="math display">\[
+P(Y=1\mid s(x)).
+\]</span></p>
+<p>This learns a sigmoid transformation of the scores.</p>
+</section>
+<section id="isotonic-regression" class="level3">
+<h3 class="anchored" data-anchor-id="isotonic-regression">Isotonic Regression</h3>
+<p>Isotonic regression learns a monotone transformation of the scores.</p>
+<p>It is more flexible than Platt scaling because it does not assume a sigmoid shape. However, it can overfit when the calibration set is small.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Calibration data
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Calibration should be learned on data not used to fit the original model.</p>
+<p>Otherwise, the calibrated probabilities may look better than they really are.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="python-example-breast-cancer-classification" class="level2">
+<h2 class="anchored" data-anchor-id="python-example-breast-cancer-classification">Python Example: Breast Cancer Classification</h2>
+<p>We now use the breast cancer dataset from <code>sklearn</code>. The goal is to classify tumors as malignant or benign. This example shows how to compute threshold-based metrics, ROC and PR curves, and calibration curves.</p>
+<p>First load the data and split it into training and test sets.</p>
+<div id="646dc260" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_breast_cancer</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>cancer <span class="op">=</span> load_breast_cancer(as_frame<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> cancer.data</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>y_original <span class="op">=</span> cancer.target</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># In this dataset, target 0 is malignant and target 1 is benign.</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># We define malignant as the positive class.</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> y_original</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    X,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    y,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    test_size<span class="op">=</span><span class="fl">0.3</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    stratify<span class="op">=</span>y,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">42</span>,</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>pd.Series(y_test).value_counts().sort_index()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>target
+0    107
+1     64
+Name: count, dtype: int64</code></pre>
+</div>
+</div>
+<p>We fit logistic regression and a random forest. Logistic regression is often a strong baseline for calibrated probabilities. Random forests often have strong classification performance but may produce less calibrated probabilities.</p>
+<p>This comparison is also a bias-variance example. Logistic regression is less flexible and may have more bias if the true boundary is nonlinear. The random forest is more flexible and can reduce bias, but its probability estimates may need calibration.</p>
+<div id="010f5171" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>logit <span class="op">=</span> make_pipeline(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    StandardScaler(),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    LogisticRegression(max_iter<span class="op">=</span><span class="dv">5000</span>),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>rf <span class="op">=</span> RandomForestClassifier(</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span><span class="dv">500</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    max_features<span class="op">=</span><span class="st">"sqrt"</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">42</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    n_jobs<span class="op">=-</span><span class="dv">1</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>logit.fit(X_train, y_train)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>rf.fit(X_train, y_train)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>logit_prob <span class="op">=</span> logit.predict_proba(X_test)[:, <span class="dv">1</span>]</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>rf_prob <span class="op">=</span> rf.predict_proba(X_test)[:, <span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="confusion-matrix-and-basic-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="confusion-matrix-and-basic-metrics">Confusion Matrix and Basic Metrics</h3>
+<p>We first use the default threshold <span class="math inline">\(0.5\)</span>.</p>
+<div id="61057682" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> (</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    confusion_matrix,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    accuracy_score,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    precision_score,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    recall_score,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    f1_score,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> classification_summary(y_true, prob, threshold<span class="op">=</span><span class="fl">0.5</span>):</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    pred <span class="op">=</span> (prob <span class="op">&gt;=</span> threshold).astype(<span class="bu">int</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    tn, fp, fn, tp <span class="op">=</span> confusion_matrix(y_true, pred).ravel()</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">"threshold"</span>: threshold,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">"TP"</span>: tp,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="st">"FP"</span>: fp,</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">"FN"</span>: fn,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        <span class="st">"TN"</span>: tn,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">"accuracy"</span>: accuracy_score(y_true, pred),</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        <span class="st">"precision"</span>: precision_score(y_true, pred),</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>        <span class="st">"recall"</span>: recall_score(y_true, pred),</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>        <span class="st">"f1"</span>: f1_score(y_true, pred),</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> pd.DataFrame(</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    [</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"model"</span>: <span class="st">"Logistic regression"</span>, <span class="op">**</span>classification_summary(y_test, logit_prob)},</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"model"</span>: <span class="st">"Random forest"</span>, <span class="op">**</span>classification_summary(y_test, rf_prob)},</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">threshold</th>
+<th data-quarto-table-cell-role="th">TP</th>
+<th data-quarto-table-cell-role="th">FP</th>
+<th data-quarto-table-cell-role="th">FN</th>
+<th data-quarto-table-cell-role="th">TN</th>
+<th data-quarto-table-cell-role="th">accuracy</th>
+<th data-quarto-table-cell-role="th">precision</th>
+<th data-quarto-table-cell-role="th">recall</th>
+<th data-quarto-table-cell-role="th">f1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Logistic regression</td>
+<td>0.5</td>
+<td>60</td>
+<td>1</td>
+<td>4</td>
+<td>106</td>
+<td>0.97076</td>
+<td>0.983607</td>
+<td>0.937500</td>
+<td>0.96000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Random forest</td>
+<td>0.5</td>
+<td>59</td>
+<td>0</td>
+<td>5</td>
+<td>107</td>
+<td>0.97076</td>
+<td>1.000000</td>
+<td>0.921875</td>
+<td>0.95935</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The confusion matrix shows which kinds of mistakes the model makes. In a medical setting, false negatives may be especially important because they correspond to missed malignant cases.</p>
+</section>
+<section id="threshold-tuning" class="level3">
+<h3 class="anchored" data-anchor-id="threshold-tuning">Threshold Tuning</h3>
+<p>Now examine how metrics change as the threshold changes.</p>
+<div id="c685c000" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>thresholds <span class="op">=</span> np.linspace(<span class="fl">0.05</span>, <span class="fl">0.95</span>, <span class="dv">19</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>threshold_results <span class="op">=</span> []</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> threshold <span class="kw">in</span> thresholds:</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    row <span class="op">=</span> classification_summary(y_test, logit_prob, threshold<span class="op">=</span>threshold)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    threshold_results.append(row)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>threshold_df <span class="op">=</span> pd.DataFrame(threshold_results)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>threshold_df.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">threshold</th>
+<th data-quarto-table-cell-role="th">TP</th>
+<th data-quarto-table-cell-role="th">FP</th>
+<th data-quarto-table-cell-role="th">FN</th>
+<th data-quarto-table-cell-role="th">TN</th>
+<th data-quarto-table-cell-role="th">accuracy</th>
+<th data-quarto-table-cell-role="th">precision</th>
+<th data-quarto-table-cell-role="th">recall</th>
+<th data-quarto-table-cell-role="th">f1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>0.05</td>
+<td>64</td>
+<td>14</td>
+<td>0</td>
+<td>93</td>
+<td>0.918129</td>
+<td>0.820513</td>
+<td>1.000000</td>
+<td>0.901408</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>0.10</td>
+<td>63</td>
+<td>7</td>
+<td>1</td>
+<td>100</td>
+<td>0.953216</td>
+<td>0.900000</td>
+<td>0.984375</td>
+<td>0.940299</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>0.15</td>
+<td>63</td>
+<td>4</td>
+<td>1</td>
+<td>103</td>
+<td>0.970760</td>
+<td>0.940299</td>
+<td>0.984375</td>
+<td>0.961832</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>0.20</td>
+<td>63</td>
+<td>3</td>
+<td>1</td>
+<td>104</td>
+<td>0.976608</td>
+<td>0.954545</td>
+<td>0.984375</td>
+<td>0.969231</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>0.25</td>
+<td>62</td>
+<td>1</td>
+<td>2</td>
+<td>106</td>
+<td>0.982456</td>
+<td>0.984127</td>
+<td>0.968750</td>
+<td>0.976378</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Plot precision and recall as functions of the threshold.</p>
+<div id="f8e311be" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">4</span>))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>plt.plot(threshold_df[<span class="st">"threshold"</span>], threshold_df[<span class="st">"precision"</span>], marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"precision"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plt.plot(threshold_df[<span class="st">"threshold"</span>], threshold_df[<span class="st">"recall"</span>], marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"recall"</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"threshold"</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"metric value"</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Precision and Recall versus Threshold"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="decisioneval_files/figure-html/cell-6-output-1.png" width="597" height="376" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>As the threshold increases, the classifier becomes more conservative. Precision often increases, while recall often decreases.</p>
+</section>
+<section id="choosing-a-threshold-from-costs" class="level3">
+<h3 class="anchored" data-anchor-id="choosing-a-threshold-from-costs">Choosing a Threshold from Costs</h3>
+<p>Suppose a false negative is 5 times as costly as a false positive:</p>
+<p><span class="math display">\[
+C_{FN}=5,
+\quad
+C_{FP}=1.
+\]</span></p>
+<p>The decision-theoretic threshold is</p>
+<p><span class="math display">\[
+c^*
+=
+\frac{C_{FP}}{C_{FP}+C_{FN}}
+=
+\frac{1}{1+5}
+\approx
+0.167.
+\]</span></p>
+<div id="a756c566" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cost_fp <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cost_fn <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>cost_threshold <span class="op">=</span> cost_fp <span class="op">/</span> (cost_fp <span class="op">+</span> cost_fn)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>classification_summary(</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    y_test,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    logit_prob,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    threshold<span class="op">=</span>cost_threshold,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>{'threshold': 0.16666666666666666,
+ 'TP': np.int64(63),
+ 'FP': np.int64(4),
+ 'FN': np.int64(1),
+ 'TN': np.int64(103),
+ 'accuracy': 0.9707602339181286,
+ 'precision': 0.9402985074626866,
+ 'recall': 0.984375,
+ 'f1': 0.9618320610687023}</code></pre>
+</div>
+</div>
+<p>This lower threshold prioritizes recall. It predicts malignant more aggressively because missing a malignant tumor is assumed to be more costly.</p>
+</section>
+<section id="roc-curve-and-auc" class="level3">
+<h3 class="anchored" data-anchor-id="roc-curve-and-auc">ROC Curve and AUC</h3>
+<div id="79d8da9e" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_curve, roc_auc_score</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>logit_fpr, logit_tpr, _ <span class="op">=</span> roc_curve(y_test, logit_prob)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>rf_fpr, rf_tpr, _ <span class="op">=</span> roc_curve(y_test, rf_prob)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>logit_auc <span class="op">=</span> roc_auc_score(y_test, logit_prob)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>rf_auc <span class="op">=</span> roc_auc_score(y_test, rf_prob)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">5</span>))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>plt.plot(logit_fpr, logit_tpr, label<span class="op">=</span><span class="ss">f"Logistic regression AUC = </span><span class="sc">{</span>logit_auc<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>plt.plot(rf_fpr, rf_tpr, label<span class="op">=</span><span class="ss">f"Random forest AUC = </span><span class="sc">{</span>rf_auc<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, <span class="dv">1</span>], <span class="st">"k--"</span>, label<span class="op">=</span><span class="st">"random guessing"</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"false positive rate"</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"true positive rate"</span>)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"ROC Curve"</span>)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="decisioneval_files/figure-html/cell-8-output-1.png" width="514" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The ROC curve summarizes ranking performance across thresholds. A larger AUC means the model more often ranks malignant cases above benign cases.</p>
+</section>
+<section id="precision-recall-curve" class="level3">
+<h3 class="anchored" data-anchor-id="precision-recall-curve">Precision-Recall Curve</h3>
+<div id="14148c1a" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> precision_recall_curve, average_precision_score</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>logit_precision, logit_recall, _ <span class="op">=</span> precision_recall_curve(y_test, logit_prob)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>rf_precision, rf_recall, _ <span class="op">=</span> precision_recall_curve(y_test, rf_prob)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>logit_ap <span class="op">=</span> average_precision_score(y_test, logit_prob)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>rf_ap <span class="op">=</span> average_precision_score(y_test, rf_prob)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">5</span>))</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>plt.plot(logit_recall, logit_precision, label<span class="op">=</span><span class="ss">f"Logistic regression AP = </span><span class="sc">{</span>logit_ap<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>plt.plot(rf_recall, rf_precision, label<span class="op">=</span><span class="ss">f"Random forest AP = </span><span class="sc">{</span>rf_ap<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"recall"</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"precision"</span>)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Precision-Recall Curve"</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="decisioneval_files/figure-html/cell-9-output-1.png" width="514" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The precision-recall curve is especially useful when the positive class is rare or when false positives are costly.</p>
+</section>
+<section id="calibration-curves" class="level3">
+<h3 class="anchored" data-anchor-id="calibration-curves">Calibration Curves</h3>
+<p>Now evaluate probability calibration.</p>
+<div id="b04e5bee" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.calibration <span class="im">import</span> CalibrationDisplay</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> brier_score_loss, log_loss</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">5</span>))</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>CalibrationDisplay.from_predictions(</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    y_test,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    logit_prob,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    n_bins<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"Logistic regression"</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>CalibrationDisplay.from_predictions(</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    y_test,</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    rf_prob,</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    n_bins<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"Random forest"</span>,</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax,</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Calibration Curves"</span>)</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>prob_scores <span class="op">=</span> pd.DataFrame(</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>        <span class="st">"model"</span>: [<span class="st">"Logistic regression"</span>, <span class="st">"Random forest"</span>],</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>        <span class="st">"brier_score"</span>: [</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>            brier_score_loss(y_test, logit_prob),</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>            brier_score_loss(y_test, rf_prob),</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>        ],</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>        <span class="st">"log_loss"</span>: [</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>            log_loss(y_test, logit_prob),</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>            log_loss(y_test, rf_prob),</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>        ],</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>prob_scores</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="decisioneval_files/figure-html/cell-10-output-1.png" width="514" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">brier_score</th>
+<th data-quarto-table-cell-role="th">log_loss</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Logistic regression</td>
+<td>0.018736</td>
+<td>0.067457</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Random forest</td>
+<td>0.029054</td>
+<td>0.104370</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The calibration curve compares predicted probabilities with observed frequencies. The Brier score and log loss summarize probability quality numerically.</p>
+</section>
+<section id="calibrating-a-random-forest" class="level3">
+<h3 class="anchored" data-anchor-id="calibrating-a-random-forest">Calibrating a Random Forest</h3>
+<p>If a model ranks observations well but has poor calibration, we can calibrate it using held-out calibration folds.</p>
+<div id="65faf387" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.calibration <span class="im">import</span> CalibratedClassifierCV</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>rf_calibrated <span class="op">=</span> CalibratedClassifierCV(</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    estimator<span class="op">=</span>RandomForestClassifier(</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        n_estimators<span class="op">=</span><span class="dv">500</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        max_features<span class="op">=</span><span class="st">"sqrt"</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>        random_state<span class="op">=</span><span class="dv">42</span>,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>        n_jobs<span class="op">=-</span><span class="dv">1</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    method<span class="op">=</span><span class="st">"isotonic"</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>rf_calibrated.fit(X_train, y_train)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>rf_cal_prob <span class="op">=</span> rf_calibrated.predict_proba(X_test)[:, <span class="dv">1</span>]</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>        <span class="st">"model"</span>: [<span class="st">"Random forest"</span>, <span class="st">"Calibrated random forest"</span>],</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>        <span class="st">"brier_score"</span>: [</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>            brier_score_loss(y_test, rf_prob),</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>            brier_score_loss(y_test, rf_cal_prob),</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>        ],</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        <span class="st">"log_loss"</span>: [</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>            log_loss(y_test, rf_prob),</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>            log_loss(y_test, rf_cal_prob),</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>        ],</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>        <span class="st">"auc"</span>: [</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>            roc_auc_score(y_test, rf_prob),</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>            roc_auc_score(y_test, rf_cal_prob),</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>        ],</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">brier_score</th>
+<th data-quarto-table-cell-role="th">log_loss</th>
+<th data-quarto-table-cell-role="th">auc</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Random forest</td>
+<td>0.029054</td>
+<td>0.104370</td>
+<td>0.996203</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Calibrated random forest</td>
+<td>0.024956</td>
+<td>0.092769</td>
+<td>0.994305</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Calibration can improve probability quality, but it does not necessarily improve AUC. This is expected because calibration changes the probability scale, while AUC mainly depends on ranking.</p>
+<div id="4f32b51e" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">5</span>))</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>CalibrationDisplay.from_predictions(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    y_test,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    rf_prob,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    n_bins<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"Random forest"</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>CalibrationDisplay.from_predictions(</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    y_test,</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    rf_cal_prob,</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    n_bins<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"Calibrated random forest"</span>,</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax,</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Calibration Before and After"</span>)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="decisioneval_files/figure-html/cell-12-output-1.png" width="514" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>Classification evaluation is multidimensional.</p>
+<p>Accuracy measures the overall fraction of correct predictions, but it can be misleading under class imbalance or asymmetric error costs.</p>
+<p>Recall measures detection ability:</p>
+<p><span class="math display">\[
+P(\hat Y=1\mid Y=1).
+\]</span></p>
+<p>Precision measures the reliability of positive predictions:</p>
+<p><span class="math display">\[
+P(Y=1\mid \hat Y=1).
+\]</span></p>
+<p>ROC curves and AUC evaluate ranking quality across thresholds. PR curves are often more informative for rare positive classes.</p>
+<p>Calibration evaluates whether predicted probabilities are numerically trustworthy. Brier score and log loss are proper scoring rules for probability forecasts.</p>
+<p>The most important practical message is:</p>
+<blockquote class="blockquote">
+<p>Fit the model, evaluate the ranking, choose the threshold according to the decision problem, and check whether the probabilities are calibrated if probabilities will be used directly.</p>
+</blockquote>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
+        for (let i=0; i<annoteTargets.length; i++) {
+          const annoteTarget = annoteTargets[i];
+          const targetCell = annoteTarget.getAttribute("data-target-cell");
+          const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
+          const contentFn = () => {
+            const content = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+            if (content) {
+              const tipContent = content.cloneNode(true);
+              tipContent.classList.add("code-annotation-tip-content");
+              return tipContent.outerHTML;
+            }
+          }
+          const config = {
+            allowHTML: true,
+            content: contentFn,
+            onShow: (instance) => {
+              selectCodeLines(instance.reference);
+              instance.reference.classList.add('code-annotation-active');
+              window.tippy.hideAll();
+            },
+            onHide: (instance) => {
+              unselectCodeLines();
+              instance.reference.classList.remove('code-annotation-active');
+            },
+            maxWidth: 300,
+            delay: [50, 0],
+            duration: [200, 0],
+            offset: [5, 10],
+            arrow: true,
+            trigger: 'click',
+            appendTo: function(el) {
+              return el.parentElement.parentElement.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'quarto',
+            placement: 'right',
+            positionFixed: true,
+            popperOptions: {
+              modifiers: [
+              {
+                name: 'flip',
+                options: {
+                  flipVariations: false, // true by default
+                  allowedAutoPlacements: ['right'],
+                  fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
+                },
+              },
+              {
+                name: 'preventOverflow',
+                options: {
+                  mainAxis: false,
+                  altAxis: false
+                }
+              }
+              ]        
+            }      
+          };
+          window.tippy(annoteTarget, config); 
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../contents/0/basic.html" class="pagination-link" aria-label="Statistical Learning Basics">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Statistical Learning Basics</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../contents/0/datatype.html" class="pagination-link" aria-label="Different Types of Data in Machine Learning">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Different Types of Data in Machine Learning</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+    <script type="text/javascript">
+    (function(d) {
+      d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+        let pseudocodeOptions = {
+          indentSize: el.dataset.indentSize,
+          commentDelimiter: " " + el.dataset.commentDelimiter + " ",
+          lineNumber: el.dataset.lineNumber.toLowerCase() === "true",
+          lineNumberPunc: el.dataset.lineNumberPunc,
+          noEnd: el.dataset.noEnd.toLowerCase() === "true",
+          scopeLines: el.dataset.indentLines.toLowerCase() === "true",
+          titlePrefix: el.dataset.captionPrefix,
+        };
+        pseudocode.renderElement(el.querySelector(".pseudocode"), pseudocodeOptions);
+      });
+    })(document);
+    (function(d) {
+      d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+        let captionSpan = el.querySelector(".ps-root > .ps-algorithm > .ps-line > .ps-keyword")
+        if (captionSpan !== null) {
+          let captionPrefix = el.dataset.captionPrefix + " ";
+          let captionNumber = "";
+          if (el.dataset.pseudocodeNumber) {
+            captionNumber = el.dataset.pseudocodeNumber + " ";
+            if (el.dataset.chapterLevel) {
+              captionNumber = el.dataset.chapterLevel + "." + captionNumber;
+            }
+          }
+          captionSpan.innerHTML = captionPrefix + captionNumber;
+        }
+      });
+    })(document);
+    </script>
+  
+
+
+
+
+</body></html>

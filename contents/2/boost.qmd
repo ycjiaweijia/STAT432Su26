@@ -4,7 +4,7 @@ jupyter: stats
 
 {{< include ../math.qmd >}} 
 
-# Boosting: AdaBoost and Gradient Boosting
+# Boosting
 
 Boosting is another ensemble method. Like bagging and random forests, it combines many trees into one model. The difference is how the trees are built.
 
@@ -20,9 +20,13 @@ This chapter first discusses AdaBoost. AdaBoost is historically important and is
 
 ## AdaBoost
 
-AdaBoost stands for adaptive boosting.
+AdaBoost (Adaptive Boosting) was introduced by Yoav Freund and Robert E. Schapire in 1995 @Freund1995 as one of the first highly successful boosting algorithms. Their original work showed that many weak learners, each performing only slightly better than random guessing, could be combined into a highly accurate classifier. AdaBoost became a foundational method in statistical learning, and it strongly influenced the later development of modern boosting methods such as Gradient Boosting and XGBoost.
 
-AdaBoost is mainly a classification algorithm. To keep the notation simple, assume the response is binary:
+The original AdaBoost algorithm was proposed as a classification method. Regression extensions were developed later after the success of AdaBoost classifiers. In this course, we mainly study AdaBoost classification because it introduces the core ideas of boosting in a simple and historically important setting.
+
+For regression problems, we will move on to gradient boosting methods, which have become the dominant boosting framework in modern machine learning.
+
+To keep the notation simple, assume the response is binary:
 
 $$
 y_i\in\{-1,+1\}.
@@ -67,38 +71,54 @@ from sklearn.tree import DecisionTreeClassifier
 DecisionTreeClassifier(max_depth=1)
 ```
 
-A stump is very simple. By itself, it usually underfits. AdaBoost becomes powerful by combining many such weak learners.
+A decision stump is extremely simple and usually underfits when used alone. One of the most surprising and important ideas behind AdaBoost is that by combining many such weak learners sequentially, the resulting ensemble can become a highly accurate and powerful model.
 
-::: {.callout-note}
-## Main idea
 
-A single stump is weak.
+### Weights of observations
+In AdaBoost, there are two different types of weights.
 
-Many stumps, added adaptively, can form a strong classifier.
+- Estimator weights ($\alpha_m$) determine how much influence each weak learner has in the final ensemble.
+- Observation weights ($w_i^{(m)}$) determine which training observations receive more attention when fitting the next learner.
+
+During training, AdaBoost repeatedly updates the weights of the training observations. Observations that are difficult to classify receive larger weights, so future learners focus more on them.
+
+To understand this process, we need to discuss how a decision tree is trained on a weighted dataset.
+
+The main idea is very simple. In an ordinary dataset, quantities such as class frequencies and node sample counts are computed using the number of observations. For a weighted dataset, these counts are replaced by weighted counts, that is, by the sum of the observation weights.
+
+For example, suppose a node contains observations with weights $w_1,w_2,\dots,w_n$. Then the effective sample size of the node becomes $\sum_{i=1}^n w_i$. Similarly, class proportions are computed using weighted proportions rather than ordinary proportions.
+
+Therefore, training a decision tree on weighted data is conceptually very similar to ordinary tree training. We simply replace ordinary counts by weighted counts throughout the splitting calculations.
+
+
+::: {#exm-}
+Consider the following data:
+```{python}
+#| echo: false
+
+import pandas as pd
+name = ['x0', 'x1', 'y', 'Weight']
+data = [['1.0', '2.1', '+', '0.5'],
+        ['1.0', '1.1', '+', '0.125'],
+        ['1.3', '1.0', '-', '0.125'],
+        ['1.0', '1.0', '-', '0.125'],
+        ['2.0', '1.0', '+', '0.125']]
+df = pd.DataFrame(data, columns=name)
+df.style.hide(axis='index')
+```
+
+The weighted Gini impurity is
+
+$$
+\text{WeightedGini}=1-(0.5+0.125+0.125)^2-(0.125+0.125)^2=0.375.
+$$
+
+
 :::
 
-### Weighted Classification
 
-AdaBoost repeatedly changes the weights of the training observations.
 
-At the beginning, all observations have the same weight:
 
-$$
-w_i^{(1)}=\frac1n,
-\quad i=1,\ldots,n.
-$$
-
-At round $m$, the weak learner is fit using the current weights $w_i^{(m)}$. Observations with larger weights matter more when the tree chooses splits.
-
-For a classification tree, this means that impurity measures such as Gini impurity use weighted counts rather than ordinary counts.
-
-For example, if a node contains weighted class proportions $p_+$ and $p_-$, then the weighted Gini impurity is
-
-$$
-1-p_+^2-p_-^2.
-$$
-
-Thus AdaBoost does not need a completely new tree algorithm. It only needs a tree algorithm that can use observation weights.
 
 ### The AdaBoost Algorithm
 
@@ -111,7 +131,7 @@ $$
 
 AdaBoost proceeds as follows.
 
-1. Initialize weights:
+1. Initialize observation weights:
 
 $$
 w_i^{(1)}=\frac1n.
@@ -123,11 +143,11 @@ $$
 
 $$
 \operatorname{err}_m
-=
+=\frac{\text{the total weights of misclassified observations by the $m$th classifier}}{\text{the total weights}}=
 \frac{
-\sum_{i=1}^n w_i^{(m)} I(y_i\ne G_m(x_i))
+\sum_{\text{misclassified}} w_i^{(m)}
 }{
-\sum_{i=1}^n w_i^{(m)}
+\sum_{\text{all}} w_i^{(m)}
 }.
 $$
 
@@ -136,12 +156,8 @@ $$
 $$
 \alpha_m
 =
-\eta\log\left(
-\frac{1-\operatorname{err}_m}{\operatorname{err}_m}
-\right).
+\eta\cdot\log\qty(\frac{1-\operatorname{err}_m}{\operatorname{err}_m}).
 $$
-
-Here $\eta>0$ is the learning rate. Some textbooks use $\frac12$ in front of the logarithm. This only changes the scale of the classifier weights and can be absorbed into the learning rate.
 
 5. Update observation weights:
 
@@ -156,46 +172,109 @@ $$
 
 Then normalize the weights so they sum to one.
 
-The update has a simple interpretation:
+$$
+w^{(m+1)}_{i}\xleftarrow{\text{normalization}} \hat w_i^{(m+1)}\leftarrow\begin{cases}w^{(m)}_i\exp(-\alpha_m)&\text{if the $m$th data is correctly classified,}\\
+w_i^{(m)}\exp(\alpha_m)&\text{if the $m$th data is misclassified.}\end{cases}
+$$
 
-- if $G_m(x_i)=y_i$, then $y_iG_m(x_i)=1$ and the weight decreases;
-- if $G_m(x_i)\ne y_i$, then $y_iG_m(x_i)=-1$ and the weight increases.
 
-Thus AdaBoost puts more weight on observations that were misclassified.
+It is easy to see from the updating rule that AdaBoost puts more weight on observations that were misclassified.
 
 ::: {.callout-note}
-## Learning from mistakes
+## Learning Rate
 
-AdaBoost repeatedly shifts attention toward observations that earlier learners classified incorrectly.
+The $\eta>0$ in Step 4 is the **learning rate**. Some textbooks include an additional factor $\frac12$ in front of $\eta$. This only changes the scale of the classifier weights and can therefore be absorbed into the learning rate. So we will not use the factor.
+
+The learning rate controls how much each weak learner contributes to the final ensemble. A larger learning rate makes the model change more aggressively at each iteration, while a smaller learning rate produces more gradual updates.
+
+In practice, smaller learning rates are often combined with a larger number of estimators.
 :::
 
-### Why the Learner Weight Makes Sense
+
+::: {.callout-note}
+
+## Why the Learner Weight Makes Sense
 
 The classifier weight is
 
 $$
 \alpha_m
 =
-\eta\log\left(
+\eta\cdot\log\left(
 \frac{1-\operatorname{err}_m}{\operatorname{err}_m}
 \right).
 $$
 
-If $\operatorname{err}_m$ is small, then the classifier is useful and $\alpha_m$ is large.
+- If $\operatorname{err}_m$ is small, then the classifier is useful and $\alpha_m$ is large.
+- If $\operatorname{err}_m$ is close to $0.5$, then the classifier is close to random guessing and $\alpha_m$ is close to zero.
+- If $\operatorname{err}_m>0.5$, then the classifier is worse than random guessing. In practice, this means the weak learner is not doing its job.
+:::
 
-If $\operatorname{err}_m$ is close to $1/2$, then the classifier is close to random guessing and $\alpha_m$ is close to zero.
 
-If $\operatorname{err}_m>1/2$, then the classifier is worse than random guessing. In practice, this means the weak learner is not doing its job.
+### Why Does AdaBoost Work So Well?
 
-### AdaBoost and Bias
+One of the most surprising aspects of AdaBoost is that it often works extremely well even when the base learners are very weak.
 
-A shallow tree has high bias because it is too simple. AdaBoost reduces this bias by adding many shallow trees.
+Several intuitive explanations are commonly used:
 
-Each new tree only needs to make a small improvement. The final model becomes flexible because many small improvements are accumulated.
+- each weak learner makes a small correction to the current model
+- difficult observations receive more attention in later iterations
+- many simple rules can combine into a highly flexible decision boundary
+- weak learners may help reduce overfitting by forcing gradual improvements
 
-This is different from bagging and random forests. Bagging mainly reduces variance by averaging unstable trees. Boosting mainly reduces bias by sequentially improving a weak model.
+From a practical viewpoint, AdaBoost can be viewed as repeatedly combining many simple models into a stronger ensemble.
 
-## The Margin Effect of AdaBoost
+However, understanding *why* AdaBoost works so well mathematically became one of the major research topics in statistical learning during the late 1990s and early 2000s. Many theoretical studies showed that AdaBoost is closely connected to several important topics, including additive modeling, exponential loss minimization, margin theory, and statistical learning theory.
+
+One particularly influential result showed that AdaBoost can be interpreted as a stagewise additive optimization procedure. Important theoretical works include @Freund1997, @Schapire1998, @Friedman2000, and @Breiman1999. These studies greatly influenced the later development of modern boosting methods such as Gradient Boosting and XGBoost.
+
+## AdaBoost in Python
+The basic APIs are as usual. Here we use `make_moons` to create a test dataset to demo the model.
+
+```{python}
+from sklearn.datasets import make_moons
+from sklearn.model_selection import train_test_split
+
+X, y = make_moons(n_samples=1200, noise=0.08, random_state=2)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+```
+
+We use `AdaBoostClassifier` from `sklearn.ensemble` to implement AdaBoost. All the regular APIs are the same.
+```{python}
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier
+
+ada = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1),
+    n_estimators=800,
+    learning_rate=0.1,
+    random_state=1,
+)
+
+ada.fit(X_train, y_train)
+ada.score(X_test, y_test)
+```
+
+
+
+
+
+
+
+### SAMME and SAMME.R
+
+The original AdaBoost algorithm was designed for binary classification. Later extensions such as SAMME and SAMME.R generalized AdaBoost to multiclass classification problems. In `sklearn`, multiclass classification for `AdaBoostClassifier` is implemented using the SAMME algorithm by default.
+
+However, these variants are less important in modern statistical learning practice and will not be studied in detail in this course. One reason is that these extensions substantially increase the algorithmic complexity while introducing relatively limited new conceptual ideas beyond the original AdaBoost framework. In particular, SAMME.R relies heavily on predicted class probabilities, making the method more sensitive to the quality of probability estimation and numerical stability.
+
+More importantly, many of the key ideas behind SAMME.R already overlap with the additive optimization viewpoint used in modern gradient boosting methods. As a result, modern frameworks such as Gradient Boosting and XGBoost provide a more general, flexible, and unified approach for both regression and classification problems.
+
+Consequently, we will focus primarily on the original AdaBoost classifier as an accessible introduction to the core ideas of boosting before moving directly to Gradient Boosting. Reflecting a similar shift in modern machine learning practice, `sklearn` has also deprecated SAMME.R in recent versions due to its reliance on probability estimation and its conceptual overlap with more general gradient boosting frameworks.
+
+
+
+
+### The Margin Effect of AdaBoost
 
 AdaBoost is often explained as an algorithm that reduces training error. However, its behavior is more subtle than that.
 
@@ -236,35 +315,29 @@ This is one reason AdaBoost can work well in practice. It does not only try to c
 
 The following example uses a clean two-moons dataset. We track training error, test error, and margins as the number of boosting rounds increases.
 
+
+
+
+
 ```{python}
 import numpy as np
 import matplotlib.pyplot as plt
-
-from sklearn.datasets import make_moons
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import zero_one_loss
-
-X, y = make_moons(n_samples=1200, noise=0.08, random_state=2)
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.5,
-    stratify=y,
-    random_state=2,
-)
-
 ada_margin = AdaBoostClassifier(
     estimator=DecisionTreeClassifier(max_depth=1),
     n_estimators=800,
     learning_rate=0.1,
-    random_state=2,
+    random_state=1,
 )
 
 ada_margin.fit(X_train, y_train)
 
+```
+
+
+
+
+```{python}
 train_errors = []
 test_errors = []
 margin_mean = []
@@ -352,6 +425,13 @@ plt.show()
 ```
 
 The error plot shows whether observations are classified correctly. The margin plot shows how strongly they are classified. The 10th percentile margin is useful because it tracks difficult observations without being dominated by a single extreme point.
+
+
+
+
+
+
+
 
 ## Tuning AdaBoost Hyperparameters
 

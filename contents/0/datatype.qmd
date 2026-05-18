@@ -1,0 +1,215 @@
+
+# Different Types of Data in Machine Learning
+
+Machine learning methods are often strongly connected to the structure of the data. Different data types usually require different modeling strategies. For this reason, before studying specific models, it is useful to first understand the major types of data we may encounter.
+
+## Common Data Types
+
+### Tabular Data
+
+**Tabular data** is the most classical type of data in statistics and machine learning. It is organized in rows and columns, similar to a spreadsheet, a CSV file, a SQL table, or a pandas DataFrame.
+
+| Age | Income | Balance | Student | Default |
+|---:|---:|---:|:---:|:---:|
+| 23 | 50000 | 1200 | Yes | No |
+| 45 | 90000 | 3000 | No | Yes |
+
+In tabular data:
+
+- rows represent observations or samples;
+- columns represent variables or features;
+- one column may be the response variable we want to predict.
+
+Mathematically, the predictor matrix is often written as
+
+$$
+X \in \mathbb{R}^{n \times p},
+$$
+
+where $n$ is the number of observations and $p$ is the number of predictors.
+
+Examples of tabular data include:
+
+- housing price data;
+- credit risk data;
+- insurance claim data;
+- medical record data;
+- customer churn data;
+- marketing and recommendation data.
+
+::: {.callout-note}
+## Key idea
+
+Although tabular data is often represented as a two-dimensional matrix, the most important feature is not just its shape. The key point is that each column has a specific meaning, such as age, income, education level, blood pressure, transaction count, or ZIP code.
+:::
+
+### Image Data
+
+Image data contains spatial structure. Nearby pixels are usually highly related. For example, a small local region of pixels may represent an edge, a corner, or part of an object.
+
+Examples include:
+
+- photographs;
+- medical images;
+- satellite images.
+
+Modern image models often use convolutional neural networks and vision transformers because these models are designed to use spatial structure.
+
+### Text Data
+
+Text data contains sequential and contextual structure. The meaning of a word depends heavily on nearby words and the broader context.
+
+Examples include:
+
+- emails;
+- documents;
+- reviews;
+- social media posts;
+- chat conversations.
+
+Modern text models are usually based on transformers and large language models.
+
+### Time Series Data
+
+Time series data is ordered over time. The order of observations matters.
+
+Examples include:
+
+- stock prices;
+- weather measurements;
+- sensor readings;
+- sales over time.
+
+Important ideas in time series include trend, seasonality, autocorrelation, and temporal dependence.
+
+### Graph Data
+
+Graph data represents relationships between objects. The observations are not independent rows in a table, but nodes connected by edges.
+
+Examples include:
+
+- social networks;
+- citation networks;
+- transportation networks;
+- molecular structures.
+
+Graph neural networks are often used for modern graph learning problems.
+
+# Why This Course Mainly Focuses on Tabular Data
+
+This course mainly focuses on tabular data because it remains one of the most common and important data types in applied statistics and machine learning.
+
+Many real-world datasets in business, science, and public policy are naturally tabular. Examples include datasets from finance, healthcare, insurance, economics, marketing, education, and many scientific experiments.
+
+For tabular data, two model families are especially important:
+
+1. linear models;
+2. tree-based models.
+
+These two families form the foundation of much of modern tabular machine learning.
+
+# Linear Models for Tabular Data
+
+Linear models include methods such as:
+
+- linear regression;
+- logistic regression;
+- ridge regression;
+- lasso;
+- elastic net.
+
+A basic linear model has the form
+
+$$
+f(x) = \beta_0 + \sum_{j=1}^p \beta_j x_j.
+$$
+
+Linear models are important because they are simple, stable, and highly interpretable. The coefficient $\beta_j$ describes how the predicted response changes as predictor $x_j$ changes, holding other variables fixed.
+
+Linear models are especially useful when:
+
+- the relationship is approximately linear;
+- the dataset is small or medium-sized;
+- interpretability is important;
+- inference is important;
+- the model needs to be fast and easy to deploy.
+
+::: {.callout-note}
+## Why linear models still matter
+
+Linear models are not only historical models. They are still widely used in modern applications because they are interpretable, computationally efficient, and often surprisingly strong baselines.
+:::
+
+Linear models also introduce many foundational ideas, including:
+
+- least squares;
+- likelihood;
+- regularization;
+- variable selection;
+- bias-variance tradeoff;
+- prediction versus interpretation.
+
+# Tree-Based Models for Tabular Data
+
+Tree-based models include:
+
+- decision trees;
+- bagging;
+- random forests;
+- gradient boosting;
+- XGBoost;
+- LightGBM;
+- CatBoost.
+
+Unlike linear models, tree-based methods split the feature space into regions and make predictions locally within those regions. A tree model can be viewed as a collection of if-then rules.
+
+For example:
+
+```text
+if income < 50000 and balance > 2000:
+    predict high risk
+else:
+    predict low risk
+```
+
+Tree-based models are powerful for tabular data because they can naturally capture:
+
+- nonlinear relationships;
+- interactions among variables;
+- mixed numerical and categorical predictors;
+- irregular decision boundaries.
+
+Tree ensemble methods, especially random forests and gradient boosting methods, are among the strongest predictive tools for structured tabular datasets.
+
+::: {.callout-note}
+## Practical observation
+
+For many modern tabular prediction problems, tree ensemble methods such as random forests, XGBoost, LightGBM, and CatBoost often provide very strong predictive performance.
+:::
+
+# Why Linear Models and Trees Complement Each Other
+
+Linear models and tree-based models represent two different modeling philosophies.
+
+| Model family | Main idea | Strength |
+|---|---|---|
+| Linear models | Global additive structure | Interpretability and stability |
+| Tree-based models | Local rule-based structure | Flexibility and predictive power |
+
+Linear models are global and smooth. They try to describe the response using a relatively simple additive structure. This makes them easy to understand and explain.
+
+Tree models are local and flexible. They divide the feature space into smaller regions and allow the prediction rule to change from region to region. This makes them powerful for nonlinear and interaction-heavy data.
+
+::: {.callout-important}
+## Main message
+
+For tabular data, linear models and tree-based models are two of the most important model families. Linear models provide a simple, interpretable, and stable foundation. Tree-based methods provide flexible and highly competitive prediction tools. Together, they form the core of modern tabular machine learning.
+:::
+
+# Course Perspective
+
+In this course, we will use linear models and tree-based models as the main entry points into supervised learning.
+
+Linear models help us understand the statistical foundations of prediction, estimation, interpretation, and regularization. Tree-based models help us understand nonlinear prediction, interactions, ensemble learning, and modern boosting methods.
+
+This focus gives us a practical and coherent path through modern machine learning for tabular data.
