@@ -129,65 +129,93 @@ $$
 \quad y_i\in\{-1,+1\}.
 $$
 
-AdaBoost proceeds as follows.
-
-1. Initialize observation weights:
+Initialize observation weights:
 
 $$
 w_i^{(1)}=\frac1n.
 $$
 
-2. For boosting round $m=1,\ldots,M$, fit a weak classifier $G_m$ using the current weights.
 
-3. Compute the weighted classification error:
+Then AdaBoost proceeds as follows.
 
+1. For boosting round $m=1,\ldots,M$, fit a weak classifier $G_m$ using the current weights.
+2. Compute the weighted classification error by the $m$-th classifier:
 $$
 \operatorname{err}_m
-=\frac{\text{the total weights of misclassified observations by the $m$th classifier}}{\text{the total weights}}=
+=\frac{\text{the total weights of misclassified observations}}{\text{the total weights}}=
 \frac{
 \sum_{\text{misclassified}} w_i^{(m)}
 }{
 \sum_{\text{all}} w_i^{(m)}
 }.
 $$
-
-4. Assign a weight to the weak classifier:
-
+3. Assign a weight to the weak classifier:
 $$
 \alpha_m
 =
 \eta\cdot\log\qty(\frac{1-\operatorname{err}_m}{\operatorname{err}_m}).
 $$
-
-5. Update observation weights:
-
+4. Update observation weights and then normalize the weights so they sum to one:
 $$
-w_i^{(m+1)}
-\leftarrow
-w_i^{(m)}
-\exp\left(
--\alpha_m y_iG_m(x_i)
-\right).
-$$
-
-Then normalize the weights so they sum to one.
-
-$$
-w^{(m+1)}_{i}\xleftarrow{\text{normalization}} \hat w_i^{(m+1)}\leftarrow\begin{cases}w^{(m)}_i\exp(-\alpha_m)&\text{if the $m$th data is correctly classified,}\\
+w^{(m+1)}_{i}\xleftarrow{\text{normalize}} \hat w_i^{(m+1)}\leftarrow\begin{cases}w^{(m)}_i\exp(-\alpha_m)&\text{if the $m$th data is correctly classified,}\\
 w_i^{(m)}\exp(\alpha_m)&\text{if the $m$th data is misclassified.}\end{cases}
 $$
-
-
+that 
+$$
+w^{(m+1)}_{i}=\frac{\hat w_i^{(m+1)}}{\sum_j \hat w_j^{(m+1)}}.
+$$
 It is easy to see from the updating rule that AdaBoost puts more weight on observations that were misclassified.
+5. Repeat the above process until the stop conditions are met.
+
+The final model is then 
+$$
+F_M(x)
+=
+\sum_{m=1}^M \alpha_m G_m(x),
+$$
+and the final prediction is
+$$
+\hat G(x)
+=
+\operatorname{sign}\qty{F_M(x)}.
+$$
+
 
 ::: {.callout-note}
 ## Learning Rate
 
-The $\eta>0$ in Step 4 is the **learning rate**. Some textbooks include an additional factor $\frac12$ in front of $\eta$. This only changes the scale of the classifier weights and can therefore be absorbed into the learning rate. So we will not use the factor.
+The $\eta>0$ in Step 3 is the **learning rate**. Some textbooks include an additional factor $\frac12$ in front of $\eta$. This only changes the scale of the classifier weights and can therefore be absorbed into the learning rate. So we will not use the factor.
 
 The learning rate controls how much each weak learner contributes to the final ensemble. A larger learning rate makes the model change more aggressively at each iteration, while a smaller learning rate produces more gradual updates.
 
 In practice, smaller learning rates are often combined with a larger number of estimators.
+:::
+
+
+::: {.callout-note}
+## Margin
+
+
+$yF(x)$ is called the margin of the model $F$ on the observation $(x,y)$. Since AdaBoost uses $\operatorname{sign}\qty{F(x)}$ as the final prediction rule, the margin can be interpreted as a confidence score for the prediction.
+
+- If the margin is positive, the prediction is correct.
+- If the margin is negative, the prediction is incorrect.
+- A larger positive margin indicates a more confident prediction.
+- A margin close to zero indicates uncertainty.
+
+Notice that the observation weight updating formula can be rewritten as
+$$
+w_i^{(m+1)}
+=
+w_i^{(m)}
+\exp\qty(-\alpha_m y_i G_m(x_i)),
+$$
+where $y_i G_m(x_i)$ is exactly the margin of the weak learner $G_m$ on observation $(x_i,y_i)$.
+
+Therefore, AdaBoost increases the weights of observations with small or negative margins and decreases the weights of observations with large positive margins. In this sense, AdaBoost can be viewed as an algorithm that attempts to improve the margin distribution by pushing margins toward larger positive values.
+
+Margin theory is one of the central ideas in boosting and helps explain why boosting methods often continue to improve test performance even after the training error has already reached zero. We will discuss this topic in more detail later.
+
 :::
 
 
@@ -273,6 +301,9 @@ Consequently, we will focus primarily on the original AdaBoost classifier as an 
 
 
 ### The Margin Effect of AdaBoost
+
+
+
 
 AdaBoost is often explained as an algorithm that reduces training error. However, its behavior is more subtle than that.
 
@@ -659,6 +690,3403 @@ AdaBoost can be sensitive to mislabeled observations and outliers.
 
 Because it repeatedly increases the weights of difficult observations, noisy points may receive too much attention.
 :::
+
+
+
+
+
+
+
+## Gradient Boosting: Optimization View
+
+
+The core idea of boosting is to sequentially train models in order to correct the errors made by earlier models. A natural idea is therefore:
+
+1. fit a model
+2. compute the residuals
+3. fit a new model to the residuals
+4. repeat
+
+This idea leads directly to **Gradient Boosting**.
+
+In this section we mainly consider regression problems first.
+
+
+### Additive model
+
+Gradient Boosting builds an additive model of the form
+
+$$
+F_M(x) = \sum_{m=1}^M \beta_m h_m(x)
+$$
+
+where
+
+- $h_m(x)$ is usually a small regression tree
+- $\beta_m$ is a coefficient
+- the model is built sequentially
+
+
+Unlike bagging, where trees are trained independently, boosting trains each new tree based on the current errors of the model.
+
+
+
+### Optimization viewpoint
+
+Suppose we want to minimize the empirical loss
+
+$$
+L(F)=\sum_{i=1}^n l(y_i,F(x_i)),
+$$
+
+where $\qty{(x_i,y_i)}$ is the training dataset.
+
+Assume the current model is $F_m(x)$. After adding a new tree $f_m(x)$, the next model becomes
+
+$$
+F_{m+1}(x)=F_m(x)+f_m(x).
+$$
+
+The new tree $f_m(x)$ is chosen to reduce the loss function as much as possible.
+
+
+
+### Gradient Boosting and pseudo-residuals
+
+To understand how to choose $f_m(x)$, consider the first-order Taylor expansion
+$$
+l(y_i,F_m(x_i)+f_m(x_i))\approx l(y_i,F_m(x_i))+g_i f_m(x_i),
+$$
+where
+$$
+g_i=\left.\frac{\partial l(y_i,F(x_i))}{\partial F(x_i)}\right|_{F=F_m}.
+$$
+
+This is a linear approximation of the loss function around the current model.
+
+To reduce the loss most rapidly, we move in the negative gradient direction. Therefore we define the pseudo-residual
+
+$$
+r_i=-g_i=-\left.
+\frac{\partial l(y_i,F(x_i))}
+{\partial F(x_i)}
+\right|_{F=F_m}.
+$$
+
+The pseudo-residual plays the role of the "error signal" that the next tree should fit.
+
+Therefore, Gradient Boosting trains a regression tree using $r_i$ as the target values (with more details discussed in the next section).
+
+
+### Regression tree fitting
+
+
+In order to find the best model $F(x)$, we would like to minimize the empirical loss function
+
+$$
+L(F)
+=
+\sum_{i=1}^n l(y_i,F(x_i)),
+$$
+
+where $\{(x_i,y_i)\}$ is the training dataset.
+
+One of the most common choices for the loss function is the squared-error loss
+$$
+L(F)
+=
+\sum_{i=1}^n
+(y_i-F(x_i))^2.
+$$
+
+Assume the current model is $F_m(x)$. After adding a new tree $f_m(x)$, the next model becomes
+
+$$
+F_{m+1}(x)
+=
+F_m(x)+f_m(x).
+$$
+
+The new tree $f_m(x)$ is chosen to reduce the loss function as much as possible.
+
+
+
+Now consider the first-order Taylor expansion of the loss function:
+
+$$
+l(y_i,F_m(x_i)+f_m(x_i))
+\approx
+l(y_i,F_m(x_i))
++
+g_i f_m(x_i),
+$$
+
+where
+
+$$
+g_i
+=
+\left.
+\frac{\partial l(y_i,F_m(x_i))}
+{\partial F_m(x_i)}
+\right|_{F=F_m}.
+$$
+
+This gives a linear approximation of the loss function in terms of the update $f_m(x_i)$.
+
+Since the first-order Taylor approximation is linear, the negative gradient gives the direction of steepest descent. Therefore we define the pseudo-residual
+
+$$
+r_i
+=
+-g_i
+=
+-
+\left.
+\frac{\partial l(y_i,F(x_i))}
+{\partial F(x_i)}
+\right|_{F=F_m}.
+$$
+
+The pseudo-residual plays the role of the error signal that the next tree should fit.
+
+
+
+Assume that the new tree splits the dataset into regions $R_1,\ldots,R_s$, and for each region $R_j$ a value $s_j$ is assigned. We would like the tree to approximate the pseudo-residuals $r_i$. Therefore we choose the tree to minimize
+
+$$
+\sum_{j=1}^s
+\sum_{x_i\in R_j}
+(r_i-s_j)^2.
+$$
+
+For a fixed region $R_j$, the optimal value of $s_j$ is the mean of the observations inside that region:
+
+$$
+s_j
+=
+\frac{1}{|R_j|}
+\sum_{x_i\in R_j} r_i.
+$$
+
+Therefore, the new tree $f_m(x)$ is simply a regression tree (trained using RSS) with target values $r_i$.
+
+
+
+::: {.callout-note}
+## Pseudo-residual
+
+$r_i$ is called a *pseudo-residual* because it is technically a negative gradient rather than an ordinary residual. However, it plays the role of the residual in Gradient Boosting.
+
+For squared-error loss
+
+$$
+l(y,F(x))
+=
+(y-F(x))^2,
+$$
+
+we have
+
+$$
+r_i
+=
+2(y_i-F_m(x_i)),
+$$
+
+which is proportional to the ordinary residual.
+
+Therefore, under $L^2$ loss, Gradient Boosting can literally be interpreted as fitting residuals.
+:::
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+### Regression tree fitting
+
+
+Assume the new tree partitions the dataset into regions $R_1,\ldots,R_s,$ and assigns prediction value $s_j$ to region $R_j$.
+
+To fit the pseudo-residuals, we minimize the residual sum of squares
+$$
+\sum_{x_i\in R_j}(r_i-s_j)^2.
+$$
+
+For a fixed region $R_j$, the optimal prediction value is the mean:
+
+$$
+s_j
+=
+\frac1{|R_j|}
+\sum_{x_i\in R_j} r_i.
+$$
+
+Therefore, the new tree is simply an ordinary CART regression tree trained on the pseudo-residuals.
+
+
+
+::: {.callout-note}
+## Pseudo-residual
+
+$r_i$ is called a *pseudo-residual* because it is technically a negative gradient rather than an ordinary residual.
+
+For squared-error loss
+
+$$
+l(y,F(x))
+=
+(y-F(x))^2,
+$$
+
+we have
+
+$$
+r_i
+=
+2(y_i-F_m(x_i)),
+$$
+
+which is proportional to the ordinary residual.
+
+Therefore, under $L^2$ loss, Gradient Boosting can literally be interpreted as fitting residuals.
+::: -->
+
+
+
+
+
+
+
+
+
+<!-- 
+
+
+
+
+
+In order to find the best model $F(x)$, we would like to minimize the loss function
+$$
+l(y,F(x))=\sum l(y_i,F(x_i))
+$$
+where $\qty{(x_i,y_i)}$ is the training dataset. The most straightforward loss function is the squared error loss
+
+$$
+L(y,F(x))
+=
+\sum (y_i-F(x_i))^2.
+$$
+
+Assume the current model is $F_m(x)$. After adding a new tree $f_m(x)$ we will have the next model 
+$$
+F_{m+1}(x)=F_m(x)+f_m(x).
+$$
+This new tree $f_m(x)$ is meant to reduce the loss function. 
+
+Now consider the 1st order Taylor expansion of the loss function
+$$
+l(y_i,F_{m+1}(x_i))=l(y_i,F_{m}(x_i)+f_m(x_i))\approx l(y_i,F_m(x_i))+g_if_m(x_i)
+$$
+where 
+$$
+g_i=\pdv{l(y_i,f_{m}(x_i))}{f_m(x_i)}.
+$$
+
+We would like to find the best tree $f_m(x)$ such that it can reduce the loss the most. Since we approx the loss function by its 1st order Taylor expansion, which is a linear function, the best direction is supposed to be given by the graident. 
+
+Therefore we set the pseduo-residual
+$$
+r_i=-g_i=-\pdv{l(y_i,f_{m}(x_i))}{f_m(x_i)}.
+$$
+This is supposed to be the direction to reduce the loss the most. 
+
+
+Assume that the new tree split the dataset into $R_1,\ldots,R_s$ regions, and for each region $R_j$ a value $s_j$ is assigned. We would like the tree to approximate the pseduo-residual $r_i$. Therefore we want to choose the tree to mimimize
+$$
+\sum_{x_i\text{ is in }R_j}(r_i-s_j)^2.
+$$
+For each $x_i\in R_j$, the best $s_j$ to minimize the RSS is the mean of all relevenet observations.
+$$
+s_j=\frac{1}{\abs{R_j}}\sum_{x_i\in R_j} r_i.
+$$
+Therefore this tree $f_m(x)$ is the regression tree (trained with RSS) with target $r_i$ for each $i$.
+
+
+
+::: {.callout-note}
+## Pseudo-residual
+
+$r_i$ is called pseudo-residual since it is the first derviative, not the residual, but it plays the role of the residual.
+
+In case of $L^2$-loss, that $l(y, f(x))=(y-f(x))^2$, $r(x)=-2(y-f(x))$, which is the real residual (up to a scaler). In this case we can really say that GBDT is to use trees to fit residuals.
+::: -->
+
+
+### XGBoost: initial idea
+
+XGBoost stands for extrem gradient boost. Its math part is a modified version of GBDT. It is a very popular model in the shallow machine learning world. Other than its math, It also has many innovations in engineerings. After the success of XGBoost, more similar models like LightBoost or CatBoost came out and all are popular in the modern world.
+
+In this lecture we only focus on the math part of XGBoost as an introduction to this topic.
+
+The motivation is very similar to GBDT. We are considering an additive model 
+$$
+F_{m+1}(x)=F_m(x)+f_m(x).
+$$
+and want to minimize the loss function
+$$
+l(y,F(x))=\sum l(y_i,F(x_i)).
+$$
+
+Assume the current model is $F_m(x)$. After adding a new tree $f_m(x)$ to get $F_{m+1}(x)=F_m(x)+f_m(x)$, we consider the 2nd order Taylor expansion of the loss function
+$$
+l(y_i,F_{m+1}(x_i))=l(y_i,F_{m}(x_i)+f_m(x_i))\approx l(y_i,F_m(x_i))+g_if_m(x_i)+\frac12h_if_m(x_i)^2
+$$
+where 
+$$
+g_i=\pdv{l(y_i,f_{m}(x_i))}{f_m(x_i)},\quad h_i=\left.\frac{\partial^2 l(y_i,f_m(x_i))}{\partial (f_m(x_i))^2}
+\right|_{F=F_{t-1}}.
+$$
+2nd order Taylor expansion is to use a quadratic function to approximate the original function. To minimize the loss function, we don't need to find the fastest direction based on the gradient. We could directly find the lowest point due to the quadratic function. As a function of $f=f_m(x_i)$, the derivate of the function $g_if+\frac12 h_if^2$ is $g_i+h_if$, and the critical point (which is supposed to be the lowest point) is 
+$$
+w_i=-\frac{g_i}{h_i}.
+$$
+This is the best point if the loss is a perfect quadratic function. This is the result of our additive models, and we would like to use a tree model to approximate these numbers.
+
+Now here is the tricky part. Assume that the new tree split the dataset into $R_1,\ldots,R_s$ regions, and for each region $R_j$ a value $s_j$ is assigned. We would like the tree to approximate $w_i$. Therefore we want to choose the tree to mimimize
+$$
+\sum_{x_i\in R_j}(g_is_j+\frac12 h_is_j^2)^2.
+$$
+For each $x_i\in R_j$, the best $s_j$ to minimize the above formula is 
+$$
+s_j=-\frac{\sum_{x_i\in R_j} g_i}{\sum_{x_i\in R_j} h_i}.
+$$
+If we let $\sum_{x_i\in R_j} g_i=G_j$, $\sum_{x_i\in R_j} h_i=H_j$, we have
+$$
+s_j=-\frac{G_j}{H_j}.
+$$
+This will create a tree. However this tree is NOT a tree trained by CART with target $s_j$. Its prediction formula is different.
+
+We discussed this algorithm, we still say that we train a tree model to approximate $g_i$ and $h_i$. However it is important that the tree is different from the regular CART trees that we kept talking about.
+
+
+### XGBoost: regularization
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The residuals are
+
+$$
+r_i
+=
+y_i-F_m(x_i).
+$$
+
+A natural idea is:
+
+1. compute residuals
+2. fit a new tree to residuals
+3. add this tree to the model
+
+Thus we update the model by
+
+$$
+F_{m+1}(x)
+=
+F_m(x)
++
+\eta h_m(x)
+$$
+
+where
+
+- $h_m(x)$ predicts the residuals
+- $\eta$ is the learning rate
+
+This already gives the basic intuition of boosting:
+
+> each new tree tries to correct the remaining errors of the current model.
+
+---
+
+## From residuals to gradients
+
+The residual fitting idea works naturally for squared error loss. However, for more general loss functions, ordinary residuals are no longer appropriate.
+
+Instead, Gradient Boosting uses the negative gradient of the loss function.
+
+Suppose the total loss is
+
+$$
+\mathcal L
+=
+\sum_{i=1}^n
+\ell(y_i,F(x_i)).
+$$
+
+At iteration $m$, the pseudo-residuals are defined as
+
+$$
+r_{im}
+=
+-
+\frac{
+\partial \ell(y_i,F(x_i))
+}{
+\partial F(x_i)
+}
+\Bigg|_{F=F_m}.
+$$
+
+The algorithm becomes:
+
+1. compute pseudo-residuals
+2. fit a tree to pseudo-residuals
+3. update the model
+
+Therefore the update direction is the direction of steepest decrease of the loss function.
+
+Thus Gradient Boosting can be viewed as
+
+> gradient descent in function space.
+
+This is why the method is called *Gradient Boosting*.
+
+---
+
+## Why squared error gives ordinary residuals
+
+For squared error loss,
+
+$$
+\ell(y,F(x))
+=
+(y-F(x))^2,
+$$
+
+we compute
+
+$$
+\frac{\partial \ell}{\partial F(x)}
+=
+-2(y-F(x)).
+$$
+
+Therefore
+
+$$
+-
+\frac{\partial \ell}{\partial F(x)}
+=
+2(y-F(x)).
+$$
+
+Up to a constant factor, the negative gradient is exactly the residual:
+
+$$
+r_i
+=
+y_i-F(x_i).
+$$
+
+Thus ordinary residual fitting is a special case of gradient boosting.
+
+---
+
+## Learning rate and shrinkage
+
+The parameter $\eta$ is called the learning rate or shrinkage parameter.
+
+The update becomes
+
+$$
+F_{m+1}(x)
+=
+F_m(x)
++
+\eta h_m(x).
+$$
+
+Smaller values of $\eta$:
+
+- make learning slower
+- usually require more trees
+- often improve generalization
+- reduce overfitting risk
+
+In practice, boosting often works best with:
+
+- small learning rate
+- many shallow trees
+
+---
+
+## Why shallow trees are commonly used
+
+Boosting usually uses shallow trees, often with depth between 1 and 8.
+
+There are several reasons:
+
+- shallow trees are weak learners
+- weak learners reduce overfitting
+- small trees are computationally efficient
+- additive combinations of many small trees can still create highly complex decision boundaries
+
+A depth-1 tree is called a decision stump. AdaBoost commonly uses stumps.
+
+Larger trees can model more complicated interactions, but they also increase the risk of overfitting.
+
+---
+
+# AdaBoost, GBDT and XGBoost
+
+With the optimization viewpoint, AdaBoost, Gradient Boosting, and XGBoost can be understood within one unified framework.
+
+All three methods:
+
+- build additive models
+- train models sequentially
+- reduce errors stage-by-stage
+- combine many weak learners
+
+However, they differ in how the optimization problem is formulated.
+
+---
+
+## AdaBoost
+
+AdaBoost was originally developed for classification problems.
+
+Instead of directly fitting residuals, AdaBoost increases the weights of misclassified observations.
+
+At iteration $m$:
+
+1. fit a weak classifier
+2. increase weights on difficult observations
+3. decrease weights on easy observations
+4. combine classifiers using weighted voting
+
+The final model is
+
+$$
+F_M(x)
+=
+\sum_{m=1}^M
+\alpha_m h_m(x).
+$$
+
+Later research showed that AdaBoost can also be interpreted as minimizing an exponential loss function:
+
+$$
+\ell(y,F(x))
+=
+e^{-yF(x)}.
+$$
+
+This connects AdaBoost to the gradient boosting framework.
+
+---
+
+## GBDT
+
+GBDT usually refers to:
+
+> Gradient Boosted Decision Trees
+
+This is the standard gradient boosting framework where:
+
+- the weak learners are regression trees
+- optimization is performed using first-order gradients
+- arbitrary differentiable loss functions can be used
+
+Typical losses include:
+
+- squared error for regression
+- logistic loss for classification
+- Huber loss for robust regression
+
+GBDT is more general than AdaBoost because it directly formulates boosting as an optimization problem.
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Tree Boosting and XGBoost Training
+
+## Tree Boosting
+
+Suppose our boosted tree model has the form
+
+$$
+F_M(x)
+=
+\sum_{m=1}^M f_m(x),
+$$
+
+where each $f_m(x)$ is a regression tree.
+
+The prediction is obtained by adding together many trees.
+
+Unlike linear regression,
+
+$$
+\hat y
+=
+\beta_0
++
+\sum_{j=1}^p \beta_j x_j,
+$$
+
+boosting does not optimize finitely many parameters directly.
+
+Instead, it optimizes functions.
+
+Each tree contains:
+
+- tree structure
+- split variables
+- split thresholds
+- leaf values
+
+Therefore the optimization problem is much more difficult.
+
+---
+
+# Objective Function
+
+The general objective function is
+
+$$
+\mathcal L
+=
+\sum_{i=1}^n
+l(y_i,\hat y_i)
++
+\sum_{m=1}^M \Omega(f_m),
+$$
+
+where
+
+- $l(y_i,\hat y_i)$ is the training loss
+- $\Omega(f_m)$ is tree regularization
+
+Examples:
+
+- squared error for regression
+- logistic loss for classification
+
+---
+
+# Why Trees Cannot Be Optimized Jointly
+
+For ordinary regression, we optimize a finite-dimensional vector:
+
+$$
+(\beta_0,\beta_1,\dots,\beta_p).
+$$
+
+We can directly compute gradients:
+
+$$
+\frac{\partial \mathcal L}{\partial \beta_j}.
+$$
+
+For trees, however, the parameters include:
+
+- split variables
+- split locations
+- number of leaves
+- leaf predictions
+
+The structure itself is discrete and combinatorial.
+
+Therefore it is essentially impossible to jointly optimize all trees simultaneously.
+
+---
+
+# Additive Training
+
+Boosting uses stagewise additive training.
+
+At iteration $t$:
+
+- previous trees are fixed
+- only one new tree is trained
+
+Define
+
+$$
+\hat y_i^{(t)}
+=
+\sum_{k=1}^t f_k(x_i).
+$$
+
+Then
+
+$$
+\hat y_i^{(t)}
+=
+\hat y_i^{(t-1)}
++
+f_t(x_i).
+$$
+
+So every new tree improves the current model.
+
+---
+
+# What Is Actually Trained?
+
+At step $t$, the ONLY thing being trained is:
+
+$$
+f_t(x).
+$$
+
+The algorithm learns:
+
+- the tree structure
+- the split positions
+- the leaf scores
+
+for the new tree only.
+
+All old trees remain fixed forever.
+
+---
+
+# Residual View for Squared Error
+
+Suppose we use MSE loss:
+
+$$
+l(y_i,\hat y_i)
+=
+(y_i-\hat y_i)^2.
+$$
+
+At iteration $t$:
+
+$$
+\mathcal L^{(t)}
+=
+\sum_{i=1}^n
+\left(
+y_i
+-
+(\hat y_i^{(t-1)} + f_t(x_i))
+\right)^2.
+$$
+
+Define residuals:
+
+$$
+r_i^{(t)}
+=
+y_i-\hat y_i^{(t-1)}.
+$$
+
+Then
+
+$$
+\mathcal L^{(t)}
+=
+\sum_{i=1}^n
+(r_i^{(t)} - f_t(x_i))^2.
+$$
+
+Therefore:
+
+> the new tree is trained to fit the residuals.
+
+This is the original intuition of gradient boosting.
+
+---
+
+# General Loss Functions and Taylor Expansion
+
+For logistic loss or ranking loss, the residual form is no longer simple.
+
+XGBoost uses a second-order Taylor expansion.
+
+At iteration $t$:
+
+$$
+\mathcal L^{(t)}
+=
+\sum_{i=1}^n
+l(y_i,\hat y_i^{(t-1)} + f_t(x_i))
++
+\Omega(f_t).
+$$
+
+Expand around $\hat y_i^{(t-1)}$:
+
+$$
+l(y_i,\hat y_i^{(t-1)} + f_t(x_i))
+\approx
+l(y_i,\hat y_i^{(t-1)})
++
+g_i f_t(x_i)
++
+\frac12 h_i f_t(x_i)^2,
+$$
+
+where
+
+$$
+g_i
+=
+\frac{\partial l(y_i,\hat y_i^{(t-1)})}
+{\partial \hat y_i^{(t-1)}},
+$$
+
+and
+
+$$
+h_i
+=
+\frac{\partial^2 l(y_i,\hat y_i^{(t-1)})}
+{\partial (\hat y_i^{(t-1)})^2}.
+$$
+
+Here:
+
+- $g_i$ = gradient
+- $h_i$ = Hessian
+
+Removing constants gives:
+
+$$
+\tilde{\mathcal L}^{(t)}
+=
+\sum_{i=1}^n
+\left[
+g_i f_t(x_i)
++
+\frac12 h_i f_t(x_i)^2
+\right]
++
+\Omega(f_t).
+$$
+
+This is the optimization objective used by XGBoost.
+
+---
+
+# Important Interpretation
+
+XGBoost does NOT perform ordinary gradient descent on tree parameters.
+
+Instead it alternates between:
+
+1. Compute gradients and Hessians
+2. Build a tree that best fits them
+3. Compute optimal leaf values analytically
+4. Add the tree to the ensemble
+
+So XGBoost combines:
+
+- functional gradient descent
+- greedy tree construction
+
+---
+
+# Explicit Mathematical Example of XGBoost Training
+
+We now go through a complete simplified example.
+
+Suppose we have the dataset:
+
+| x | y |
+|---|---|
+| 1 | 2 |
+| 2 | 4 |
+| 3 | 5 |
+| 4 | 8 |
+
+We use:
+
+- squared error loss
+- one-level regression trees (decision stumps)
+
+---
+
+# Step 0: Initial Prediction
+
+For squared error, the best constant prediction is the mean:
+
+$$
+\hat y^{(0)}
+=
+\frac{2+4+5+8}{4}
+=
+4.75.
+$$
+
+So initially:
+
+| x | y | prediction |
+|---|---|---|
+| 1 | 2 | 4.75 |
+| 2 | 4 | 4.75 |
+| 3 | 5 | 4.75 |
+| 4 | 8 | 4.75 |
+
+---
+
+# Step 1: Compute Gradients
+
+For squared error:
+
+$$
+l(y,\hat y)
+=
+\frac12(y-\hat y)^2.
+$$
+
+Then
+
+$$
+g_i
+=
+\frac{\partial l}{\partial \hat y_i}
+=
+\hat y_i-y_i.
+$$
+
+Thus:
+
+| x | y | prediction | gradient |
+|---|---|---|---|
+|1|2|4.75|2.75|
+|2|4|4.75|0.75|
+|3|5|4.75|-0.25|
+|4|8|4.75|-3.25|
+
+For squared loss:
+
+$$
+h_i = 1.
+$$
+
+---
+
+# Step 2: Train a Tree on the Gradients
+
+The tree tries to separate positive and negative gradients.
+
+A natural split is:
+
+$$
+x < 2.5.
+$$
+
+This creates two leaves:
+
+- Left leaf: points 1 and 2
+- Right leaf: points 3 and 4
+
+---
+
+# Step 3: Compute Optimal Leaf Values
+
+For XGBoost, the optimal leaf weight is
+
+$$
+w^*
+=
+-\frac{\sum g_i}{\sum h_i+\lambda}.
+$$
+
+Suppose $\lambda=0$.
+
+---
+
+## Left Leaf
+
+Gradients:
+
+$$
+2.75 + 0.75 = 3.5.
+$$
+
+Hessians:
+
+$$
+1+1=2.
+$$
+
+Therefore
+
+$$
+w_L
+=
+-\frac{3.5}{2}
+=
+-1.75.
+$$
+
+---
+
+## Right Leaf
+
+Gradients:
+
+$$
+-0.25-3.25=-3.5.
+$$
+
+Hessians:
+
+$$
+2.
+$$
+
+Therefore
+
+$$
+w_R
+=
+-\frac{-3.5}{2}
+=
+1.75.
+$$
+
+---
+
+# Step 4: First Tree
+
+The first tree becomes
+
+$$
+f_1(x)
+=
+\begin{cases}
+-1.75 & x<2.5 \\
+1.75 & x\ge2.5
+\end{cases}
+$$
+
+---
+
+# Step 5: Update Predictions
+
+Suppose learning rate:
+
+$$
+\eta = 0.3.
+$$
+
+Then:
+
+$$
+\hat y^{(1)}
+=
+\hat y^{(0)}
++
+0.3 f_1(x).
+$$
+
+Predictions become:
+
+| x | old pred | tree output | new pred |
+|---|---|---|---|
+|1|4.75|-1.75|4.225|
+|2|4.75|-1.75|4.225|
+|3|4.75|1.75|5.275|
+|4|4.75|1.75|5.275|
+
+Notice:
+
+- low targets were pushed downward
+- high targets were pushed upward
+
+The model improved.
+
+---
+
+# Step 6: Repeat
+
+Now compute new gradients from the updated predictions.
+
+Train another tree.
+
+Add it to the ensemble.
+
+Repeat many times.
+
+Final model:
+
+$$
+F_M(x)
+=
+f_0(x)
++
+\eta\sum_{m=1}^M f_m(x).
+$$
+
+---
+
+# What the Tree Is Actually Learning
+
+At each iteration, the tree learns:
+
+## 1. Which observations currently have large errors
+
+via gradients.
+
+---
+
+## 2. How to partition the feature space
+
+through greedy splitting.
+
+---
+
+## 3. How much correction each region needs
+
+through optimal leaf weights.
+
+---
+
+# Why Hessians Help
+
+Gradient boosting only uses first derivatives.
+
+XGBoost additionally uses second derivatives:
+
+$$
+h_i
+=
+\frac{\partial^2 l}{\partial \hat y_i^2}.
+$$
+
+This gives local curvature information.
+
+It behaves similarly to Newton's method:
+
+$$
+\text{new step}
+\approx
+-\frac{\text{gradient}}{\text{curvature}}.
+$$
+
+Therefore XGBoost is often:
+
+- faster
+- more stable
+- more accurate
+
+than ordinary gradient boosting.
+
+---
+
+
+
+
+
+
+
+
+
+# GBDT and XGBoost from the Same Taylor Expansion View
+
+At boosting step $t$, suppose the current model is
+
+$$
+F_{t-1}(x).
+$$
+
+We add one new tree
+
+$$
+f_t(x),
+$$
+
+so the updated model is
+
+$$
+F_t(x)
+=
+F_{t-1}(x)
++
+f_t(x).
+$$
+
+The step-$t$ objective is
+
+$$
+\mathcal L^{(t)}
+=
+\sum_{i=1}^n
+l\left(y_i,F_{t-1}(x_i)+f_t(x_i)\right).
+$$
+
+The question is:
+
+> What should the new tree $f_t$ fit?
+
+---
+
+# 1. GBDT: First-Order Taylor Approximation
+
+For GBDT, use the first-order Taylor expansion:
+
+$$
+l\left(y_i,F_{t-1}(x_i)+f_t(x_i)\right)
+\approx
+l\left(y_i,F_{t-1}(x_i)\right)
++
+g_i f_t(x_i),
+$$
+
+where
+
+$$
+g_i
+=
+\left.
+\frac{\partial l(y_i,F(x_i))}
+{\partial F(x_i)}
+\right|_{F=F_{t-1}}.
+$$
+
+The first term
+
+$$
+l\left(y_i,F_{t-1}(x_i)\right)
+$$
+
+does not depend on the new tree $f_t$, so it is a constant. After removing constants, we get
+
+$$
+\tilde{\mathcal L}^{(t)}
+\approx
+\sum_{i=1}^n
+g_i f_t(x_i).
+$$
+
+This expression tells us the direction in which the loss changes.
+
+To decrease the loss, we want
+
+$$
+f_t(x_i)
+$$
+
+to go in the opposite direction of $g_i$.
+
+Thus the desired value is
+
+$$
+f_t(x_i)
+\approx
+-g_i.
+$$
+
+Define the pseudo-residual
+
+$$
+r_i^{(t)}
+=
+-g_i
+=
+-
+\left.
+\frac{\partial l(y_i,F(x_i))}
+{\partial F(x_i)}
+\right|_{F=F_{t-1}}.
+$$
+
+Therefore GBDT trains the new tree by fitting
+
+$$
+(x_i,r_i^{(t)}).
+$$
+
+That is,
+
+$$
+f_t
+\approx
+\arg\min_f
+\sum_{i=1}^n
+\left(
+r_i^{(t)}-f(x_i)
+\right)^2.
+$$
+
+So in GBDT:
+
+$$
+\boxed{
+\text{new tree fits } -g_i
+}
+$$
+
+---
+
+# 2. XGBoost: Second-Order Taylor Approximation
+
+XGBoost uses a second-order Taylor expansion:
+
+$$
+l\left(y_i,F_{t-1}(x_i)+f_t(x_i)\right)
+\approx
+l\left(y_i,F_{t-1}(x_i)\right)
++
+g_i f_t(x_i)
++
+\frac12 h_i f_t(x_i)^2,
+$$
+
+where
+
+$$
+g_i
+=
+\left.
+\frac{\partial l(y_i,F(x_i))}
+{\partial F(x_i)}
+\right|_{F=F_{t-1}},
+$$
+
+and
+
+$$
+h_i
+=
+\left.
+\frac{\partial^2 l(y_i,F(x_i))}
+{\partial F(x_i)^2}
+\right|_{F=F_{t-1}}.
+$$
+
+After removing constants, the approximate objective is
+
+$$
+\tilde{\mathcal L}^{(t)}
+=
+\sum_{i=1}^n
+\left[
+g_i f_t(x_i)
++
+\frac12 h_i f_t(x_i)^2
+\right]
++
+\Omega(f_t).
+$$
+
+XGBoost uses tree regularization
+
+$$
+\Omega(f_t)
+=
+\gamma T
++
+\frac12\lambda\sum_{j=1}^T w_j^2,
+$$
+
+where
+
+- $T$ is the number of leaves
+- $w_j$ is the value of leaf $j$
+- $\gamma$ penalizes the number of leaves
+- $\lambda$ penalizes large leaf values
+
+Suppose the new tree has leaves
+
+$$
+R_1,\dots,R_T.
+$$
+
+For $x_i\in R_j$,
+
+$$
+f_t(x_i)=w_j.
+$$
+
+Plug this into the objective:
+
+$$
+\tilde{\mathcal L}^{(t)}
+=
+\sum_{j=1}^T
+\sum_{i\in R_j}
+\left[
+g_i w_j
++
+\frac12 h_i w_j^2
+\right]
++
+\gamma T
++
+\frac12\lambda\sum_{j=1}^T w_j^2.
+$$
+
+Group terms by leaf:
+
+$$
+\tilde{\mathcal L}^{(t)}
+=
+\sum_{j=1}^T
+\left[
+\left(\sum_{i\in R_j}g_i\right)w_j
++
+\frac12
+\left(\sum_{i\in R_j}h_i\right)w_j^2
++
+\frac12\lambda w_j^2
+\right]
++
+\gamma T.
+$$
+
+Define
+
+$$
+G_j
+=
+\sum_{i\in R_j}g_i,
+$$
+
+and
+
+$$
+H_j
+=
+\sum_{i\in R_j}h_i.
+$$
+
+Then
+
+$$
+\tilde{\mathcal L}^{(t)}
+=
+\sum_{j=1}^T
+\left[
+G_jw_j
++
+\frac12(H_j+\lambda)w_j^2
+\right]
++
+\gamma T.
+$$
+
+Now minimize with respect to $w_j$:
+
+$$
+\frac{\partial}{\partial w_j}
+\left[
+G_jw_j
++
+\frac12(H_j+\lambda)w_j^2
+\right]
+=
+G_j+(H_j+\lambda)w_j.
+$$
+
+Set derivative equal to zero:
+
+$$
+G_j+(H_j+\lambda)w_j=0.
+$$
+
+Therefore
+
+$$
+w_j^*
+=
+-\frac{G_j}{H_j+\lambda}.
+$$
+
+That is,
+
+$$
+\boxed{
+w_j^*
+=
+-\frac{\sum_{i\in R_j}g_i}
+{\sum_{i\in R_j}h_i+\lambda}
+}
+$$
+
+So in XGBoost:
+
+$$
+\boxed{
+\text{new tree uses } g_i,h_i
+\text{ and assigns Newton-style leaf values}
+}
+$$
+
+---
+
+# 3. Same Logic, Different Taylor Order
+
+Both methods start from
+
+$$
+\mathcal L^{(t)}
+=
+\sum_{i=1}^n
+l\left(y_i,F_{t-1}(x_i)+f_t(x_i)\right).
+$$
+
+GBDT uses
+
+$$
+l(y,F+f)
+\approx
+l(y,F)+gf.
+$$
+
+Therefore it follows the negative gradient:
+
+$$
+f_t(x_i)\approx -g_i.
+$$
+
+XGBoost uses
+
+$$
+l(y,F+f)
+\approx
+l(y,F)+gf+\frac12hf^2.
+$$
+
+Therefore it solves a local quadratic problem:
+
+$$
+\min_w
+G_jw+\frac12(H_j+\lambda)w^2,
+$$
+
+which gives
+
+$$
+w_j^*
+=
+-\frac{G_j}{H_j+\lambda}.
+$$
+
+---
+
+# 4. Interpretation
+
+GBDT asks:
+
+$$
+\text{Which direction decreases the loss?}
+$$
+
+Answer:
+
+$$
+-g_i.
+$$
+
+XGBoost asks:
+
+$$
+\text{Using both direction and curvature, what is the best local step?}
+$$
+
+Answer:
+
+$$
+-\frac{G_j}{H_j+\lambda}.
+$$
+
+So the relationship is:
+
+$$
+\boxed{
+\text{GBDT is first-order boosting}
+}
+$$
+
+$$
+\boxed{
+\text{XGBoost is second-order/Newton boosting}
+}
+$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+After removing constants independent of $f_t$, we get
+
+$$
+\tilde{\mathcal L}^{(t)}
+\approx
+\sum_{i=1}^n
+g_i f_t(x_i).
+$$
+
+Since we want to decrease the loss, the desired direction is
+
+$$
+-f_t(x_i)
+\approx
+g_i,
+$$
+
+
+
+
+
+
+---
+
+
+
+# Function Space View
+
+Boosting can be viewed as optimization in function space.
+
+The model evolves as
+
+$$
+F_t(x)
+=
+F_{t-1}(x)
++
+f_t(x).
+$$
+
+We are not directly updating finite-dimensional parameters like:
+
+$$
+\beta_j
+\leftarrow
+\beta_j
+-
+\eta
+\frac{\partial L}{\partial \beta_j}.
+$$
+
+Instead we update the predictor itself by adding functions.
+
+The basis functions are trees.
+
+Since there are infinitely many possible trees, this is viewed as an infinite-dimensional optimization problem.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+## GBDT and Taylor Approximation
+
+GBDT means **Gradient Boosted Decision Trees**.
+
+The model has the additive form
+
+$$
+F_M(x)
+=
+\sum_{m=1}^M \eta f_m(x),
+$$
+
+where each $f_m(x)$ is a regression tree and $\eta$ is the learning rate.
+
+The main idea is:
+
+> At each step, we add a new tree that reduces the current loss as much as possible.
+
+---
+
+## 1. The objective function
+
+Suppose we have data
+
+$$
+(x_1,y_1),\dots,(x_n,y_n).
+$$
+
+At iteration $m$, the current model is
+
+$$
+F_{m-1}(x).
+$$
+
+The current prediction for observation $i$ is
+
+$$
+\hat y_i^{(m-1)}
+=
+F_{m-1}(x_i).
+$$
+
+We want to add a new tree $f_m(x)$, so the new prediction becomes
+
+$$
+\hat y_i^{(m)}
+=
+\hat y_i^{(m-1)} + f_m(x_i).
+$$
+
+The new objective is
+
+$$
+\mathcal L^{(m)}
+=
+\sum_{i=1}^n
+\ell
+\left(
+y_i,
+\hat y_i^{(m-1)} + f_m(x_i)
+\right).
+$$
+
+So the key question is:
+
+> How should we choose the next tree $f_m$?
+
+---
+
+## 2. First-order idea: fit the negative gradient
+
+For a general loss function, ordinary residuals may not be enough.
+
+So GBDT uses the negative gradient of the loss.
+
+Define
+
+$$
+g_i
+=
+\frac{
+\partial \ell(y_i,\hat y_i)
+}{
+\partial \hat y_i
+}
+\Bigg|_{\hat y_i=\hat y_i^{(m-1)}}.
+$$
+
+Then the negative gradient is
+
+$$
+-g_i.
+$$
+
+GBDT fits the next tree to
+
+$$
+-g_i.
+$$
+
+That is, the new tree $f_m(x)$ is trained to approximate the negative gradient values
+
+$$
+-g_1,\dots,-g_n.
+$$
+
+This is why GBDT is called **gradient boosting**.
+
+---
+
+## 3. Why residuals are gradients for squared error
+
+For squared error loss,
+
+$$
+\ell(y,\hat y)
+=
+\frac12 (y-\hat y)^2.
+$$
+
+Then
+
+$$
+g_i
+=
+\frac{\partial}{\partial \hat y_i}
+\frac12 (y_i-\hat y_i)^2
+=
+\hat y_i-y_i.
+$$
+
+Therefore
+
+$$
+-g_i
+=
+y_i-\hat y_i.
+$$
+
+So for squared error loss, the negative gradient is exactly the residual.
+
+That means:
+
+> fitting residuals is a special case of fitting negative gradients.
+
+---
+
+## 4. Taylor polynomial idea
+
+The Taylor polynomial is used to approximate a complicated loss function by a simpler expression around the current prediction.
+
+At iteration $m$, we already know the current prediction
+
+$$
+\hat y_i^{(m-1)}.
+$$
+
+We want to understand what happens if we add a small correction
+
+$$
+f_m(x_i).
+$$
+
+So we approximate
+
+$$
+\ell
+\left(
+y_i,
+\hat y_i^{(m-1)} + f_m(x_i)
+\right)
+$$
+
+around
+
+$$
+\hat y_i^{(m-1)}.
+$$
+
+Let
+
+$$
+\Delta_i = f_m(x_i).
+$$
+
+Then Taylor expansion gives
+
+$$
+\ell(y_i,\hat y_i^{(m-1)}+\Delta_i)
+\approx
+\ell(y_i,\hat y_i^{(m-1)})
++
+g_i \Delta_i
++
+\frac12 h_i \Delta_i^2,
+$$
+
+where
+
+$$
+g_i
+=
+\frac{
+\partial \ell(y_i,\hat y_i)
+}{
+\partial \hat y_i
+}
+\Bigg|_{\hat y_i=\hat y_i^{(m-1)}}
+$$
+
+and
+
+$$
+h_i
+=
+\frac{
+\partial^2 \ell(y_i,\hat y_i)
+}{
+\partial \hat y_i^2
+}
+\Bigg|_{\hat y_i=\hat y_i^{(m-1)}}.
+$$`
+
+Here:
+
+- $g_i$ is the first derivative
+- $h_i$ is the second derivative
+- $\Delta_i=f_m(x_i)$ is the correction made by the new tree
+
+---
+
+## 5. What the Taylor expansion means
+
+The loss after adding the new tree is approximately
+
+$$
+\mathcal L^{(m)}
+\approx
+\sum_{i=1}^n
+\left[
+\ell(y_i,\hat y_i^{(m-1)})
++
+g_i f_m(x_i)
++
+\frac12 h_i f_m(x_i)^2
+\right].
+$$
+
+The first term
+
+$$
+\ell(y_i,\hat y_i^{(m-1)})
+$$
+
+does not depend on the new tree $f_m$.
+
+So when choosing $f_m$, we can ignore it.
+
+Therefore, the approximate objective becomes
+
+$$
+\widetilde{\mathcal L}^{(m)}
+=
+\sum_{i=1}^n
+\left[
+g_i f_m(x_i)
++
+\frac12 h_i f_m(x_i)^2
+\right].
+$$
+
+This is the key point:
+
+> Taylor expansion turns the problem of minimizing the original loss into a simpler quadratic approximation.
+
+---
+
+## 6. First-order GBDT versus second-order GBDT
+
+Classical GBDT mainly uses first-order information:
+
+$$
+g_i.
+$$
+
+It fits the next tree to the negative gradient:
+
+$$
+-g_i.
+$$
+
+XGBoost uses second-order information:
+
+$$
+g_i
+\quad\text{and}\quad
+h_i.
+$$
+
+So XGBoost chooses trees by minimizing the approximate quadratic objective
+
+$$
+\sum_{i=1}^n
+\left[
+g_i f_m(x_i)
++
+\frac12 h_i f_m(x_i)^2
+\right].
+$$
+
+This is why XGBoost is often described as a **second-order gradient boosting method**.
+
+---
+
+## 7. How a tree enters the Taylor approximation
+
+A regression tree partitions the feature space into leaves.
+
+Suppose the tree has $T$ leaves. Each observation is assigned to one leaf.
+
+Let
+
+$$
+q(x_i)
+$$
+
+be the leaf containing $x_i$.
+
+The tree prediction is
+
+$$
+f(x_i)
+=
+w_{q(x_i)},
+$$
+
+where $w_j$ is the prediction value assigned to leaf $j$.
+
+So the tree is determined by:
+
+1. the tree structure $q(x)$
+2. the leaf values $w_1,\dots,w_T$
+
+---
+
+## 8. Objective for one fixed tree structure
+
+For a fixed tree structure, define
+
+$$
+I_j
+=
+\{i:q(x_i)=j\}.
+$$
+
+This is the set of observations in leaf $j$.
+
+The approximate objective is
+
+$$
+\widetilde{\mathcal L}
+=
+\sum_{i=1}^n
+\left[
+g_i f(x_i)
++
+\frac12 h_i f(x_i)^2
+\right].
+$$
+
+Since $f(x_i)=w_j$ for all observations in leaf $j$, we can group terms by leaf:
+
+$$
+\widetilde{\mathcal L}
+=
+\sum_{j=1}^T
+\sum_{i\in I_j}
+\left[
+g_i w_j
++
+\frac12 h_i w_j^2
+\right].
+$$
+
+Define
+
+$$
+G_j
+=
+\sum_{i\in I_j} g_i
+$$
+
+and
+
+$$
+H_j
+=
+\sum_{i\in I_j} h_i.
+$$
+
+Then
+
+$$
+\widetilde{\mathcal L}
+=
+\sum_{j=1}^T
+\left[
+G_j w_j
++
+\frac12 H_j w_j^2
+\right].
+$$
+
+So for each leaf, we only need to optimize
+
+$$
+G_j w_j
++
+\frac12 H_j w_j^2.
+$$
+
+---
+
+## 9. Optimal leaf value
+
+For one leaf, minimize
+
+$$
+G_j w_j
++
+\frac12 H_j w_j^2.
+$$
+
+Take derivative with respect to $w_j$:
+
+$$
+G_j + H_j w_j = 0.
+$$
+
+Therefore
+
+$$
+w_j^*
+=
+-
+\frac{G_j}{H_j}.
+$$
+
+This is the optimal prediction value for leaf $j$ under the second-order approximation.
+
+With $L_2$ regularization, the formula becomes
+
+$$
+w_j^*
+=
+-
+\frac{G_j}{H_j+\lambda}.
+$$
+
+This is one of the most important formulas in XGBoost.
+
+---
+
+## 10. Best score for a leaf
+
+Plugging
+
+$$
+w_j^*
+=
+-
+\frac{G_j}{H_j+\lambda}
+$$
+
+back into the objective gives the best score for leaf $j$:
+
+$$
+-\frac12
+\frac{G_j^2}{H_j+\lambda}.
+$$
+
+So a leaf is good if
+
+$$
+\frac{G_j^2}{H_j+\lambda}
+$$
+
+is large.
+
+Interpretation:
+
+- large $G_j$ means the leaf has strong remaining gradient signal
+- large $H_j$ means the loss is curved strongly there
+- $\lambda$ shrinks the leaf value and stabilizes the model
+
+---
+
+## 11. Split gain
+
+Suppose a leaf is split into a left child and a right child.
+
+Before the split, the score is
+
+$$
+\frac{G^2}{H+\lambda}.
+$$
+
+After the split, the score is
+
+$$
+\frac{G_L^2}{H_L+\lambda}
++
+\frac{G_R^2}{H_R+\lambda}.
+$$
+
+The split gain is
+
+$$
+\text{Gain}
+=
+\frac12
+\left[
+\frac{G_L^2}{H_L+\lambda}
++
+\frac{G_R^2}{H_R+\lambda}
+-
+\frac{G^2}{H+\lambda}
+\right]
+-
+\gamma.
+$$
+
+Here:
+
+- $G_L,H_L$ are the gradient and Hessian sums in the left child
+- $G_R,H_R$ are the gradient and Hessian sums in the right child
+- $G,H$ are the gradient and Hessian sums before the split
+- $\gamma$ penalizes adding a new leaf
+
+A split is useful only if the gain is positive.
+
+---
+
+## 12. Why Taylor approximation is useful
+
+The original problem is hard:
+
+$$
+\min_f
+\sum_{i=1}^n
+\ell(y_i,\hat y_i+f(x_i)).
+$$
+
+The tree $f$ is discrete and nonlinear.
+
+Taylor expansion replaces the loss by a local quadratic approximation:
+
+$$
+\sum_{i=1}^n
+\left[
+g_i f(x_i)
++
+\frac12 h_i f(x_i)^2
+\right].
+$$
+
+This makes tree construction much easier because the quality of a leaf or split can be computed using only:
+
+$$
+G_j=\sum g_i
+$$
+
+and
+
+$$
+H_j=\sum h_i.
+$$
+
+So the whole tree-building process becomes:
+
+1. compute $g_i$ and $h_i$
+2. try possible splits
+3. compute split gain
+4. choose the split with largest gain
+5. repeat
+
+---
+
+## 13. Example: squared error loss
+
+For squared error loss,
+
+$$
+\ell(y,\hat y)
+=
+\frac12(y-\hat y)^2.
+$$
+
+The first derivative is
+
+$$
+g_i
+=
+\hat y_i-y_i.
+$$
+
+The second derivative is
+
+$$
+h_i
+=
+1.
+$$
+
+Therefore
+
+$$
+G_j
+=
+\sum_{i\in I_j}
+(\hat y_i-y_i)
+$$
+
+and
+
+$$
+H_j
+=
+|I_j|.
+$$
+
+The optimal leaf value is
+
+$$
+w_j^*
+=
+-
+\frac{G_j}{H_j}
+=
+\frac{
+\sum_{i\in I_j}(y_i-\hat y_i)
+}{
+|I_j|
+}.
+$$
+
+So for squared error loss, the leaf value is simply the average residual in that leaf.
+
+This matches the ordinary residual-fitting intuition.
+
+---
+
+## 14. Example: logistic loss
+
+For binary classification, we often use logistic loss.
+
+Let
+
+$$
+p_i
+=
+P(y_i=1|x_i).
+$$
+
+The model output is usually a score
+
+$$
+\hat y_i = F(x_i),
+$$
+
+and the probability is
+
+$$
+p_i
+=
+\frac{1}{1+e^{-F(x_i)}}.
+$$
+
+For logistic loss, the derivatives are
+
+$$
+g_i
+=
+p_i-y_i
+$$
+
+and
+
+$$
+h_i
+=
+p_i(1-p_i).
+$$
+
+Thus the new tree is built using:
+
+$$
+G_j
+=
+\sum_{i\in I_j}(p_i-y_i)
+$$
+
+and
+
+$$
+H_j
+=
+\sum_{i\in I_j}p_i(1-p_i).
+$$
+
+The optimal leaf value is
+
+$$
+w_j^*
+=
+-
+\frac{
+\sum_{i\in I_j}(p_i-y_i)
+}{
+\sum_{i\in I_j}p_i(1-p_i)+\lambda
+}.
+$$
+
+This is similar to a Newton step for logistic regression.
+
+---
+
+## 15. Big picture
+
+GBDT can be understood in three levels.
+
+### Level 1: residual fitting
+
+For squared error loss, each new tree fits the residuals:
+
+$$
+r_i
+=
+y_i-\hat y_i.
+$$
+
+### Level 2: gradient boosting
+
+For general loss functions, each new tree fits the negative gradient:
+
+$$
+-g_i.
+$$
+
+### Level 3: second-order boosting
+
+XGBoost uses both first and second derivatives:
+
+$$
+g_i
+\quad\text{and}\quad
+h_i.
+$$
+
+Taylor approximation gives a local quadratic objective, allowing the algorithm to compute:
+
+- optimal leaf values
+- split gains
+- regularized tree scores
+
+---
+
+## 16. Summary
+
+::: {.callout-note}
+GBDT builds an additive model of trees. At each step, it adds a new tree to reduce the current loss.
+
+For squared error loss, this means fitting residuals.
+
+For general differentiable losses, this means fitting negative gradients.
+
+XGBoost goes further by using a second-order Taylor approximation of the loss. This converts the original loss into a local quadratic objective, making it possible to compute optimal leaf values and split gains using gradient sums and Hessian sums.
+:::
+
+
+
+---
+
+## XGBoost
+
+XGBoost stands for:
+
+> eXtreme Gradient Boosting
+
+XGBoost extends GBDT with several important improvements.
+
+The major idea is:
+
+> use more advanced optimization and stronger regularization.
+
+---
+
+## Second-order approximation
+
+Standard GBDT uses only first-order gradient information.
+
+XGBoost additionally uses second-order derivatives.
+
+Suppose the objective is
+
+$$
+\mathcal L
+=
+\sum_{i=1}^n
+\ell(y_i,\hat y_i).
+$$
+
+At iteration $m$, XGBoost approximates the loss using a second-order Taylor expansion:
+
+$$
+\ell(y_i,\hat y_i + f(x_i))
+\approx
+\ell(y_i,\hat y_i)
++
+g_i f(x_i)
++
+\frac12 h_i f(x_i)^2
+$$
+
+where
+
+$$
+g_i
+=
+\frac{\partial \ell(y_i,\hat y_i)}{\partial \hat y_i}
+$$
+
+and
+
+$$
+h_i
+=
+\frac{\partial^2 \ell(y_i,\hat y_i)}{\partial \hat y_i^2}.
+$$
+
+Using second-order information often gives:
+
+- faster optimization
+- more accurate split evaluation
+- improved numerical stability
+
+---
+
+## Regularization in XGBoost
+
+XGBoost also places strong emphasis on regularization.
+
+The objective becomes
+
+$$
+\mathcal L
+=
+\sum_{i=1}^n
+\ell(y_i,\hat y_i)
++
+\Omega(f).
+$$
+
+A common regularization term is
+
+$$
+\Omega(f)
+=
+\gamma T
++
+\frac12 \lambda
+\sum_{j=1}^T w_j^2
+$$
+
+where
+
+- $T$ is the number of leaves
+- $w_j$ are leaf weights
+- $\gamma$ penalizes large trees
+- $\lambda$ controls leaf weight shrinkage
+
+This helps:
+
+- reduce overfitting
+- stabilize optimization
+- improve generalization
+
+---
+
+## Additional improvements in XGBoost
+
+XGBoost also includes many engineering optimizations:
+
+- parallel computation
+- efficient split search
+- sparse feature handling
+- missing value handling
+- column subsampling
+- row subsampling
+- cache-aware computation
+
+These improvements make XGBoost both:
+
+- statistically powerful
+- computationally efficient
+
+---
+
+## Summary
+
+::: {.callout-note}
+## AdaBoost vs GBDT vs XGBoost
+
+- AdaBoost mainly focuses on reweighting difficult observations.
+- GBDT formulates boosting as gradient descent in function space.
+- XGBoost extends GBDT using second-order optimization and regularization.
+
+All three methods are additive sequential learning algorithms based on weak learners.
+:::
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Gradient Boosting: optimization view
+
+The core idea of boosting is to sequentially train models in order to fix the errors from the earlier versions of the models. Therefore a naive idea is to train models to fit the residuals. This is gradient boosting. In this section we first consider regression problems.
+
+
+
+Gradient boosting builds a model of the form
+
+$$
+F_M(x)
+=
+\sum_{m=1}^M \beta_m h_m(x)
+$$
+
+where
+
+- $h_m(x)$ is usually a small regression tree
+- $\beta_m$ is a coefficient
+- the model is built sequentially
+
+
+Suppose we want to minimize squared error loss
+
+$$
+L(y,F(x))
+=
+(y-F(x))^2
+$$
+
+Suppose the current model is $F_m(x)$.
+
+The residuals are
+
+$$
+r_i
+=
+y_i-F_m(x_i)
+$$
+
+A natural idea is:
+
+1. compute residuals
+2. fit a new tree to residuals
+3. add this tree to the model
+
+Then we update
+
+$$
+F_{m+1}(x)
+=
+F_m(x)
++
+\eta h_m(x)
+$$
+
+where
+
+- $h_m(x)$ predicts residuals
+- $\eta$ is the learning rate
+
+This already gives the basic intuition of boosting.
+
+
+Instead of ordinary residuals, we compute the negative gradient of the loss function.
+
+For a general loss function
+
+$$
+\mathcal L
+=
+\sum_{i=1}^n
+\ell(y_i,F(x_i))
+$$
+
+the pseudo-residuals are
+
+$$
+r_{im}
+=
+-
+\frac{
+\partial \ell(y_i,F(x_i))
+}{
+\partial F(x_i)
+}
+\Bigg|_{F=F_m}
+$$
+
+Then we:
+
+1. compute pseudo-residuals
+2. fit a tree to pseudo-residuals
+3. update the model
+
+Thus Gradient Boosting can be viewed as:
+
+> gradient descent in function space.
+
+This is why the method is called *Gradient Boosting*.
+
+### AdaBoost, GBDT and XGBoost
+With the optimization view, we can talk about these models in the same manner.
+
+Adaboost
+
+
+
+GBDT
+
+
+
+XGBoost
+
+
+### More on XGBoost
+
+Other than 2nd order approximation, XGBoost also emphasize on regurization.
+
+
+
+
+<!-- 
+# Gradient Boosting and XGBoost
+
+## Motivation
+
+Bagging and Random Forest mainly reduce variance by averaging many trees. Each tree is built independently using bootstrap samples.
+
+Boosting uses a very different idea.
+
+Instead of building trees independently, boosting builds trees sequentially:
+
+- each new tree tries to improve the mistakes of the current model
+- the final model is an additive combination of many weak learners
+
+The key idea is:
+
+> Build many simple models sequentially so that each new model improves the current prediction.
+
+---
+
+# Additive Model Viewpoint
+
+
+Unlike Random Forests:
+
+- trees are not independent
+- trees are usually shallow
+- later trees depend heavily on earlier trees -->
+
+---
+
+# From Residual Fitting to Gradient Boosting
+
+## Squared Error Regression
+
+
+---
+
+# Functional Gradient Descent
+
+The real breakthrough of Gradient Boosting is that this idea generalizes beyond squared error.
+
+---
+
+# Gradient Boosting Algorithm
+
+## General Procedure
+
+### Step 1: Initialize model
+
+For squared error regression:
+
+$$
+F_0(x)
+=
+\bar y
+$$
+
+### Step 2: Repeat for $m=1,\dots,M$
+
+#### Compute pseudo-residuals
+
+$$
+r_{im}
+=
+-
+\frac{
+\partial \ell(y_i,F(x_i))
+}{
+\partial F(x_i)
+}
+\Bigg|_{F=F_m}
+$$
+
+#### Fit tree $h_m(x)$ to pseudo-residuals
+
+#### Update the model
+
+$$
+F_{m+1}(x)
+=
+F_m(x)
++
+\eta h_m(x)
+$$
+
+### Step 3: Output final model
+
+$$
+F_M(x)
+$$
+
+---
+
+# Why Shallow Trees?
+
+Gradient Boosting usually uses shallow trees:
+
+- depth 1: stumps
+- depth 2--8: common in practice
+
+Small trees behave as weak learners.
+
+This helps:
+
+- regularization
+- stability
+- smoother fitting
+- better generalization
+
+Deep trees can fit residual noise very aggressively.
+
+---
+
+# Why Deep Trees Overfit in Boosting
+
+Boosting already reduces bias very effectively.
+
+Later trees are fitted to increasingly small residual patterns. Eventually many residuals mainly contain noise.
+
+If trees are very deep:
+
+- they can memorize residual noise
+- overfitting accumulates sequentially
+- later trees amplify previous overfitting
+
+This differs from Random Forests.
+
+## Random Forest
+
+Random Forest uses:
+
+- deep high-variance trees
+- averaging to reduce variance
+
+Therefore deep trees are often beneficial.
+
+---
+
+## Boosting
+
+Boosting uses:
+
+- sequential correction
+- additive fitting
+
+Thus:
+
+- deep trees can overfit very quickly
+- shallow trees act as regularization
+
+This is one reason boosting typically prefers shallow trees.
+
+---
+
+# Learning Rate
+
+The learning rate $\eta$ is one of the most important hyperparameters.
+
+The update formula is
+
+$$
+F_{m+1}(x)
+=
+F_m(x)
++
+\eta h_m(x)
+$$
+
+Small $\eta$ means:
+
+- slower learning
+- more trees required
+- often better generalization
+
+Typical values:
+
+- 0.1
+- 0.05
+- 0.01
+
+This is also called *shrinkage*.
+
+---
+
+# Main Hyperparameters
+
+| Hyperparameter | Meaning |
+|---|---|
+| `n_estimators` | number of trees |
+| `learning_rate` | shrinkage size |
+| `max_depth` | tree complexity |
+| `min_samples_leaf` | minimum leaf size |
+| `subsample` | row subsampling |
+| `max_features` | feature subsampling |
+
+---
+
+# Gradient Boosting for Classification
+
+For classification, boosting usually minimizes logistic loss instead of squared error.
+
+Binary logistic loss:
+
+$$
+\ell(y,F)
+=
+\log(1+e^{-yF})
+$$
+
+The final score function $F(x)$ is converted into probabilities using the logistic function:
+
+$$
+p(x)
+=
+\frac{1}{1+e^{-F(x)}}
+$$
+
+Thus boosting naturally produces:
+
+- class labels
+- probabilities
+- confidence scores
+
+---
+
+# Relationship with AdaBoost
+
+AdaBoost can actually be viewed as a special case of Gradient Boosting.
+
+AdaBoost minimizes exponential loss:
+
+$$
+\ell(y,F)
+=
+e^{-yF}
+$$
+
+Gradient Boosting generalizes this idea to arbitrary differentiable loss functions.
+
+Historically, this was an important breakthrough because it unified boosting under optimization theory.
+
+---
+
+# Margin Interpretation
+
+For classification, boosting models produce a score function $F(x)$.
+
+The quantity
+
+$$
+yF(x)
+$$
+
+is called the margin.
+
+- positive margin: correct prediction
+- negative margin: incorrect prediction
+- large positive margin: confident prediction
+
+Margin theory historically helped explain AdaBoost's surprisingly good generalization behavior.
+
+However, in modern boosting practice, the optimization and loss-minimization viewpoint is usually more central than margin theory.
+
+---
+
+# XGBoost
+
+## Main Idea
+
+XGBoost stands for *Extreme Gradient Boosting*.
+
+It is essentially:
+
+> a highly optimized and regularized implementation of gradient boosting trees.
+
+Main improvements include:
+
+- second-order optimization
+- explicit regularization
+- efficient tree construction
+- subsampling
+- sparsity handling
+- parallel implementation
+
+---
+
+# Objective Function
+
+XGBoost minimizes
+
+$$
+\mathcal L
+=
+\sum_{i=1}^n
+\ell(y_i,\hat y_i)
++
+\sum_{m=1}^M
+\Omega(f_m)
+$$
+
+where
+
+- $\ell$ is the loss function
+- $\Omega$ regularizes tree complexity
+
+Regularization may penalize:
+
+- number of leaves
+- leaf weights
+- tree depth
+
+This makes XGBoost more stable than classical boosting.
+
+---
+
+# Second-Order Approximation
+
+Classical Gradient Boosting mainly uses first-order gradients.
+
+XGBoost additionally uses second derivatives.
+
+Using Taylor expansion:
+
+$$
+\ell(y_i,F+h)
+\approx
+\ell(y_i,F)
++
+g_i h
++
+\frac12 h_i h^2
+$$
+
+where
+
+$$
+g_i
+=
+\frac{\partial \ell}{\partial F}
+$$
+
+and
+
+$$
+h_i
+=
+\frac{\partial^2 \ell}{\partial F^2}
+$$
+
+This produces a Newton-style boosting algorithm.
+
+Advantages include:
+
+- faster convergence
+- better optimization
+- more accurate split evaluation
+
+---
+
+# Regularization in XGBoost
+
+Unlike classical boosting, XGBoost explicitly regularizes trees.
+
+Common regularization methods include:
+
+- tree depth penalties
+- leaf penalties
+- shrinkage
+- row subsampling
+- column subsampling
+
+Thus XGBoost combines:
+
+- boosting
+- regularization
+- optimization
+- systems engineering
+
+---
+
+# Why XGBoost Became Popular
+
+XGBoost became extremely successful because it provides:
+
+- strong predictive performance
+- fast computation
+- robust regularization
+- scalable training
+- excellent performance on tabular data
+
+For structured tabular datasets, boosted trees often outperform neural networks.
+
+---
+
+# Additional Aspects to Understand Boosting
+
+## Bias-Variance Perspective
+
+Boosting mainly reduces bias.
+
+- Bagging mainly reduces variance
+- Boosting sequentially improves the fit
+
+Therefore boosting can learn highly complicated nonlinear patterns.
+
+However, aggressive boosting may increase variance.
+
+---
+
+# Why Boosting Can Overfit
+
+Boosting can eventually overfit because:
+
+- later trees may fit noise
+- the additive model becomes increasingly complex
+- sequential fitting amplifies small residual patterns
+
+Important controls include:
+
+- learning rate
+- shallow trees
+- early stopping
+- regularization
+- subsampling
+
+---
+
+# Early Stopping
+
+A common practical strategy is:
+
+1. split a validation set
+2. monitor validation loss
+3. stop when validation performance no longer improves
+
+Early stopping is often extremely important in boosting.
+
+---
+
+# Subsampling
+
+Modern boosting often uses random subsampling.
+
+This is sometimes called *stochastic gradient boosting*.
+
+Advantages include:
+
+- reduced variance
+- improved generalization
+- faster computation
+
+This idea partially bridges boosting and Random Forest concepts.
+
+---
+
+# Comparison: RF vs GB vs XGBoost
+
+| Method | Main Idea |
+|---|---|
+| Random Forest | independent averaging |
+| Gradient Boosting | sequential residual fitting |
+| XGBoost | regularized second-order boosting |
+
+---
+
+# Final Perspective
+
+Modern boosting methods are best understood through:
+
+- additive modeling
+- optimization
+- gradient descent
+- regularization
+
+rather than through the original AdaBoost weight-update interpretation.
+
+This optimization viewpoint unifies:
+
+- AdaBoost
+- Gradient Boosting
+- XGBoost
+- many modern machine learning algorithms
+
+into a common statistical learning framework.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Gradient Boosting
 
