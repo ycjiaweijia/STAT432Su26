@@ -1,0 +1,1198 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "jupyter: stats\n",
+        "---\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {.hidden}\n",
+        "<!-- Constants and basic symbols -->\n",
+        "\n",
+        "$$\n",
+        "\\require{physics}\n",
+        "\\require{braket}\n",
+        "$$\n",
+        "\n",
+        "$$\n",
+        "\\newcommand{\\dl}[1]{{\\hspace{#1mu}\\mathrm d}}\n",
+        "\\newcommand{\\me}{{\\mathrm e}}\n",
+        "% \\newcommand{\\argmin}{\\operatorname{argmin}}\n",
+        "\\newcommand{\\rss}{\\mathrm{RSS}}\n",
+        "\\newcommand{\\ols}{\\mathrm{OLS}}\n",
+        "\\newcommand{\\ridge}{\\mathrm{ridge}}\n",
+        "\\newcommand{\\lasso}{\\mathrm{lasso}}\n",
+        "\\newcommand{\\mle}{\\mathrm{MLE}}\n",
+        "\\newcommand{\\constant}{\\mathrm{constant}}\n",
+        "\\newcommand{\\resid}{\\mathrm{residual}}\n",
+        "\\newcommand{\\span}{\\mathrm{span}}\n",
+        "\\newcommand{\\gini}{\\mathrm{Gini}}\n",
+        "$$\n",
+        "\n",
+        "<!-- Probability -->\n",
+        "\n",
+        "$$\n",
+        " \\newcommand{\\Exp}{\\operatorname{E}}\n",
+        " \\newcommand{\\Var}{\\operatorname{Var}}\n",
+        "  \\newcommand{\\Cov}{\\operatorname{Cov}}\n",
+        " \\newcommand{\\Mode}{\\operatorname{mode}}\n",
+        " \\newcommand{\\cor}{\\operatorname{Corr}}\n",
+        "\n",
+        " \\newcommand{\\nll}{\\operatorname{nll}}\n",
+        "$$\n",
+        "\n",
+        "<!-- Distributions pdf -->\n",
+        "\n",
+        "$$\n",
+        " \\newcommand{\\pdfbinom}{{\\tt binom}}\n",
+        " \\newcommand{\\pdfbeta}{{\\tt beta}}\n",
+        " \\newcommand{\\pdfpois}{{\\tt poisson}}\n",
+        " \\newcommand{\\pdfgamma}{{\\tt gamma}}\n",
+        " \\newcommand{\\pdfnormal}{{\\tt norm}}\n",
+        "  \\newcommand{\\pdfexp}{{\\tt expon}}\n",
+        "$$\n",
+        "\n",
+        "<!-- Distributions -->\n",
+        "\n",
+        "$$\n",
+        " \\newcommand{\\distbinom}{\\operatorname{B}}\n",
+        " \\newcommand{\\distbeta}{\\operatorname{Beta}}\n",
+        " \\newcommand{\\distgamma}{\\operatorname{Gamma}}\n",
+        " \\newcommand{\\distexp}{\\operatorname{Exp}}\n",
+        " \\newcommand{\\distpois}{\\operatorname{Poisson}}\n",
+        " \\newcommand{\\distnormal}{\\operatorname{\\mathcal N}}\n",
+        "$$\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "# KNN Regression\n",
+        "\n",
+        "K-nearest neighbors (KNN) regression is one of the simplest nonparametric regression methods. It is called nonparametric because it does not assume a fixed formula for the regression function. Instead, it estimates the response at a new point by using the responses of nearby training points.\n",
+        "\n",
+        "## KNN regression model\n",
+        "\n",
+        "Given training data\n",
+        "\n",
+        "$$\n",
+        "\\{(x_i,y_i)\\}_{i=1}^n,\\quad x_i\\in\\mathbb R^p,\\; y_i\\in\\mathbb R,\n",
+        "$$\n",
+        "\n",
+        "we want to estimate the regression function\n",
+        "\n",
+        "$$\n",
+        "f(x)=\\Exp[Y\\mid X=x].\n",
+        "$$\n",
+        "\n",
+        "::: {#def-knn-regressor}\n",
+        "## KNN regressor\n",
+        "\n",
+        "For a new point $x_0$, let $N_K(x_0)$ be the set of indices corresponding to the $K$ training points closest to $x_0$. The KNN regression estimate is\n",
+        "\n",
+        "$$\n",
+        "\\hat f(x_0)\n",
+        "=\n",
+        "\\frac{1}{K}\\sum_{i\\in N_K(x_0)} y_i.\n",
+        "$$\n",
+        "\n",
+        "That is, the predicted value is the average response among the $K$ nearest neighbors of $x_0$.\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "Sometimes, different neighbors are given different weights. In that case, the weighted KNN regressor has the form\n",
+        "\n",
+        "$$\n",
+        "\\hat f(x_0)\n",
+        "=\n",
+        "\\sum_{i=1}^n w_i(x_0)y_i,\n",
+        "$$\n",
+        "\n",
+        "where $w_i(x_0)\\ge 0$ and\n",
+        "\n",
+        "$$\n",
+        "\\sum_{i=1}^n w_i(x_0)=1.\n",
+        "$$\n",
+        "\n",
+        "In ordinary KNN regression,\n",
+        "\n",
+        "$$\n",
+        "w_i(x_0)\n",
+        "=\n",
+        "\\begin{cases}\n",
+        "1/K, & i\\in N_K(x_0),\\\\\n",
+        "0, & i\\notin N_K(x_0).\n",
+        "\\end{cases}\n",
+        "$$\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {#exm-}\n",
+        "\n",
+        "Here are two examples of KNN regression on a one-dimensional dataset. We show the 1-nearest neighbor (1NN) and 3-nearest neighbor (3NN) regression lines.\n",
+        "\n",
+        "You can see that the 3NN regression line is smoother than the 1NN regression line, since it averages over more nearby points.\n"
+      ],
+      "id": "4f96d5b8"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| echo: false\n",
+        "import numpy as np\n",
+        "import matplotlib.pyplot as plt\n",
+        "from sklearn.neighbors import KNeighborsRegressor\n",
+        "\n",
+        "rng = np.random.default_rng(1)\n",
+        "\n",
+        "x = rng.uniform(0, 2 * np.pi, size=15)\n",
+        "y = 2 * np.sin(x) + rng.normal(size=len(x))\n",
+        "\n",
+        "plt.scatter(x, y, s=40, facecolors=\"none\", edgecolors=\"black\")\n",
+        "\n",
+        "test_x = np.linspace(0, 2 * np.pi, 1001)\n",
+        "\n",
+        "knn = KNeighborsRegressor(n_neighbors=1, weights=\"uniform\")\n",
+        "knn.fit(x.reshape(-1, 1), y)\n",
+        "test_pred = knn.predict(test_x.reshape(-1, 1))\n",
+        "plt.plot(test_x, test_pred, label=\"1NN regression line\")\n",
+        "\n",
+        "\n",
+        "knn = KNeighborsRegressor(n_neighbors=3, weights=\"uniform\")\n",
+        "knn.fit(x.reshape(-1, 1), y)\n",
+        "test_pred = knn.predict(test_x.reshape(-1, 1))\n",
+        "plt.plot(test_x, test_pred, label=\"3NN regression line\")\n",
+        "\n",
+        "\n",
+        "plt.title(\"K-Nearest Neighbor Regression (2 examples)\")\n",
+        "plt.xlim(0, 2 * np.pi)\n",
+        "plt.legend(loc=\"upper right\")"
+      ],
+      "id": "d5ec2e1a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {.callout-note}\n",
+        "## Tuning $K$\n",
+        "\n",
+        "The tuning parameter $K$ is the most important hyperparameter in KNN.\n",
+        "\n",
+        "- small $K$: uses very local information, therefore it is more sensitive to noise  \n",
+        "- large $K$: averages over more points, therefore it is more stable but more biased  \n",
+        "\n",
+        "This reflects the bias–variance tradeoff: smaller $K$ leads to a more flexible (wiggly) fit, while larger $K$ produces a smoother estimate.\n",
+        "\n",
+        "In practice, $K$ is typically chosen using cross-validation.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "### Distance\n",
+        "\n",
+        "$$\n",
+        "d(x,x')=\\sqrt{\\sum_{j=1}^p (x_j-x'_j)^2}\n",
+        "$$\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Curse of dimensionality\n",
+        "\n",
+        "-   high $p$ → sparse neighbors\\\n",
+        "-   performance degrades\n",
+        "\n",
+        "\n",
+        "### Comparison\n",
+        "\n",
+        "-   linear model: global\\\n",
+        "-   KNN: local\n",
+        "\n",
+        "\n",
+        "\n",
+        "## KNN in Python\n",
+        "\n",
+        "We may use `KNeighborsRegressor` from `sklearn.neighbors` to implement KNN. The API is almost the same as in linear models. So we can set up the same cross-validation, pipeline, etc.. Here is a simple example.\n",
+        "\n",
+        "First we simulate a dataset based on $\\sin(x)$."
+      ],
+      "id": "ddc1e65b"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import numpy as np\n",
+        "\n",
+        "rng = np.random.default_rng(1)\n",
+        "\n",
+        "N = 100\n",
+        "X = rng.uniform(0, 2 * np.pi, size=N).reshape(-1, 1)\n",
+        "y = (2 * np.sin(X.reshape(-1)) + rng.normal(size=N)).reshape(-1)  # <1>"
+      ],
+      "id": "0d6136bd",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "1. The purpose of these reshape is that `X` is requrired to be of 2D array, and `y` is required to be 1D arrary.\n",
+        "\n",
+        "We generate test points on a fine grid (with 1001 points) for visualization."
+      ],
+      "id": "88a987bd"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "X_test = np.linspace(0, 2 * np.pi, 1001).reshape(-1, 1)"
+      ],
+      "id": "fb552fb4",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Then we initialize a KNN model with $K=3$, fit the model and make prediction."
+      ],
+      "id": "7154d76a"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.neighbors import KNeighborsRegressor\n",
+        "\n",
+        "knn = KNeighborsRegressor(n_neighbors=3)\n",
+        "knn.fit(X, y)\n",
+        "y_pred = knn.predict(X_test)"
+      ],
+      "id": "a6bf56e0",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Finally we could plot the result using `matplotlib.pyplot`."
+      ],
+      "id": "8789312c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "\n",
+        "plt.scatter(X.reshape(-1), y, s=40, facecolors=\"none\", edgecolors=\"black\")\n",
+        "plt.plot(X_test, y_pred, color=\"C1\")\n",
+        "plt.title(\"KNN Regression (k=3)\")\n",
+        "plt.xlim(0, 2 * np.pi)"
+      ],
+      "id": "7e8e29fd",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Tuning $K$\n",
+        "Before applying cross-validation, we first visualize how different values of $K$ affect the fit."
+      ],
+      "id": "63797af9"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| code-fold: true\n",
+        "\n",
+        "knn1 = KNeighborsRegressor(n_neighbors=1)\n",
+        "knn1.fit(X, y)\n",
+        "y_pred1 = knn1.predict(X_test)\n",
+        "\n",
+        "knn3 = KNeighborsRegressor(n_neighbors=3)\n",
+        "knn3.fit(X, y)\n",
+        "y_pred3 = knn3.predict(X_test)\n",
+        "\n",
+        "knn10 = KNeighborsRegressor(n_neighbors=10)\n",
+        "knn10.fit(X, y)\n",
+        "y_pred10 = knn10.predict(X_test)\n",
+        "\n",
+        "knn20 = KNeighborsRegressor(n_neighbors=20)\n",
+        "knn20.fit(X, y)\n",
+        "y_pred20 = knn20.predict(X_test)\n",
+        "\n",
+        "fig, axs = plt.subplots(2, 2, figsize=(12, 8))\n",
+        "axs[0, 0].scatter(X.reshape(-1), y, s=40, facecolors=\"none\", edgecolors=\"black\")\n",
+        "axs[0, 0].plot(X_test, y_pred1, color=\"C0\")\n",
+        "axs[0, 0].set_title(f\"K=1\")\n",
+        "axs[0, 1].scatter(X.reshape(-1), y, s=40, facecolors=\"none\", edgecolors=\"black\")\n",
+        "axs[0, 1].plot(X_test, y_pred3, color=\"C1\")\n",
+        "axs[0, 1].set_title(f\"K=3\")\n",
+        "axs[1, 0].scatter(X.reshape(-1), y, s=40, facecolors=\"none\", edgecolors=\"black\")\n",
+        "axs[1, 0].plot(X_test, y_pred10, color=\"C2\")\n",
+        "axs[1, 0].set_title(f\"K=10\")\n",
+        "axs[1, 1].scatter(X.reshape(-1), y, s=40, facecolors=\"none\", edgecolors=\"black\")\n",
+        "axs[1, 1].plot(X_test, y_pred20, color=\"C3\")\n",
+        "axs[1, 1].set_title(f\"K=20\")"
+      ],
+      "id": "21e4d0c4",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The fitted curve becomes smoother but more biased as $K$ increases.\n",
+        "\n",
+        "We now select $K$ using cross-validation. In this example we search up to $K=80$ because in 5-fold CV, each training split contains about 80 observations. Using very large $K$ (close to the training size) effectively averages over nearly all points, which usually leads to poor models. Therefore in general we can choose a smaller range.\n"
+      ],
+      "id": "b2a0cbe9"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import GridSearchCV\n",
+        "\n",
+        "klist = list(range(1, 81))\n",
+        "params = {\"n_neighbors\": klist}\n",
+        "gs = GridSearchCV(\n",
+        "    KNeighborsRegressor(),\n",
+        "    param_grid=params,\n",
+        "    cv=5\n",
+        ")\n",
+        "gs.fit(X, y)"
+      ],
+      "id": "62d203aa",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "plt.plot(klist, gs.cv_results_[\"mean_test_score\"])\n",
+        "plt.axvline(x=gs.best_params_[\"n_neighbors\"], color=\"black\", linestyle=\"--\")\n",
+        "plt.title(f\"Cross-validation: best K = {gs.best_params_['n_neighbors']}\")"
+      ],
+      "id": "ac03e63f",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "With this best $K$, the fitted curve is\n"
+      ],
+      "id": "6bb20b9f"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "y_pred = gs.predict(X_test)\n",
+        "plt.scatter(X.reshape(-1), y, s=40, facecolors=\"none\", edgecolors=\"black\")\n",
+        "plt.plot(X_test, y_pred, color=\"C0\")"
+      ],
+      "id": "0624ffb1",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## k-Nearest Neighbors Algorithm (k-NN)\n",
+        "\n",
+        "### Ideas\n",
+        "Assume that we have a set of labeled data $\\{(X_i, y_i)\\}$ where $y_i$ denotes the label. Given a new data $X$, how do we determine the label of it? \n",
+        "\n",
+        "k-NN algorithm starts from a very straightforward idea. We use the distances from the new data point $X$ to the known data points to identify the label. If $X$ is closer to $y_i$ points, then we will label $X$ as $y_i$. \n",
+        "\n",
+        "Let us take cities and countries as an example. <span style=\"color:red\">New York</span> and <span style=\"color:red\">Los Angeles</span> are U.S cities, and <span style=\"color:grey\">Beijing</span> and <span style=\"color:grey\">Shanghai</span> are Chinese cities. Now we would like to consider Tianjin and Russellville. Do they belong to China or U.S? We calculate the distances from Tianjin (resp. Russellville) to all four known cities. Since Tianjin is closer to <span style=\"color:grey\">Beijing</span> and <span style=\"color:grey\">Shanghai</span> comparing to <span style=\"color:red\">New York</span> and <span style=\"color:red\">Los Angeles</span>, we classify Tianjin as a Chinese city. Similarly, since Russellville is closer to <span style=\"color:red\">New York</span> and <span style=\"color:red\">Los Angeles</span> comparing to <span style=\"color:grey\">Beijing</span> and <span style=\"color:grey\">Shanghai</span>, we classify it as a U.S. city.\n",
+        "\n",
+        "\n",
+        "\n",
+        "```{dot}\n",
+        "digraph G {\n",
+        "    layout=circo\n",
+        "\n",
+        "    Beijing [color=black]\n",
+        "    Shanghai [color=black]\n",
+        "    Tianjin [color=blue, fontcolor=black, shape=box]\n",
+        "\n",
+        "    \"New York\" [color=red, fontcolor=red]\n",
+        "    \"Los Angelis\" [color=red, fontcolor=red]\n",
+        "    Russellville [color=blue, fontcolor=red, shape=box]\n",
+        "\n",
+        "\n",
+        " \n",
+        "    Tianjin -> Beijing [label=\"closer\"];\n",
+        "    Tianjin -> Shanghai [label=\"closer   \"];\n",
+        "    Tianjin -> \"New York\" [style=dashed, color=blue, fontcolor=blue, label=\" far away\"];\n",
+        "    Tianjin -> \"Los Angelis\" [style=dashed, color=blue, fontcolor=blue, label=\" far away\"];\n",
+        "    Russellville -> \"New York\" [color=red, label=\"closer  \", fontcolor=red];\n",
+        "    Russellville -> \"Los Angelis\" [color=red, label=\"closer\", fontcolor=red];\n",
+        "    Russellville -> Beijing [color=red, style=dashed, color=blue, label=\"far away \", fontcolor=blue];\n",
+        "    Russellville -> Shanghai [color=red, style=dashed, color=blue, label=\"far away\", fontcolor=blue];\n",
+        "}\n",
+        "```\n",
+        "\n",
+        "This naive example explains the idea of k-NN. Here is a more detailed description of the algorithm. \n",
+        "\n",
+        "### The Algorithm\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {.callout-note}\n",
+        "# k-NN Classifier\n",
+        "\n",
+        "**Inputs**: Given the training data set $\\{(X_i, y_i)\\}$ where $X_i=(x_i^1,x_i^2,\\ldots,x_i^n)$ represents $n$ features and $y_i$ represents labels. Given a new data point $\\tilde{X}=(\\tilde{x}^1,\\tilde{x}^2,\\ldots,\\tilde{x}^n)$.\n",
+        "\n",
+        "**Outputs**: Want to find the best label for $\\tilde{X}$.\n",
+        "\n",
+        "1. Compute the distance from $\\tilde{X}$ to each $X_i$.\n",
+        "2. Sort all these distances from the nearest to the furthest. \n",
+        "3. Find the nearest $k$ data points.\n",
+        "4. Determine the labels for each of these $k$ nearest points, and compute the frenqucy of each labels.\n",
+        "5. The most frequent label is considered to be the label of $\\tilde{X}$.\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "### Details\n",
+        "- The distance between two data points are defined by the Euclidean distance:\n",
+        "  \n",
+        "$$\n",
+        "dist\\left((x^j_i)_{j=1}^n, (\\tilde{x}^j)_{j=1}^n\\right)=\\sqrt{\\sum_{j=1}^n(x^j_i-\\tilde{x}^j)^2}.\n",
+        "$$\n",
+        "  \n",
+        "- Using linear algebra notations: \n",
+        "  \n",
+        "$$\n",
+        "dist(X_i,\\tilde{X})=\\sqrt{(X_i-\\tilde{X})\\cdot(X_i-\\tilde{X})}.\n",
+        "$$\n",
+        "\n",
+        "- All the distances are stored in a $1$-dim numpy array, and we will combine it together with another $1$-dim array that store the labels of each point.\n",
+        "\n",
+        "### The codes\n",
+        "\n",
+        "\n",
+        "<details>\n",
+        "<summary>This part is optional.</summary>\n",
+        "\n",
+        "\n",
+        "\n",
+        "- `argsort`\n",
+        "- `unique`\n",
+        "- `argmax`"
+      ],
+      "id": "e060bf6a"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import numpy as np\n",
+        "\n",
+        "def classify_kNN(inX, X, y, k=5):\n",
+        "    # compute the distance between each row of X and Xmat\n",
+        "    Dmat = np.sqrt(((inX - X)**2).sum(axis=1))\n",
+        "    # sort by distance\n",
+        "    k = min(k, Dmat.shape[0])\n",
+        "    argsorted = Dmat.argsort()[:k]\n",
+        "    relatedy = y[argsorted]\n",
+        "    # count the freq. of the first k labels\n",
+        "    labelcounts = np.unique(relatedy, return_counts=True)\n",
+        "    # find the label with the most counts\n",
+        "    label = labelcounts[0][labelcounts[1].argmax()]\n",
+        "    return label"
+      ],
+      "id": "029c06dd",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "</details>\n",
+        "\n",
+        "### `sklearn` packages\n",
+        "You may also directly use the kNN function `KNeighborsClassifier` packaged in `sklearn.neighbors`. You may check the description of the function online from [here](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html).\n",
+        "\n",
+        "There are many ways to modify the kNN algorithm. What we just mentioned is the simplest idea. It is correspondent to the argument `weights='uniform'`, `algorithm='brute` and `metric='euclidean'`. However due to the implementation details, the results we got from `sklearn` are still a little bit different from the results produced by our naive codes."
+      ],
+      "id": "21a7f40c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "from sklearn.neighbors import KNeighborsClassifier\n",
+        "clf = KNeighborsClassifier(n_neighbors=10, weights='uniform',\n",
+        "                           algorithm='brute', metric='euclidean')\n",
+        "clf.fit(X_train, y_train)\n",
+        "y_pred = clf.predict(X_test)"
+      ],
+      "id": "2cf7eac6",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Normalization\n",
+        "Different features may have different scales. It might be unfair for those features that have small scales. Therefore usually it is better to rescale all the features to make them have similar scales. After examining all the data, we find the minimal value `minVal` and the range `ranges` for each column. The normalization formula is:\n",
+        "\n",
+        "$$\n",
+        "X_{norm} = \\frac{X_{original}-minVal}{ranges}.\n",
+        "$$\n",
+        "\n",
+        "We could also convert the normalized number back to the original value by \n",
+        "\n",
+        "$$\n",
+        "X_{original} = X_{norm} \\times ranges + minVal.\n",
+        "$$\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "<details>\n",
+        "<summary>The sample codes are listed below. This part is optional.</summary>\n"
+      ],
+      "id": "2a32de3d"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import numpy as np\n",
+        "\n",
+        "def encodeNorm(X, parameters=None):\n",
+        "    # parameters contains minVals and ranges\n",
+        "    if parameters is None:\n",
+        "        minVals = np.min(X, axis=0)\n",
+        "        maxVals = np.max(X, axis=0)\n",
+        "        ranges = np.maximum(maxVals - minVals, np.ones(minVals.size))\n",
+        "        parameters = {'ranges': ranges, 'minVals': minVals}\n",
+        "    else:\n",
+        "        minVals = parameters['minVals']\n",
+        "        ranges = parameters['ranges']\n",
+        "    Nmat = np.tile(minVals, (X.shape[0], 1))\n",
+        "    Xnorm = (X - Nmat)/ranges\n",
+        "    return (Xnorm, parameters)\n",
+        "\n",
+        "\n",
+        "def decodeNorm(X, parameters):\n",
+        "    # parameters contains minVals and ranges\n",
+        "    ranges = parameters['ranges']\n",
+        "    minVals = parameters['minVals']\n",
+        "    Nmat = np.tile(minVals, (X.shape[0], 1))\n",
+        "    Xoriginal = X * ranges + Nmat\n",
+        "    return Xoriginal"
+      ],
+      "id": "b451e21b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "</details>\n",
+        "\n",
+        "You could use `MinMaxScaler` from `sklearn.preprocessing` to achive the goal. The API is very similar to an estimator.\n"
+      ],
+      "id": "9160a268"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "from sklearn.preprocessing import MinMaxScaler\n",
+        "\n",
+        "mm = MinMaxScaler()\n",
+        "mm.fit(X)\n",
+        "X_norm = mm.transform(X)"
+      ],
+      "id": "2c39b556",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The last two lines can be combined into "
+      ],
+      "id": "aec092b9"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "X_norm = mm.fit_transform(X)"
+      ],
+      "id": "f1dc6352",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## k-NN Project 1: `iris` Classification\n",
+        "\n",
+        "This data is from `sklearn.datasets`. This dataset consists of 3 different types of irises' petal / sepal length / width, stored in a $150\\times4$ `numpy.ndarray`. We already explored the dataset briefly in the previous chapter. This time we will try to use the feature provided to predict the type of the irises. For the purpose of plotting, we will only use the first two features: `sepal length` and `sepal width`.\n",
+        "\n",
+        "### Explore the dataset\n",
+        "We first load the dataset. \n"
+      ],
+      "id": "eac67c77"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn import datasets\n",
+        "iris = datasets.load_iris()\n",
+        "X = iris.data[:, :2]\n",
+        "y = iris.target"
+      ],
+      "id": "6eb0a09e",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Then we would like to split the dataset into trainning data and test data. Here we are going to use `sklearn.model_selection.train_test_split` function. Besides the dataset, we should also provide the propotion of the test set comparing to the whole dataset. We will choose `test_size=0.1` here, which means that the size of the test set is 0.1 times the size of the whole dataset. `stratify=y` means that when split the dataset we want to split respects the distribution of labels in `y`. \n",
+        "\n",
+        "The split will be randomly. You may set the argument `random_state` to be a certain number to control the random process. If you set a `random_state`, the result of the random process will stay the same. This is for reproducible output across multiple function calls.\n",
+        "\n",
+        "\n",
+        "After we get the training set, we should also normalize it. All our normalization should be based on the training set. When we want to use our model on some new data points, we will use the same normalization parameters to normalize the data points in interests right before we apply the model. Here since we mainly care about the test set, we could normalize the test set at this stage.\n",
+        "\n",
+        "Note that in the following code, we mainly use the implementation from `sklearn`. \n",
+        "<!-- the function `encodeNorm` defined in the previous section is used.  -->\n",
+        "<!-- I import it from `assests.codes.knn`. You need to modify this part based on your file structure. See @sec-applyourknn for more details. -->\n"
+      ],
+      "id": "db25665e"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import MinMaxScaler\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=1, stratify=y)\n",
+        "\n",
+        "mm = MinMaxScaler()\n",
+        "X_train_norm = mm.fit_transform(X_train)\n",
+        "X_test_norm = mm.transform(X_test)"
+      ],
+      "id": "408c44ad",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Before we start to play with k-NN, let us look at the data first. Since we only choose two features, it is able to plot these data points on a 2D plane, with different colors representing different classes. \n"
+      ],
+      "id": "604f7b04"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "import numpy as np\n",
+        "\n",
+        "# Plot the scatter plot.\n",
+        "fig = plt.figure(figsize=(10,7))\n",
+        "ax = fig.add_subplot(111)\n",
+        "scatter = ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train)\n",
+        "\n",
+        "# Generate legends.\n",
+        "labels = ['setosa', 'versicolor', 'virginica']\n",
+        "_ = fig.legend(handles=scatter.legend_elements()[0], labels=labels,\n",
+        "               loc=\"right\", title=\"Labels\")"
+      ],
+      "id": "2e387d09",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Apply our k-NN model {#sec-applyourknn}\n",
+        "\n",
+        "Now let us apply k-NN to this dataset. Since our data is prepared, what we need to do is directly call the functions.\n"
+      ],
+      "id": "94d22c13"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.neighbors import KNeighborsClassifier\n",
+        "n_neighbors = 10\n",
+        "clf = KNeighborsClassifier(n_neighbors, weights=\"uniform\", metric=\"euclidean\",\n",
+        "                           algorithm='brute')\n",
+        "clf.fit(X_train_norm, y_train)\n",
+        "y_pred_sk = clf.predict(X_test_norm)\n",
+        "\n",
+        "acc = np.mean(y_pred_sk == y_test)\n",
+        "acc"
+      ],
+      "id": "4f3d8a51",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Using data pipeline\n",
+        "We may organize the above process in a neater way. After we get a data, the usual process is to apply several transforms to the data before we really get to the model part. Using terminolgies from `sklearn`, the former are called *transforms*, and the latter is called an *estimator*. In this example, we have exactly one tranform which is the normalization. The estimator here we use is the k-NN classifier. \n",
+        "\n",
+        "`sklearn` provides a standard way to write these codes, which is called `pipeline`. We may chain the transforms and estimators in a sequence and let the data go through the pipeline. In this example, the pipeline contains two steps:\n",
+        "1. The normalization transform `sklearn.preprocessing.MinMaxScaler`. \n",
+        "2. The k-NN classifier `sklearn.neighbors.KNeighborsClassifier`. This is the same one as we use previously.\n",
+        "\n",
+        "The code is as follows. It is a straightforward code. Note that the `()` after the class in each step of `steps` is very important. The codes cannot run if you miss it.\n",
+        "\n",
+        "After we setup the pipeline, we may use it as other estimators since it is an estimator. Here we may also use the accuracy function provided by `sklearn` to perform the computation. It is essentially the same as our `acc` computation.\n"
+      ],
+      "id": "14ad68d4"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.neighbors import KNeighborsClassifier\n",
+        "from sklearn.pipeline import Pipeline\n",
+        "from sklearn.preprocessing import MinMaxScaler\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "n_neighbors = 10\n",
+        "steps = [('scaler', MinMaxScaler()),\n",
+        "         ('knn', KNeighborsClassifier(n_neighbors, weights=\"uniform\",\n",
+        "                                      metric=\"euclidean\", algorithm='brute'))]\n",
+        "pipe = Pipeline(steps=steps)\n",
+        "pipe.fit(X_train, y_train)\n",
+        "y_pipe = pipe.predict(X_test)\n",
+        "accuracy_score(y_pipe, y_test)"
+      ],
+      "id": "8db0bc4c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Once a pipeline is set, you may use `step name` with TWO underscores `__` with `parameter name` to get access to a specific parameter. Please check the following code."
+      ],
+      "id": "6b5b9091"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "pipe.get_params()['knn__n_neighbors']"
+      ],
+      "id": "0aa3a982",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "pipe.set_params(knn__n_neighbors=5)\n",
+        "pipe.get_params()['knn__n_neighbors']"
+      ],
+      "id": "a65de9b9",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Visualize the Decision boundary\n",
+        "\n",
+        "<details>\n",
+        "<summary>This section is optional.</summary>\n",
+        "\n",
+        "Using the classifier we get above, we are able to classify every points on the plane. This enables us to draw the following plot, which is called the Decision boundary. It helps us to visualize the relations between features and the classes.\n",
+        "\n",
+        "We use `DecisionBoundaryDisplay` from `sklearn.inspection` to plot the decision boundary. The function requires us to have a fitted classifier. We may use the classifier `pipe` we got above. Note that this classifier should have some build-in structures that our `classify_kNN` function doesn't have. We may rewrite our codes to make it work, but this goes out of the scope of this section. This is supposed to be Python programming exercise. We will talk about it in the future if we have enough time.\n",
+        "\n",
+        "We first plot the dicision boundary using `DecisionBoundaryDisplay.from_estimator`. Then we plot the points from `X_test`. From the plot it is very clear which points are misclassified.\n"
+      ],
+      "id": "e9c1dfed"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.inspection import DecisionBoundaryDisplay\n",
+        "\n",
+        "disp = DecisionBoundaryDisplay.from_estimator(\n",
+        "            pipe, \n",
+        "            X_train,\n",
+        "            response_method=\"predict\",\n",
+        "            plot_method=\"pcolormesh\",\n",
+        "            xlabel=iris.feature_names[0],\n",
+        "            ylabel=iris.feature_names[1],\n",
+        "            alpha=0.5)\n",
+        "disp.ax_.scatter(X_test[:, 0], X_test[:, 1], c=y_test, edgecolor=\"k\")\n",
+        "disp.figure_.set_size_inches((10,7))"
+      ],
+      "id": "393b9ccf",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "</details>\n",
+        "\n",
+        "### k-Fold Cross-Validation {#sec-cross-validation}\n",
+        "\n",
+        "Previously we perform a random split and test our model in this case. What would happen if we fit our model on another split? We might get a different accuracy score. So in order to evaluate the performance of our model, it is natual to consider several different split and compute the accuracy socre for each case, and combine all these socres together to generate an index to indicate whehter our model is good or bad. This naive idea is called *k-Fold Cross-Validation*.\n",
+        "\n",
+        "The algorithm is described as follows. We first randomly split the dataset into `k` groups of the same size. We use one of them as the test set, and the rest together forming the training set, and use this setting to get an accuracy score. We did this for each group to be chosen as the test set. Then the final score is the mean.\n",
+        "\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "# `KFold`\n",
+        "`KFold` from `sklearn.model.selection` is used to split the dataset into `k` groups and in each iteration to chooose one as the validation set. \n"
+      ],
+      "id": "b11b4d56"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import KFold\n",
+        "\n",
+        "kf = KFold(n_splits=5)\n",
+        "\n",
+        "for train_idx, val_idx in kf.split(range(10)):\n",
+        "    print(train_idx, val_idx)"
+      ],
+      "id": "93cdc257",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "- I only put `range(10)` in `kf.split` since it only needs to work with the index. If a dataset is put there, the output is still the index of which data is in the training set and which is in the validation set.\n",
+        "- If you want to randomize the selection, when set up `KFold` we could add an argument `shuffle=True`. In this case, we may use `random_state` to control the outcome provide reproducing ability.\n",
+        "\n",
+        "Let us see an example for our data."
+      ],
+      "id": "e5620a8c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import KFold\n",
+        "from sklearn.base import clone\n",
+        "\n",
+        "kf = KFold(n_splits=5, shuffle=True, random_state=1)\n",
+        "\n",
+        "cv_scores = []\n",
+        "for train_idx, val_idx in kf.split(X):\n",
+        "    pipe_tmp = clone(pipe)\n",
+        "    pipe_tmp.fit(X[train_idx], y[train_idx])\n",
+        "    cv_scores.append(pipe_tmp.score(X[val_idx], y[val_idx]))\n",
+        "cv_scores"
+      ],
+      "id": "baf83b1b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "np.mean(cv_scores)"
+      ],
+      "id": "6f5fa710",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Note that here `sklearn.base.clone` is used to initialize an unfitted model which has the same hyperpamaters as `pipe`.\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "# `cross_validate`\n",
+        "`KFold` is too \"manual\". We may use `cross_validate` to autmate the above process. Note that depending on the arguments given `cross_validate` may be implemented by `KFold`."
+      ],
+      "id": "0d229010"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import cross_validate\n",
+        "\n",
+        "cv_result = cross_validate(pipe, X, y, cv=5, scoring='accuracy')\n",
+        "cv_result"
+      ],
+      "id": "56a4bde5",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "And you may only see the scores if this is the only thing that interests you."
+      ],
+      "id": "f3a36b4f"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cv_result['test_score']"
+      ],
+      "id": "801f0b80",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "- You may choose different scoring methods. More info can be found in [the document](https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter).\n",
+        "- If `cv=5`, `KFold(5, shuffle=False)` is applied here. If you prefer random split, you may directly use `KFold` here."
+      ],
+      "id": "0b4c4e70"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cv_result = cross_validate(pipe, X, y, scoring='accuracy',\n",
+        "                           cv=KFold(5, shuffle=True, random_state=1))\n",
+        "cv_result['test_score']"
+      ],
+      "id": "b843c2f0",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "You may compare this result with the previous one and the one in `KFold` section.\n",
+        "Of course, the cv score is usually the mean of all the scores."
+      ],
+      "id": "5537f933"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cv_result['test_score'].mean()"
+      ],
+      "id": "dc305286",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "# `cross_val_score`\n",
+        "This is a faster way to directly get `cv_result['test_score']` in `cross_validate` section. The argument about `cv` and `scoring` are the same as `cross_validate`."
+      ],
+      "id": "06264478"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import cross_val_score\n",
+        "cv_scores = cross_val_score(pipe, X, y, cv=KFold(5, shuffle=True, random_state=1))\n",
+        "cv_scores"
+      ],
+      "id": "28171774",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cv_scores.mean()"
+      ],
+      "id": "36e5b8b3",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Choosing a `k` value\n",
+        "In the previous example we choose `k` to be `10` as an example. To choose a `k` value we usually run some test by trying different `k` and choose the one with the best performance. In this case, best performance means the highest cross-validation score.\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "# Grid search\n",
+        "\n",
+        "`sklearn.model_selection.GridSearchCV` provides a way to do this directly. We only need to setup the esitimator, the metric (which is the cross-validation score in this case), and the hyperparameters to be searched through, and `GridSearchCV` will run the search automatically.\n",
+        "\n",
+        "We let `k` go from `1` to `100`. The code is as follows.\n",
+        "\n",
+        "Note that `parameters` is where we set the search space. It is a dictionary. The key is the name of the estimator plus double `_` and then plus the name of the parameter. \n"
+      ],
+      "id": "9c615297"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.model_selection import GridSearchCV\n",
+        "n_list = list(range(1, 101))\n",
+        "parameters = dict(knn__n_neighbors=n_list)\n",
+        "clf = GridSearchCV(pipe, parameters)\n",
+        "clf.fit(X, y)\n",
+        "clf.best_estimator_.get_params()[\"knn__n_neighbors\"]"
+      ],
+      "id": "a2158fef",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "After we fit the data, the `best_estimator_.get_params()` can be printed. It tells us that it is best to use `31` neibhours for our model. We can directly use the best estimator by calling `clf.best_estimator_`.\n"
+      ],
+      "id": "42087ef9"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cv_scores = cross_val_score(clf.best_estimator_, X, y, cv=5)\n",
+        "np.mean(cv_scores)"
+      ],
+      "id": "40d3e71c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The cross-validation score using `k=31` is calculated. This serves as a benchmark score and we may come back to dataset using other methods and compare the scores.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "# Plot the curve\n",
+        "Grid search can only give us a single number that has the best cross validation score. However there are many cases that the number might not be really the best. So usually we also want to see the result for all `k`. The best way to display all results simutanously is to plot the curve.\n"
+      ],
+      "id": "5c39ce51"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "\n",
+        "n_list = list(range(1, 101))\n",
+        "cv_scores = []\n",
+        "for k in n_list:\n",
+        "    pipe_tmp = clone(pipe)\n",
+        "    pipe_tmp.set_params(knn__n_neighbors=k)\n",
+        "    cv_scores.append(cross_val_score(pipe_tmp, X, y, cv=5).mean())\n",
+        "\n",
+        "plt.plot(cv_scores)"
+      ],
+      "id": "ab7c0e74",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "From this plot, combining with the best cv score happens at `k=31`, we could make our final decision about which `k` to choose.\n",
+        "\n",
+        ":::"
+      ],
+      "id": "87dad611"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "stats",
+      "language": "python",
+      "display_name": "(stats)",
+      "path": "C:\\Users\\xiaox\\AppData\\Roaming\\jupyter\\kernels\\stats"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
