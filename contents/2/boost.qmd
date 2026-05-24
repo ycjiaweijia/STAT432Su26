@@ -257,18 +257,9 @@ However, understanding *why* AdaBoost works so well mathematically became one of
 One particularly influential result showed that AdaBoost can be interpreted as a stagewise additive optimization procedure. Important theoretical works include @Freund1997, @Schapire1998, @Friedman2000, and @Breiman1999. These studies greatly influenced the later development of modern boosting methods such as Gradient Boosting and XGBoost.
 
 ## AdaBoost in Python
-The basic APIs are as usual. Here we use `make_moons` to create a test dataset to demo the model.
-
+The basic APIs are as usual. We use `AdaBoostClassifier` from `sklearn.ensemble` to implement AdaBoost. All the regular APIs are the same to other models.
 ```{python}
-from sklearn.datasets import make_moons
-from sklearn.model_selection import train_test_split
-
-X, y = make_moons(n_samples=1200, noise=0.08, random_state=2)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
-```
-
-We use `AdaBoostClassifier` from `sklearn.ensemble` to implement AdaBoost. All the regular APIs are the same.
-```{python}
+#| eval: false
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier
 
@@ -280,11 +271,7 @@ ada = AdaBoostClassifier(
 )
 
 ada.fit(X_train, y_train)
-ada.score(X_test, y_test)
 ```
-
-
-
 
 
 ::: {.callout-note collapse="true"}
@@ -299,13 +286,10 @@ More importantly, many of the key ideas behind SAMME.R already overlap with the 
 
 Consequently, we will focus primarily on the original AdaBoost classifier as an accessible introduction to the core ideas of boosting before moving directly to Gradient Boosting. Reflecting a similar shift in modern machine learning practice, `sklearn` has also deprecated SAMME.R in recent versions due to its reliance on probability estimation and its conceptual overlap with more general gradient boosting frameworks.
 
-
 :::
 
 
 ### The Margin Effect of AdaBoost
-
-
 
 
 AdaBoost is often explained as an algorithm that reduces training error. However, its behavior is more subtle than that.
@@ -343,143 +327,21 @@ The margin view also asks how positive it is.
 
 This is one reason AdaBoost can work well in practice. It does not only try to classify points correctly. It also tends to push correctly classified points farther away from the decision boundary.
 
-### Margin Plot in Python
+### Margin study in Python
 
-The following example uses a clean two-moons dataset. We track training error, test error, and margins as the number of boosting rounds increases.
-
-
-
-
+The following example uses a manually crafted dataset. We track training error, test error, and margins as the number of boosting rounds increases.
 
 ```{python}
+#| code-fold: true
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import zero_one_loss
-ada_margin = AdaBoostClassifier(
-    estimator=DecisionTreeClassifier(max_depth=1),
-    n_estimators=800,
-    learning_rate=0.1,
-    random_state=1,
-)
-
-ada_margin.fit(X_train, y_train)
-
-```
-
-
-
-
-```{python}
-train_errors = []
-test_errors = []
-margin_mean = []
-margin_10pct = []
-margin_min = []
-
-y_train_signed = 2 * y_train - 1
-
-for pred_train, pred_test, score_train in zip(
-    ada_margin.staged_predict(X_train),
-    ada_margin.staged_predict(X_test),
-    ada_margin.staged_decision_function(X_train),
-):
-    train_errors.append(zero_one_loss(y_train, pred_train))
-    test_errors.append(zero_one_loss(y_test, pred_test))
-
-    margins = y_train_signed * score_train
-    margin_mean.append(np.mean(margins))
-    margin_10pct.append(np.quantile(margins, 0.10))
-    margin_min.append(np.min(margins))
-
-first_zero = next((i + 1 for i, e in enumerate(train_errors) if e == 0), None)
-
-print("First round with training error 0:", first_zero)
-print("Minimum test error:", np.min(test_errors))
-print("Round of minimum test error:", np.argmin(test_errors) + 1)
-```
-
-Plot the data.
-
-```{python}
-plt.figure(figsize=(6, 5))
-plt.scatter(X[y == 0, 0], X[y == 0, 1], alpha=0.7, label="class 0")
-plt.scatter(X[y == 1, 0], X[y == 1, 1], alpha=0.7, label="class 1")
-plt.xlabel("x1")
-plt.ylabel("x2")
-plt.title("Two-Moons Data")
-plt.legend()
-plt.show()
-```
-
-Plot the training and test error curves.
-
-```{python}
-plt.figure(figsize=(7, 4))
-plt.plot(train_errors, label="training error")
-plt.plot(test_errors, label="test error")
-
-if first_zero is not None:
-    plt.axvline(
-        first_zero,
-        color="black",
-        linestyle="--",
-        label="training error first reaches 0",
-    )
-
-plt.xlabel("boosting round")
-plt.ylabel("classification error")
-plt.title("AdaBoost Error Curves")
-plt.legend()
-plt.show()
-```
-
-Now plot margin growth.
-
-```{python}
-plt.figure(figsize=(7, 4))
-plt.plot(margin_mean, label="average margin")
-plt.plot(margin_10pct, label="10th percentile margin")
-plt.plot(margin_min, label="minimum margin")
-
-if first_zero is not None:
-    plt.axvline(
-        first_zero,
-        color="black",
-        linestyle="--",
-        label="training error first reaches 0",
-    )
-
-plt.xlabel("boosting round")
-plt.ylabel("margin")
-plt.title("AdaBoost Margin Growth")
-plt.legend()
-plt.show()
-```
-
-The error plot shows whether observations are classified correctly. The margin plot shows how strongly they are classified. The 10th percentile margin is useful because it tracks difficult observations without being dominated by a single extreme point.
-
-
-
-
-
-
-```{python}
-import numpy as np
-import matplotlib.pyplot as plt
-
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.metrics import accuracy_score
 
 rng = np.random.default_rng(1)
 
-n = 2000
+n = 3000
 p = 10
-
 X = rng.normal(size=(n, p))
 
-# A deterministic nonlinear rule made from many weak rules
 score = (
     1.2 * (X[:, 0] > -0.6)
     + 1.0 * (X[:, 0] > 0.4)
@@ -491,55 +353,71 @@ score = (
     + 0.5 * (X[:, 8] > 0.1)
     - 0.5 * (X[:, 9] > -0.4)
 )
-
-y = (score > np.median(score)).astype(int)
+y = 2 * (score > np.quantile(score, 0.52)).astype(int) - 1
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.5,
-    stratify=y,
-    random_state=101,
+    X, y, test_size=0.5, stratify=y, random_state=1
 )
+```
+
+
+
+We first train the modol. 
+
+```{python}
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier
 
 ada = AdaBoostClassifier(
-    estimator=DecisionTreeClassifier(max_depth=3, random_state=1),
-    n_estimators=1500,
-    learning_rate=0.05,
+    estimator=DecisionTreeClassifier(max_depth=2, random_state=1),
+    n_estimators=2000,
+    learning_rate=0.2,
     random_state=1,
 )
 
 ada.fit(X_train, y_train)
+```
+
+Then since the model contains the information of all trees, we could directly read them and use them about how the model works if we only use the first several trees. Here we use `.staged_predict()` and `.staged_decision_function()` methods. 
+
+- `.staged_predict()`: returns the predictions after each boosting round.
+- `.staged_decision_function()`: returns the decision scores after each boosting round.
+
+We would like to record all the training and test scores.
+```{python}
+from sklearn.metrics import accuracy_score
 
 train_acc = []
 test_acc = []
 
-train_margin_10 = []
-test_margin_10 = []
-
-y_train_signed = 2 * y_train - 1
-y_test_signed = 2 * y_test - 1
-
-for pred_train, pred_test, score_train, score_test in zip(
-    ada.staged_predict(X_train),
-    ada.staged_predict(X_test),
-    ada.staged_decision_function(X_train),
-    ada.staged_decision_function(X_test),
+for pred_train, pred_test in zip(
+    ada.staged_predict(X_train), ada.staged_predict(X_test)
 ):
     train_acc.append(accuracy_score(y_train, pred_train))
     test_acc.append(accuracy_score(y_test, pred_test))
+```
 
-    train_margins = y_train_signed * score_train
-    test_margins = y_test_signed * score_test
+In addition, the 10% margin is of our interesting, since we treat margin<10% as no confidence.
 
-    train_margin_10.append(np.quantile(train_margins, 0.10))
-    test_margin_10.append(np.quantile(test_margins, 0.10))
+```{python}
+train_margin_10 = []
+test_margin_10 = []
 
-first_full_train = next(
-    (i + 1 for i, s in enumerate(train_acc) if s == 1.0),
-    None,
-)
+for score_train, score_test in zip(
+    ada.staged_decision_function(X_train),
+    ada.staged_decision_function(X_test),
+):
+    train_margins = y_train * score_train
+    test_margins = y_test * score_test
 
+    train_margin_10.append(np.quantile(train_margins, 0.1))
+    test_margin_10.append(np.quantile(test_margins, 0.1))
+```
+
+We also need to test when the training score becomes `1.0`, and when the test score is the highest. Then we have the interesting output. 
+```{python}
+first_full_train = next((i + 1 for i, s in enumerate(train_acc) if s == 1.0), None)
 best_test_round = np.argmax(test_acc) + 1
 
 print("First round with training accuracy 1:", first_full_train)
@@ -550,54 +428,56 @@ print("Final training accuracy:", train_acc[-1])
 print("Final test accuracy:", test_acc[-1])
 ```
 
+We could plot the curves. From the plot, we can see that after the training score becomes 1.0, the model is still improving and the test score reaches the highest long after.
 
-
-
+<!-- fmt: off -->
 ```{python}
-fig, ax = plt.subplots(1, 2, figsize=(12, 4), constrained_layout=True)
+import matplotlib.pyplot as plt
 
-ax[0].plot(train_acc, label="training accuracy")
-ax[0].plot(test_acc, label="testing accuracy")
+plt.plot(train_acc, label="training accuracy")
+plt.plot(test_acc, label="testing accuracy")
 
-ax[0].axvline(
+plt.axvline(
     first_full_train,
     color="black",
     linestyle="--",
     label="training accuracy first reaches 1",
 )
 
-ax[0].axvline(
-    best_test_round,
-    color="gray",
-    linestyle=":",
-    label="best testing accuracy",
-)
+plt.axvline(best_test_round, color="gray", linestyle=":", label="best testing accuracy")
 
-ax[0].set_xlabel("boosting round")
-ax[0].set_ylabel("accuracy")
-ax[0].set_title("Accuracy Curves")
-ax[0].legend()
-
-ax[1].plot(train_margin_10, label="training 10th percentile margin")
-ax[1].plot(test_margin_10, label="testing 10th percentile margin")
-
-ax[1].axvline(
-    first_full_train,
-    color="black",
-    linestyle="--",
-    label="training accuracy first reaches 1",
-)
-
-ax[1].axhline(0, color="black", linewidth=1)
-
-ax[1].set_xlabel("boosting round")
-ax[1].set_ylabel("margin")
-ax[1].set_title("10th Percentile Margin")
-ax[1].legend()
-
-plt.show()
+plt.xlabel("boosting round")
+plt.ylabel("accuracy")
+plt.title("Accuracy Curves")
+plt.legend();
 ```
 
+We may also plot the 10th-percentile margin curve. The 10th-percentile margin represents the lower tail of the margin distribution, that is, the examples on which the classifier is least confident.
+
+From the plot, we can see that even after the training accuracy reaches 1.0, the margins may still continue to change. This shows that `AdaBoost` is not merely optimizing training accuracy; it continues to adjust the additive model in order to improve the margin distribution and increase confidence.
+
+- If the lower-percentile margin continues to increase while test performance remains stable or improves, this suggests that the model is still improving its confidence on difficult cases and is not yet clearly overfitting.
+- If the lower-percentile margin decreases, especially together with decreasing test accuracy, this suggests that the model may be becoming less reliable on difficult cases and may be starting to overfit.
+
+```{python}
+plt.plot(train_margin_10, label="training 10th percentile margin")
+plt.plot(test_margin_10, label="testing 10th percentile margin")
+
+plt.axvline(
+    first_full_train,
+    color="black",
+    linestyle="--",
+    label="training accuracy first reaches 1",
+)
+
+plt.axhline(0, color="black", linewidth=1)
+
+plt.xlabel("boosting round")
+plt.ylabel("margin")
+plt.title("10th Percentile Margin")
+plt.legend();
+```
+<!-- fmt: on -->
 
 
 
@@ -650,7 +530,7 @@ Deeper trees are stronger learners, but they also increase the risk of overfitti
 
 ### Grid Search for AdaBoost
 
-The following code tunes AdaBoost by cross-validation.
+The following code tunes AdaBoost by grid search cross-validation.
 
 ```{python}
 #| eval: false
@@ -670,19 +550,12 @@ param_grid = {
     "estimator__min_samples_leaf": [1, 5, 10],
 }
 
-grid = GridSearchCV(
-    ada,
-    param_grid=param_grid,
-    cv=5,
-    scoring="accuracy",
-    n_jobs=-1,
-)
+grid = GridSearchCV(ada, param_grid=param_grid, cv=5, scoring="accuracy", n_jobs=-1)
 
 grid.fit(X_train, y_train)
-
-print(grid.best_params_)
-print(grid.best_score_)
+grid.best_params_
 ```
+
 
 Tuning should be done using validation data or cross-validation. The test set should be saved for the final evaluation.
 
@@ -696,6 +569,100 @@ Because it repeatedly increases the weights of difficult observations, noisy poi
 
 
 
+### Example: `AdaBoost` on a Nonlinear Classification Problem
+
+We first use a synthetic nonlinear classification problem. This example shows that many weak learners can create a flexible decision boundary.
+
+```{python}
+from sklearn.datasets import make_moons
+from sklearn.model_selection import train_test_split
+
+X, y = make_moons(n_samples=1500, noise=0.25, random_state=1)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, stratify=y, random_state=1
+)
+```
+
+Fit a baseline stump and an AdaBoost model.
+
+```{python}
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier
+
+stump = DecisionTreeClassifier(max_depth=1, random_state=1)
+
+ada = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1, random_state=1),
+    n_estimators=300,
+    learning_rate=0.05,
+    random_state=1,
+)
+
+stump.fit(X_train, y_train)
+ada.fit(X_train, y_train)
+
+print("Stump accuracy:", stump.score(X_test, y_test))
+print("AdaBoost accuracy:", ada.score(X_test, y_test))
+```
+
+Now tune the AdaBoost model.
+
+```{python}
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score
+
+ada_base = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(random_state=1), random_state=1
+)
+
+param_grid = {
+    "n_estimators": [100, 300, 600],
+    "learning_rate": [0.03, 0.05, 0.1],
+    "estimator__max_depth": [1, 2],
+    "estimator__min_samples_leaf": [1, 5],
+}
+
+grid = GridSearchCV(
+    ada_base, param_grid=param_grid, cv=5, scoring="accuracy", n_jobs=-1
+)
+
+grid.fit(X_train, y_train)
+best_ada = grid.best_estimator_
+
+print("Best parameters:", grid.best_params_)
+print("Best CV accuracy:", grid.best_score_)
+print("Test accuracy:", best_ada.score(X_test, y_test))
+```
+
+Plot the decision boundary.
+
+```{python}
+def plot_decision_boundary(model, X, y, title):
+    x0_min, x0_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+    x1_min, x1_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+
+    xx0, xx1 = np.meshgrid(
+        np.linspace(x0_min, x0_max, 300),
+        np.linspace(x1_min, x1_max, 300),
+    )
+
+    grid_points = np.c_[xx0.ravel(), xx1.ravel()]
+    zz = model.predict(grid_points).reshape(xx0.shape)
+
+    plt.figure(figsize=(6, 5))
+    plt.contourf(xx0, xx1, zz, alpha=0.25)
+    plt.scatter(X[:, 0], X[:, 1], c=y, s=15, alpha=0.7)
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+    plt.title(title)
+    plt.show()
+
+
+plot_decision_boundary(best_ada, X_test, y_test, "AdaBoost Decision Boundary")
+```
+
+The boundary is built from many simple stumps or shallow trees. Each individual tree is weak, but the weighted ensemble can create a nonlinear classifier.
 
 
 
@@ -1339,6 +1306,8 @@ xgb = XGBRegressor(
 xgb.fit(X_train, y_train)
 ```
 
+The `objective="reg:squarederror"` is to indicate the loss function. The default is `"reg:squarederror"` that is regression with squared loss. More loss function can be found in the [documnet](https://xgboost.readthedocs.io/en/stable/parameter.html#learning-task-parameters).
+
 The most important hyperparameters are:
 
 | Parameter | Meaning |
@@ -1392,6 +1361,30 @@ We don't introduce L1 regularization in the first place because it might make th
 :::
 
 
+Example grid:
+
+
+```{python}
+#| eval: false
+from sklearn.model_selection import GridSearchCV
+from xgboost import XGBRegressor
+
+xgb = XGBRegressor(random_state=1, n_jobs=1)
+
+param_grid = {
+    "n_estimators": [200, 500, 800],
+    "learning_rate": [0.03, 0.05, 0.1],
+    "max_depth": [2, 3, 4],
+    "subsample": [0.7, 0.9, 1.0],
+    "colsample_bytree": [0.7, 0.9, 1.0],
+    "reg_lambda": [1.0, 5.0, 10.0],
+}
+
+grid = GridSearchCV(xgb, param_grid=param_grid, cv=5, n_jobs=-1)
+
+grid.fit(X_train, y_train)
+```
+
 
 ::: {.callout-note}
 ## `n_jobs`
@@ -1403,18 +1396,104 @@ Similar to bagging, for a nested struture like `GridSearchCV` with `XGBoost`, we
 
 ### Tuning XGBoost
 
-The hyperparameters work together.
+If there are enough computing resources, to tune `XGBoost` is no different from other models. However since the model is become more complicated, it usually takes longer to go through the whole grid search. In this case, usually we make some modifications to the workflow.
 
-A common strategy is:
 
-1. Start with shallow trees, such as `max_depth=2` or `max_depth=3`.
-2. Use a small learning rate, such as `0.03` or `0.05`.
-3. Use enough trees to let the model learn.
-4. Add subsampling to reduce overfitting.
-5. Tune regularization if the model still overfits.
+#### `RandomSearchCV`
+We already show the code of `RandomSearchCV` before. Here we give more explanations. 
 
-Example grid:
+`RandomSearchCV` is to search random combinations of hyperparameters. Therefore it is used to do a rough search in a very large parameter space. Other than the `param_grid` like `GridSearchCV`, `RandomSearchCV` needs `n_iter` to indicate how many combinations one wants to test.
 
+Since now we can search in a very large space, usually we make a really large space, by directly choosing hyperparameters based on distributions. We use distributions from the library `scipy.stats`. Here we give an examples.
+
+
+```{python}
+#| eval: false
+from scipy.stats import randint, uniform
+
+param_distributions = {
+    "n_estimators": randint(100, 1000),
+    "max_depth": randint(2, 8),
+    "learning_rate": uniform(0.01, 0.19),
+    "subsample": uniform(0.6, 0.4),
+    "colsample_bytree": uniform(0.6, 0.4),
+    "reg_lambda": uniform(0, 10),
+}
+
+random_search = RandomizedSearchCV(
+    xgb, param_distributions=param_distributions, n_iter=30, cv=5, random_state=0
+)
+```
+
+
+::: {.callout-note}
+
+## Workflow
+
+A practical tuning workflow is often a two-stage process.
+
+First, run `RandomizedSearchCV` over a relatively large parameter space. This gives a rough idea of promising regions in the hyperparameter space.
+
+Then, based on the best combination found by random search, choose a smaller and more refined grid around those values and run `GridSearchCV`.
+
+If the refined grid is still too slow, we can tune parameters in smaller batches. A common strategy is:
+
+1. tune model complexity parameters first, such as `max_depth` and `n_estimators`
+2. tune learning rate and number of trees together
+3. tune sampling parameters, such as `subsample` and `colsample_bytree`
+4. tune regularization parameters, such as `reg_lambda` and `reg_alpha`
+
+This workflow is not guaranteed to find the global best combination, but it is usually much more practical than running one huge exhaustive grid search.
+:::
+
+### Early Stopping
+
+Boosting can overfit if too many trees are added. Early stopping monitors validation performance and stops when the validation score no longer improves.
+
+In principal, `n_eestimators` can be tuned by grid search or similar methods that aligns with other hyperparameters. In practice, it is usually determined by early stopping in a separate step.
+
+Conceptually:
+
+1. Split the training data into a training part and a validation part.
+2. Fit trees sequentially.
+3. Track validation error after each round.
+4. Stop when validation error stops improving.
+
+In XGBoost, early stopping is often used through an evaluation set. When initialize the model, `early_stopping_rounds=20` is sent which means that the model stops training if validation score is not improved in 20 rounds.
+
+```{python}
+#| eval: false
+xgb = XGBRegressor(early_stopping_rounds=20)
+xgb.fit(X_train, y_train, eval_set=[(X_val, y_val)])
+```
+
+Exact early-stopping syntax can differ across XGBoost versions, so it is useful to check the installed version when writing production code. The current stynax comes from [XGBoost 3.2.0](https://xgboost.readthedocs.io/en/release_3.2.0/python/sklearn_estimator.html#early-stopping).
+
+
+::: {.callout-note}
+## Modern hyperparameter tuning
+
+In modern machine learning practice, workflows often use tools such as `Optuna` and various `AutoML` frameworks for hyperparameter optimization.
+
+Unlike `GridSearchCV`, which exhaustively searches a fixed parameter grid, these methods use adaptive search strategies to explore promising hyperparameter regions more efficiently. This is especially useful for large models such as `XGBoost`, `LightGBM`, and neural networks, where exhaustive grid search may become computationally expensive.
+
+Many modern tuning frameworks are related to ideas from Bayesian optimization. In practice, these methods often attempt to use information from previous trials to guide future searches toward more promising regions of the parameter space.
+
+We only briefly mention these topics here since they have become mainstream tools in modern machine learning workflows: 
+
+- Bayesian optimization
+- TPE (Tree-structured Parzen Estimator)
+- acquisition functions
+- Gaussian process optimization
+- AutoML systems
+
+A full discussion of topics is beyond the scope of this course.
+:::
+
+
+## Example: XGBoost on the Diabetes Data
+
+We now use the diabetes regression dataset from `sklearn` introduced earlier. The response is a quantitative measure of disease progression one year after baseline.
 
 ```{python}
 from sklearn.datasets import load_diabetes
@@ -1425,435 +1504,258 @@ X, y = load_diabetes(return_X_y=True)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 ```
 
+In general you should not touch test sets. However in this example for simplicity we ambuse it by using test sets as validation sets.
+
+
+We first build a baseline model, with all default hyperparameters.
+
+```{python}
+from xgboost import XGBRegressor
+
+xgb_baseline = XGBRegressor(random_state=1, n_jobs=-1)
+xgb_baseline.fit(X_train, y_train)
+xgb_baseline.score(X_test, y_test)
+```
+
+The first round we use random search to try to find a good enough point. Note that we choose a relatively large `n_estimators` which we will tune in the next early stopping stage.
+
+```{python}
+from scipy.stats import randint, uniform
+from sklearn.model_selection import RandomizedSearchCV
+
+param_distributions = {
+    "max_depth": randint(2, 8),
+    "learning_rate": uniform(0.01, 0.19),
+    "subsample": uniform(0.6, 0.4),
+    "colsample_bytree": uniform(0.6, 0.4),
+    "reg_lambda": uniform(0, 10),
+}
+
+random_search = RandomizedSearchCV(
+    XGBRegressor(n_estimators=2000, random_state=1, n_jobs=1),
+    param_distributions=param_distributions,
+    n_iter=20,
+    cv=5,
+    random_state=0,
+    n_jobs=-1,
+)
+
+random_search.fit(X_train, y_train)
+random_search.best_params_
+```
+The purpose of this random search is to find a rough range of the best combination in order for the refined grid search. According to the result, we may construct a smaller range for refined grid search. 
+
+```{python}
+param_grid_refined = {
+    "learning_rate": [0.008, 0.0125, 0.018],
+    "max_depth": [2, 3, 4],
+    "subsample": [0.55, 0.64, 0.72],
+    "colsample_bytree": [0.80, 0.87, 0.95],
+    "reg_lambda": [5.0, 8.5, 12.0],
+}
+```
+
+Before we run the refined grid search, we need to determine the `n_estimators` using early stopping.
+
+```{python}
+X_tr, X_val, y_tr, y_val = train_test_split(
+    X_train,
+    y_train,
+    test_size=0.2,
+    random_state=0,
+)
+xgb_es = XGBRegressor(
+    n_estimators=3000,
+    **random_search.best_params_,
+    early_stopping_rounds=50,  
+    random_state=0,
+    n_jobs=-1,
+)
+xgb_es.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], verbose=False)
+best_round = xgb_es.best_iteration + 1
+best_round 
+```
+
+Then we can run refined grid search using `n_estimators=``{python} best_round`. 
 
 ```{python}
 #| eval: false
 from sklearn.model_selection import GridSearchCV
-from xgboost import XGBRegressor
 
-xgb = XGBRegressor(
-    objective="reg:squarederror",
+xgb_base = XGBRegressor(
+    n_estimators=best_round,
     random_state=0,
-    n_jobs=-1
-)
-
-param_grid = {
-    "n_estimators": [200, 500, 800],
-    "learning_rate": [0.03, 0.05, 0.1],
-    "max_depth": [2, 3, 4],
-    "subsample": [0.7, 0.9, 1.0],
-    "colsample_bytree": [0.7, 0.9, 1.0],
-    "reg_lambda": [1.0, 5.0, 10.0],
-}
-
-grid = GridSearchCV(
-    xgb,
-    param_grid=param_grid,
-    cv=5,
-    scoring="neg_mean_squared_error",
     n_jobs=1,
 )
 
-grid.fit(X_train, y_train)
-```
-
-For large grids, `RandomizedSearchCV` is usually more efficient than a full grid search.
-
-### Early Stopping
-
-Boosting can overfit if too many trees are added. Early stopping monitors validation performance and stops when the validation score no longer improves.
-
-Conceptually:
-
-1. Split the training data into a training part and a validation part.
-2. Fit trees sequentially.
-3. Track validation error after each round.
-4. Stop when validation error stops improving.
-
-In XGBoost, early stopping is often used through an evaluation set.
-
-```{python}
-#| eval: false
-xgb.fit(
-    X_train,
-    y_train,
-    eval_set=[(X_valid, y_valid)],
-    verbose=False,
-)
-```
-
-Exact early-stopping syntax can differ across XGBoost versions, so it is useful to check the installed version when writing production code.
-
-## Example 1: AdaBoost on a Nonlinear Classification Problem
-
-We first use a synthetic nonlinear classification problem. This example shows that many weak learners can create a flexible decision boundary.
-
-```{python}
-import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.datasets import make_moons
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.metrics import accuracy_score
-
-X, y = make_moons(n_samples=1500, noise=0.25, random_state=10)
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.3,
-    stratify=y,
-    random_state=10,
-)
-```
-
-Fit a baseline stump and an AdaBoost model.
-
-```{python}
-stump = DecisionTreeClassifier(max_depth=1, random_state=10)
-
-ada = AdaBoostClassifier(
-    estimator=DecisionTreeClassifier(max_depth=1, random_state=10),
-    n_estimators=300,
-    learning_rate=0.05,
-    random_state=10,
-)
-
-stump.fit(X_train, y_train)
-ada.fit(X_train, y_train)
-
-print("Stump accuracy:", accuracy_score(y_test, stump.predict(X_test)))
-print("AdaBoost accuracy:", accuracy_score(y_test, ada.predict(X_test)))
-```
-
-Now tune the AdaBoost model.
-
-```{python}
-ada_base = AdaBoostClassifier(
-    estimator=DecisionTreeClassifier(random_state=10),
-    random_state=10,
-)
-
-param_grid = {
-    "n_estimators": [100, 300, 600],
-    "learning_rate": [0.03, 0.05, 0.1],
-    "estimator__max_depth": [1, 2],
-    "estimator__min_samples_leaf": [1, 5],
+param_grid_refined = {
+    "learning_rate": [0.008, 0.0125, 0.018],
+    "max_depth": [2, 3, 4],
+    "subsample": [0.55, 0.64, 0.72],
+    "colsample_bytree": [0.80, 0.87, 0.95],
+    "reg_lambda": [5.0, 8.5, 12.0],
 }
 
-grid = GridSearchCV(
-    ada_base,
-    param_grid=param_grid,
+grid_search = GridSearchCV(xgb_base, param_grid=param_grid_refined, cv=5, n_jobs=-1)
+grid_search.fit(X_train, y_train)
+```
+Sometimes this is still slow. In this case we will do a stagewise tuning.
+
+
+::: {.callout-note collapse="true"}
+## Stage 1: tune tree complexity
+
+
+```{python}
+xgb_base = XGBRegressor(
+    n_estimators=best_round,
+    random_state=0,
+    n_jobs=1,
+)
+
+param_grid_1 = {
+    "max_depth": [1, 2, 3]
+}
+
+grid_1 = GridSearchCV(
+    xgb_base,
+    param_grid=param_grid_1,
     cv=5,
-    scoring="accuracy",
     n_jobs=-1,
 )
 
-grid.fit(X_train, y_train)
-
-best_ada = grid.best_estimator_
-
-print("Best parameters:", grid.best_params_)
-print("Best CV accuracy:", grid.best_score_)
-print("Test accuracy:", accuracy_score(y_test, best_ada.predict(X_test)))
+grid_1.fit(X_train, y_train)
+grid_1.best_params_
 ```
 
-Plot the decision boundary.
+:::
+
+
+::: {.callout-note collapse="true"}
+## Stage 2: tune learning rate around the selected number of trees
 
 ```{python}
-def plot_decision_boundary(model, X, y, title):
-    x0_min, x0_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
-    x1_min, x1_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
-
-    xx0, xx1 = np.meshgrid(
-        np.linspace(x0_min, x0_max, 300),
-        np.linspace(x1_min, x1_max, 300),
-    )
-
-    grid_points = np.c_[xx0.ravel(), xx1.ravel()]
-    zz = model.predict(grid_points).reshape(xx0.shape)
-
-    plt.figure(figsize=(6, 5))
-    plt.contourf(xx0, xx1, zz, alpha=0.25)
-    plt.scatter(X[:, 0], X[:, 1], c=y, s=15, alpha=0.7)
-    plt.xlabel("x1")
-    plt.ylabel("x2")
-    plt.title(title)
-    plt.show()
-
-
-plot_decision_boundary(best_ada, X_test, y_test, "AdaBoost Decision Boundary")
-```
-
-The boundary is built from many simple stumps or shallow trees. Each individual tree is weak, but the weighted ensemble can create a nonlinear classifier.
-
-## Example 2: XGBoost on the Diabetes Data
-
-We now use the diabetes regression dataset from `sklearn`. The response is a quantitative measure of disease progression one year after baseline.
-
-This example uses XGBoost if it is installed. If XGBoost is not installed, the code prints a message instead of failing the whole document.
-
-```{python}
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-
-from sklearn.datasets import load_diabetes
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-
-diabetes = load_diabetes(as_frame=True)
-
-X = diabetes.data
-y = diabetes.target
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.3,
-    random_state=42,
+xgb_stage2 = XGBRegressor(
+    n_estimators=best_round, random_state=0, n_jobs=1, **grid_1.best_params_
 )
-```
 
-Fit a random forest, a `sklearn` gradient boosting model, and XGBoost.
-
-```{python}
-try:
-    from xgboost import XGBRegressor
-
-    has_xgboost = True
-except ImportError:
-    XGBRegressor = None
-    has_xgboost = False
-
-
-models = {
-    "Random forest": RandomForestRegressor(
-        n_estimators=500,
-        max_features="sqrt",
-        random_state=42,
-        n_jobs=-1,
-    ),
-    "Gradient boosting": GradientBoostingRegressor(
-        n_estimators=300,
-        learning_rate=0.05,
-        max_depth=2,
-        random_state=42,
-    ),
+param_grid_2 = {
+    "learning_rate": [0.035, 0.05, 0.07],
 }
 
-if has_xgboost:
-    models["XGBoost"] = XGBRegressor(
-        objective="reg:squarederror",
-        n_estimators=300,
-        learning_rate=0.05,
-        max_depth=2,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        reg_lambda=1.0,
-        random_state=42,
-        n_jobs=-1,
-    )
-else:
-    print("xgboost is not installed, so the XGBoost model is skipped.")
+grid_2 = GridSearchCV(
+    xgb_stage2,
+    param_grid=param_grid_2,
+    cv=5,
+    n_jobs=-1,
+)
 
-
-results = []
-
-for name, model in models.items():
-    model.fit(X_train, y_train)
-    pred = model.predict(X_test)
-    results.append(
-        {
-            "model": name,
-            "test_rmse": np.sqrt(mean_squared_error(y_test, pred)),
-            "test_r2": r2_score(y_test, pred),
-        }
-    )
-
-pd.DataFrame(results)
+grid_2.fit(X_train, y_train)
+grid_2.best_params_
 ```
 
-The random forest is an averaging method. Gradient boosting and XGBoost are sequential correction methods. Which one performs best depends on the dataset and tuning.
+:::
 
-### Tuning XGBoost
 
-Now tune XGBoost by cross-validation. This chunk is skipped automatically if XGBoost is not installed.
+::: {.callout-note collapse="true"}
+## Stage 3: tune sampling parameters
 
 ```{python}
-if has_xgboost:
-    xgb_base = XGBRegressor(
-        objective="reg:squarederror",
-        random_state=42,
-        n_jobs=1,
-    )
+xgb_stage3 = XGBRegressor(
+    n_estimators=best_round,
+    random_state=0,
+    n_jobs=1,
+    **grid_1.best_params_,
+    **grid_2.best_params_,
+)
 
-    param_grid = {
-        "n_estimators": [100, 300, 600],
-        "learning_rate": [0.03, 0.05, 0.1],
-        "max_depth": [1, 2, 3],
-        "subsample": [0.7, 0.9, 1.0],
-        "colsample_bytree": [0.7, 0.9, 1.0],
-        "reg_lambda": [1.0, 5.0],
-    }
+param_grid_3 = {
+    "subsample": [0.60, 0.66, 0.75],
+    "colsample_bytree": [0.85, 0.90, 0.95],
+}
 
-    xgb_grid = GridSearchCV(
-        xgb_base,
-        param_grid=param_grid,
-        cv=5,
-        scoring="neg_mean_squared_error",
-        n_jobs=-1,
-    )
+grid_3 = GridSearchCV(
+    xgb_stage3,
+    param_grid=param_grid_3,
+    cv=5,
+    n_jobs=-1,
+)
 
-    xgb_grid.fit(X_train, y_train)
-
-    best_xgb = xgb_grid.best_estimator_
-    xgb_pred = best_xgb.predict(X_test)
-
-    print("Best parameters:")
-    print(xgb_grid.best_params_)
-    print("Best CV RMSE:", np.sqrt(-xgb_grid.best_score_))
-    print("Test RMSE:", np.sqrt(mean_squared_error(y_test, xgb_pred)))
-    print("Test R^2:", r2_score(y_test, xgb_pred))
-else:
-    best_xgb = None
-    xgb_pred = None
+grid_3.fit(X_train, y_train)
+grid_3.best_params_
 ```
+:::
 
-The tuning grid focuses on the most important parameters:
 
-- `n_estimators` and `learning_rate` control how long and how aggressively the model learns;
-- `max_depth` controls interaction complexity;
-- `subsample` and `colsample_bytree` add randomness and reduce overfitting;
-- `reg_lambda` regularizes leaf weights.
 
-### Predicted versus Observed Values
+::: {.callout-note collapse="true"}
+## Stage 4: tune regularization
 
 ```{python}
-if best_xgb is not None:
-    plt.figure(figsize=(5, 5))
-    plt.scatter(y_test, xgb_pred, alpha=0.7)
+xgb_stage4 = XGBRegressor(
+    n_estimators=best_round,
+    random_state=0,
+    n_jobs=1,
+    **grid_1.best_params_,
+    **grid_2.best_params_,
+    **grid_3.best_params_,
+)
 
-    lims = [
-        min(y_test.min(), xgb_pred.min()),
-        max(y_test.max(), xgb_pred.max()),
-    ]
+param_grid_4 = {
+    "reg_lambda": [2.0, 3.25, 5.0],
+}
 
-    plt.plot(lims, lims, "k--", linewidth=2)
-    plt.xlabel("observed response")
-    plt.ylabel("predicted response")
-    plt.title("XGBoost Predictions")
-    plt.show()
+grid_4 = GridSearchCV(
+    xgb_stage4,
+    param_grid=param_grid_4,
+    cv=5,
+    n_jobs=-1,
+)
+
+grid_4.fit(X_train, y_train)
+grid_4.best_params_
 ```
+:::
 
-Points near the diagonal are predicted accurately. Points far from the diagonal are observations where the model has larger error.
 
-### Residual Plot
-
+Then we put all hyperparameters together for a final training.
 ```{python}
-if best_xgb is not None:
-    residuals = y_test - xgb_pred
+best_params = {
+    **grid_1.best_params_,
+    **grid_2.best_params_,
+    **grid_3.best_params_,
+    **grid_4.best_params_,
+}
 
-    plt.figure(figsize=(7, 4))
-    plt.scatter(xgb_pred, residuals, alpha=0.7)
-    plt.axhline(0, color="black", linestyle="--")
-    plt.xlabel("predicted response")
-    plt.ylabel("residual")
-    plt.title("XGBoost Residual Plot")
-    plt.show()
+final_model = XGBRegressor(
+    n_estimators=best_round,
+    random_state=0,
+    n_jobs=-1,
+    **best_params,
+)
+
+final_model.fit(X_train, y_train)
+final_model.score(X_test, y_test)
 ```
 
-Residuals should be roughly centered around zero. A strong pattern may indicate missing structure or systematic bias.
+It doesn't have to be exactly the same as the full grid search result. However the result will be very similar.
+
+
 
 ### Feature Importance
 
-XGBoost provides impurity-like feature importance through `.feature_importances_`.
+XGBoost provides impurity-like feature importance through `.feature_importances_`. Conceptually, this is similar to MDI in Random Forests since both measure how much a feature improves the training objective during tree construction.
+
+However, they are not exactly the same. In Random Forests, MDI is based on reductions in RSS or Gini impurity, while in XGBoost the gain is computed from reductions in the regularized boosting objective.
 
 ```{python}
-if best_xgb is not None:
-    importance = pd.Series(
-        best_xgb.feature_importances_,
-        index=X.columns,
-    ).sort_values(ascending=True)
+import matplotlib.pyplot as plt
+importance = pd.Series(final_model.feature_importances_).sort_values(ascending=True)
 
-    plt.figure(figsize=(7, 4))
-    importance.plot(kind="barh")
-    plt.xlabel("feature importance")
-    plt.title("XGBoost Feature Importance")
-    plt.show()
+plt.figure(figsize=(7, 4))
+importance.plot(kind="barh")
+plt.xlabel("feature importance")
+plt.title("XGBoost Feature Importance")
 ```
 
 Feature importance describes how much the fitted model uses each predictor for prediction. It should not be interpreted as a causal effect.
-
-### Learning Curve
-
-Finally, we can see how test error changes as the number of boosting rounds increases. For a fixed learning rate and tree depth, adding more trees usually improves the model at first. After some point, the test error may stop improving or begin to increase.
-
-```{python}
-if has_xgboost:
-    tree_counts = [25, 50, 100, 200, 400, 800]
-    train_rmse = []
-    test_rmse = []
-
-    for n_trees in tree_counts:
-        model = XGBRegressor(
-            objective="reg:squarederror",
-            n_estimators=n_trees,
-            learning_rate=0.05,
-            max_depth=2,
-            subsample=0.8,
-            colsample_bytree=0.8,
-            reg_lambda=1.0,
-            random_state=42,
-            n_jobs=-1,
-        )
-        model.fit(X_train, y_train)
-
-        train_pred = model.predict(X_train)
-        test_pred = model.predict(X_test)
-
-        train_rmse.append(np.sqrt(mean_squared_error(y_train, train_pred)))
-        test_rmse.append(np.sqrt(mean_squared_error(y_test, test_pred)))
-
-    plt.figure(figsize=(7, 4))
-    plt.plot(tree_counts, train_rmse, marker="o", label="training RMSE")
-    plt.plot(tree_counts, test_rmse, marker="o", label="test RMSE")
-    plt.xscale("log")
-    plt.xlabel("number of trees")
-    plt.ylabel("RMSE")
-    plt.title("XGBoost Learning Curve")
-    plt.legend()
-    plt.show()
-```
-
-This plot is useful for deciding whether more trees are helpful. If training error keeps decreasing but test error does not, the model may be overfitting.
-
-## Summary
-
-AdaBoost:
-
-- builds weak learners sequentially,
-- increases weights on misclassified observations,
-- combines weak learners by weighted voting,
-- can be understood through margins,
-- is sensitive to noisy labels and outliers.
-
-Gradient boosting:
-
-- fits each new tree to residuals or negative gradients,
-- works with many loss functions,
-- usually uses shallow trees,
-- relies heavily on learning rate, number of trees, and tree depth.
-
-XGBoost:
-
-- is a regularized and optimized gradient boosting implementation,
-- adds row and column subsampling,
-- includes regularization for tree complexity and leaf weights,
-- is often very strong on tabular data,
-- requires careful tuning.
-
-The key distinction from bagging and random forests is that boosting is sequential. Each new tree depends on the current model and is trained to improve what remains unexplained.

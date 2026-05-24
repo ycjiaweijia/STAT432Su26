@@ -3171,3 +3171,397 @@ Shallow trees are weak learners, which helps reduce overfitting while remaining 
 
 Larger trees can capture more complicated interactions, but they also increase the risk of overfitting.
 ::: 
+
+
+
+
+```{python}
+from sklearn.model_selection import RandomizedSearchCV
+
+param_dist_coarse = {
+    "max_depth": [3, 6, 9],
+    "learning_rate": [0.01, 0.1, 0.2],
+    "n_estimators": [100, 300],
+}
+search1 = GridSearchCV(
+    xgb_base,
+    param_grid=param_dist_coarse,
+    cv=3,
+)
+search1.fit(X_train, y_train)
+
+# 阶段2: 在最佳附近精调（30组合，5折）
+best_max_depth = search1.best_params_["max_depth"]
+best_lr = search1.best_params_["learning_rate"]
+
+param_dist_fine = {
+    "max_depth": [best_max_depth - 1, best_max_depth, best_max_depth + 1],
+    "learning_rate": [best_lr * 0.5, best_lr, best_lr * 2],
+    "n_estimators": [200, 400, 600],
+    "subsample": [0.7, 0.8, 0.9, 1.0],
+}
+search2 = GridSearchCV(xgb_base, param_grid=param_dist_fine, cv=5)
+# 总时间更短，结果更好！
+```
+
+
+
+
+
+
+
+Fit a random forest, a `sklearn` gradient boosting model, and XGBoost.
+
+```{python}
+try:
+    from xgboost import XGBRegressor
+
+    has_xgboost = True
+except ImportError:
+    XGBRegressor = None
+    has_xgboost = False
+
+
+models = {
+    "Random forest": RandomForestRegressor(
+        n_estimators=500,
+        max_features="sqrt",
+        random_state=42,
+        n_jobs=-1,
+    ),
+    "Gradient boosting": GradientBoostingRegressor(
+        n_estimators=300,
+        learning_rate=0.05,
+        max_depth=2,
+        random_state=42,
+    ),
+}
+
+if has_xgboost:
+    models["XGBoost"] = XGBRegressor(
+        objective="reg:squarederror",
+        n_estimators=300,
+        learning_rate=0.05,
+        max_depth=2,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        reg_lambda=1.0,
+        random_state=42,
+        n_jobs=-1,
+    )
+else:
+    print("xgboost is not installed, so the XGBoost model is skipped.")
+
+
+results = []
+
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    pred = model.predict(X_test)
+    results.append(
+        {
+            "model": name,
+            "test_rmse": np.sqrt(mean_squared_error(y_test, pred)),
+            "test_r2": r2_score(y_test, pred),
+        }
+    )
+
+pd.DataFrame(results)
+```
+
+The random forest is an averaging method. Gradient boosting and XGBoost are sequential correction methods. Which one performs best depends on the dataset and tuning.
+
+### Tuning XGBoost
+
+Now tune XGBoost by cross-validation. This chunk is skipped automatically if XGBoost is not installed.
+
+```{python}
+if has_xgboost:
+    xgb_base = XGBRegressor(
+        objective="reg:squarederror",
+        random_state=42,
+        n_jobs=1,
+    )
+
+    param_grid = {
+        "n_estimators": [100, 300, 600],
+        "learning_rate": [0.03, 0.05, 0.1],
+        "max_depth": [1, 2, 3],
+        "subsample": [0.7, 0.9, 1.0],
+        "colsample_bytree": [0.7, 0.9, 1.0],
+        "reg_lambda": [1.0, 5.0],
+    }
+
+    xgb_grid = GridSearchCV(
+        xgb_base,
+        param_grid=param_grid,
+        cv=5,
+        scoring="neg_mean_squared_error",
+        n_jobs=-1,
+    )
+
+    xgb_grid.fit(X_train, y_train)
+
+    best_xgb = xgb_grid.best_estimator_
+    xgb_pred = best_xgb.predict(X_test)
+
+    print("Best parameters:")
+    print(xgb_grid.best_params_)
+    print("Best CV RMSE:", np.sqrt(-xgb_grid.best_score_))
+    print("Test RMSE:", np.sqrt(mean_squared_error(y_test, xgb_pred)))
+    print("Test R^2:", r2_score(y_test, xgb_pred))
+else:
+    best_xgb = None
+    xgb_pred = None
+```
+
+The tuning grid focuses on the most important parameters:
+
+- `n_estimators` and `learning_rate` control how long and how aggressively the model learns;
+- `max_depth` controls interaction complexity;
+- `subsample` and `colsample_bytree` add randomness and reduce overfitting;
+- `reg_lambda` regularizes leaf weights.
+
+### Predicted versus Observed Values
+
+```{python}
+if best_xgb is not None:
+    plt.figure(figsize=(5, 5))
+    plt.scatter(y_test, xgb_pred, alpha=0.7)
+
+    lims = [
+        min(y_test.min(), xgb_pred.min()),
+        max(y_test.max(), xgb_pred.max()),
+    ]
+
+    plt.plot(lims, lims, "k--", linewidth=2)
+    plt.xlabel("observed response")
+    plt.ylabel("predicted response")
+    plt.title("XGBoost Predictions")
+    plt.show()
+```
+
+Points near the diagonal are predicted accurately. Points far from the diagonal are observations where the model has larger error.
+
+### Residual Plot
+
+```{python}
+if best_xgb is not None:
+    residuals = y_test - xgb_pred
+
+    plt.figure(figsize=(7, 4))
+    plt.scatter(xgb_pred, residuals, alpha=0.7)
+    plt.axhline(0, color="black", linestyle="--")
+    plt.xlabel("predicted response")
+    plt.ylabel("residual")
+    plt.title("XGBoost Residual Plot")
+    plt.show()
+```
+
+Residuals should be roughly centered around zero. A strong pattern may indicate missing structure or systematic bias.
+
+
+
+
+
+
+### Learning Curve
+
+Finally, we can see how test error changes as the number of boosting rounds increases. For a fixed learning rate and tree depth, adding more trees usually improves the model at first. After some point, the test error may stop improving or begin to increase.
+
+```{python}
+if has_xgboost:
+    tree_counts = [25, 50, 100, 200, 400, 800]
+    train_rmse = []
+    test_rmse = []
+
+    for n_trees in tree_counts:
+        model = XGBRegressor(
+            objective="reg:squarederror",
+            n_estimators=n_trees,
+            learning_rate=0.05,
+            max_depth=2,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            reg_lambda=1.0,
+            random_state=42,
+            n_jobs=-1,
+        )
+        model.fit(X_train, y_train)
+
+        train_pred = model.predict(X_train)
+        test_pred = model.predict(X_test)
+
+        train_rmse.append(np.sqrt(mean_squared_error(y_train, train_pred)))
+        test_rmse.append(np.sqrt(mean_squared_error(y_test, test_pred)))
+
+    plt.figure(figsize=(7, 4))
+    plt.plot(tree_counts, train_rmse, marker="o", label="training RMSE")
+    plt.plot(tree_counts, test_rmse, marker="o", label="test RMSE")
+    plt.xscale("log")
+    plt.xlabel("number of trees")
+    plt.ylabel("RMSE")
+    plt.title("XGBoost Learning Curve")
+    plt.legend()
+    plt.show()
+```
+
+This plot is useful for deciding whether more trees are helpful. If training error keeps decreasing but test error does not, the model may be overfitting.
+
+
+
+
+
+
+## Summary
+
+AdaBoost:
+
+- builds weak learners sequentially,
+- increases weights on misclassified observations,
+- combines weak learners by weighted voting,
+- can be understood through margins,
+- is sensitive to noisy labels and outliers.
+
+Gradient boosting:
+
+- fits each new tree to residuals or negative gradients,
+- works with many loss functions,
+- usually uses shallow trees,
+- relies heavily on learning rate, number of trees, and tree depth.
+
+XGBoost:
+
+- is a regularized and optimized gradient boosting implementation,
+- adds row and column subsampling,
+- includes regularization for tree complexity and leaf weights,
+- is often very strong on tabular data,
+- requires careful tuning.
+
+The key distinction from bagging and random forests is that boosting is sequential. Each new tree depends on the current model and is trained to improve what remains unexplained.
+
+
+
+
+
+
+
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import zero_one_loss
+ada_margin = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1),
+    n_estimators=800,
+    learning_rate=0.1,
+    random_state=1,
+)
+
+ada_margin.fit(X_train, y_train)
+
+```
+
+
+
+
+```{python}
+train_errors = []
+test_errors = []
+margin_mean = []
+margin_10pct = []
+margin_min = []
+
+y_train_signed = 2 * y_train - 1
+
+for pred_train, pred_test, score_train in zip(
+    ada_margin.staged_predict(X_train),
+    ada_margin.staged_predict(X_test),
+    ada_margin.staged_decision_function(X_train),
+):
+    train_errors.append(zero_one_loss(y_train, pred_train))
+    test_errors.append(zero_one_loss(y_test, pred_test))
+
+    margins = y_train_signed * score_train
+    margin_mean.append(np.mean(margins))
+    margin_10pct.append(np.quantile(margins, 0.10))
+    margin_min.append(np.min(margins))
+
+first_zero = next((i + 1 for i, e in enumerate(train_errors) if e == 0), None)
+
+print("First round with training error 0:", first_zero)
+print("Minimum test error:", np.min(test_errors))
+print("Round of minimum test error:", np.argmin(test_errors) + 1)
+```
+
+Plot the data.
+
+```{python}
+plt.figure(figsize=(6, 5))
+plt.scatter(X[y == 0, 0], X[y == 0, 1], alpha=0.7, label="class 0")
+plt.scatter(X[y == 1, 0], X[y == 1, 1], alpha=0.7, label="class 1")
+plt.xlabel("x1")
+plt.ylabel("x2")
+plt.title("Two-Moons Data")
+plt.legend()
+plt.show()
+```
+
+Plot the training and test error curves.
+
+```{python}
+plt.figure(figsize=(7, 4))
+plt.plot(train_errors, label="training error")
+plt.plot(test_errors, label="test error")
+
+if first_zero is not None:
+    plt.axvline(
+        first_zero,
+        color="black",
+        linestyle="--",
+        label="training error first reaches 0",
+    )
+
+plt.xlabel("boosting round")
+plt.ylabel("classification error")
+plt.title("AdaBoost Error Curves")
+plt.legend()
+plt.show()
+```
+
+Now plot margin growth.
+
+```{python}
+plt.figure(figsize=(7, 4))
+plt.plot(margin_mean, label="average margin")
+plt.plot(margin_10pct, label="10th percentile margin")
+plt.plot(margin_min, label="minimum margin")
+
+if first_zero is not None:
+    plt.axvline(
+        first_zero,
+        color="black",
+        linestyle="--",
+        label="training error first reaches 0",
+    )
+
+plt.xlabel("boosting round")
+plt.ylabel("margin")
+plt.title("AdaBoost Margin Growth")
+plt.legend()
+plt.show()
+```
+
+The error plot shows whether observations are classified correctly. The margin plot shows how strongly they are classified. The 10th percentile margin is useful because it tracks difficult observations without being dominated by a single extreme point.
+
+
+
+Here we use `make_moons` to create a test dataset to demo the model.
+
+```{python}
+from sklearn.datasets import make_moons
+from sklearn.model_selection import train_test_split
+
+X, y = make_moons(n_samples=1200, noise=0.08, random_state=2)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+```
