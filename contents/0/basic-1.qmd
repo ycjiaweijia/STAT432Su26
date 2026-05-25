@@ -1,0 +1,2189 @@
+---
+jupyter: stats
+---
+
+# Statistical Learning Basics
+
+
+{{< include ../math.qmd >}}
+
+
+<!-- 
+
+week 1: ols + ridge
+week 2: lasso+pcr+pls
+week 3: logistic/lad+knn
+week 4: tree+bagging
+week 5: boosting+etc
+week 6: clustering
+
+H1: pls
+H2: ridge/lasso
+H3: pcr/pls
+H4: logistic/lda
+H5: knn+tree
+H6: ensemble
+H7: clustering
+
+
+
+
+6 weeks, week1 linear regression and basic python/sklearn, week2 ridge/lasso/pcr/pls, week3 logsitc/lds/decesion theory, week4 knn+tree, week5 bagging+boosting, week 6 clustering
+
+
+week1-3, regression和classification是分开的，week4-5knn和tree都有regression和classification
+
+ -->
+
+
+## What Is Statistical Learning?
+
+Statistical learning studies how to use data to understand relationships and make predictions.
+
+We usually model the relationship between predictors $X$ and response $Y$ as
+$$
+Y = f(X) + \varepsilon
+$$
+
+where:
+
+- $X$ represents predictors
+- $Y$ represents the response
+- $f$ is the underlying relationship
+- $\varepsilon$ represents random noise or unexplained variation
+
+The main objective of statistical learning is to estimate the unknown function $f$ using observed data.
+
+
+## Main Types of Learning
+
+
+### Supervised Learning
+
+- We observe both predictors $X$ and response $Y$.
+- Goal is to predict $Y$ from $X$.
+
+Examples:
+- house price prediction
+- spam detection
+- medical diagnosis
+
+### Unsupervised Learning
+
+- We observe only predictors $X$, without labels $Y$.
+- Goal is to discover hidden structure in the data
+
+Examples:
+- clustering
+- dimensionality reduction
+- anomaly detection
+
+### Reinforcement Learning
+
+- An agent interacts with an environment and learns through rewards and penalties.
+
+Examples:
+
+- robotics,
+- game playing,
+- recommendation systems.
+
+
+
+### Regression and Classification
+
+Within supervised learning, two major tasks are:
+
+- **regression**, where the response is quantitative;
+- **classification**, where the response is categorical.
+
+For example:
+
+- predicting salary is a regression problem;
+- predicting whether a tumor is benign or malignant is a classification problem.
+
+
+
+## Different Types of Data
+
+Machine learning methods are strongly connected to data structure, and different data types often require different modeling strategies. In this course, we mainly focus on tabular data because it is the most classical setting in statistics and applied machine learning. However, it is still useful to briefly discuss several major data types and their associated modeling ideas.
+
+### Tabular Data
+
+Tabular data is the classical setting in statistics and machine learning.
+
+| Age | Income | Balance | Student | Default |
+|---:|---:|---:|:---:|:---:|
+| 23 | 50000 | 1200 | Yes | No |
+| 45 | 90000 | 3000 | No | Yes |
+
+In tabular data:
+
+- rows represent observations,
+- columns represent variables or features.
+
+Mathematically,
+
+$$
+X \in \mathbb{R}^{n \times p},
+$$
+
+where:
+
+- $n$ is the number of observations,
+- $p$ is the number of predictors.
+
+
+
+Examples:
+- finance,
+- healthcare,
+- insurance,
+- marketing,
+- scientific experiments.
+
+::: {.callout-note}
+## Main Idea
+
+The key feature of tabular data is not simply its matrix representation. More importantly, each column corresponds to a specific variable with its own semantic meaning, such as age, income, blood pressure, or transaction count. This differs from other data types that will be discussed later, such as image data, where nearby pixels mainly encode spatial structure, or time series data, where temporal ordering plays a central role.
+:::
+
+
+
+
+### Image Data
+
+Image data contains spatial structure, meaning that nearby pixels are often highly related. Modern image models frequently use:
+
+- convolutional neural networks,
+- vision transformers.
+
+A central goal in image analysis is to extract meaningful visual patterns such as edges, textures, shapes, and objects from the image.
+
+### Text Data
+
+Text data contains sequential and contextual structure. The meaning of a word often depends heavily on surrounding words and broader context. Modern NLP is largely based on:
+
+- transformers,
+- large language models.
+
+
+### Time Series Data
+
+Time series data is ordered over time.
+
+Examples:
+
+- stock prices,
+- weather data,
+- sensor measurements.
+
+Important ideas include:
+
+- trend,
+- seasonality,
+- temporal dependence.
+
+
+### Graph Data
+
+Graph data represents relationships between objects.
+
+Examples:
+
+- social networks,
+- citation networks,
+- molecular structures.
+
+Modern graph learning often uses graph neural networks.
+
+
+### This Course Focuses on Tabular Data
+
+This course mainly focuses on tabular data because it remains one of the most important data types in applied statistics and machine learning.
+
+For tabular prediction problems, two model families are especially important:
+
+1. linear models;
+2. tree-based models.
+
+These two families form much of the foundation of modern machine learning for structured data.
+
+
+
+
+
+
+
+## Main Questions in Statistical Learning
+
+At a high level, statistical learning is concerned with one central problem:
+
+> How can we learn useful patterns from data?
+
+This broad problem leads to several different kinds of questions.
+
+
+### Prediction
+
+> What will happen for a new observation?
+
+Prediction is often the primary goal in modern machine learning. The focus is not just fitting the observed data, but making accurate predictions on new data.
+
+Examples:
+
+- Will a customer default?
+- What will tomorrow's demand be?
+- Will a patient develop a disease?
+
+Mathematically, prediction is often viewed as estimating
+
+$$
+\hat f(x) \approx \mathbb{E}[Y \mid X=x].
+$$
+
+In practice, prediction mainly focuses on predictive performance.
+
+### Generalization
+
+> Will the prediction rule work well on unseen data?
+
+Generalization is the key issue behind prediction. A model that performs well only on training data but poorly on new data is usually not useful.
+
+This leads to several central ideas:
+
+- training error versus test error,
+- overfitting and underfitting,
+- cross-validation,
+- bias--variance tradeoff,
+- model complexity.
+
+Model complexity is closely related to generalization. Roughly speaking:
+
+- Simple models:
+  - higher bias,
+  - lower variance.
+- Flexible models:
+  - lower bias,
+  - higher variance.
+
+As model flexibility increases:
+
+- training error usually decreases,
+- test error may eventually increase due to overfitting.
+
+A central challenge in statistical learning is choosing a level of model complexity that gives good generalization performance.
+
+### Inference and Understanding
+
+> Which variables matter, and how are they related to the response?
+
+Inference is about understanding relationships, not only making predictions.
+
+Examples:
+
+- Does smoking increase disease risk?
+- Which features drive customer churn?
+- Which predictors are statistically significant?
+
+Common tools include:
+
+- standard errors,
+- confidence intervals,
+- hypothesis testing.
+
+Inference usually relies more heavily on model assumptions and diagnostics.
+
+
+### Causality
+
+> What happens if we intervene?
+
+Causal inference goes beyond prediction and association. It asks what would happen if we actively changed one variable.
+
+A causal question is often written as
+
+$$
+\mathbb{E}[Y \mid do(X=x)].
+$$
+
+Causal inference requires additional assumptions or experimental design. Examples include:
+
+- randomized experiments,
+- instrumental variables,
+- difference-in-differences.
+
+
+
+::: {.callout-note}
+## Summary of the Distinctions
+
+| Task | Main Question |
+|---|---|
+| Prediction | What will happen? |
+| Generalization | Will it work on new data? |
+| Inference | Is there a relationship? |
+| Causality | What happens if we intervene? |
+
+
+Important points:
+
+1. Good training performance does not imply good generalization.
+2. Good prediction does not imply valid inference.
+3. Association does not imply causation.
+
+:::
+
+
+## Bias--Variance Tradeoff
+
+A central idea in statistical learning is the **bias--variance tradeoff**.
+
+Suppose
+
+$$
+Y=f(X)+\varepsilon,
+\qquad
+\Var(\varepsilon)=\sigma^2.
+$$
+
+For a fitted estimator $\hat f$, the test mean squared error at $x_0$ satisfies
+
+$$
+\mathbb{E}
+\left[
+(Y_0-\hat f(x_0))^2
+\right]
+=
+\operatorname{Bias}^2(\hat f(x_0))
++
+\operatorname{Var}(\hat f(x_0))
++
+\sigma^2.
+$$
+
+The three terms represent:
+
+- **bias**:
+  systematic modeling error;
+
+- **variance**:
+  sensitivity to the training sample;
+
+- **irreducible error**:
+  noise that cannot be removed.
+
+Roughly speaking:
+
+- Simple models:
+  - higher bias,
+  - lower variance.
+
+- Flexible models:
+  - lower bias,
+  - higher variance.
+
+As model flexibility increases:
+- training error usually decreases,
+- test error often first decreases and then increases.
+
+The goal is to balance underfitting and overfitting in order to achieve good generalization performance.
+
+::: {.callout-note}
+## Main Point
+
+Many modern methods can be viewed as ways to control the bias--variance tradeoff. Regularization, cross-validation, ensemble methods, trees, boosting, and neural networks can all be understood from this perspective.
+:::
+
+---
+
+## A Typical Workflow
+
+A typical statistical learning workflow is:
+
+1. define the problem;
+2. preprocess and explore the data;
+3. choose candidate models;
+4. estimate test error using validation or cross-validation;
+5. compare models;
+6. interpret and communicate results.
+
+---
+
+## Core Perspective
+
+Modern statistical learning is fundamentally about:
+
+> learning patterns that generalize well to unseen data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# A Very Important Perspective
+
+Modern statistical learning is often centered around one core question:
+
+> How can we learn patterns from data that generalize well to unseen observations?
+
+This single question motivates many major topics:
+- linear models
+- regularization
+- trees
+- boosting
+- neural networks
+- cross-validation
+- ensemble methods
+
+---
+
+# Classical Statistics vs Modern Machine Learning
+
+Historically:
+
+| Classical Statistics | Modern Machine Learning |
+|---|---|
+| inference | prediction |
+| interpretable models | predictive performance |
+| smaller datasets | large datasets |
+| stronger assumptions | weaker assumptions |
+
+Modern statistical learning often combines ideas from both areas.
+
+
+
+
+
+## What Is Statistical Learning?
+
+Statistical learning studies how to use data to understand relationships and make predictions. In most applications, we observe a response variable $Y$ and a set of predictors $X = (X_1, \dots, X_p)$, and we want to learn how $Y$ depends on $X$.
+
+A common abstract representation is
+
+$$
+Y = f(X) + \varepsilon,
+$$
+
+where $f$ is the systematic part of the relationship and $\varepsilon$ is random noise.
+
+The main goals are usually:
+
+- **prediction**: accurately predict the response for new observations;
+- **inference or explanation**: understand how the predictors are related to the response.
+
+
+## Supervised and Unsupervised Learning
+
+In **supervised learning**, we observe both predictors and a response. The goal is to predict or explain the response.
+
+Examples include:
+
+- predicting house prices from size, location, and age;
+- predicting whether an email is spam from its content;
+- predicting a patient's risk from clinical measurements.
+
+In **unsupervised learning**, we observe predictors but no response. The goal is to discover structure in the data.
+
+Examples include:
+
+- clustering similar observations;
+- reducing dimension with principal component analysis;
+- finding latent groups or patterns.
+
+
+## Regression and Classification
+
+Within supervised learning, two major tasks are:
+
+- **regression**, where the response is quantitative;
+- **classification**, where the response is categorical.
+
+For example:
+
+- predicting salary is a regression problem;
+- predicting whether a tumor is benign or malignant is a classification problem.
+
+
+## Prediction Versus Inference
+
+Prediction and inference are related, but they are not the same.
+
+If the goal is **prediction**, we care mainly about how well the model performs on new data. A more complex model may be acceptable if it improves predictive accuracy.
+
+If the goal is **inference**, we care about understanding the role of each predictor. In this case, interpretability is often more important than pure predictive performance.
+
+::: {.callout-note}
+## Main Point
+
+The best predictive model is not always the best explanatory model. Statistical learning often requires choosing between interpretability and flexibility.
+:::
+
+
+## Parametric and Nonparametric Methods
+
+A **parametric method** assumes a specific functional form for $f$. For example, linear regression assumes that
+
+$$
+f(X) = \beta_0 + \beta_1 X_1 + \cdots + \beta_p X_p.
+$$
+
+This assumption simplifies estimation and interpretation, but it may be too restrictive.
+
+A **nonparametric method** does not assume a fixed functional form. It is more flexible, but it usually requires more data and may be harder to interpret.
+
+Thus:
+
+- parametric models are simpler and easier to interpret;
+- nonparametric models are more flexible but may have higher variance.
+
+
+## Training Error and Test Error
+
+When we fit a model, we can measure how well it matches the observed data. This is the **training error**.
+
+However, what really matters is performance on new observations. This is the **test error**.
+
+A model can have very small training error but still perform poorly on new data. This phenomenon is called **overfitting**.
+
+- **Underfitting** occurs when the model is too simple to capture the signal.
+- **Overfitting** occurs when the model is too flexible and starts fitting noise.
+
+Good statistical learning aims to minimize test error, not merely training error.
+
+
+## Bias-Variance Tradeoff
+
+A central idea in statistical learning is the **bias-variance tradeoff**.
+
+To see the mathematical form, suppose the true data-generating model is
+
+$$
+Y=f(X)+\varepsilon,
+$$
+
+where
+
+$$
+\Exp[\varepsilon]=0,
+\qquad
+\Var(\varepsilon)=\sigma^2.
+$$
+
+After fitting a model to a training set, we obtain an estimator $\hat f$. If we predict at a new point $x_0$, the test mean squared error is
+
+$$
+\Exp\left[
+\left(Y_0-\hat f(x_0)\right)^2
+\right],
+$$
+
+where
+
+$$
+Y_0=f(x_0)+\varepsilon_0.
+$$
+
+The expectation is over both the randomness in the training data used to fit $\hat f$ and the new noise $\varepsilon_0$.
+
+Add and subtract $\Exp[\hat f(x_0)]$:
+
+$$
+\begin{aligned}
+\Exp\left[
+\left(Y_0-\hat f(x_0)\right)^2
+\right]
+&=
+\Exp\left[
+\left(
+f(x_0)+\varepsilon_0-\hat f(x_0)
+\right)^2
+\right] \\
+&=
+\Exp\left[
+\left(
+f(x_0)-\hat f(x_0)
+\right)^2
+\right]
++
+\sigma^2.
+\end{aligned}
+$$
+
+Now write
+
+$$
+f(x_0)-\hat f(x_0)
+=
+\left\{f(x_0)-\Exp[\hat f(x_0)]\right\}
++
+\left\{\Exp[\hat f(x_0)]-\hat f(x_0)\right\}.
+$$
+
+The cross term has expectation zero, so
+
+$$
+\Exp\left[
+\left(
+f(x_0)-\hat f(x_0)
+\right)^2
+\right]
+=
+\left(
+f(x_0)-\Exp[\hat f(x_0)]
+\right)^2
++
+\Var(\hat f(x_0)).
+$$
+
+Therefore,
+
+$$
+\boxed{
+\Exp\left[
+\left(Y_0-\hat f(x_0)\right)^2
+\right]
+=
+\operatorname{Bias}^2(\hat f(x_0))
++
+\operatorname{Var}(\hat f(x_0))
++
+\sigma^2
+}
+$$
+
+where
+
+$$
+\operatorname{Bias}(\hat f(x_0))
+=
+\Exp[\hat f(x_0)]-f(x_0),
+$$
+
+and
+
+$$
+\operatorname{Var}(\hat f(x_0))
+=
+\Exp\left[
+\left(
+\hat f(x_0)-\Exp[\hat f(x_0)]
+\right)^2
+\right].
+$$
+
+The three terms have different meanings:
+
+- **bias squared** measures systematic error from using a model that is too simple or structurally wrong;
+- **variance** measures sensitivity to the particular training sample;
+- **irreducible error** $\sigma^2$ is noise in the response that cannot be removed by any model using $X$.
+
+::: {.callout-note}
+## Irreducible error
+
+Even if we knew the true function $f$, the new response would still be
+
+$$
+Y_0=f(x_0)+\varepsilon_0.
+$$
+
+The noise term $\varepsilon_0$ creates error that prediction methods cannot eliminate.
+:::
+
+A simple model tends to have high bias but low variance. For example, fitting a straight line to a strongly nonlinear relationship creates systematic error, but the fitted line may be stable across training samples.
+
+A flexible model tends to have lower bias but higher variance. For example, a very deep tree may adapt to nonlinear structure, but small changes in the training data can produce a very different tree.
+
+As model flexibility increases:
+
+- training error usually decreases;
+- test error often decreases at first, then increases once overfitting begins.
+
+The goal is to find a level of complexity that balances bias and variance well.
+
+This gives the usual U-shaped test-error curve:
+
+| Model behavior | Bias | Variance | Typical result |
+|---|---:|---:|---|
+| Too simple | high | low | underfitting |
+| Balanced | moderate | moderate | good generalization |
+| Too flexible | low | high | overfitting |
+
+::: {.callout-important}
+## Why This Matters
+
+Many modern methods can be understood as ways to manage the bias-variance tradeoff. Regularization, cross-validation, and model comparison are all tools for this purpose.
+:::
+
+
+## A Typical Statistical Learning Workflow
+
+A practical workflow often looks like this:
+
+1. Define the prediction or explanation goal.
+2. Explore and preprocess the data.
+3. Choose one or more candidate models.
+4. Estimate model performance using validation or cross-validation.
+5. Compare models and select an appropriate final model.
+6. Interpret results and communicate conclusions.
+
+This course will revisit this workflow repeatedly with different methods.
+
+
+## Looking Ahead
+
+The early chapters focus on linear regression and its extensions. Later chapters introduce more flexible models, resampling methods, regularization, and practical machine learning workflow.
+
+The broad progression is:
+
+1. start with simple interpretable models;
+2. allow more flexible structure when needed;
+3. evaluate models using principled estimates of test error;
+4. improve prediction through regularization and modern methods.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+
+
+
+
+
+Archived draft material from earlier notes
+
+# 6-Week Course Plan (Simplified)
+
+This course introduces core statistical learning methods with an emphasis on intuition, interpretation, and practical implementation. Some advanced theoretical topics are omitted to keep the focus on applied understanding.
+
+Primary references:
+
+- **ISLR**: *An Introduction to Statistical Learning*
+- **ESL**: *The Elements of Statistical Learning*
+- **SMLR**: *Statistical Machine Learning with Math and R* (Ruoqing Zhu)
+
+# Course Overview
+
+This course is organized as an introduction to **statistical learning from a statistical perspective**.
+The focus is on three recurring ideas:
+
+1. **Model flexibility**
+2. **Model evaluation**
+3. **Model improvement**
+
+# Course Narrative
+
+The course follows this progression:
+
+> Start with simple predictive models, make them more flexible, learn how to evaluate them, improve them, and finally apply them to real problems.
+
+# Learning Goals
+
+By the end of the course, students should be able to:
+
+- identify common supervised learning problems,
+- distinguish regression and classification settings,
+- understand the role of model flexibility,
+- evaluate models using validation and resampling methods,
+- apply regularization and ensemble methods,
+- compare competing models using prediction performance,
+- implement statistical learning methods in software,
+- carry out a complete modeling workflow on real data.
+
+# Condensed Teaching Calendar
+
+| Unit | Topic | Main Goal |
+|---|---|---|
+| 1 | Foundations | Introduce statistical learning and bias--variance |
+| 2 | Linear Regression | Establish a simple predictive baseline |
+| 3 | Nonparametric Regression | Introduce flexibility |
+| 4 | Classification | Shift from numeric to categorical prediction |
+| 5 | Binary Classification | Develop logistic and classification ideas |
+| 6 | Generative Models | Compare generative and discriminative methods |
+| 7 | Resampling | Learn to estimate test error |
+| 8 | Regularization | Control complexity and improve prediction |
+| 9 | Ensemble Methods | Combine models to improve performance |
+| 10 | ML in Practice | Execute a complete workflow |
+
+# Final Summary
+
+This course should leave students with a clear picture of statistical learning as a unified process:
+
+1. start with a modeling problem,
+2. choose an appropriate predictive method,
+3. evaluate it using principled tools,
+4. improve it when needed,
+5. apply it carefully in practice.
+
+# Gemini
+
+Additional imported planning notes and translation-guide material were removed from the active chapter and archived here.
+
+
+
+
+
+
+
+# 6-Week Course Plan (Simplified)
+This course introduces core statistical learning methods with an emphasis on intuition, interpretation, and practical implementation. Some advanced theoretical topics are omitted to keep the focus on applied understanding.
+Primary references:
+
+- **ISLR**: *An Introduction to Statistical Learning*  
+- **ESL**: *The Elements of Statistical Learning*  
+- **SMLR**: *Statistical Machine Learning with Math and R* (Ruoqing Zhu)
+  
+
+# Week 1: Introduction and Foundations
+Topics:
+
+- What is statistical learning?
+- Supervised vs unsupervised learning
+- Prediction vs inference
+- Review of linear regression
+- Training error vs test error
+- Bias–variance trade-off
+- Overfitting and underfitting
+
+**Goal**:  
+Build the conceptual foundation for understanding modern machine learning methods.
+
+References:
+
+- **ISLR**
+  - Chapter 1: Introduction
+  - Chapter 2.1–2.2: Statistical Learning
+  - Chapter 2.2.2: Bias–Variance Trade-off
+- **ESL**
+  - Chapter 1: Introduction
+  - Chapter 2: Overview of Supervised Learning
+- **SMLR**
+  - Chapter 1: Introduction to Statistical Learning
+  - Chapter 2: Linear Regression Review
+
+# Week 2: Regularization Methods
+Topics:
+
+- Motivation for regularization
+- Multicollinearity and model instability
+- Ridge regression
+- Lasso regression
+- Geometry of regularization
+- Choosing tuning parameters using cross-validation
+
+**Goal**:  
+Learn how regularization improves prediction and performs variable selection.
+
+References:
+
+- **ISLR**
+  - Chapter 6.2: Ridge Regression
+  - Chapter 6.3: Lasso
+  - Chapter 5.1–5.2: Cross-Validation
+- **ESL**
+  - Chapter 3.4: Shrinkage Methods
+  - Chapter 7.10: Regularization and Model Selection
+- **SMLR**
+  - Chapter 4: Ridge Regression
+  - Chapter 5: Lasso and Variable Selection
+
+# Week 3: Flexible and Nonparametric Models
+Topics:
+
+- K-nearest neighbors (KNN)
+- Nonparametric regression
+- Curse of dimensionality
+- Bias–variance trade-off in flexible models
+- Simple smoothing methods
+
+**Goal**:  
+
+Understand flexible models that can capture nonlinear relationships.
+
+References:
+
+- **ISLR**
+  - Chapter 2.2.3: KNN
+  - Chapter 7: Moving Beyond Linearity
+- **ESL**
+  - Chapter 6: Kernel Smoothing Methods
+  - Chapter 13.3: Nearest Neighbor Methods
+- **SMLR**
+  - Chapter 6: Nonparametric Methods
+  - Chapter 7: Kernel Methods
+
+# Week 4: Classification Methods
+Topics:
+
+- Classification vs regression
+- Logistic regression
+- Discriminant analysis (LDA)
+- Decision trees
+- Basic model comparison
+
+**Goal**:  
+Introduce common classification algorithms and decision boundaries.
+References:
+
+- **ISLR**
+  - Chapter 4: Classification
+  - Chapter 8.1–8.2: Decision Trees
+- **ESL**
+  - Chapter 4: Linear Methods for Classification
+  - Chapter 9.2: Tree-Based Methods
+- **SMLR**
+  - Chapter 8: Classification Methods
+  - Chapter 9: Tree Models
+
+# Week 5: Ensemble Methods
+Topics:
+- Motivation for ensemble learning
+- Bagging
+- Random forests
+- Boosting (conceptual overview)
+- Feature importance
+
+Goal:  
+Understand how combining models can improve predictive performance.
+References:
+
+- **ISLR**
+  - Chapter 8.2–8.3: Bagging and Random Forests
+  - Chapter 8.3: Boosting
+- **ESL**
+  - Chapter 10: Boosting and Additive Trees
+- **SMLR**
+  - Chapter 10: Ensemble Methods
+
+# Week 6: Applications and Projects
+Topics:
+
+- Unsupervised learning overview (clustering, PCA)
+- Practical workflow for machine learning
+- Model evaluation and comparison
+- Student project presentations
+
+Goal:  
+Apply the learned methods to real datasets and communicate results.
+References:
+
+- **ISLR**
+  - Chapter 10: Unsupervised Learning
+- **ESL**
+  - Chapter 14: Unsupervised Learning
+- **SMLR**
+  - Chapter 11: Unsupervised Learning
+# Course Overview
+This course is organized as an introduction to **statistical learning from a statistical perspective**.  
+The focus is on three recurring ideas:
+
+1. **Model flexibility**
+2. **Model evaluation**
+3. **Model improvement**
+The course moves from simple predictive models to more flexible methods, then to evaluation tools, regularization, ensemble methods, and practical workflow.
+# Course Narrative
+The course follows this progression:
+
+> Start with simple predictive models, make them more flexible, learn how to evaluate them, improve them, and finally apply them to real problems.
+
+This gives students a coherent view of statistical learning as a modeling pipeline rather than a disconnected list of techniques.
+# Learning Goals
+By the end of the course, students should be able to:
+
+- identify common supervised learning problems,
+- distinguish regression and classification settings,
+- understand the role of model flexibility,
+- evaluate models using validation and resampling methods,
+- apply regularization and ensemble methods,
+- compare competing models using prediction performance,
+- implement statistical learning methods in software,
+- carry out a complete modeling workflow on real data.
+
+# Unit 1: Foundations of Statistical Learning
+## Main Topics
+- What is statistical learning?
+- Supervised vs unsupervised learning
+- Parametric vs nonparametric methods
+- Prediction vs explanation
+- Bias--variance tradeoff
+
+## Teaching Goals
+Students should understand that the main goal of statistical learning is **good prediction on new data**, not simply fitting the observed sample as closely as possible.
+
+## Suggested Emphasis
+- Introduce the overall modeling problem first.
+- Use simple real-world examples such as house prices, medical diagnosis, or spam filtering.
+- Make overfitting a central theme from the beginning.
+
+# Unit 2: Linear Regression as a Baseline
+## Main Topics
+- Linear regression as a prediction tool
+- Interpreting fitted relationships
+- Strengths and weaknesses of linear models
+- Linear models as a baseline for comparison
+
+## Teaching Goals
+Students should see linear regression as the **starting point** of predictive modeling: simple, interpretable, and useful, but limited in flexibility.
+
+## Suggested Emphasis
+- Present linear regression mainly as a predictive model.
+- Keep inference light unless needed for context.
+- Highlight when linear models fail to capture nonlinear structure.
+
+# Unit 3: Nonparametric Regression
+## Main Topics
+- Flexible regression methods
+- K-nearest neighbors regression
+- Smoothers and local fitting ideas
+- Model flexibility and overfitting
+
+## Teaching Goals
+Students should learn that more flexible models can better capture complicated patterns, but at the cost of increased variance.
+## Suggested Emphasis
+- Connect this unit directly to bias--variance tradeoff.
+- Compare flexible and inflexible models visually.
+- Use plots to show underfitting and overfitting.
+
+# Unit 4: Classification
+## Main Topics
+- Classification as a prediction problem
+- Logistic regression
+- Decision boundaries
+- K-nearest neighbors classification
+
+## Teaching Goals
+Students should understand that classification uses the same modeling logic as regression, but with categorical outcomes.
+## Suggested Emphasis
+- Stress the difference between predicting a class and predicting a numeric response.
+- Introduce class probabilities early.
+- Use confusion matrices and classification error as evaluation tools.
+
+# Unit 5: Binary Classification
+## Main Topics
+- Logistic regression in more detail
+- Interpreting probabilities
+- Thresholds and classification decisions
+- Comparing classifiers
+
+## Teaching Goals
+Students should learn how binary classification models convert predictors into class probabilities and final decisions.
+## Suggested Emphasis
+- Distinguish between probability estimation and hard classification.
+- Discuss how different thresholds change predictions.
+- Use practical examples such as disease detection or spam filtering.
+
+# Unit 6: Generative Models
+## Main Topics
+- LDA
+- QDA
+- Naive Bayes
+- Discriminative vs generative modeling
+
+## Teaching Goals
+Students should understand the idea of modeling class distributions directly and then using Bayes' rule for prediction.
+## Suggested Emphasis
+- Compare logistic regression with LDA and QDA conceptually.
+- Emphasize assumptions and when they matter.
+- Use side-by-side model comparisons.
+
+# Unit 7: Resampling Methods
+## Main Topics
+- Validation set approach
+- Cross-validation
+- Bootstrap
+- Estimating test error
+
+## Teaching Goals
+This unit is the conceptual center of the course. Students must understand that **training error is not enough**, and that model performance must be evaluated using principled estimates of test error.
+## Suggested Emphasis
+- Make cross-validation a central practical tool.
+- Show why naive comparison by training error is misleading.
+- Use repeated examples across multiple methods.
+
+# Unit 8: Regularization
+## Main Topics
+- Ridge regression
+- Lasso
+- Elastic net
+- Shrinkage and complexity control
+
+## Teaching Goals
+Students should understand how regularization controls complexity and improves prediction without exhaustively searching across models.
+## Suggested Emphasis
+- Present regularization as a modern answer to overfitting in linear models.
+- Compare subset selection and shrinkage conceptually.
+- Use coefficient path plots when possible.
+
+# Unit 9: Ensemble Methods
+## Main Topics
+- Decision trees
+- Bagging
+- Random forests
+- Boosting
+
+## Teaching Goals
+Students should learn that combining many unstable or weak learners can create a stronger predictive model.
+## Suggested Emphasis
+- Start with a single tree and its limitations.
+- Then motivate bagging as variance reduction.
+- Finally introduce random forests and boosting as improved ensemble ideas.
+
+# Unit 10: Machine Learning in Practice
+## Main Topics
+- End-to-end modeling workflow
+- Data preprocessing
+- Model tuning
+- Model comparison
+- Practical considerations on real datasets
+
+## Teaching Goals
+Students should be able to complete a full predictive analysis from data setup through final model comparison and interpretation.
+## Suggested Emphasis
+- Organize this unit around a full case study.
+- Show how preprocessing, resampling, tuning, and comparison fit together.
+- Emphasize reproducible workflow and communication.
+
+# Exams and Major Checkpoints
+## Midterm I
+Suggested coverage:
+
+- foundations of statistical learning,
+- linear regression,
+- nonparametric regression,
+- early classification concepts.
+
+## Midterm II
+Suggested coverage:
+
+- classification,
+- generative models,
+- resampling,
+- regularization.
+
+## Final Assessment or Project
+Suggested format:
+
+- a real dataset,
+- several competing methods,
+- model comparison using validation or cross-validation,
+- written interpretation of results.
+
+# Weekly Teaching Rhythm
+A consistent teaching rhythm can help students stay oriented.
+## Lecture 1
+- concept and intuition,
+- visual explanation,
+- strengths and limitations of the method.
+
+## Lecture 2
+- implementation,
+- model fitting,
+- comparison with earlier methods,
+- short applied example.
+
+# Core Themes to Revisit Throughout the Course
+## Theme 1: Model Flexibility
+Students should repeatedly ask:
+> How flexible is this model, and what does that flexibility buy us?
+## Theme 2: Generalization
+Students should repeatedly ask:
+> How do we know whether this model will work on new data?
+## Theme 3: Comparison
+Students should repeatedly ask:
+> Is this method better than what we already had?
+# Recommended Course Message to Students
+A useful recurring message for students is:
+> Statistical learning is about building models that perform well on new data, understanding the tradeoff between simplicity and flexibility, and choosing methods based on predictive performance.
+# Condensed Teaching Calendar
+
+| Unit | Topic | Main Goal |
+|---|---|---|
+| 1 | Foundations | Introduce statistical learning and bias--variance |
+| 2 | Linear Regression | Establish a simple predictive baseline |
+| 3 | Nonparametric Regression | Introduce flexibility |
+| 4 | Classification | Shift from numeric to categorical prediction |
+| 5 | Binary Classification | Develop logistic and classification ideas |
+| 6 | Generative Models | Compare generative and discriminative methods |
+| 7 | Resampling | Learn to estimate test error |
+| 8 | Regularization | Control complexity and improve prediction |
+| 9 | Ensemble Methods | Combine models to improve performance |
+| 10 | ML in Practice | Execute a complete workflow |
+# Final Summary
+This course should leave students with a clear picture of statistical learning as a unified process:
+
+1. start with a modeling problem,
+2. choose an appropriate predictive method,
+3. evaluate it using principled tools,
+4. improve it when needed,
+5. apply it carefully in practice.
+
+# Gemini
+This course plan integrates the theoretical depth of *The Elements of Statistical Learning* (ESL) and the computational focus of Ruoqing Zhu’s *SMLR* and *STAT 432* with the intuitive, application-based approach of *An Introduction to Statistical Learning* (ISLR).
+The curriculum is designed for a 15-week semester, prioritizing **numerical optimization** (as emphasized in SMLR) alongside standard statistical learning theory.
+
+### **Phase 1: Foundations & Optimization (Weeks 1–3)**
+
+*Focus: Setting the stage with R, Linear Algebra, and the "How" of algorithm fitting.*
+
+* **Week 1: Introduction & The Learning Framework**
+    * What is Statistical Learning? (ISLR Ch. 2; ESL Ch. 2).
+    * Supervised vs. Unsupervised Learning.
+    * The Bias-Variance Trade-off and MSE (SMLR Ch. 12.3).
+* **Week 2: Computational Toolkit**
+    * **R & RMarkdown:** Environment setup and reproducible workflows (SMLR Ch. 1-2).
+    * **Linear Algebra Refresher:** Matrix inversion, rank updates, and block matrices (SMLR Ch. 4).
+* **Week 3: Optimization Basics**
+    * First and Second-order properties (Gradient vs. Hessian).
+    * **Algorithms:** Gradient Descent, Newton’s Method, and Coordinate Descent (SMLR Ch. 5).
+    * *Lab:* Implementing Linear Regression using `optim()` from scratch.
+### **Phase 2: Linear Models & Regularization (Weeks 4–6)**
+*Focus: Moving beyond Ordinary Least Squares to handle high-dimensional data.*
+
+* **Week 4: Linear Regression & Model Selection**
+    * OLS properties and limitations.
+    * Criteria: $C_p$, AIC, BIC, and Adjusted $R^2$ (SMLR Ch. 6; ISLR Ch. 6).
+    * Search: Best subset vs. Stepwise methods.
+* **Week 5: Penalized Regression (Ridge & Lasso)**
+    * **Ridge Regression:** Motivation via correlated variables and convexity (SMLR Ch. 7).
+    * **Lasso:** The $L_1$ penalty, sparsity, and the soft-thresholding operator (SMLR Ch. 8).
+    * **Elastic Net:** Combining $L_1$ and $L_2$ penalties.
+* **Week 6: Path Algorithms & Cross-Validation**
+    * The Lasso solution path and Path-wise Coordinate Descent (SMLR Ch. 8.4).
+    * k-fold and Leave-one-out Cross-Validation (ISLR Ch. 5).
+    * *Lab:* The `glmnet` package in R.
+### **Phase 3: Classification & Smoothing (Weeks 7–9)**
+*Focus: Categorical outcomes and non-linear boundaries.*
+
+* **Week 7: Linear Classification**
+    * Logistic Regression: Parameters, interpretation, and Newton-Raphson for MLE (SMLR Ch. 10).
+    * Discriminant Analysis (LDA/QDA): Bayes’ Rule and decision boundaries (ISLR Ch. 4; SMLR Ch. 11).
+* **Week 8: Non-parametric Smoothing & Splines**
+    * Moving beyond linearity: Polynomials and Piecewise functions.
+    * **Splines:** Basis functions, Natural Cubic Splines, and Smoothing Splines (SMLR Ch. 9; ISLR Ch. 7).
+* **Week 9: Local Learning & Kernels**
+    * K-Nearest Neighbors (KNN) for regression and classification (SMLR Ch. 12).
+    * Kernel Density Estimation and Nadaraya-Watson (SMLR Ch. 13).
+    * The "Curse of Dimensionality."
+### **Phase 4: Support Vector Machines & Kernels (Weeks 10–11)**
+*Focus: The "Kernel Trick" and Maximal Margins.*
+
+* **Week 10: Support Vector Machines (SVM)**
+    * The Maximal Margin Classifier and Slack Variables (SMLR Ch. 17).
+    * Duality: From Primal to Dual formulations (ESL Ch. 12).
+* **Week 11: RKHS & Kernel Methods**
+    * Reproducing Kernel Hilbert Space (RKHS) basics (SMLR Ch. 15).
+    * Kernel Ridge Regression and the Kernel Trick (SMLR Ch. 16).
+### **Phase 5: Trees, Ensembles & Unsupervised Learning (Weeks 12–15)**
+*Focus: Modern "Black Box" winners and discovery without labels.*
+
+* **Week 12: Tree-Based Methods**
+    * Decision Trees: Gini index vs. Entropy (ISLR Ch. 8).
+    * Bagging and Random Forests (SMLR Ch. 19-20).
+* **Week 13: Boosting**
+    * AdaBoost and the Stagewise Additive Model.
+    * Gradient Boosting Machines (GBM) and XGBoost/LightGBM concepts (SMLR Ch. 22-23).
+* **Week 14: Unsupervised Learning I (Clustering)**
+    * K-means and Hierarchical Clustering (SMLR Ch. 24-25).
+    * Spectral Clustering and the Graph Laplacian (SMLR Ch. 28).
+* **Week 15: Unsupervised Learning II (Dimension Reduction)**
+    * Principal Component Analysis (PCA).
+    * Modern visualization: t-SNE and UMAP (SMLR Ch. 31).
+### **Required Reading List**
+1.  **SMLR:** Zhu, R. *Statistical Machine Learning with R*. (Primary for optimization/computation).
+2.  **ISLR:** James, G., et al. *An Introduction to Statistical Learning*. (Primary for intuition/labs).
+3.  **ESL:** Hastie, T., et al. *The Elements of Statistical Learning*. (Reference for theoretical derivations).
+# Statistical Learning: R to Python Translation Guide
+This guide provides the Python counterparts for common R functions used in **ISLR**, **ESL**, and **SMLR**. 
+## 1. Model Fitting & Inference
+
+While `scikit-learn` is the industry standard for prediction, **`statsmodels`** is the primary library for statistical inference ($p$-values, $R^2$, and $t$-tests) and matches the R `lm()` experience.
+
+| Feature | R Code | Python (`statsmodels.formula.api`) |
+| :--- | :--- | :--- |
+| **Linear Regression** | `fit <- lm(y ~ x1 + x2, data=df)` | `fit = smf.ols("y ~ x1 + x2", data=df).fit()` |
+| **Logistic Regression** | `glm(y ~ x, data=df, family="binomial")` | `smf.logit("y ~ x", data=df).fit()` |
+| **Model Summary** | `summary(fit)` | `print(fit.summary())` |
+| **ANOVA Table** | `anova(fit)` | `sm.stats.anova_lm(fit)` |
+| **Predictions** | `predict(fit, newdata)` | `fit.predict(new_data)` |
+| **Interaction Terms** | `lm(y ~ x1 * x2)` | `smf.ols("y ~ x1 * x2", data=df).fit()` |
+| **Polynomials** | `lm(y ~ poly(x, 2))` | `smf.ols("y ~ x + I(x**2)", data=df).fit()` |
+
+## 2. Model Selection & Regularization
+Python's **`scikit-learn`** (sklearn) is the powerhouse for cross-validation and penalized regression.
+
+| Feature | R Code (Package) | Python Library | Python Counterpart |
+| :--- | :--- | :--- | :--- |
+| **Lasso / Ridge** | `glmnet(x, y)` | `sklearn` | `LassoCV()` or `RidgeCV()` |
+| **Stepwise (AIC/BIC)** | `step(fit)` | `sklearn` | `SequentialFeatureSelector` |
+| **Best Subset** | `regsubsets()` (`leaps`) | `mlxtend` | `ExhaustiveFeatureSelector` |
+| **Validation Split** | `sample()` / `createDataPartition` | `sklearn` | `train_test_split()` |
+| **K-Fold CV** | `cv.glmnet()` | `sklearn` | `cross_val_score()` or `GridSearchCV()` |
+## 3. Diagnostics & Residuals
+In R, `plot(fit)` automatically generates four diagnostic plots. In Python, you access these via the `.resid` attribute or `statsmodels.graphics`.
+
+| Metric / Plot | R Code | Python Code |
+| :--- | :--- | :--- |
+| **Residuals** | `residuals(fit)` | `fit.resid` |
+| **Fitted Values** | `fitted(fit)` | `fit.fittedvalues` |
+| **Q-Q Plot** | `qqnorm(fit$resid)` | `sm.qqplot(fit.resid, line='s')` |
+| **Leverage Plot** | `plot(fit, which=4)` | `sm.graphics.influence_plot(fit)` |
+| **Residual Plot** | `plot(fit, which=1)` | `sns.residplot(x=fit.fittedvalues, y=df['y'])` |
+## 4. Required Libraries for the Course
+To set up a Python environment equivalent to the R statistical suite, run:
+
+ -->
+
+
+
+
+
+## Prediction, Inference, and Causality
+
+In statistics and data science, **prediction**, **statistical inference**, and **causal inference** are three fundamental tasks.  
+They are **not hierarchical**, but they differ in goals, assumptions, and methodologies.
+
+---
+
+### 1. Prediction
+
+**Goal:** Accurately predict the outcome $Y$ given predictors $X$.
+
+$$
+\hat f(x) \approx \mathbb{E}[Y \mid X = x]
+$$
+
+- Focus: **out-of-sample performance** (test error, cross-validation)
+- Assumptions: relatively weak
+- Methods: Ridge, Lasso, trees, boosting, neural networks
+
+**Key idea:**  
+Prediction captures patterns in the data and is validated empirically by generalization.
+
+---
+
+### 2. Statistical Inference
+
+**Goal:** Draw conclusions about relationships or parameters in the population.
+
+Examples:
+- Is $\beta_j = 0$?
+- What is the confidence interval for $\beta_j$?
+
+- Focus: **uncertainty quantification**
+- Requires: **model assumptions** (linearity, independence, etc.)
+- Tools: standard errors, p-values, confidence intervals
+
+**Key idea:**  
+Inference generalizes from sample to population under specified assumptions.
+
+---
+
+### 3. Causal Inference
+
+**Goal:** Determine the effect of interventions.
+
+$$
+\mathbb{E}[Y \mid do(X = x)]
+$$
+
+- Question: *What happens if we change $X$?*
+- Requires: **causal structure or experimental design**
+  - Randomized experiments (RCT)
+  - Instrumental variables (IV)
+  - Difference-in-differences (DiD)
+
+**Key idea:**  
+Causal inference identifies how the data-generating mechanism responds to interventions.
+
+---
+
+### 4. Relationship and Differences
+
+Although distinct, the three tasks can be viewed as requiring **increasing levels of structure and information**:
+
+| Task        | Required Information        | Validation Method        | Question Answered        |
+|------------|----------------------------|--------------------------|--------------------------|
+| Prediction | Data distribution          | Test error / CV          | What will happen?        |
+| Inference  | Model + assumptions        | Theory + diagnostics     | Is there a relationship? |
+| Causality  | Structure + identification | Design + assumptions     | What if we intervene?    |
+
+---
+
+### 5. Why Causality Is Harder
+
+Causal inference is more difficult because:
+
+1. **Data alone is insufficient**
+
+   $$
+   P(Y, X) \neq P(Y \mid do(X))
+   $$
+
+2. **Confounding variables** may distort relationships
+
+3. **Counterfactuals are unobservable**
+
+   We cannot observe both outcomes under different interventions for the same unit.
+
+---
+
+### 6. Interaction Between the Three
+
+- Predictive models can help identify useful variables or nonlinear structure.
+- Inferential models provide interpretable summaries and uncertainty quantification.
+- Causal analysis requires additional assumptions beyond both prediction and inference.
+
+**Important:**
+> Good prediction does not imply valid inference or causal conclusions.  
+> Significant associations do not imply causation.
+
+---
+
+### 7. Summary
+
+> Prediction, inference, and causality are complementary but fundamentally different statistical tasks.  
+> Each requires its own assumptions, validation criteria, and methodology.
+
+**One-line intuition:**
+- Prediction: *What will happen?*  
+- Inference: *Is there a relationship?*  
+- Causality: *What happens if we intervene?*
+
+**Final takeaway:**
+> Prediction is validated by data, inference is justified by assumptions, and causality requires design.
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+# Precision, Recall, Hypothesis Testing, and the Bias-Variance Tradeoff
+
+## Introduction
+
+In many introductory machine learning courses, precision and recall are introduced as simple formulas computed from a confusion matrix. However, this approach often hides the deeper statistical meaning behind these quantities.
+
+Precision and recall are fundamentally connected to:
+
+- statistical decision theory
+- hypothesis testing
+- asymmetric loss
+- uncertainty
+- threshold selection
+- the bias-variance tradeoff
+
+To fully understand classification, we must recognize an important fact:
+
+> Classification is not merely prediction.
+> It is decision making under uncertainty.
+
+A classifier does not directly observe the truth. Instead, it observes noisy predictors and attempts to make decisions about class membership. Different types of mistakes may have very different consequences.
+
+This is where precision and recall become important.
+
+---
+
+# Binary Classification Setup
+
+Suppose we have a binary classification problem.
+
+The true class is:
+
+$$
+Y \in \{0,1\}
+$$
+
+where:
+
+- $Y=1$ represents the positive class
+- $Y=0$ represents the negative class
+
+The classifier produces predictions:
+
+$$
+\hat Y \in \{0,1\}.
+$$
+
+The outcomes may be summarized using the confusion matrix.
+
+| | Predicted Positive | Predicted Negative |
+|---|---|---|
+| True Positive Class | TP | FN |
+| True Negative Class | FP | TN |
+
+where:
+
+- TP = true positives
+- FP = false positives
+- FN = false negatives
+- TN = true negatives
+
+---
+
+# Accuracy and Its Limitations
+
+The most obvious performance measure is accuracy:
+
+$$
+\text{Accuracy}
+=
+\frac{TP+TN}{N}.
+$$
+
+Accuracy measures the proportion of correct predictions.
+
+At first glance, this seems reasonable. However, accuracy implicitly assumes:
+
+> all mistakes have equal importance.
+
+In practice, this assumption is often unrealistic.
+
+For example:
+
+- missing cancer may be much worse than a false alarm
+- falsely accusing an innocent person may be worse than missing a criminal
+- incorrectly flagging legitimate transactions may frustrate customers
+
+Thus many classification problems involve asymmetric decision costs.
+
+This motivates precision and recall.
+
+---
+
+# Recall
+
+Recall is defined as:
+
+$$
+\text{Recall}
+=
+\frac{TP}{TP+FN}.
+$$
+
+Recall measures:
+
+> Among all truly positive observations,
+> how many were successfully detected?
+
+Equivalently:
+
+:contentReference[oaicite:0]{index=0}
+
+Thus recall is a conditional probability.
+
+It measures how sensitive the classifier is to positive observations.
+
+For this reason, recall is also called:
+
+- sensitivity
+- true positive rate
+
+---
+
+# Statistical Interpretation of Recall
+
+Recall is fundamentally related to:
+
+```text
+detection ability
+```
+
+A classifier with high recall rarely misses true positive observations.
+
+Low recall means:
+
+```text
+many false negatives
+```
+
+In statistical language, recall is closely connected to:
+
+```text
+Type II error
+```
+
+or equivalently:
+
+```text
+statistical power
+```
+
+since:
+
+$$
+\text{Power}
+=
+1-\text{Type II Error}.
+$$
+
+Thus recall is essentially the probability of correctly detecting a true signal.
+
+---
+
+# Hypothesis Testing Interpretation of Recall
+
+Suppose we formulate classification as hypothesis testing.
+
+For each observation:
+
+$$
+H_0: Y=0
+$$
+
+versus
+
+$$
+H_1: Y=1.
+$$
+
+Then:
+
+- predicting positive corresponds to rejecting $H_0$
+- predicting negative corresponds to failing to reject $H_0$
+
+Under this interpretation:
+
+| Classification | Hypothesis Testing |
+|---|---|
+| False positive | Type I error |
+| False negative | Type II error |
+
+Thus recall becomes:
+
+$$
+P(\text{Reject }H_0 \mid H_1 \text{ true}),
+$$
+
+which is precisely statistical power.
+
+This is one of the deepest statistical interpretations of recall.
+
+---
+
+# Precision
+
+Precision is defined as:
+
+$$
+\text{Precision}
+=
+\frac{TP}{TP+FP}.
+$$
+
+Precision measures:
+
+> Among all predicted positive observations,
+> how many are truly positive?
+
+Equivalently:
+
+:contentReference[oaicite:1]{index=1}
+
+Notice that this conditional probability is reversed compared with recall.
+
+Recall conditions on the truth.
+
+Precision conditions on the prediction.
+
+This distinction is extremely important.
+
+---
+
+# Statistical Interpretation of Precision
+
+Precision measures:
+
+```text
+trustworthiness of positive predictions
+```
+
+High precision means:
+
+- few false positives
+- positive predictions are reliable
+
+Low precision means:
+
+- many false alarms
+- many predicted positives are actually negative
+
+Thus precision is closely related to:
+
+```text
+false discovery control
+```
+
+and:
+
+```text
+positive predictive value
+```
+
+in medical statistics.
+
+---
+
+# Precision and Bayes' Rule
+
+Precision and recall are connected through Bayes' theorem.
+
+Recall is:
+
+$$
+P(\hat Y=1\mid Y=1).
+$$
+
+Precision is:
+
+$$
+P(Y=1\mid \hat Y=1).
+$$
+
+Bayes' rule gives:
+
+:contentReference[oaicite:2]{index=2}
+
+Thus precision depends not only on recall, but also on:
+
+- class prevalence
+- prediction frequency
+
+This explains why precision can collapse in highly imbalanced datasets.
+
+---
+
+# Class Imbalance
+
+Suppose only 1% of observations are positive.
+
+Even a classifier with high recall may have poor precision.
+
+For example:
+
+- 100 true positives
+- 900 false positives
+
+Then:
+
+$$
+\text{Recall}
+=
+1
+$$
+
+but:
+
+$$
+\text{Precision}
+=
+\frac{100}{1000}
+=
+0.1.
+$$
+
+Thus most predicted positives are incorrect.
+
+This is why accuracy alone becomes misleading under class imbalance.
+
+---
+
+# Thresholds and Decision Rules
+
+Most classifiers produce scores or probabilities:
+
+$$
+p(x)=P(Y=1\mid x).
+$$
+
+A final classification requires a threshold:
+
+$$
+\hat Y=
+\begin{cases}
+1 & p(x)>c\\
+0 & p(x)\le c
+\end{cases}
+$$
+
+where $c$ is the classification threshold.
+
+Changing the threshold changes precision and recall.
+
+---
+
+# Precision-Recall Tradeoff
+
+Suppose we lower the threshold.
+
+Then the classifier predicts positive more aggressively.
+
+This usually causes:
+
+- recall to increase
+- precision to decrease
+
+because:
+
+- more true positives are detected
+- but more false positives are also generated
+
+Conversely, raising the threshold produces:
+
+- higher precision
+- lower recall
+
+Thus precision and recall naturally trade off against each other.
+
+---
+
+# Statistical Decision Theory
+
+This tradeoff is fundamentally a decision-theoretic problem.
+
+Classification is not merely about finding the truth.
+
+Instead, it is about:
+
+> making decisions under uncertainty while balancing different error costs.
+
+Different applications prioritize different errors.
+
+---
+
+# Medical Screening Example
+
+Suppose we are screening for cancer.
+
+Missing a cancer patient may be extremely costly.
+
+Thus false negatives are dangerous.
+
+Therefore we prioritize:
+
+```text
+high recall
+```
+
+Even if this creates more false positives.
+
+Extra medical testing may be acceptable if it reduces missed diagnoses.
+
+---
+
+# Spam Filtering Example
+
+Now consider spam detection.
+
+If precision is low, many legitimate emails will be flagged as spam.
+
+Users may become frustrated.
+
+Thus precision becomes more important.
+
+This illustrates that the optimal tradeoff depends on the application.
+
+---
+
+# Precision, Recall, and the Bias-Variance Tradeoff
+
+Precision and recall are also connected to the bias-variance tradeoff.
+
+Suppose a classifier is extremely conservative.
+
+It predicts positive only when highly certain.
+
+Then:
+
+- precision may be high
+- recall may be low
+
+This resembles a high-bias classifier.
+
+The classifier avoids risky decisions.
+
+---
+
+# High Variance and Aggressive Classification
+
+Now suppose the classifier aggressively predicts positives.
+
+Then:
+
+- recall may increase
+- precision may decrease
+
+because the classifier begins fitting more subtle patterns.
+
+This resembles lower bias but higher variance.
+
+The classifier becomes more flexible and sensitive, but also more unstable.
+
+---
+
+# Thresholds as Complexity Control
+
+Changing the classification threshold can itself be viewed as controlling effective model complexity.
+
+A very low threshold creates:
+
+```text
+aggressive positive prediction
+```
+
+A very high threshold creates:
+
+```text
+conservative positive prediction
+```
+
+Thus threshold selection acts like a bias-variance tuning mechanism.
+
+---
+
+# Example: Logistic Regression
+
+Suppose logistic regression estimates:
+
+$$
+P(Y=1\mid x).
+$$
+
+If we classify positive whenever:
+
+$$
+P(Y=1\mid x)>0.5,
+$$
+
+then the classifier behaves moderately.
+
+If we instead use:
+
+$$
+P(Y=1\mid x)>0.1,
+$$
+
+the classifier becomes far more aggressive.
+
+This usually increases recall but decreases precision.
+
+---
+
+# Precision-Recall Curves
+
+A precision-recall curve shows how precision changes as recall changes across thresholds.
+
+This curve is especially important for imbalanced datasets.
+
+Unlike ROC curves, precision-recall curves directly reflect the quality of positive predictions.
+
+---
+
+# F1 Score
+
+Sometimes we want to balance precision and recall simultaneously.
+
+The F1 score is:
+
+$$
+F1
+=
+\frac{2PR}{P+R},
+$$
+
+where:
+
+- $P$ = precision
+- $R$ = recall
+
+This is the harmonic mean of precision and recall.
+
+---
+
+# Why Harmonic Mean?
+
+The harmonic mean heavily penalizes imbalance.
+
+For example:
+
+- precision = 1
+- recall = 0
+
+then:
+
+$$
+F1=0.
+$$
+
+Thus F1 favors classifiers that balance both quantities.
+
+---
+
+# Precision, Recall, and Model Flexibility
+
+Different models naturally produce different precision-recall behaviors.
+
+Highly flexible models:
+
+- deeper trees
+- boosting
+- neural networks
+
+may achieve higher recall by detecting subtle patterns.
+
+However, they may also generate more false positives.
+
+Simpler models:
+
+- linear models
+- regularized models
+
+may produce fewer false positives but miss weaker signals.
+
+Thus precision-recall behavior is deeply tied to model complexity.
+
+---
+
+# Boosting and Recall
+
+Boosting methods such as AdaBoost and XGBoost often aggressively improve recall.
+
+Boosting repeatedly focuses on difficult observations.
+
+As a result, boosting tends to:
+
+- reduce false negatives
+- improve detection power
+
+However, aggressive boosting may also increase false positives if the model begins fitting noise.
+
+Thus boosting often navigates a delicate precision-recall tradeoff.
+
+---
+
+# Hypothesis Testing Analogy
+
+The connection between classification and hypothesis testing is profound.
+
+Classification threshold selection resembles choosing a significance level.
+
+For example:
+
+- lower threshold
+  - easier to reject $H_0$
+  - higher recall
+  - more false positives
+
+- higher threshold
+  - harder to reject $H_0$
+  - lower recall
+  - fewer false positives
+
+This parallels:
+
+- liberal tests
+- conservative tests
+
+in classical hypothesis testing.
+
+---
+
+# Unified Statistical View
+
+We may summarize the connections as follows.
+
+| Classification | Hypothesis Testing |
+|---|---|
+| Positive prediction | Reject $H_0$ |
+| Negative prediction | Fail to reject $H_0$ |
+| False positive | Type I error |
+| False negative | Type II error |
+| Recall | Power |
+| Precision | Reliability of discoveries |
+
+This unified viewpoint connects machine learning classification directly to classical statistics.
+
+---
+
+# Final Remarks
+
+Precision and recall are not merely machine learning metrics.
+
+They arise naturally from:
+
+- statistical decision theory
+- hypothesis testing
+- uncertainty quantification
+- asymmetric loss
+- bias-variance tradeoffs
+
+Recall measures the ability to detect true signals.
+
+Precision measures the reliability of positive discoveries.
+
+Different applications require different balances between these quantities.
+
+Ultimately, classification is not simply about maximizing accuracy.
+
+It is about making statistically meaningful decisions under uncertainty while balancing competing risks. -->
+
+

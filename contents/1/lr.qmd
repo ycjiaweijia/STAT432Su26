@@ -63,8 +63,28 @@ Interpretability is one of the main advantages of linear regression compared wit
 2. When interaction terms are present, a main effect cannot be interpreted in isolation. The effect of a predictor depends on the values of the variables with which it interacts.
 3. If predictors are centered so that $0$ corresponds to the average of the original variable, the intercept represents the predicted response at the average predictor levels.
 
+::: {.callout-note}
+Classical regression primarily focuses on inference and model assumptions, such as normality, constant variance, and independence of errors.
 
+As discussed earlier in the statistical learning basics section, statistical learning places greater emphasis on predictive performance and generalization to unseen data. As a result, estimated test error and model validation often play a more central role than formal inference procedures.
+:::
 
+<!-- 
+### Training Error and Test Error
+
+Like mentioned in the basics, in statistical learning, the primary goal is usually good prediction on unseen data rather than merely fitting the observed sample.
+
+As model flexibility increases:
+
+- training error usually decreases;
+- test error may eventually increase due to overfitting.
+
+Thus, a model that fits the training data extremely well is not necessarily a good predictive model.
+
+The goal is therefore to find a balance between model complexity and generalization performance. This idea is closely related to the bias--variance tradeoff discussed earlier in the statistical learning basics section.
+
+Classical regression often studies model assumptions and inference in detail, while statistical learning places greater emphasis on predictive performance and estimated test error. -->
+<!-- 
 ### Training Error and Test Error
 
 
@@ -117,7 +137,7 @@ Some commonly used criteria are:
 Although these criteria are useful for model comparison, they still rely on approximations derived from the training sample.
 :::
 
-
+ -->
 
 
 
@@ -700,6 +720,39 @@ df_result["mean_test_score"]
 ## `n_jobs`
 You may assign `n_jobs` for parallel computing. You may leave it `None` right now. We will come back to it later when we really need it.
 :::
+
+
+
+### Modern Hyperparameter Tuning
+
+Historically, one of the most common approaches to hyperparameter tuning was exhaustive grid search, which is introduced above. This approach is conceptually simple and works well when the number of hyperparameters is small. As a result, `GridSearchCV` became one of the standard tools in early machine learning workflows.
+
+However, as models became more complicated, researchers observed that exhaustive grid search often wastes substantial computation. In many problems, only a few hyperparameters strongly affect performance, while others have relatively small influence.
+
+A particularly influential paper @Bergstra2012 by Bergstra and Bengio showed that random search can often outperform grid search in high-dimensional hyperparameter spaces. The main idea is that random search explores more distinct values along important hyperparameter directions instead of spending excessive computation on unimportant dimensions.
+
+This led to the widespread use of methods such as:
+
+- `RandomizedSearchCV`
+- Bayesian optimization
+- TPE (Tree-structured Parzen Estimator)
+- Optuna
+- AutoML frameworks
+
+Modern frameworks such as `Optuna` use adaptive search strategies. Instead of testing hyperparameters independently, they use information from previous trials to guide future searches toward more promising regions of the hyperparameter space. These methods have become increasingly important for large and computationally expensive models.
+
+Nevertheless, in this course we will mainly use ordinary grid search because it is simple, transparent, and easy to understand. For most models in this course, naive grid search is already sufficient.
+
+Only for more computationally expensive models such as XGBoost will we occasionally use more practical workflows such as:
+
+- random search followed by refined grid search
+- stagewise tuning
+- early stopping
+
+
+
+
+
 
 
 ## Feature Engineering and Preprocessing

@@ -153,16 +153,26 @@ $$
 $$
 \alpha_m
 =
-\eta\cdot\log\qty(\frac{1-\operatorname{err}_m}{\operatorname{err}_m}).
+\frac12
+\log\qty(\frac{1-\operatorname{err}_m}{\operatorname{err}_m}).
 $$
+
 4. Update observation weights and then normalize the weights so they sum to one:
 $$
-w^{(m+1)}_{i}\xleftarrow{\text{normalize}} \hat w_i^{(m+1)}\leftarrow\begin{cases}w^{(m)}_i\exp(-\alpha_m)&\text{if the $m$th data is correctly classified,}\\
-w_i^{(m)}\exp(\alpha_m)&\text{if the $m$th data is misclassified.}\end{cases}
+w^{(m+1)}_{i}\xleftarrow{\text{normalize}} \hat w_i^{(m+1)}\leftarrow\begin{cases}
+w^{(m)}_i\exp(-\alpha_m)
+&
+\text{if observation $i$ is correctly classified by the $m$th weak learner,}\\
+w_i^{(m)}\exp(\alpha_m)
+&
+\text{if observation $i$ is misclassified by the $m$th weak learner.}
+\end{cases}
 $$
 that 
 $$
-w^{(m+1)}_{i}=\frac{\hat w_i^{(m+1)}}{\sum_j \hat w_j^{(m+1)}}.
+w^{(m+1)}_{i}
+=
+\frac{\hat w_i^{(m+1)}}{\sum_j \hat w_j^{(m+1)}}.
 $$
 It is easy to see from the updating rule that AdaBoost puts more weight on observations that were misclassified.
 5. Repeat the above process until the stop conditions are met.
@@ -182,15 +192,49 @@ $$
 
 
 ::: {.callout-note}
-## Learning Rate
+## Learning Rate and the $\frac12$ Factor
 
-The $\eta>0$ in Step 3 is the **learning rate**. Some textbooks include an additional factor $\frac12$ in front of $\eta$. This only changes the scale of the classifier weights and can therefore be absorbed into the learning rate. So we will not use the factor.
+In the classical AdaBoost derivation, the classifier weight is
 
-The learning rate controls how much each weak learner contributes to the final ensemble. A larger learning rate makes the model change more aggressively at each iteration, while a smaller learning rate produces more gradual updates.
+$$
+\alpha_m
+=
+\frac12
+\log\qty(\frac{1-\operatorname{err}_m}{\operatorname{err}_m}).
+$$
+
+In practice, many implementations additionally introduce a learning rate $\eta>0$ and use
+
+$$
+\alpha_m
+=
+\eta\cdot
+\frac12
+\log\qty(\frac{1-\operatorname{err}_m}{\operatorname{err}_m}).
+$$
+
+Some textbooks instead write
+
+$$
+\alpha_m
+=
+\eta\cdot
+\log\qty(\frac{1-\operatorname{err}_m}{\operatorname{err}_m}),
+$$
+
+that is, without the factor $\frac12$.
+
+This does not fundamentally change the algorithm. The factor $\frac12$ can simply be absorbed into the learning rate by replacing $\eta$ with $\eta/2$. Therefore the two formulas differ only by a rescaling of the step size.
+
+We mainly use the classical form with $\frac12$ since it naturally appears in the standard derivation from exponential loss minimization and margin theory.
+
+The learning rate controls how much each weak learner contributes to the final ensemble.
+
+- A larger learning rate makes the model change more aggressively at each iteration.
+- A smaller learning rate produces more gradual updates.
 
 In practice, smaller learning rates are often combined with a larger number of estimators.
 :::
-
 
 ::: {.callout-note}
 ## Margin
@@ -241,18 +285,19 @@ $$
 
 ### Why Does AdaBoost Work?
 
-One of the most surprising aspects of AdaBoost is that it often works extremely well even when the base learners are very weak.
+One of the most surprising aspects of AdaBoost is that it often performs extremely well even when each individual learner is very weak.
 
-Several intuitive explanations are commonly used:
+A useful way to understand boosting is through the bias-variance tradeoff.
 
-- each weak learner makes a small correction to the current model
-- difficult observations receive more attention in later iterations
-- many simple rules can combine into a highly flexible decision boundary
-- weak learners may help reduce overfitting by forcing gradual improvements
+- Bagging and Random Forests mainly reduce variance by averaging many independent trees.
+- Boosting mainly reduces bias by sequentially correcting the errors made by the current model.
 
-From a practical viewpoint, AdaBoost can be viewed as repeatedly combining many simple models into a stronger ensemble.
+At each boosting round, the new learner focuses more on the observations that are currently difficult to classify. As more learners are added, many simple decision rules combine into a much more flexible decision boundary. This sequential correction process allows AdaBoost to gradually improve the model while still using very simple base learners such as decision stumps.
 
-However, understanding *why* AdaBoost works so well mathematically became one of the major research topics in statistical learning during the late 1990s and early 2000s. Many theoretical studies showed that AdaBoost is closely connected to several important topics, including additive modeling, exponential loss minimization, margin theory, and statistical learning theory.
+In the early boosting rounds, the model often becomes substantially more accurate. However, if boosting continues too aggressively, variance may eventually increase and overfitting may occur. Several techniques are commonly used to control this effect, like shallow trees, smaller learning rates, subsampling and early stopping. Thus boosting can often achieve highly accurate models while still maintaining good generalization performance.
+
+
+From a mathematical viewpoint, understanding *why* AdaBoost works so well mathematically became one of the major research topics in statistical learning during the late 1990s and early 2000s. Many theoretical studies showed that AdaBoost is closely connected to several important topics, including additive modeling, exponential loss minimization and margin theory.
 
 One particularly influential result showed that AdaBoost can be interpreted as a stagewise additive optimization procedure. Important theoretical works include @Freund1997, @Schapire1998, @Friedman2000, and @Breiman1999. These studies greatly influenced the later development of modern boosting methods such as Gradient Boosting and XGBoost.
 
@@ -362,7 +407,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 
 
-We first train the modol. 
+We first train the model. 
 
 ```{python}
 
@@ -398,7 +443,7 @@ for pred_train, pred_test in zip(
     test_acc.append(accuracy_score(y_test, pred_test))
 ```
 
-In addition, the 10% margin is of our interesting, since we treat margin<10% as no confidence.
+In addition, the 10th-percentile margin is of our interesting, since we treat margin<10% as no confidence.
 
 ```{python}
 train_margin_10 = []
@@ -457,7 +502,9 @@ We may also plot the 10th-percentile margin curve. The 10th-percentile margin re
 From the plot, we can see that even after the training accuracy reaches 1.0, the margins may still continue to change. This shows that `AdaBoost` is not merely optimizing training accuracy; it continues to adjust the additive model in order to improve the margin distribution and increase confidence.
 
 - If the lower-percentile margin continues to increase while test performance remains stable or improves, this suggests that the model is still improving its confidence on difficult cases and is not yet clearly overfitting.
-- If the lower-percentile margin decreases, especially together with decreasing test accuracy, this suggests that the model may be becoming less reliable on difficult cases and may be starting to overfit.
+- If the lower-percentile margin decreases together with decreasing validation or test performance, this suggests that the model may be becoming less reliable on difficult cases and may be starting to overfit.
+
+
 
 ```{python}
 plt.plot(train_margin_10, label="training 10th percentile margin")
@@ -504,29 +551,12 @@ There is a strong tradeoff:
 - larger `learning_rate` learns faster but can overfit or become unstable;
 - smaller `learning_rate` often gives smoother and more stable models.
 
-Common values are:
+<!-- Common values are 0.01, 0.05, 0.1, 1.0, etc.. -->
 
-```{python}
-#| eval: false
-learning_rate = 0.01
-learning_rate = 0.05
-learning_rate = 0.1
-learning_rate = 1.0
-```
 
 ### Base Tree Depth
 
-Decision stumps use `max_depth=1`. They are common because AdaBoost was originally designed around weak learners.
-
-Using deeper trees allows each boosting round to model interactions.
-
-For example:
-
-- `max_depth=1` models main effects through stumps;
-- `max_depth=2` can model simple two-variable interactions;
-- `max_depth=3` can model more complex interactions.
-
-Deeper trees are stronger learners, but they also increase the risk of overfitting.
+Decision stumps use `max_depth=1`. They are common because AdaBoost was originally designed around weak learners. Using deeper trees allows each boosting round to model interactions. In most cases, AdaBoost use depths from 1 to 3. Deeper trees are stronger learners, but they also increase the risk of overfitting.
 
 ### Grid Search for AdaBoost
 
@@ -635,9 +665,11 @@ print("Best CV accuracy:", grid.best_score_)
 print("Test accuracy:", best_ada.score(X_test, y_test))
 ```
 
-Plot the decision boundary.
+<!-- Plot the decision boundary. -->
 
 ```{python}
+#| eval: false
+#| echo: false
 def plot_decision_boundary(model, X, y, title):
     x0_min, x0_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
     x1_min, x1_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
@@ -662,7 +694,7 @@ def plot_decision_boundary(model, X, y, title):
 plot_decision_boundary(best_ada, X_test, y_test, "AdaBoost Decision Boundary")
 ```
 
-The boundary is built from many simple stumps or shallow trees. Each individual tree is weak, but the weighted ensemble can create a nonlinear classifier.
+<!-- The boundary is built from many simple stumps or shallow trees. Each individual tree is weak, but the weighted ensemble can create a nonlinear classifier. -->
 
 
 
@@ -701,6 +733,32 @@ where
 
 Unlike bagging, where trees are trained independently, boosting trains each new tree based on the current errors of the model.
 
+### Functional gradient viewpoint
+
+In ordinary optimization problems, we optimize finitely many parameters. For example, in linear regression we optimize the coefficient vector
+
+$$
+\beta=(\beta_1,\ldots,\beta_p).
+$$
+
+Gradient Boosting takes a different viewpoint. Instead of directly optimizing finitely many parameters, it attempts to optimize the prediction function itself.
+
+The model is built additively:
+
+$$
+F_{m+1}(x)
+=
+F_m(x)+f_m(x),
+$$
+
+where each new function $f_m(x)$ is usually a small regression tree.
+
+Thus each boosting step adds a new basis function to the model. Since the space of possible functions is extremely large, Gradient Boosting is often interpreted as a form of gradient descent in function space, also called functional gradient descent.
+
+Conceptually:
+
+- ordinary gradient descent updates parameters
+- Gradient Boosting updates functions
 
 
 ### Regression tree fitting
@@ -856,7 +914,7 @@ F_{m+1}(x)
 F_m(x)+f_m(x).
 $$
 
-Instead of using only first-order information as in GBDT, XGBoost uses a second-order Taylor expansion of the loss function:
+Instead of using only first-order information as in GBDT, XGBoost uses a local second-order Taylor approximation of the loss function at each boosting iteration:
 
 $$
 l(y_i,F_m(x_i)+f_m(x_i))
@@ -1101,11 +1159,9 @@ $$
 \gamma T.
 $$
 
-This quantity is used by XGBoost to evaluate the quality of tree splits.
+This quantity is used by XGBoost to evaluate the quality of candidate tree splits.
 
 Therefore, unlike ordinary CART trees which use RSS or Gini impurity, XGBoost derives its splitting criterion directly from the regularized optimization objective.
-
-
 
 
 ### Learning rate
@@ -1394,12 +1450,12 @@ Similar to bagging, for a nested struture like `GridSearchCV` with `XGBoost`, we
 :::
 
 
-### Tuning XGBoost
+## Tuning XGBoost
 
-If there are enough computing resources, to tune `XGBoost` is no different from other models. However since the model is become more complicated, it usually takes longer to go through the whole grid search. In this case, usually we make some modifications to the workflow.
+If there are enough computing resources, to tune `XGBoost` is no different from other models. However since the model becomes more complicated, it usually takes longer to go through the whole grid search. In this case, usually we make some modifications to the workflow.
 
 
-#### `RandomSearchCV`
+### `RandomSearchCV`
 We already show the code of `RandomSearchCV` before. Here we give more explanations. 
 
 `RandomSearchCV` is to search random combinations of hyperparameters. Therefore it is used to do a rough search in a very large parameter space. Other than the `param_grid` like `GridSearchCV`, `RandomSearchCV` needs `n_iter` to indicate how many combinations one wants to test.
@@ -1426,9 +1482,8 @@ random_search = RandomizedSearchCV(
 ```
 
 
-::: {.callout-note}
 
-## Workflow
+### Workflow
 
 A practical tuning workflow is often a two-stage process.
 
@@ -1438,28 +1493,29 @@ Then, based on the best combination found by random search, choose a smaller and
 
 If the refined grid is still too slow, we can tune parameters in smaller batches. A common strategy is:
 
-1. tune model complexity parameters first, such as `max_depth` and `n_estimators`
-2. tune learning rate and number of trees together
+1. tune model complexity parameters first, such as `max_depth`
+2. tune learning rate
 3. tune sampling parameters, such as `subsample` and `colsample_bytree`
 4. tune regularization parameters, such as `reg_lambda` and `reg_alpha`
 
 This workflow is not guaranteed to find the global best combination, but it is usually much more practical than running one huge exhaustive grid search.
-:::
+
+
 
 ### Early Stopping
 
-Boosting can overfit if too many trees are added. Early stopping monitors validation performance and stops when the validation score no longer improves.
+Boosting may eventually overfit if too many trees are added. Early stopping helps prevent this by monitoring validation performance during training.
 
-In principal, `n_eestimators` can be tuned by grid search or similar methods that aligns with other hyperparameters. In practice, it is usually determined by early stopping in a separate step.
+In principle, `n_estimators` can be tuned together with other hyperparameters using grid search or similar methods. In practice, however, it is often determined separately through early stopping.
 
-Conceptually:
+Conceptually, the procedure is simple:
 
 1. Split the training data into a training part and a validation part.
 2. Fit trees sequentially.
-3. Track validation error after each round.
-4. Stop when validation error stops improving.
+3. Monitor the validation error after each boosting round.
+4. Stop when the validation performance no longer improves.
 
-In XGBoost, early stopping is often used through an evaluation set. When initialize the model, `early_stopping_rounds=20` is sent which means that the model stops training if validation score is not improved in 20 rounds.
+In XGBoost, this is commonly implemented using an evaluation set together with `early_stopping_rounds`. For example, `early_stopping_rounds=20` means that training stops if the validation score does not improve for 20 consecutive boosting rounds.
 
 ```{python}
 #| eval: false
@@ -1506,6 +1562,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 In general you should not touch test sets. However in this example for simplicity we ambuse it by using test sets as validation sets.
 
+### Baseline model
 
 We first build a baseline model, with all default hyperparameters.
 
@@ -1516,6 +1573,9 @@ xgb_baseline = XGBRegressor(random_state=1, n_jobs=-1)
 xgb_baseline.fit(X_train, y_train)
 xgb_baseline.score(X_test, y_test)
 ```
+
+
+### `RandomSearchCV`
 
 The first round we use random search to try to find a good enough point. Note that we choose a relatively large `n_estimators` which we will tune in the next early stopping stage.
 
@@ -1543,6 +1603,7 @@ random_search = RandomizedSearchCV(
 random_search.fit(X_train, y_train)
 random_search.best_params_
 ```
+
 The purpose of this random search is to find a rough range of the best combination in order for the refined grid search. According to the result, we may construct a smaller range for refined grid search. 
 
 ```{python}
@@ -1555,6 +1616,7 @@ param_grid_refined = {
 }
 ```
 
+### Early stopping
 Before we run the refined grid search, we need to determine the `n_estimators` using early stopping.
 
 ```{python}
@@ -1576,7 +1638,8 @@ best_round = xgb_es.best_iteration + 1
 best_round 
 ```
 
-Then we can run refined grid search using `n_estimators=``{python} best_round`. 
+### Refined grid search
+Now we can run refined grid search using `n_estimators=best_round` (which is `{python} best_round` in this example). 
 
 ```{python}
 #| eval: false
@@ -1599,8 +1662,7 @@ param_grid_refined = {
 grid_search = GridSearchCV(xgb_base, param_grid=param_grid_refined, cv=5, n_jobs=-1)
 grid_search.fit(X_train, y_train)
 ```
-Sometimes this is still slow. In this case we will do a stagewise tuning.
-
+Sometimes a full refined grid search is still computationally expensive. In this case, a common practical strategy is to tune the hyperparameters in stages.
 
 ::: {.callout-note collapse="true"}
 ## Stage 1: tune tree complexity
@@ -1718,7 +1780,7 @@ grid_4.best_params_
 :::
 
 
-Then we put all hyperparameters together for a final training.
+Finally we put all hyperparameters together for a final training.
 ```{python}
 best_params = {
     **grid_1.best_params_,
