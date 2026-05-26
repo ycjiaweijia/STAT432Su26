@@ -25,17 +25,7 @@ Broadly speaking, classification evaluation can be divided into three related bu
 | Ranking quality | Are positive observations ranked above negative observations? | ROC curve, AUC, PR curve |
 | Probability quality | Are predicted probabilities numerically trustworthy? | Calibration curve, Brier score, log loss |
 
-From a statistical learning perspective, these goals may be viewed as forming an approximate information hierarchy:
-
-$$
-\text{Probability Quality}
-\Longrightarrow
-\text{Potential for Good Ranking}
-\Longrightarrow
-\text{Potential for Good Decisions}.
-$$
-
-In general, richer probability information can support ranking and decision making across many thresholds or cost functions, although the relationships are not mathematically equivalent.
+These goals are related but fundamentally different. Accurate probability estimates are the richest output: they can support ranking and threshold-based decisions. However, good decisions, good rankings, and calibrated probabilities are different evaluation goals and one does not generally imply the others.
 
 
 If a model accurately estimates the true conditional probability distribution $\Pr(Y\mid X)$, then it naturally induces good rankings and supports effective decision-making across many possible thresholds or cost functions. However, the converse implications generally fail. Optimizing only a threshold-based metric such as accuracy provides no guarantee that the underlying probabilities are calibrated or that the ranking behavior is reliable.
@@ -403,26 +393,6 @@ To better understand the precision--recall tradeoff, let us examine how altering
 Lowering the threshold classifies more observations as positive. Therefore, both true positives (TP) and false positives (FP) may increase, while false negatives (FN) decrease.
 
 Raising the threshold classifies more observations as negative. Therefore, both true negatives (TN) and false negatives (FN) may increase, while true positives (TP) decrease.
-
-<!-- Recall changes monotonically with the threshold:
-
-$$
-\text{Recall}
-=
-\frac{TP}{TP+FN}.
-$$
-
-Lowering the threshold increases recall because fewer actual positive observations are missed. Raising the threshold decreases recall because more actual positive observations are classified as negative.
-
-Precision is more subtle:
-
-$$
-\text{Precision}
-=
-\frac{TP}{TP+FP}.
-$$
-
-Although lowering the threshold often decreases precision and raising the threshold often increases precision, precision is not strictly monotone. It depends on the relative balance between TP and FP among the observations newly included or excluded by the threshold. -->
 
 
 
@@ -827,26 +797,26 @@ y_pred = (logit_prob >= threshold).astype(int)
 
 
 
-You may also use the `FixedThresholdClassifier` from `sklearn.model_selection` to wrap it.
+You may also use `FixedThresholdClassifier` from `sklearn.model_selection` when you want the threshold to be part of the estimator workflow.
 
 ```{python}
 from sklearn.model_selection import FixedThresholdClassifier
 
 threshold = 0.3
-model_with_threshold = FixedThresholdClassifier(logit, threshold=threshold)
+model_with_threshold = FixedThresholdClassifier(
+    make_pipeline(
+        StandardScaler(),
+        LogisticRegression(max_iter=5000),
+    ),
+    threshold=threshold,
+)
+
+model_with_threshold.fit(X_train, y_train)
 y_pred_wrapper = model_with_threshold.predict(X_test)
 ```
-You can see that the results are the same.
-
-```{python}
-(y_pred==y_pred_wrapper).mean()
-```
-
-Note that `FixedThresholdClassifier` can be used to wrap an unfitted model so you may directly fit a model with different threshold.
-
 
 ::: {.callout-note}
-For `FixedThresholdClassifier` that you already set the threshold any way, all three methods (manual code, wrap a fitted model, wrap a model and then fit) will give the same answer. 
+`FixedThresholdClassifier` is useful when the threshold is fixed in advance.
 
 However, there might be cases that you want to adjust the threshold according to the dataset. In this case you may want to use `TunedThresholdClassifierCV`. We will talk about it in details later in the Logistic regression section.
 :::
@@ -1049,4 +1019,4 @@ CalibrationDisplay.from_predictions(
 
 The calibration curve compares predicted probabilities with observed frequencies. 
 
-Calibration can improve probability quality, but it does not necessarily improve AUC. This is expected because calibration changes the probability scale, while AUC mainly depends on ranking.
+Calibration curves diagnose probability quality; they do not by themselves recalibrate the model. Recalibration methods such as Platt scaling or isotonic regression can change the probability scale, but they do not necessarily improve AUC because AUC mainly depends on ranking.
