@@ -1075,15 +1075,17 @@ pipe.steps
 pipe.named_steps['scaler']
 ```
 
-In a pipeline you need to name all components. To make it easier you may use `make_pipeline` to use default names for each steps.
+In a pipeline, you normally need to manually name all components. To make this easier, you may use `make_pipeline()`, which automatically generates default names for each step.
+
+In addition, `make_pipeline()` does not require a `list` of `(name, step)` pairs. Instead, you simply provide the steps one by one.
 
 ```{python}
 from sklearn.pipeline import make_pipeline
 
-pipe_easy = make_pipeline(steps={
+pipe_easy = make_pipeline(
     StandardScaler(),
     LinearRegression()
-})
+)
 ```
 It will automatically name each step by its class name.
 
