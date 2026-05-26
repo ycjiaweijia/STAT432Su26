@@ -2848,3 +2848,44 @@ Calibration should be learned on data not used to fit the original model.
 
 Otherwise, the calibrated probabilities may look better than they really are.
 ::: -->
+
+
+
+
+
+# Classification Decisions and Evaluation
+
+Unlike regression—where metrics such as Mean Squared Error (MSE) evaluate prediction error along a continuous scale—classification evaluation is fundamentally more nuanced.
+
+A modern statistical learning classifier often produces a score or estimated probability rather than directly outputting a categorical decision. For example, a model may estimate
+
+$$
+\hat p(x)=\Pr(Y=1\mid X=x),
+$$
+
+and a separate decision rule then converts this soft prediction into a hard classification. As a result, classification performance can be evaluated from several different perspectives.
+
+Broadly speaking, classification evaluation can be divided into three related but distinct goals.
+
+| Goal | Main question | Common tools |
+|---|---|---|
+| Decision quality | Are the final classification decisions good? | Accuracy, precision, recall, F1-score |
+| Ranking quality | Are positive observations ranked above negative observations? | ROC curve, AUC, PR curve |
+| Probability quality | Are predicted probabilities numerically trustworthy? | Calibration curve, Brier score, log loss |
+
+These goals are closely related, but they measure fundamentally different aspects of model performance. In statistical learning theory, these goals form a strict, top-down information hierarchy: Good probability estimates often lead to good ranking performance, and good ranking performance can often produce good classification decisions after thresholding. However, the converse implications generally fail.
+
+Conceptually, this hierarchy may be summarized as
+
+$$\text{Optimal Probabilities} \implies \text{Optimal Ranking} \implies \text{Optimal Decisions}$$
+
+If a model accurately estimates the true conditional probability distribution $P(Y\mid X)$, then it naturally induces good rankings and supports effective decision-making across many possible thresholds or cost functions. In contrast, optimizing only a threshold-based metric such as accuracy provides no guarantee that the underlying probabilities are calibrated or that the ranking behavior is reliable.
+
+In practice, however, decision quality is often easier to achieve and is frequently the primary objective in applied statistical learning. Many real-world applications ultimately require concrete actions, such as approving a loan, detecting fraud, or diagnosing disease. As a result, threshold-based metrics such as accuracy, precision, recall, and F1-score often play the central role in applied machine learning.
+
+::: {.callout-note}
+Classification evaluation can become quite sophisticated and may involve ranking performance, probability calibration, cost-sensitive learning, threshold optimization, and decision theory.
+
+In this course, however, our primary goal is to understand the core ideas of statistical learning and predictive modeling rather than to develop a complete theory of statistical decision making. Therefore, we will mainly focus on accuracy and closely related threshold-based classification metrics.
+:::
+

@@ -25,58 +25,22 @@ Broadly speaking, classification evaluation can be divided into three related bu
 | Ranking quality | Are positive observations ranked above negative observations? | ROC curve, AUC, PR curve |
 | Probability quality | Are predicted probabilities numerically trustworthy? | Calibration curve, Brier score, log loss |
 
-
-These goals are closely related, but they measure fundamentally different aspects of model performance. From a statistical learning perspective, they may also be viewed as forming a top-down information hierarchy:
+From a statistical learning perspective, these goals may be viewed as forming an approximate information hierarchy:
 
 $$
-\text{Good Probability Estimates}
-\implies
-\text{Good Ranking}
-\implies
-\text{Good Decisions}.
+\text{Probability Quality}
+\Longrightarrow
+\text{Potential for Good Ranking}
+\Longrightarrow
+\text{Potential for Good Decisions}.
 $$
+
+In general, richer probability information can support ranking and decision making across many thresholds or cost functions, although the relationships are not mathematically equivalent.
+
 
 If a model accurately estimates the true conditional probability distribution $\Pr(Y\mid X)$, then it naturally induces good rankings and supports effective decision-making across many possible thresholds or cost functions. However, the converse implications generally fail. Optimizing only a threshold-based metric such as accuracy provides no guarantee that the underlying probabilities are calibrated or that the ranking behavior is reliable.
 
 In practice, however, decision quality is often easier to achieve and is frequently the primary objective in applied statistical learning. Many real-world applications ultimately require concrete actions, such as approving a loan, detecting fraud, or diagnosing disease. Consequently, threshold-based metrics such as accuracy, precision, recall, and F1-score often play the central role in applied machine learning.
-
-::: {.callout-note}
-Classification evaluation can become quite sophisticated and may involve ranking performance, probability calibration, cost-sensitive learning, threshold optimization, and decision theory.
-
-In this course, however, our primary goal is to understand the core ideas of statistical learning and predictive modeling rather than to develop a complete theory of statistical decision making. Therefore, we will mainly focus on accuracy and closely related threshold-based classification metrics.
-:::
-
-
-
-# Classification Decisions and Evaluation
-
-Unlike regression—where metrics such as Mean Squared Error (MSE) evaluate prediction error along a continuous scale—classification evaluation is fundamentally more nuanced.
-
-A modern statistical learning classifier often produces a score or estimated probability rather than directly outputting a categorical decision. For example, a model may estimate
-
-$$
-\hat p(x)=\Pr(Y=1\mid X=x),
-$$
-
-and a separate decision rule then converts this soft prediction into a hard classification. As a result, classification performance can be evaluated from several different perspectives.
-
-Broadly speaking, classification evaluation can be divided into three related but distinct goals.
-
-| Goal | Main question | Common tools |
-|---|---|---|
-| Decision quality | Are the final classification decisions good? | Accuracy, precision, recall, F1-score |
-| Ranking quality | Are positive observations ranked above negative observations? | ROC curve, AUC, PR curve |
-| Probability quality | Are predicted probabilities numerically trustworthy? | Calibration curve, Brier score, log loss |
-
-These goals are closely related, but they measure fundamentally different aspects of model performance. In statistical learning theory, these goals form a strict, top-down information hierarchy: Good probability estimates often lead to good ranking performance, and good ranking performance can often produce good classification decisions after thresholding. However, the converse implications generally fail.
-
-Conceptually, this hierarchy may be summarized as
-
-$$\text{Optimal Probabilities} \implies \text{Optimal Ranking} \implies \text{Optimal Decisions}$$
-
-If a model accurately estimates the true conditional probability distribution $P(Y\mid X)$, then it naturally induces good rankings and supports effective decision-making across many possible thresholds or cost functions. In contrast, optimizing only a threshold-based metric such as accuracy provides no guarantee that the underlying probabilities are calibrated or that the ranking behavior is reliable.
-
-In practice, however, decision quality is often easier to achieve and is frequently the primary objective in applied statistical learning. Many real-world applications ultimately require concrete actions, such as approving a loan, detecting fraud, or diagnosing disease. As a result, threshold-based metrics such as accuracy, precision, recall, and F1-score often play the central role in applied machine learning.
 
 ::: {.callout-note}
 Classification evaluation can become quite sophisticated and may involve ranking performance, probability calibration, cost-sensitive learning, threshold optimization, and decision theory.
@@ -685,7 +649,13 @@ AUC can be excellent even when predicted probabilities are numerically inaccurat
 AUC only asks whether positive observations tend to receive higher scores than negative observations. It does not ask whether the predicted probabilities themselves are trustworthy or well calibrated.
 :::
 
+### Precision-Recall Curve
 
+A precision-recall curve plots precision against recall as the classification threshold changes.
+
+It is especially useful when the positive class is rare. In imbalanced datasets, an ROC curve may look strong because the false positive rate is divided by the large number of true negatives. However, precision directly measures how many predicted positives are actually positive.
+
+Average precision summarizes the precision-recall curve as a single number. Like AUC, it evaluates ranking behavior across thresholds, but it focuses more directly on performance for the positive class.
 
 ## Probability Quality
 
@@ -695,9 +665,7 @@ For example, suppose a model predicts $\hat p(x)=0.8$. If the model is well cali
 
 Thus probability quality concerns whether predicted probabilities are numerically trustworthy.
 
-Unlike decision quality or ranking quality, probability quality focuses on the accuracy of the probability estimates themselves.
-
-Calibration curves, Brier score, and log loss are commonly used to evaluate probability quality.
+Unlike decision quality or ranking quality, probability quality focuses on the accuracy of the probability estimates themselves. Calibration curves, Brier score, and log loss are commonly used to evaluate probability quality.
 
 ::: {.callout-note}
 In many practical machine learning applications, probability quality is less important than classification accuracy or ranking performance.
@@ -706,8 +674,19 @@ Therefore, in this course, we will mainly focus on threshold-based classificatio
 :::
 
 
+### Calibration Curve
 
+A calibration curve, also called a reliability diagram, is constructed as follows:
 
+1. Divide observations into bins according to predicted probability.
+2. For each bin, compute the average predicted probability.
+3. Compute the observed positive proportion in each bin.
+4. Plot observed proportion against average predicted probability.
+
+For a perfectly calibrated model, the curve follows the diagonal line.
+
+- If the curve lies below the diagonal, the model is overconfident.
+- If the curve lies above the diagonal, the model is underconfident.
 
 
 
@@ -721,7 +700,7 @@ In classification, model fitting and decision making should be viewed as separat
 First, the model estimates a score or probability:
 
 $$
-\hat p(x) \approx P(Y=1\mid X=x).
+\hat p(x) \approx \Pr(Y=1\mid X=x).
 $$
 
 Second, we choose a threshold to convert this probability into an action.
@@ -746,15 +725,14 @@ A good classifier therefore involves not only learning accurate scores, but also
 
 ## Python Example: Breast Cancer Classification
 
-We now use the breast cancer dataset from `sklearn`. The goal is to classify tumors as malignant or benign. This example shows how to compute threshold-based metrics, ROC and PR curves, and calibration curves.
+We now use the [breast cancer dataset from `sklearn`](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_breast_cancer.html). The goal is to classify tumors as malignant or benign. This example shows how to compute threshold-based metrics, ROC and PR curves, and calibration curves.
 
-First load the data and split it into training and test sets.
+In this example, please mainly focus on the evaluation metrics. Other part like modeling, splitting, etc. will be introduced in later sections.
+
+### Load the dataset
+First load the data and split it into training and test sets. By default, the dataset uses `0` for malignant and `1` for benign. Since many classification metrics interpret label `1` as the positive class, we redefine malignant as `1`. Therefore we need to modify the `y` value.
 
 ```{python}
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 
@@ -762,99 +740,147 @@ cancer = load_breast_cancer(as_frame=True)
 
 X = cancer.data
 y_original = cancer.target
-
-# In this dataset, target 0 is malignant and target 1 is benign.
-# We define malignant as the positive class.
 y = 1 - y_original
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.3,
-    stratify=y,
-    random_state=42,
+    X, y, test_size=0.3, stratify=y, random_state=1
 )
+```
 
+We may want to see the distribution of the test set.
+```{python}
+import pandas as pd
 pd.Series(y_test).value_counts().sort_index()
 ```
 
-We fit logistic regression and a random forest. Logistic regression is often a strong baseline for calibrated probabilities. Random forests often have strong classification performance but may produce less calibrated probabilities.
+### Fit models
 
-This comparison is also a bias-variance example. Logistic regression is less flexible and may have more bias if the true boundary is nonlinear. The random forest is more flexible and can reduce bias, but its probability estimates may need calibration.
+We fit logistic regression model as an example, which is a typical strong baseline model.
 
 ```{python}
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
 
 logit = make_pipeline(
     StandardScaler(),
     LogisticRegression(max_iter=5000),
 )
 
-rf = RandomForestClassifier(
-    n_estimators=500,
-    max_features="sqrt",
-    random_state=42,
-    n_jobs=-1,
-)
-
 logit.fit(X_train, y_train)
-rf.fit(X_train, y_train)
 
 logit_prob = logit.predict_proba(X_test)[:, 1]
-rf_prob = rf.predict_proba(X_test)[:, 1]
 ```
+
+Note that `logit.predict_proba(X_test)` returns 2 columns:
+
+- column 0: $\Pr(Y=0\mid X)$,
+- column 1: $\Pr(Y=1\mid X)$.
+
+Since we want the predicted probability for the positive class (`y=1`), we select the second column.
+<!-- 
+At the end we get the output probability. Many of the metrics in this section depends on this probability or the labels corresponding to it. -->
+
 
 ### Confusion Matrix and Basic Metrics
 
-We first use the default threshold $0.5$.
+All decision quality metrics can be computed using functions from `sklearn.metrics`. They are used to compare two list-like objects, while the true labels are passed first and the predicted labels second.
+
+By default, `predict()` in `sklearn` uses threshold $0.5$ for binary classification.
 
 ```{python}
-from sklearn.metrics import (
-    confusion_matrix,
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-)
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
+y_pred = logit.predict(X_test)
+
+acc = accuracy_score(y_test, y_pred)
+prec = precision_score(y_test, y_pred)
+rec = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+```
+
+We can also compute the confusion matrix and extract the values of TP, TN, FP, and FN from it.
+
+```{python}
+from sklearn.metrics import confusion_matrix
+
+confusion_matrix(y_test, y_pred)
+```
+
+
+```{python}
+TN, FP, FN, TP = confusion_matrix(y_test, y_pred).ravel()
+```
+They are listed in this particular order since 0 stands for negative and 1 stands for positive in this example.
+
+
+
+### Modifying Thresholds
+
+The default model use 0.5 as the threshold in `sklearn`. If you want to change the threshold, you may manually write the code. 
+
+```{python}
+threshold = 0.3
+logit_prob = logit.predict_proba(X_test)[:, 1] 
+y_pred = (logit_prob >= threshold).astype(int)
+```
+
+
+
+You may also use the `FixedThresholdClassifier` from `sklearn.model_selection` to wrap it.
+
+```{python}
+from sklearn.model_selection import FixedThresholdClassifier
+
+threshold = 0.3
+model_with_threshold = FixedThresholdClassifier(logit, threshold=threshold)
+y_pred_wrapper = model_with_threshold.predict(X_test)
+```
+You can see that the results are the same.
+
+```{python}
+(y_pred==y_pred_wrapper).mean()
+```
+
+Note that `FixedThresholdClassifier` can be used to wrap an unfitted model so you may directly fit a model with different threshold.
+
+
+::: {.callout-note}
+For `FixedThresholdClassifier` that you already set the threshold any way, all three methods (manual code, wrap a fitted model, wrap a model and then fit) will give the same answer. 
+
+However, there might be cases that you want to adjust the threshold according to the dataset. In this case you may want to use `TunedThresholdClassifierCV`. We will talk about it in details later in the Logistic regression section.
+:::
+
+
+### Tuning Thresholds
+
+In order to make the tuning process easier, we build an interface to quickly display the results.
+
+```{python}
 def classification_summary(y_true, prob, threshold=0.5):
     pred = (prob >= threshold).astype(int)
-    tn, fp, fn, tp = confusion_matrix(y_true, pred).ravel()
+    TN, FP, FN, TP = confusion_matrix(y_true, pred).ravel()
 
     return {
         "threshold": threshold,
-        "TP": tp,
-        "FP": fp,
-        "FN": fn,
-        "TN": tn,
+        "TP": TP,
+        "FP": FP,
+        "FN": FN,
+        "TN": TN,
         "accuracy": accuracy_score(y_true, pred),
         "precision": precision_score(y_true, pred),
         "recall": recall_score(y_true, pred),
         "f1": f1_score(y_true, pred),
     }
-
-summary = pd.DataFrame(
-    [
-        {"model": "Logistic regression", **classification_summary(y_test, logit_prob)},
-        {"model": "Random forest", **classification_summary(y_test, rf_prob)},
-    ]
-)
-
-summary
 ```
 
-The confusion matrix shows which kinds of mistakes the model makes. In a medical setting, false negatives may be especially important because they correspond to missed malignant cases.
-
-### Threshold Tuning
-
-Now examine how metrics change as the threshold changes.
+Now examine how metrics change as the threshold changes. To save space I only show the first few rows of the table.
 
 ```{python}
-thresholds = np.linspace(0.05, 0.95, 19)
+import numpy as np
+import pandas as pd
 
+thresholds = np.linspace(0.05, 0.95, 19)
 threshold_results = []
 
 for threshold in thresholds:
@@ -869,21 +895,21 @@ threshold_df.head()
 Plot precision and recall as functions of the threshold.
 
 ```{python}
-plt.figure(figsize=(7, 4))
+import matplotlib.pyplot as plt
+
 plt.plot(threshold_df["threshold"], threshold_df["precision"], marker="o", label="precision")
 plt.plot(threshold_df["threshold"], threshold_df["recall"], marker="o", label="recall")
 plt.xlabel("threshold")
 plt.ylabel("metric value")
 plt.title("Precision and Recall versus Threshold")
 plt.legend()
-plt.show()
 ```
 
-As the threshold increases, the classifier becomes more conservative. Precision often increases, while recall often decreases.
+As the threshold increases, the classifier becomes more conservative in predicting the positive class. This often reduces false positives and increases precision, but may also increase false negatives and reduce recall.
 
 ### Choosing a Threshold from Costs
 
-Suppose a false negative is 5 times as costly as a false positive:
+In a medical setting, false negatives may be especially important because they correspond to missed malignant cases. Suppose a false negative is 5 times as costly as a false positive:
 
 $$
 C_{FN}=5,
@@ -903,6 +929,8 @@ c^*
 0.167.
 $$
 
+Then the corresponding result is
+
 ```{python}
 cost_fp = 1
 cost_fn = 5
@@ -916,22 +944,22 @@ classification_summary(
 )
 ```
 
-This lower threshold prioritizes recall. It predicts malignant more aggressively because missing a malignant tumor is assumed to be more costly.
+This lower threshold prioritizes recall. It predicts malignant more aggressively because missing a malignant tumor is assumed to be more costly. Note that this threshold formula assumes that the predicted probabilities are reasonably calibrated so that they can be interpreted as approximate event probabilities.
 
 ### ROC Curve and AUC
+Unlike accuracy or precision, ROC analysis does not depend on a single fixed threshold. Instead, it studies model performance across all possible thresholds using the predicted probabilities or scores.
+
+ROC curve and AUC can be computed using `roc_curve` and `roc_auc_score` from `sklearn.metrics`. 
+
+<!-- AUC may also be interpreted as the probability that a randomly chosen positive observation receives a higher score than a randomly chosen negative observation. -->
 
 ```{python}
 from sklearn.metrics import roc_curve, roc_auc_score
 
 logit_fpr, logit_tpr, _ = roc_curve(y_test, logit_prob)
-rf_fpr, rf_tpr, _ = roc_curve(y_test, rf_prob)
-
 logit_auc = roc_auc_score(y_test, logit_prob)
-rf_auc = roc_auc_score(y_test, rf_prob)
 
-plt.figure(figsize=(6, 5))
 plt.plot(logit_fpr, logit_tpr, label=f"Logistic regression AUC = {logit_auc:.3f}")
-plt.plot(rf_fpr, rf_tpr, label=f"Random forest AUC = {rf_auc:.3f}")
 plt.plot([0, 1], [0, 1], "k--", label="random guessing")
 plt.xlabel("false positive rate")
 plt.ylabel("true positive rate")
@@ -940,10 +968,39 @@ plt.legend()
 plt.show()
 ```
 
-The ROC curve summarizes ranking performance across thresholds. A larger AUC means the model more often ranks malignant cases above benign cases.
+
+We may fit another model and draw their ROC curve and AUC together in one plot to compare them.
+
+
+```{python}
+from sklearn.ensemble import RandomForestClassifier
+
+rf = RandomForestClassifier(
+    n_estimators=500, max_features="sqrt", random_state=1, n_jobs=-1
+)
+
+rf.fit(X_train, y_train)
+rf_prob = rf.predict_proba(X_test)[:, 1]
+
+rf_fpr, rf_tpr, _ = roc_curve(y_test, rf_prob)
+rf_auc = roc_auc_score(y_test, rf_prob)
+
+plt.plot(logit_fpr, logit_tpr, label=f"Logistic regression AUC = {logit_auc:.3f}")
+plt.plot(rf_fpr, rf_tpr, label=f"Random forest AUC = {rf_auc:.3f}")
+plt.plot([0, 1], [0, 1], "k--", label="random guessing")
+plt.xlabel("false positive rate")
+plt.ylabel("true positive rate")
+plt.title("ROC Curve")
+plt.legend()
+```
+
+The ROC curve summarizes ranking performance across thresholds. AUC may be interpreted as the probability that a randomly chosen positive observation receives a higher score than a randomly chosen negative observation. Then a larger AUC means the model more often ranks malignant cases above benign cases.
+
+
 
 ### Precision-Recall Curve
 
+The precision-recall curve can be produced in a similar way.
 ```{python}
 from sklearn.metrics import precision_recall_curve, average_precision_score
 
@@ -953,154 +1010,43 @@ rf_precision, rf_recall, _ = precision_recall_curve(y_test, rf_prob)
 logit_ap = average_precision_score(y_test, logit_prob)
 rf_ap = average_precision_score(y_test, rf_prob)
 
-plt.figure(figsize=(6, 5))
 plt.plot(logit_recall, logit_precision, label=f"Logistic regression AP = {logit_ap:.3f}")
 plt.plot(rf_recall, rf_precision, label=f"Random forest AP = {rf_ap:.3f}")
 plt.xlabel("recall")
 plt.ylabel("precision")
 plt.title("Precision-Recall Curve")
 plt.legend()
-plt.show()
 ```
 
-The precision-recall curve is especially useful when the positive class is rare or when false positives are costly.
+For highly imbalanced datasets, precision--recall curves are often more informative than ROC curves because ROC curves may appear overly optimistic when the negative class dominates.
 
 ### Calibration Curves
-
-Now evaluate probability calibration.
+Calibration focuses on probability quality rather than threshold-based decision quality or ranking quality. Calibration curves can be produced using `CalibrationDisplay` from `sklearn.calibration`.
 
 ```{python}
 from sklearn.calibration import CalibrationDisplay
-from sklearn.metrics import brier_score_loss, log_loss
 
-fig, ax = plt.subplots(figsize=(6, 5))
-
-CalibrationDisplay.from_predictions(
-    y_test,
-    logit_prob,
-    n_bins=10,
-    name="Logistic regression",
-    ax=ax,
-)
-
-CalibrationDisplay.from_predictions(
-    y_test,
-    rf_prob,
-    n_bins=10,
-    name="Random forest",
-    ax=ax,
-)
-
-ax.set_title("Calibration Curves")
-plt.show()
-
-prob_scores = pd.DataFrame(
-    {
-        "model": ["Logistic regression", "Random forest"],
-        "brier_score": [
-            brier_score_loss(y_test, logit_prob),
-            brier_score_loss(y_test, rf_prob),
-        ],
-        "log_loss": [
-            log_loss(y_test, logit_prob),
-            log_loss(y_test, rf_prob),
-        ],
-    }
-)
-
-prob_scores
+CalibrationDisplay.from_predictions(y_test, logit_prob, n_bins=10)
+plt.title("Calibration Curve")
 ```
 
-The calibration curve compares predicted probabilities with observed frequencies. The Brier score and log loss summarize probability quality numerically.
+This is a packaged function provided by `sklearn`. If we want to plot multiple curves together in one plot, we can put the axis in the argument of this function.
 
-### Calibrating a Random Forest
-
-If a model ranks observations well but has poor calibration, we can calibrate it using held-out calibration folds.
 
 ```{python}
-from sklearn.calibration import CalibratedClassifierCV
+fig, ax = plt.subplots()
 
-rf_calibrated = CalibratedClassifierCV(
-    estimator=RandomForestClassifier(
-        n_estimators=500,
-        max_features="sqrt",
-        random_state=42,
-        n_jobs=-1,
-    ),
-    method="isotonic",
-    cv=5,
+CalibrationDisplay.from_predictions(
+    y_test, logit_prob, n_bins=10, name="Logistic regression", ax=ax
 )
 
-rf_calibrated.fit(X_train, y_train)
-
-rf_cal_prob = rf_calibrated.predict_proba(X_test)[:, 1]
-
-pd.DataFrame(
-    {
-        "model": ["Random forest", "Calibrated random forest"],
-        "brier_score": [
-            brier_score_loss(y_test, rf_prob),
-            brier_score_loss(y_test, rf_cal_prob),
-        ],
-        "log_loss": [
-            log_loss(y_test, rf_prob),
-            log_loss(y_test, rf_cal_prob),
-        ],
-        "auc": [
-            roc_auc_score(y_test, rf_prob),
-            roc_auc_score(y_test, rf_cal_prob),
-        ],
-    }
+CalibrationDisplay.from_predictions(
+    y_test, rf_prob, n_bins=10, name="Random forest", ax=ax
 )
 ```
+
+
+
+The calibration curve compares predicted probabilities with observed frequencies. 
 
 Calibration can improve probability quality, but it does not necessarily improve AUC. This is expected because calibration changes the probability scale, while AUC mainly depends on ranking.
-
-```{python}
-fig, ax = plt.subplots(figsize=(6, 5))
-
-CalibrationDisplay.from_predictions(
-    y_test,
-    rf_prob,
-    n_bins=10,
-    name="Random forest",
-    ax=ax,
-)
-
-CalibrationDisplay.from_predictions(
-    y_test,
-    rf_cal_prob,
-    n_bins=10,
-    name="Calibrated random forest",
-    ax=ax,
-)
-
-ax.set_title("Calibration Before and After")
-plt.show()
-```
-
-## Summary
-
-Classification evaluation is multidimensional.
-
-Accuracy measures the overall fraction of correct predictions, but it can be misleading under class imbalance or asymmetric error costs.
-
-Recall measures detection ability:
-
-$$
-P(\hat Y=1\mid Y=1).
-$$
-
-Precision measures the reliability of positive predictions:
-
-$$
-P(Y=1\mid \hat Y=1).
-$$
-
-ROC curves and AUC evaluate ranking quality across thresholds. PR curves are often more informative for rare positive classes.
-
-Calibration evaluates whether predicted probabilities are numerically trustworthy. Brier score and log loss are proper scoring rules for probability forecasts.
-
-The most important practical message is:
-
-> Fit the model, evaluate the ranking, choose the threshold according to the decision problem, and check whether the probabilities are calibrated if probabilities will be used directly.

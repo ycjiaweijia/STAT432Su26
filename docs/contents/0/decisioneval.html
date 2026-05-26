@@ -58,7 +58,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -643,49 +662,92 @@ window.Quarto = {
 \newcommand{\distnormal}{\operatorname{\mathcal N}}
 \]</span></p>
 </div>
-<p>Unlike regression—where metrics such as Mean Squared Error (MSE) evaluate prediction error along a continuous scale—classification evaluation is fundamentally more nuanced.</p>
-<p>A modern statistical learning classifier often produces a score or estimated probability rather than directly outputting a categorical decision. For example, a model may estimate</p>
-<p><span class="math display">\[
-\hat p(x)=\Pr(Y=1\mid X=x),
-\]</span></p>
-<p>and a separate decision rule then converts this soft prediction into a hard classification. As a result, classification performance can be evaluated from several different perspectives.</p>
-<p>Broadly speaking, classification evaluation can be divided into three related but distinct goals.</p>
+<!-- 
+
+In regression, the main goal is often to predict a continuous response accurately, and in many cases RSS or MSE is sufficient for evaluating model performance. 
+
+In classification, evaluation is fundamentally more complicated than in regression.
+
+A classification model often produces scores or probabilities rather than final decisions directly. Instead, it first produces a score or probability, and then a decision rule converts that information into an action. As a result, different evaluation metrics measure different aspects of model performance.
+
+Broadly speaking, classification evaluation can be divided into three related but distinct goals.
+
+| Goal | Main question | Common tools |
+|---|---|---|
+| Decision quality | Are the final classification decisions good? | Accuracy, precision, recall, F1 |
+| Ranking quality | Are positive observations ranked above negative observations? | ROC curve, AUC, PR curve |
+| Probability quality | Are predicted probabilities numerically trustworthy? | Calibration curve, Brier score, log loss |
+
+These three goals are related but fundamentally different. A model may perform well under one criterion while performing poorly under another.
+
+- A model may achieve high accuracy but poor recall.
+- A model may have strong ranking performance (high AUC) but poorly calibrated probabilities.
+- A model may produce well-calibrated probabilities while still making poor classification decisions under a particular threshold.
+
+These goals can also be viewed hierarchically.
+
+- Probability quality is the most demanding requirement because it asks for accurate probability estimates.
+- Ranking quality mainly requires correct relative ordering of observations.
+- Decision quality only concerns the final classifications after thresholding.
+
+Good probability estimates often lead to good ranking performance, and good ranking performance can often produce good classification decisions after thresholding. However, the converse implications generally fail.
+
+In practice, decision quality is often easier to achieve and is usually the primary objective in applied statistical learning. Many modern machine learning applications focus mainly on making useful decisions rather than producing perfectly calibrated probabilities. As a result, threshold-based metrics such as accuracy, precision, recall, and F1-score often play the central role in classification evaluation.
+
+::: {.callout-note}
+Classification evaluation can become quite sophisticated and may involve ranking performance, probability calibration, decision costs, and threshold optimization.
+
+However, in this course, our primary goal is to understand the core ideas of statistical learning and predictive modeling. Therefore, we will mainly focus on accuracy and closely related threshold-based classification metrics.
+:::
+
+
+
+ -->
+<p>Unlike regression—where metrics such as Mean Squared Error (MSE) straightforwardly evaluate predictions along a continuous scale – evaluating classification models is fundamentally more nuanced.</p>
+<p>A modern statistical learning model typically estimates a conditional probability <span class="math inline">\(P(Y=1|X)\)</span> (a soft prediction) rather than directly outputting a categorical label (a hard decision). Moving from an estimated score to a concrete action requires a separate decision rule or threshold. Consequently, we must evaluate classification performance across three distinct, hierarchical dimensions:</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Goal</th>
-<th>Main question</th>
-<th>Common tools</th>
+<th style="text-align: left;">Evaluation Goal</th>
+<th style="text-align: left;">Theoretical Focus</th>
+<th style="text-align: left;">Standard Metrics / Tools</th>
+<th style="text-align: left;">Hierarchical Limitation (Why the Converse Fails)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Decision quality</td>
-<td>Are the final classification decisions good?</td>
-<td>Accuracy, precision, recall, F1-score</td>
+<td style="text-align: left;"><strong>Probability Quality</strong> <em>(Highest)</em></td>
+<td style="text-align: left;">Are the predicted probabilities numerically trustworthy and well-calibrated?</td>
+<td style="text-align: left;">Calibration curves, Brier score, Log-loss / Deviance</td>
+<td style="text-align: left;">A model can output perfectly calibrated probabilities (e.g., <span class="math inline">\(P=0.51\)</span> for an uncertain class), but if the features lack predictive power, the resulting <strong>decision quality</strong> (accuracy) will still hover near baseline chance.</td>
 </tr>
 <tr class="even">
-<td>Ranking quality</td>
-<td>Are positive observations ranked above negative observations?</td>
-<td>ROC curve, AUC, PR curve</td>
+<td style="text-align: left;"><strong>Ranking Quality</strong> <em>(Intermediate)</em></td>
+<td style="text-align: left;">Are positive observations systematically assigned higher scores than negative ones?</td>
+<td style="text-align: left;">ROC-AUC, Precision-Recall AUC</td>
+<td style="text-align: left;">A model can achieve a perfect AUC of 1.0 (implying flawless separation) while its absolute probability outputs are entirely uncalibrated (e.g., mapping all probabilities to a narrow range like <span class="math inline">\([0.49, 0.51]\)</span>).</td>
 </tr>
 <tr class="odd">
-<td>Probability quality</td>
-<td>Are predicted probabilities numerically trustworthy?</td>
-<td>Calibration curve, Brier score, log loss</td>
+<td style="text-align: left;"><strong>Decision Quality</strong> <em>(Base)</em></td>
+<td style="text-align: left;">Are the final categorical classifications correct after applying a specific threshold?</td>
+<td style="text-align: left;">Accuracy, Precision, Recall, F1-score</td>
+<td style="text-align: left;">A model can yield high <strong>decision quality</strong> at a specific, optimized threshold, yet possess chaotic underlying <strong>ranking</strong> for other sub-populations and completely uncalibrated <strong>probabilities</strong>.</td>
 </tr>
 </tbody>
 </table>
-<p>These goals are closely related, but they measure fundamentally different aspects of model performance. In statistical learning theory, these goals form a strict, top-down information hierarchy: Good probability estimates often lead to good ranking performance, and good ranking performance can often produce good classification decisions after thresholding. However, the converse implications generally fail.</p>
-<p>Conceptually, this hierarchy may be summarized as:</p>
+<p>In statistical learning theory, these goals form a top-down information hierarchy:</p>
 <p><span class="math display">\[\text{Optimal Probabilities} \implies \text{Optimal Ranking} \implies \text{Optimal Decisions}\]</span></p>
-<p>If a model accurately estimates the true conditional probability distribution <span class="math inline">\(\Pr(Y\mid X)\)</span>, then it naturally induces good rankings and supports effective decision-making across many possible thresholds or cost functions. In contrast, optimizing only a threshold-based metric such as accuracy provides no guarantee that the underlying probabilities are calibrated or that the ranking behavior is reliable.</p>
-<p>In practice, however, decision quality is often easier to achieve and is frequently the primary objective in applied statistical learning. Many real-world applications ultimately require concrete actions, such as approving a loan, detecting fraud, or diagnosing disease. As a result, threshold-based metrics such as accuracy, precision, recall, and F1-score often play the central role in applied machine learning.</p>
+<ul>
+<li><strong>Top-Down Preservation:</strong> If a model captures the true underlying conditional probability distribution <span class="math inline">\(P(Y|X)\)</span>, it automatically yields optimal ranking performance and enables optimal decision-making across <em>any</em> chosen threshold or loss matrix.</li>
+<li><strong>Bottom-Up Failure:</strong> Achieving a lower-level goal provides no mathematical guarantees for higher-level dimensions. Relying solely on a base metric like accuracy risks masking severe calibration or ranking deficiencies underneath.</li>
+</ul>
+<p>In applied machine learning and industry settings, <strong>decision quality</strong> is frequently treated as the primary objective because businesses ultimately require discrete actions (e.g., approve or deny a loan). Optimizing directly for threshold-based metrics like accuracy or F1-score is often computationally simpler and sufficient for immediate deployment.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -696,67 +758,10 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Classification evaluation can become quite sophisticated and may involve ranking performance, probability calibration, cost-sensitive learning, threshold optimization, and decision theory.</p>
-<p>In this course, however, our primary goal is to understand the core ideas of statistical learning and predictive modeling rather than to develop a complete theory of statistical decision making. Therefore, we will mainly focus on accuracy and closely related threshold-based classification metrics.</p>
+<p>While advanced predictive modeling demands a deep understanding of probability calibration, cost-sensitive learning, and full ROC analysis, our primary objective in this introductory course is to master the core principles of statistical learning. Therefore, we will focus our initial framework on <strong>accuracy</strong> and its closely related threshold-based classification metrics, using them as our entry point into predictive inference.</p>
 </div>
 </div>
-<p>Unlike regression—where metrics such as Mean Squared Error (MSE) evaluate prediction error along a continuous scale—classification evaluation is fundamentally more nuanced.</p>
-<p>A modern statistical learning classifier often produces a score or estimated probability rather than directly outputting a categorical decision. For example, a model may estimate</p>
-<p><span class="math display">\[
-\hat p(x)=\Pr(Y=1\mid X=x),
-\]</span></p>
-<p>and a separate decision rule then converts this soft prediction into a hard classification. As a result, classification performance can be evaluated from several different perspectives.</p>
-<p>Broadly speaking, classification evaluation can be divided into three related but distinct goals.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Goal</th>
-<th>Main question</th>
-<th>Common tools</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Decision quality</td>
-<td>Are the final classification decisions good?</td>
-<td>Accuracy, precision, recall, F1-score</td>
-</tr>
-<tr class="even">
-<td>Ranking quality</td>
-<td>Are positive observations ranked above negative observations?</td>
-<td>ROC curve, AUC, PR curve</td>
-</tr>
-<tr class="odd">
-<td>Probability quality</td>
-<td>Are predicted probabilities numerically trustworthy?</td>
-<td>Calibration curve, Brier score, log loss</td>
-</tr>
-</tbody>
-</table>
-<p>These goals are closely related, but they measure fundamentally different aspects of model performance. In statistical learning theory, these goals form a strict, top-down information hierarchy: Good probability estimates often lead to good ranking performance, and good ranking performance can often produce good classification decisions after thresholding. However, the converse implications generally fail.</p>
-<p>Conceptually, this hierarchy may be summarized as</p>
-<p><span class="math display">\[\text{Optimal Probabilities} \implies \text{Optimal Ranking} \implies \text{Optimal Decisions}\]</span></p>
-<p>If a model accurately estimates the true conditional probability distribution <span class="math inline">\(P(Y\mid X)\)</span>, then it naturally induces good rankings and supports effective decision-making across many possible thresholds or cost functions. In contrast, optimizing only a threshold-based metric such as accuracy provides no guarantee that the underlying probabilities are calibrated or that the ranking behavior is reliable.</p>
-<p>In practice, however, decision quality is often easier to achieve and is frequently the primary objective in applied statistical learning. Many real-world applications ultimately require concrete actions, such as approving a loan, detecting fraud, or diagnosing disease. As a result, threshold-based metrics such as accuracy, precision, recall, and F1-score often play the central role in applied machine learning.</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Classification evaluation can become quite sophisticated and may involve ranking performance, probability calibration, cost-sensitive learning, threshold optimization, and decision theory.</p>
-<p>In this course, however, our primary goal is to understand the core ideas of statistical learning and predictive modeling rather than to develop a complete theory of statistical decision making. Therefore, we will mainly focus on accuracy and closely related threshold-based classification metrics.</p>
-</div>
-</div>
+<p><span class="citation" data-cites="Gneiting2007">[<a href="../../index.html#ref-Gneiting2007" role="doc-biblioref">1</a>]</span> <span class="citation" data-cites="hastie2009elements">[<a href="../../index.html#ref-hastie2009elements" role="doc-biblioref">2</a>]</span></p>
 <section id="decision-quality" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="decision-quality"><span class="header-section-number">2.1</span> Decision quality</h2>
 <p>Decision quality evaluates the final hard classifications after applying a threshold to predicted scores or probabilities.</p>
@@ -1409,7 +1414,7 @@ Note
 <h2 data-number="2.5" class="anchored" data-anchor-id="python-example-breast-cancer-classification"><span class="header-section-number">2.5</span> Python Example: Breast Cancer Classification</h2>
 <p>We now use the breast cancer dataset from <code>sklearn</code>. The goal is to classify tumors as malignant or benign. This example shows how to compute threshold-based metrics, ROC and PR curves, and calibration curves.</p>
 <p>First load the data and split it into training and test sets.</p>
-<div id="bce65392" class="cell" data-execution_count="1">
+<div id="5a0ef7b3" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -1435,7 +1440,7 @@ Note
 <span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>pd.Series(y_test).value_counts().sort_index()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
+<div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>target
 0    107
 1     64
@@ -1444,7 +1449,7 @@ Name: count, dtype: int64</code></pre>
 </div>
 <p>We fit logistic regression and a random forest. Logistic regression is often a strong baseline for calibrated probabilities. Random forests often have strong classification performance but may produce less calibrated probabilities.</p>
 <p>This comparison is also a bias-variance example. Logistic regression is less flexible and may have more bias if the true boundary is nonlinear. The random forest is more flexible and can reduce bias, but its probability estimates may need calibration.</p>
-<div id="c02fe7a5" class="cell" data-execution_count="2">
+<div id="93999b12" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
@@ -1471,7 +1476,7 @@ Name: count, dtype: int64</code></pre>
 <section id="confusion-matrix-and-basic-metrics" class="level3" data-number="2.5.1">
 <h3 data-number="2.5.1" class="anchored" data-anchor-id="confusion-matrix-and-basic-metrics"><span class="header-section-number">2.5.1</span> Confusion Matrix and Basic Metrics</h3>
 <p>We first use the default threshold <span class="math inline">\(0.5\)</span>.</p>
-<div id="f61ae3ee" class="cell" data-execution_count="3">
+<div id="a531ff34" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> (</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    confusion_matrix,</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    accuracy_score,</span>
@@ -1504,7 +1509,7 @@ Name: count, dtype: int64</code></pre>
 <span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
+<div class="cell-output cell-output-display" data-execution_count="3">
 <div>
 
 
@@ -1562,7 +1567,7 @@ Name: count, dtype: int64</code></pre>
 <section id="threshold-tuning" class="level3" data-number="2.5.2">
 <h3 data-number="2.5.2" class="anchored" data-anchor-id="threshold-tuning"><span class="header-section-number">2.5.2</span> Threshold Tuning</h3>
 <p>Now examine how metrics change as the threshold changes.</p>
-<div id="ec2d926d" class="cell" data-execution_count="4">
+<div id="d0b96167" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>thresholds <span class="op">=</span> np.linspace(<span class="fl">0.05</span>, <span class="fl">0.95</span>, <span class="dv">19</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>threshold_results <span class="op">=</span> []</span>
@@ -1574,7 +1579,7 @@ Name: count, dtype: int64</code></pre>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>threshold_df <span class="op">=</span> pd.DataFrame(threshold_results)</span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>threshold_df.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="26">
+<div class="cell-output cell-output-display" data-execution_count="4">
 <div>
 
 
@@ -1661,7 +1666,7 @@ Name: count, dtype: int64</code></pre>
 </div>
 </div>
 <p>Plot precision and recall as functions of the threshold.</p>
-<div id="6c8da291" class="cell" data-execution_count="5">
+<div id="65b7d12f" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">4</span>))</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>plt.plot(threshold_df[<span class="st">"threshold"</span>], threshold_df[<span class="st">"precision"</span>], marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"precision"</span>)</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plt.plot(threshold_df[<span class="st">"threshold"</span>], threshold_df[<span class="st">"recall"</span>], marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"recall"</span>)</span>
@@ -1698,7 +1703,7 @@ c^*
 \approx
 0.167.
 \]</span></p>
-<div id="45dc097a" class="cell" data-execution_count="6">
+<div id="5b2181c3" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cost_fp <span class="op">=</span> <span class="dv">1</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cost_fn <span class="op">=</span> <span class="dv">5</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1709,7 +1714,7 @@ c^*
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    logit_prob,</span>
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    threshold<span class="op">=</span>cost_threshold,</span>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="28">
+<div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>{'threshold': 0.16666666666666666,
  'TP': np.int64(63),
  'FP': np.int64(4),
@@ -1725,7 +1730,7 @@ c^*
 </section>
 <section id="roc-curve-and-auc" class="level3" data-number="2.5.4">
 <h3 data-number="2.5.4" class="anchored" data-anchor-id="roc-curve-and-auc"><span class="header-section-number">2.5.4</span> ROC Curve and AUC</h3>
-<div id="a3611962" class="cell" data-execution_count="7">
+<div id="7dc8cd29" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_curve, roc_auc_score</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>logit_fpr, logit_tpr, _ <span class="op">=</span> roc_curve(y_test, logit_prob)</span>
@@ -1755,7 +1760,7 @@ c^*
 </section>
 <section id="precision-recall-curve" class="level3" data-number="2.5.5">
 <h3 data-number="2.5.5" class="anchored" data-anchor-id="precision-recall-curve"><span class="header-section-number">2.5.5</span> Precision-Recall Curve</h3>
-<div id="5357e427" class="cell" data-execution_count="8">
+<div id="dedc5787" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> precision_recall_curve, average_precision_score</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>logit_precision, logit_recall, _ <span class="op">=</span> precision_recall_curve(y_test, logit_prob)</span>
@@ -1785,7 +1790,7 @@ c^*
 <section id="calibration-curves" class="level3" data-number="2.5.6">
 <h3 data-number="2.5.6" class="anchored" data-anchor-id="calibration-curves"><span class="header-section-number">2.5.6</span> Calibration Curves</h3>
 <p>Now evaluate probability calibration.</p>
-<div id="c49bc1ce" class="cell" data-execution_count="9">
+<div id="c86e18c9" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.calibration <span class="im">import</span> CalibrationDisplay</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> brier_score_loss, log_loss</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1832,7 +1837,7 @@ c^*
 </figure>
 </div>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="31">
+<div class="cell-output cell-output-display" data-execution_count="9">
 <div>
 
 
@@ -1869,7 +1874,7 @@ c^*
 <section id="calibrating-a-random-forest" class="level3" data-number="2.5.7">
 <h3 data-number="2.5.7" class="anchored" data-anchor-id="calibrating-a-random-forest"><span class="header-section-number">2.5.7</span> Calibrating a Random Forest</h3>
 <p>If a model ranks observations well but has poor calibration, we can calibrate it using held-out calibration folds.</p>
-<div id="96897c12" class="cell" data-execution_count="10">
+<div id="3d99e249" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.calibration <span class="im">import</span> CalibratedClassifierCV</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>rf_calibrated <span class="op">=</span> CalibratedClassifierCV(</span>
@@ -1904,7 +1909,7 @@ c^*
 <span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>        ],</span>
 <span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>    }</span>
 <span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="32">
+<div class="cell-output cell-output-display" data-execution_count="10">
 <div>
 
 
@@ -1940,7 +1945,7 @@ c^*
 </div>
 </div>
 <p>Calibration can improve probability quality, but it does not necessarily improve AUC. This is expected because calibration changes the probability scale, while AUC mainly depends on ranking.</p>
-<div id="cdc0424b" class="cell" data-execution_count="11">
+<div id="22e0c9dd" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">5</span>))</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>CalibrationDisplay.from_predictions(</span>
@@ -1991,6 +1996,14 @@ P(Y=1\mid \hat Y=1).
 </blockquote>
 
 
+<div id="refs" class="references csl-bib-body" role="list" style="display: none">
+<div id="ref-Gneiting2007" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Gneiting</span>, T. and <span class="smallcaps">Raftery</span>, A. E. (2007). <a href="https://doi.org/10.1198/016214506000001437">Strictly proper scoring rules, prediction, and estimation</a>. <em>Journal of the American Statistical Association</em> <strong>102</strong> 359–78.</div>
+</div>
+<div id="ref-hastie2009elements" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Hastie</span>, T., <span class="smallcaps">Tibshirani</span>, R. and <span class="smallcaps">Friedman</span>, J. (2009). <em>The elements of statistical learning</em>. Springer.</div>
+</div>
+</div>
 </section>
 
 </main> <!-- /main -->
