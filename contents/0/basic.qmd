@@ -2,15 +2,16 @@
 jupyter: stats
 ---
 
+{{< include ../math.qmd >}} 
+
 # Statistical Learning Basics
 
 ## Introduction
 
-### What Is Statistical Learning?
 
 Statistical learning studies how to use data to understand relationships and make predictions.
 
-A common abstract model is
+In supervised learning, a common abstract model is
 
 $$
 Y = f(X) + \varepsilon,
@@ -18,103 +19,87 @@ $$
 
 where:
 
-- $X$ represents predictors;
+- $X$ represents features;
 - $Y$ represents the response;
 - $f$ is the underlying relationship;
 - $\varepsilon$ represents random noise or unexplained variation.
 
-The main objective of statistical learning is to estimate the unknown function $f$ using observed data.
+The main objective is to estimate the unknown function $f$ using observed data.
+
+More broadly, modern statistical learning is fundamentally about learning patterns that generalize well to unseen data.
 
 
+<!-- ### Main Questions in Statistical Learning -->
 
-### Core Perspective
+Depending on the objective, statistical learning problems can be viewed from several different perspectives.
 
-Modern statistical learning is fundamentally about:
-
-> learning patterns that generalize well to unseen data.
-
-This perspective motivates many major topics:
-
-- linear models,
-- regularization,
-- trees,
-- boosting,
-- neural networks,
-- ensemble methods,
-- cross-validation.
-
-
-### Classical Statistics vs Modern Machine Learning
-
-Historically:
-
-| Classical Statistics | Modern Machine Learning |
+| Task | Main Question |
 |---|---|
-| inference | prediction |
-| interpretable models | predictive performance |
-| smaller datasets | large datasets |
-| stronger assumptions | weaker assumptions |
+| Prediction | What will happen? |
+| Inference | Which variables matter? |
+| Causality | What happens if we intervene? |
 
-Modern statistical learning often combines ideas from both areas.
+- Prediction mainly focuses on predictive performance and generalization. A common formulation is
+$$
+\hat f(x) \approx \mathbb{E}[Y \mid X=x].
+$$
+- Inference focuses on understanding relationships between variables and often relies on tools such as confidence intervals and hypothesis testing.
+- Causality studies intervention effects and is often written as
+$$
+\mathbb{E}[Y \mid \text{do}(X=x)].
+$$
 
+
+::: {.callout-note}
+## Important distinctions
+
+1. Good training performance does not imply good generalization.
+2. Good prediction does not imply valid inference.
+3. Association does not imply causation.
+:::
+
+
+::: {.callout-tip}
+In this course, we will primarily focus on **prediction** and **generalization** rather than formal statistical inference.
+:::
 
 
 ## Types of Learning
 
+Statistical learning problems can be divided into several major categories depending on the available data and learning objective.
+
+We will mainly focus on supervised learning in this course, with some topics from unsupervised learning.
 
 ### Supervised Learning
 
 In supervised learning, we observe both predictors $X$ and response $Y$.
 
-The goal is to predict or explain the response.
+The goal is to predict or explain the response, such as house price prediction, spam detection, medical diagnosis, etc..
 
-Examples:
-
-- house price prediction,
-- spam detection,
-- medical diagnosis.
-
----
-
-#### Regression and Classification
-
-Within supervised learning, two major tasks are:
+Supervised learning is usually divided into two major tasks:
 
 - **regression**, where the response is quantitative;
 - **classification**, where the response is categorical.
 
-Examples:
+::: {#exm-}
 
 - predicting salary is a regression problem;
 - predicting whether a tumor is benign or malignant is a classification problem.
-
-
+:::
 
 ### Unsupervised Learning
 
 In unsupervised learning, we observe predictors $X$ but no response $Y$.
 
-The goal is to discover hidden structure in the data.
-
-Examples:
-
-- clustering,
-- dimensionality reduction,
-- anomaly detection.
+The goal is to discover hidden structure in the data, such as clustering, dimensionality reduction, embedding learning, etc..
 
 
 ### Reinforcement Learning
 
-In reinforcement learning, an agent interacts with an environment and learns through rewards and penalties.
-
-Examples:
-
-- robotics,
-- game playing,
-- recommendation systems.
+In reinforcement learning, an agent interacts with an environment and learns through rewards and penalties, such as robotics, game playing, recommendation systems, etc..
 
 
-## Different Types of Data
+## Types of Data
 
 Machine learning methods are strongly connected to data structure, and different data types often require different modeling strategies.
 
@@ -122,7 +107,8 @@ This course mainly focuses on **tabular data**, which is the classical setting i
 
 ### Tabular Data
 
-Tabular data is typically represented as
+Tabular data is one of the most common data formats in statistical learning. It is typically represented as
+
 
 $$
 X \in \mathbb{R}^{n \times p},
@@ -144,25 +130,52 @@ In tabular data:
 
 - rows represent observations;
 - columns represent variables or features.
+  
+For supervised learning, datasets usually contain:
 
+- a feature matrix $X$;
+- a target variable $y$.
+
+For unsupervised learning, we typically observe only the feature matrix $X$.
+
+Since this course mainly focuses on tabular data, we will usually treat:
+
+$$
+X \in \mathbb{R}^{n \times p},
+\qquad
+y \in \mathbb{R}^n.
+$$
+
+
+<!-- In this course, in most cases, the dataset will contain a feature matrix $X$ and a target variable $y$ for a supervised task or a feature matrix $X$ only for an unsupervised task. Since we mainly focus on tabular data, we could treat $X$ as a 2D matrix and $y$ as a 1D vector. -->
+
+<!-- 
 Examples:
 
 - finance,
 - healthcare,
 - insurance,
 - marketing,
-- scientific experiments.
+- scientific experiments. -->
 
-::: {.callout-note}
-## Main Idea
+::: {.callout-caution}
+## columns correspond to variables
 
-The key feature of tabular data is not merely the matrix representation. More importantly, each column corresponds to a variable with its own semantic meaning, such as age, income, blood pressure, or transaction count.
+The key feature of tabular data is NOT merely the matrix representation. More importantly, each column corresponds to a variable with its own semantic meaning, such as age, income, blood pressure, or transaction count.
 :::
 
 
+::: {.callout-tip}
+Tabular data is particularly well suited for methods such as linear models and tree-based models. Therefore, these model families will be the main focus of this course.
+:::
+
+
+### Other Types of Data
+
+Besides tabular data, many machine learning problems involve other data formats. We briefly mention several common examples that appear in modern learning tasks.
 
 ::: {.callout-note collapse="true"}
-## Other types: Image Data
+## Image Data
 
 Image data contains spatial structure, meaning nearby pixels are highly related.
 
@@ -177,45 +190,21 @@ A central goal is to extract meaningful visual patterns such as edges, textures,
 
 
 ::: {.callout-note collapse="true"}
-## Other types: Text Data
-
-Text data contains sequential and contextual structure.
-
-Modern NLP is largely based on:
-
-- transformers,
-- large language models.
+## Text Data
+Text data contains sequential and contextual structure. Modern NLP is largely based on transformers and large language models.
 :::
 
 
 ::: {.callout-note collapse="true"}
-## Other types: Time Series Data
+## Time Series Data
 
-Time series data is ordered over time.
-
-Examples:
-
-- stock prices,
-- weather data,
-- sensor measurements.
-
-Important ideas include:
-
-- trend,
-- seasonality,
-- temporal dependence.
+Time series data is ordered over time such as stock prices, weather data and sensor measurements. 
 :::
 
 ::: {.callout-note collapse="true"}
-## Other types: Graph Data
+## Graph Data
 
-Graph data represents relationships between objects.
-
-Examples:
-
-- social networks,
-- citation networks,
-- molecular structures.
+Graph data represents relationships between objects, such as social networks, citation networks, molecular structures.
 
 Modern graph learning often uses graph neural networks.
 
@@ -223,130 +212,21 @@ Modern graph learning often uses graph neural networks.
 
 
 
-## Main Questions in Statistical Learning
-
-At a high level, statistical learning studies one central question:
-
-> How can we learn useful patterns from data?
-
-This leads to several different kinds of questions.
-
-
-### Prediction
-
-Prediction asks:
-
-> What will happen for a new observation?
-
-Prediction is often the primary goal in modern machine learning.
-
-Mathematically, prediction is often viewed as estimating
-
-$$
-\hat f(x) \approx \mathbb{E}[Y \mid X=x].
-$$
-
-Examples:
-
-- Will a customer default?
-- What will tomorrow's demand be?
-- Will a patient develop a disease?
-
-In practice, prediction mainly focuses on predictive performance.
-
-
-### Inference and Understanding
-
-Inference asks:
-
-> Which variables matter, and how are they related to the response?
-
-Examples:
-
-- Does smoking increase disease risk?
-- Which features drive customer churn?
-- Which predictors are statistically significant?
-
-Common tools include:
-
-- standard errors,
-- confidence intervals,
-- hypothesis testing.
-
-Inference usually relies more heavily on model assumptions and diagnostics.
-
-
-### Causality
-
-Causality asks:
-
-> What happens if we intervene?
-
-A causal question is often written as
-
-$$
-\mathbb{E}[Y \mid do(X=x)].
-$$
-
-Examples include:
-
-- randomized experiments,
-- instrumental variables,
-- difference-in-differences.
-
-
-::: {.callout-note}
-## Important Distinctions
-
-| Task | Main Question |
-|---|---|
-| Prediction | What will happen? |
-| Inference | Is there a relationship? |
-| Causality | What happens if we intervene? |
-
-Important points:
-
-1. Good training performance does not imply good generalization.
-2. Good prediction does not imply valid inference.
-3. Association does not imply causation.
-:::
-
-
-
-
 ## Generalization and Model Complexity
 
 ### Training Error and Test Error
 
-Classical regression focuses heavily on checking model assumptions, such as:
+Classical regression focuses heavily on checking model assumptions, such as independence of errors, constant variance, approximate normality. These assumptions are especially important for formal inference, including confidence intervals and hypothesis testing.
 
-- independence of errors,
-- constant variance,
-- approximate normality.
+In statistical learning, however, the primary goal is often **predictive performance** rather than formal inference. As a result, diagnostic tools still remain useful, but they usually play a secondary role. Their main purpose is often to detect serious issues such as strong nonlinearity, influential observations, data quality problems, severe model misspecification.
 
-These assumptions are especially important for formal inference, including confidence intervals and hypothesis testing.
-
-In statistical learning, however, the primary goal is often **predictive performance** rather than formal inference. As a result, diagnostic tools still remain useful, but they usually play a secondary role. Their main purpose is often to detect serious issues such as:
-
-- strong nonlinearity,
-- influential observations,
-- data quality problems,
-- severe model misspecification.
-
-The central question becomes:
-
-> How well does the model predict new observations?
+The central question becomes: How well does the model predict new observations?
 
 ::: {#def-training-error}
-## Training Error
+## Training Error and Test Error
 
-The training error measures how well a model fits the training data.
-:::
-
-::: {#def-test-error}
-## Test Error
-
-The test error measures prediction error on new observations not used to fit the model.
+- The training error measures how well a model fits the training data.
+- The test error measures prediction error on new observations not used to fit the model.
 :::
 
 For example, suppose we evaluate a regression model using mean squared error (MSE).
@@ -361,9 +241,6 @@ A model may achieve extremely small training error while still performing poorly
 Overfitting occurs when a model fits the training data very closely but fails to generalize well to new data. In this case, the model captures random noise or idiosyncrasies in the training sample rather than the underlying relationship.
 :::
 
-The goal of statistical learning is therefore:
-
-> to build models with small test error, not merely small training error.
 
 Model selection methods attempt to balance model complexity and prediction accuracy in order to avoid overfitting.
 
@@ -383,34 +260,22 @@ $$
 For a fitted estimator $\hat f$, the test mean squared error at $x_0$ satisfies
 
 $$
-\mathbb{E}
-\left[
-(Y_0-\hat f(x_0))^2
-\right]
-=
+\Exp\qty[(Y_0-\hat f(x_0))^2]=
 \operatorname{Bias}^2(\hat f(x_0))
 +
-\operatorname{Var}(\hat f(x_0))
+\Var(\hat f(x_0))
 +
 \sigma^2.
 $$
 
 The three terms represent:
 
-- **bias**: systematic modeling error;
-- **variance**: sensitivity to the training sample;
-- **irreducible error**: noise that cannot be removed.
+- **bias**: systematic modeling error: $\operatorname{Bias}(\hat f(x))=\Exp[\hat f (x)]-f(x)$.   It measures the systematic difference between the average prediction and the true underlying function;
+- **variance**: sensitivity to the training sample: $\operatorname{Var}(\hat f(x))$. It measures how much the fitted model changes when the training data changes. Highly flexible models often have larger variance;
+- **irreducible error**: $\sigma^2$. This represents random noise or variability in the data generation process that cannot be explained or removed, even with the true model.
 
-Roughly speaking:
 
-- simple models:
-  - higher bias,
-  - lower variance;
-- flexible models:
-  - lower bias,
-  - higher variance.
-
-As model flexibility increases:
+Roughly speaking, as model flexibility increases:
 
 - training error usually decreases;
 - test error often first decreases and then increases.
@@ -446,7 +311,7 @@ Although they are useful for model comparison, they still rely on approximations
 
 
 
-
+<!-- 
 
 ## A Typical Statistical Learning Workflow
 
@@ -460,6 +325,4 @@ A practical workflow often looks like this:
 6. interpret and communicate results.
 
 
-The overall goal is:
-
-> to build models that generalize well while remaining scientifically useful. 
+Again, the overall goal is to build models that generalize well while remaining scientifically useful.  -->

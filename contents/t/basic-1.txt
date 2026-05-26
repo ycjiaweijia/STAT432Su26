@@ -2187,3 +2187,664 @@ Ultimately, classification is not simply about maximizing accuracy.
 It is about making statistically meaningful decisions under uncertainty while balancing competing risks. -->
 
 
+
+
+
+<!-- 
+### Prediction
+
+Prediction asks: What will happen for a new observation?
+
+Mathematically, prediction is often viewed as estimating
+
+$$
+\hat f(x) \approx \mathbb{E}[Y \mid X=x].
+$$
+
+Examples:
+
+- Will a customer default?
+- What will tomorrow's demand be?
+- Will a patient develop a disease?
+
+Prediction mainly focuses on predictive performance and generalization.
+
+
+
+### Inference and Understanding
+
+Inference asks:
+
+> Which variables matter, and how are they related to the response?
+
+Examples:
+
+- Does smoking increase disease risk?
+- Which features drive customer churn?
+- Which predictors are statistically significant?
+
+Common tools include:
+
+- standard errors,
+- confidence intervals,
+- hypothesis testing.
+
+Inference usually relies more heavily on model assumptions and diagnostics.
+
+
+
+### Causality
+
+Causality asks:
+
+> What happens if we intervene?
+
+A causal question is often written as
+
+$$
+\mathbb{E}[Y \mid do(X=x)].
+$$
+
+Examples include:
+
+- randomized experiments,
+- instrumental variables,
+- difference-in-differences.
+
+
+
+::: {.callout-note}
+## Important Distinctions
+
+| Task | Main Question |
+|---|---|
+| Prediction | What will happen? |
+| Inference | Is there a relationship? |
+| Causality | What happens if we intervene? |
+
+Important points:
+
+1. Good training performance does not imply good generalization.
+2. Good prediction does not imply valid inference.
+3. Association does not imply causation.
+::: -->
+
+
+
+<!-- 
+This perspective motivates many major topics in machine learning, including:
+
+- linear models,
+- regularization,
+- trees,
+- boosting,
+- neural networks,
+- ensemble methods,
+- cross-validation. -->
+
+<!-- 
+
+## Main Questions in Statistical Learning
+
+At a high level, statistical learning studies several related questions. -->
+
+
+<!-- 
+## Introduction
+
+### What Is Statistical Learning?
+
+Statistical learning studies how to use data to understand relationships and make predictions.
+
+A common abstract model is
+
+$$
+Y = f(X) + \varepsilon,
+$$
+
+where:
+
+- $X$ represents predictors;
+- $Y$ represents the response;
+- $f$ is the underlying relationship;
+- $\varepsilon$ represents random noise or unexplained variation.
+
+The main objective of statistical learning is to estimate the unknown function $f$ using observed data.
+
+
+
+### Core Perspective
+
+Modern statistical learning is fundamentally about:
+
+> learning patterns that generalize well to unseen data.
+
+This perspective motivates many major topics:
+
+- linear models,
+- regularization,
+- trees,
+- boosting,
+- neural networks,
+- ensemble methods,
+- cross-validation.
+
+
+### Classical Statistics vs Modern Machine Learning
+
+Historically:
+
+| Classical Statistics | Modern Machine Learning |
+|---|---|
+| inference | prediction |
+| interpretable models | predictive performance |
+| smaller datasets | large datasets |
+| stronger assumptions | weaker assumptions |
+
+Modern statistical learning often combines ideas from both areas.
+
+
+
+## Main Questions in Statistical Learning
+
+At a high level, statistical learning studies one central question:
+
+> How can we learn useful patterns from data?
+
+This leads to several different kinds of questions.
+
+
+### Prediction
+
+Prediction asks:
+
+> What will happen for a new observation?
+
+Prediction is often the primary goal in modern machine learning.
+
+Mathematically, prediction is often viewed as estimating
+
+$$
+\hat f(x) \approx \mathbb{E}[Y \mid X=x].
+$$
+
+Examples:
+
+- Will a customer default?
+- What will tomorrow's demand be?
+- Will a patient develop a disease?
+
+In practice, prediction mainly focuses on predictive performance.
+
+
+### Inference and Understanding
+
+Inference asks:
+
+> Which variables matter, and how are they related to the response?
+
+Examples:
+
+- Does smoking increase disease risk?
+- Which features drive customer churn?
+- Which predictors are statistically significant?
+
+Common tools include:
+
+- standard errors,
+- confidence intervals,
+- hypothesis testing.
+
+Inference usually relies more heavily on model assumptions and diagnostics.
+
+
+### Causality
+
+Causality asks:
+
+> What happens if we intervene?
+
+A causal question is often written as
+
+$$
+\mathbb{E}[Y \mid do(X=x)].
+$$
+
+Examples include:
+
+- randomized experiments,
+- instrumental variables,
+- difference-in-differences.
+
+
+::: {.callout-note}
+## Important Distinctions
+
+| Task | Main Question |
+|---|---|
+| Prediction | What will happen? |
+| Inference | Is there a relationship? |
+| Causality | What happens if we intervene? |
+
+Important points:
+
+1. Good training performance does not imply good generalization.
+2. Good prediction does not imply valid inference.
+3. Association does not imply causation.
+:::
+
+ -->
+
+
+
+
+
+
+In regression, the main goal is often to predict a continuous response accurately, and in many cases RSS is good enough to evaluate the model. In classification, things become much more complicated.
+
+
+Classification is not only about predicting a label. In many applications, the model first produces a score or probability, and then a decision rule converts that information into an action. As a result, different evaluation metrics measure different aspects of model performance.
+
+Classification evaluation can be divided into three related but distinct goals.
+
+
+
+- Decision quality focuses on the final hard classifications obtained after applying a threshold to predicted scores or probabilities. This perspective focuses on whether the model makes useful decisions in practice. Metrics such as accuracy, precision, recall, and F1-score all belong to this category.
+- Ranking quality evaluates whether positive observations tend to receive higher scores than negative observations. This perspective is important when the exact threshold is not fixed or when we mainly care about prioritization. ROC curves, AUC, and precision--recall curves are commonly used to evaluate ranking performance.
+- Probability quality evaluates whether predicted probabilities are numerically trustworthy. For example, among all observations predicted to have probability near $0.8$, we expect roughly $80%$ of them to truly belong to the positive class if the model is well calibrated. Calibration curves, Brier score, and log loss are commonly used to evaluate probability quality.
+
+It can be summarized into the following table. 
+
+| Goal | Main question | Common tools |
+|---|---|---|
+| Decision quality | Are the hard classifications useful? | Accuracy, precision, recall, F1 |
+| Ranking quality | Are positives ranked above negatives? | ROC curve, AUC, PR curve |
+| Probability quality | Are predicted probabilities trustworthy? | Calibration curve, Brier score, log loss |
+
+These goals are not identical.
+
+- A model may achieve high accuracy but poor recall.
+- A model may have strong ranking performance (high AUC) but poorly calibrated probabilities.
+- A model may produce well-calibrated probabilities while still making poor classification decisions under a particular threshold.
+
+
+::: {.callout-note}
+In practice, classification evaluation can become quite sophisticated and may involve ranking performance, probability calibration, decision costs, and threshold optimization.
+
+However, in this course, our primary goal is to understand the core ideas of statistical learning and predictive modeling. Therefore, we will mainly focus on accuracy and closely related classification metrics.
+:::
+
+
+<!-- 
+### Calibration
+
+Calibration studies whether predicted probabilities are numerically meaningful.
+
+A model may achieve:
+
+- high accuracy but poor calibration;
+- excellent AUC but unreliable probabilities;
+- good calibration but mediocre classification accuracy.
+
+These are different aspects of model performance.
+
+### Reliability Diagram
+
+A reliability diagram compares predicted probabilities with observed frequencies.
+
+Typically, observations are first grouped into bins according to predicted probability.
+
+For each bin:
+
+1. compute the average predicted probability;
+2. compute the observed positive frequency.
+
+These quantities are then plotted against each other.
+
+- A perfectly calibrated model follows the diagonal line:
+  
+$$
+\text{observed frequency}
+=
+\text{predicted probability}.
+$$
+
+- A curve below the diagonal indicates overconfidence.
+- A curve above the diagonal indicates underconfidence.
+
+### Proper Scoring Rules
+
+Two common metrics for probability quality are the Brier score and log loss.
+
+The Brier score is
+
+$$
+\text{Brier}
+=
+\frac1n
+\sum_{i=1}^n
+(y_i-\hat p_i)^2.
+$$
+
+The log loss is
+
+$$
+\text{LogLoss}
+=
+-
+\frac1n
+\sum_{i=1}^n
+\left[
+y_i\log(\hat p_i)
++
+(1-y_i)\log(1-\hat p_i)
+\right].
+$$
+
+Both metrics penalize confident incorrect predictions.
+
+Unlike accuracy or AUC, these metrics directly evaluate the probability estimates themselves.
+
+### Calibration Methods
+
+A model may produce good rankings while still having poorly calibrated probabilities.
+
+In such situations, calibration methods can sometimes improve the probability estimates.
+
+Two common methods are:
+
+- **Platt scaling**: fits a sigmoid transformation using logistic regression;
+- **isotonic regression**: fits a flexible monotone transformation.
+
+Isotonic regression is more flexible but may overfit on small calibration datasets.
+
+Calibration may improve probability estimates even if classification accuracy or AUC changes very little.
+
+::: {.callout-note}
+## Important
+
+Calibration should be performed using data not used to train the original model.
+::: -->
+
+
+
+
+<!-- 
+## Probability quality
+
+Probability quality asks whether predicted probabilities can be interpreted as actual probabilities.
+
+For example, if a model predicts probability near $0.8$, then among many such observations, roughly $80\%$ should truly belong to the positive class if the model is well calibrated.
+
+Calibration curves, Brier score, and log loss are commonly used to evaluate probability quality.
+
+### Calibration
+
+Calibration studies whether predicted probabilities are numerically meaningful.
+
+For example, if a model predicts
+
+$$
+\hat p(x)=0.8,
+$$
+
+then among many observations with predicted probability near $0.8$, about $80\%$ should truly belong to the positive class.
+
+Thus, calibration measures probability quality rather than classification accuracy or ranking quality.
+
+
+
+### Reliability Diagram
+
+A reliability diagram compares predicted probabilities with observed frequencies.
+
+- A perfectly calibrated model follows the diagonal line: $\text{observed frequency}=\text{predicted probability}$.
+- A curve below the diagonal indicates overconfidence.
+- A curve above the diagonal indicates underconfidence.
+
+
+
+### Proper Scoring Rules
+
+Two common metrics for probability quality are the Brier score and log loss.
+
+The Brier score is
+
+$$
+\text{Brier}
+=
+\frac1n
+\sum_{i=1}^n
+(y_i-\hat p_i)^2.
+$$
+
+The log loss is
+
+$$
+\text{LogLoss}
+=
+-
+\frac1n
+\sum_{i=1}^n
+\left[
+y_i\log(\hat p_i)
++
+(1-y_i)\log(1-\hat p_i)
+\right].
+$$
+
+Both metrics penalize confident incorrect predictions.
+
+
+
+### Calibration Methods
+
+If a model produces useful rankings but poorly calibrated probabilities, calibration methods may improve the probability estimates.
+
+Two common methods are:
+
+- **Platt scaling**: learns a sigmoid transformation using logistic regression;
+- **isotonic regression**: learns a flexible monotone transformation.
+
+Isotonic regression is more flexible but may overfit on small calibration datasets.
+
+
+
+::: {.callout-note}
+## Important
+
+Calibration should be performed using data not used to train the original model.
+:::
+
+
+ -->
+
+
+
+
+
+<!-- 
+
+## Bias-Variance in Classification Evaluation
+
+The bias-variance tradeoff also appears in classification, but it is easiest to state for probability estimation.
+
+Suppose the true conditional probability is
+
+$$
+p(x)=P(Y=1\mid X=x),
+$$
+
+and a fitted model estimates this probability by
+
+$$
+\hat p(x).
+$$
+
+At a fixed point $x_0$, the Brier loss is squared error for a binary outcome:
+
+$$
+\left(Y_0-\hat p(x_0)\right)^2.
+$$
+
+Since
+
+$$
+Y_0\mid X=x_0\sim \operatorname{Bernoulli}(p(x_0)),
+$$
+
+the conditional variance of $Y_0$ is
+
+$$
+\Var(Y_0\mid X=x_0)
+=
+p(x_0)(1-p(x_0)).
+$$
+
+The expected Brier loss decomposes as
+
+$$
+\begin{aligned}
+\Exp\left[
+\left(Y_0-\hat p(x_0)\right)^2
+\right]
+&=
+\Exp\left[
+\left(p(x_0)-\hat p(x_0)\right)^2
+\right]
++
+p(x_0)(1-p(x_0)) \\
+&=
+\operatorname{Bias}^2(\hat p(x_0))
++
+\operatorname{Var}(\hat p(x_0))
++
+p(x_0)(1-p(x_0)).
+\end{aligned}
+$$
+
+Thus, for probability estimation:
+
+- bias means the model systematically estimates probabilities too high or too low;
+- variance means the estimated probabilities change a lot across training samples;
+- $p(x_0)(1-p(x_0))$ is irreducible Bernoulli noise.
+
+This is why probability-quality metrics such as Brier score and log loss are closely connected to the bias-variance tradeoff.
+
+Flexible classifiers, such as deep trees and random forests, may reduce bias by capturing nonlinear structure, but their raw probability estimates may have higher variance or poor calibration. Simpler or regularized models may have higher bias but more stable probability estimates.
+
+::: {.callout-note}
+## Thresholds and bias-variance
+
+Changing the classification threshold does not change $\hat p(x)$ itself. It changes the decision rule built on top of $\hat p(x)$.
+
+So threshold tuning trades off false positives and false negatives. Model tuning trades off bias and variance in the fitted scores or probabilities.
+::: -->
+<!-- 
+## Calibration
+
+Calibration asks whether predicted probabilities are numerically meaningful.
+
+Suppose a model predicts
+
+$$
+\hat p(x)=0.8.
+$$
+
+If the model is well calibrated, then among many observations receiving predicted probability near $0.8$, about $80\%$ should truly be positive.
+
+Thus calibration concerns probability quality.
+
+It is different from classification accuracy and ranking quality.
+
+### Reliability Diagram
+
+A calibration curve, also called a reliability diagram, is built as follows:
+
+1. Group observations into bins based on predicted probability.
+2. For each bin, compute the average predicted probability.
+3. For each bin, compute the observed positive frequency.
+4. Plot observed frequency against average predicted probability.
+
+For a perfectly calibrated model, the curve follows the diagonal line:
+
+$$
+\text{observed frequency}
+=
+\text{predicted probability}.
+$$
+
+If the curve lies below the diagonal, the model is overconfident. For example, when it predicts $0.9$, the true frequency may only be $0.7$.
+
+If the curve lies above the diagonal, the model is underconfident. For example, when it predicts $0.3$, the true frequency may be $0.5$.
+
+### Brier Score
+
+The Brier score is a proper scoring rule for predicted probabilities:
+
+$$
+\text{Brier}
+=
+\frac1n\sum_{i=1}^n
+\left(y_i-\hat p_i\right)^2.
+$$
+
+Lower Brier score is better.
+
+Unlike accuracy, the Brier score evaluates the probability itself. A confident wrong prediction receives a large penalty.
+
+### Log Loss
+
+Another common proper scoring rule is log loss:
+
+$$
+\text{LogLoss}
+=
+-
+\frac1n
+\sum_{i=1}^n
+\left[
+y_i\log(\hat p_i)
++
+(1-y_i)\log(1-\hat p_i)
+\right].
+$$
+
+Log loss strongly penalizes confident wrong predictions.
+
+Both Brier score and log loss evaluate probability quality, not only hard classification decisions.
+
+## Calibration Methods
+
+If a model produces useful rankings but poor probabilities, we can sometimes calibrate its scores.
+
+Two common calibration methods are:
+
+- Platt scaling,
+- isotonic regression.
+
+### Platt Scaling
+
+Platt scaling fits a logistic regression model using the original classifier score as the predictor.
+
+If the original model produces a score $s(x)$, Platt scaling estimates
+
+$$
+P(Y=1\mid s(x)).
+$$
+
+This learns a sigmoid transformation of the scores.
+
+### Isotonic Regression
+
+Isotonic regression learns a monotone transformation of the scores.
+
+It is more flexible than Platt scaling because it does not assume a sigmoid shape. However, it can overfit when the calibration set is small.
+
+::: {.callout-note}
+## Calibration data
+
+Calibration should be learned on data not used to fit the original model.
+
+Otherwise, the calibrated probabilities may look better than they really are.
+::: -->
