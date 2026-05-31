@@ -130,6 +130,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       </style>
     
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles/fonts.css">
 <link rel="stylesheet" href="../../styles/blocks.css">
@@ -455,14 +484,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../contents/app/venv.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Python Virtual Environments with <code>uv</code></span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="../../contents/app/concept.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Some Hard Python concepts</span></span></a>
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Some Hard Python concepts</span></span></a>
   </div>
 </li>
       </ul>
@@ -708,7 +731,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <p><img src="assets/img/20260530232943.png" class="img-fluid"></p>
 <p>After the kernel is selected, we could start using the notebook. I prefer to use the following code as hello world. It can also tell us whether the correct python is used.</p>
-<div id="c0b4c180" class="cell" data-execution_count="1">
+<div id="78fb871b" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sys.executable)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -717,8 +740,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="quick-markdown-syntax" class="level2" data-number="A.4">
 <h2 data-number="A.4" class="anchored" data-anchor-id="quick-markdown-syntax"><span class="header-section-number">A.4</span> Quick Markdown syntax</h2>
 <p>Now we can start using a notebook. One of the best features of a notebook is that it can combine code, narrative text, and output in a single file.</p>
-<p>There are two types of cells in a notebook: Code cell and Markdown cell. We run Python code in code cells, and write markdown texts in Markdown cells. For Statistical learning, usually code cells are codes and Markdown cells are for analysis and explanations.</p>
+<p>There are two types of cells in a notebook: Code cells and Markdown cells.</p>
+<ul>
+<li>Code cells are used to run Python code.</li>
+<li>Markdown cells are used to write text, explanations, equations, and documentation.</li>
+</ul>
+<p>In statistical learning, code cells are typically used for data analysis, model fitting, and computations, while Markdown cells are used to explain the methods, interpret the results, and document the workflow.</p>
 <p><img src="assets/img/20260530234530.png" class="img-fluid"></p>
+<p>A notebook combines code, output, and narrative in a single document, making it an ideal environment for data science and machine learning.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -876,17 +905,30 @@ Tip
 <h3 data-number="A.4.4" class="anchored" data-anchor-id="essential-latex"><span class="header-section-number">A.4.4</span> Essential LaTeX</h3>
 <p>Use single dollar signs for inline math:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>The fitted value is $\hat y_i$.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<blockquote class="blockquote">
+<p>The fitted value is <span class="math inline">\(\hat y_i\)</span>.</p>
+</blockquote>
 <p>Use double dollar signs for displayed equations:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>Y = \beta_0 + \beta_1 X + \epsilon.</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>$$</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><span class="math display">\[
+Y = \beta_0 + \beta_1 X + \epsilon.
+\]</span></p>
 <p>Common symbols:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>$\hat y$        predicted value</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>$\bar x$        sample mean</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>$\beta_0$       coefficient</span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>$X^\top X$      transpose</span>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>$\sum_{i=1}^n$  summation</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>In homework, write a short sentence before or after each important formula explaining what it represents.</p>
+<blockquote class="blockquote">
+<p><span class="math inline">\(\hat y\)</span>: predicted value</p>
+<p><span class="math inline">\(\bar x\)</span>: sample mean</p>
+<p><span class="math inline">\(\beta_0\)</span>: coefficient</p>
+<p><span class="math inline">\(X^\top X\)</span>: transpose</p>
+<p><span class="math inline">\(\sum_{i=1}^n\)</span>: summation</p>
+</blockquote>
+<p>LaTeX supports a wide range of mathematical notation, but the basic symbols introduced here will be enough for all of the work in this course.</p>
 
 
 </section>
