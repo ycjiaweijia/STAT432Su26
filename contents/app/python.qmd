@@ -6,42 +6,35 @@ jupyter: stats
 
 This note introduces only the Python syntax needed for the rest of these notes. The goal is not to cover Python as a full programming language. The goal is to make code using `numpy`, `matplotlib`, and `sklearn` readable.
 
-The intended reader already knows R. Many ideas are the same: objects have names, functions take arguments, vectors and matrices are central, and modeling workflows usually follow a fit-then-predict pattern.
+
+
+<!-- The intended reader already knows R. Many ideas are the same: objects have names, functions take arguments, vectors and matrices are central, and modeling workflows usually follow a fit-then-predict pattern. -->
 
 ## Running Python Code
 
 A Python code chunk looks like this:
 
 ```{python}
-x = 10
-x
+# This is a comment
+
+x = 10      # assignment uses =
+
+a, b = 2, 3
+a + b       # last expression is automatically displayed
 ```
 
-Assignment uses `=`.
+::: {.callout-note}
+## Notebook
 
-```{python}
-a = 2
-b = 3
-a + b
-```
+1. When a code cell is executed, the value of the last expression is automatically displayed. Any explicit output commands, such as `print()`, will also produce output.
 
-Python comments start with `#`.
+2. Use `#` comments only for short notes that help explain the code. Detailed explanations and discussion should be written in Markdown cells, where they are easier to read and maintain.
 
-```{python}
-# This is a comment.
-x = 5
-```
-
-Unlike R, Python uses zero-based indexing. The first element has index `0`.
-
-```{python}
-values = [10, 20, 30]
-values[0]
-```
+:::
 
 
 
-## Indentation
+### Indentation
 
 Python uses indentation to mark code blocks. R uses braces `{}`; Python uses indentation.
 
@@ -52,37 +45,119 @@ for k in [1, 3, 5]:
     print(k)
 ```
 
-The indented line belongs to the loop. These notes use loops only when they are helpful for plotting or comparing models.
+The indented block belongs to the loop. These notes use loops only when they are helpful for plotting or comparing models.
+
+### `if` and `for`
 
 
-## Importing Packages
-
-Python packages are loaded with `import`.
-
-The usual imports in these notes are:
+The logic of `if` statements and `for` loops is straightforward. When using them, pay attention to indentation. A colon `:` indicates the beginning of an indented code block.
 
 ```{python}
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+x = 1
+if x == 2:
+    print('good')
+else:
+    print('not good')
 ```
 
-This means:
-
-- `numpy` is used as `np`;
-- `pandas` is used as `pd`;
-- `matplotlib.pyplot` is used as `plt`.
-
-Specific functions or classes can be imported from a package:
 
 ```{python}
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
+for k in range(4):
+    print(k)
 ```
 
-This is similar in spirit to loading a function from an R package, but Python usually names the module path explicitly.
 
-## Basic Objects
+
+
+
+### Functions and Objects
+
+This is not an object-oriented programming course, so don't worry too much about the details. The important idea is the distinction between a function, a class, and an object created from a class.
+
+- Function: performs an action and returns a result. Called with parentheses: `round(3.14, 2)`
+- Class: a blueprint for creating objects.
+- Object: stores information and provides methods. Accessed with a dot: `object.method()`
+
+
+
+Example in scikit-learn:
+
+```python
+model = LinearRegression()
+```
+
+Here
+
+- `LinearRegression` is the class;
+- `LinearRegression()` creates a linear regression model object;
+- the object is assigned to the variable `model`.
+
+```python
+model.fit(X_train, y_train)
+coef = model.coef_
+```
+
+Here
+
+- `fit()` is method;
+- `coef_` stores information about the fitted model;
+- methods are called using `object.method(...)`;
+- stored information is accessed using `object.attribute`.
+
+
+In almost all `scikit-learn` code, you should work with objects rather than classes. A common mistake is to pass a class where an object is required.
+
+```python
+pipe = make_pipeline(StandardScaler, LinearRegression)     # wrong
+pipe = make_pipeline(StandardScaler(), LinearRegression()) # correct
+```
+
+The same idea applies to most `scikit-learn` components, including transformers, models, and pipelines. In general, if something is used as a step in a pipeline, you should create an object by adding `()`.
+
+
+
+::: {.callout-caution}
+## `.` (Dot)
+
+The meaning of `.` is different in Python and R.
+
+- In Python, `.` is used to access methods and attributes of an object.
+
+  ```python
+  model.fit(X, y)
+  model.coef_
+  ```
+
+- In R, `.` is usually just part of a variable or function name.
+
+  ```r
+  my.variable <- 1
+  ```
+
+Do not interpret dots in R names as object access.
+:::
+
+
+
+<!-- 
+
+
+### Difference to R
+
+
+
+```{python}
+#| eval: false
+#| echo: false
+values = [10, 20, 30]
+values[0]
+``` 
+-->
+
+
+## Data structure
+
+### Basic Objects
 
 Python has several basic data types.
 
@@ -101,7 +176,7 @@ type(y)
 
 Python is case-sensitive. `x` and `X` are different objects.
 
-## Lists
+### Lists
 
 A list is an ordered collection of objects.
 
@@ -117,7 +192,7 @@ mixed = [1, "a", True]
 mixed
 ```
 
-Indexing starts at 0.
+Unlike R, Python uses zero-based indexing. The first element has index `0`.
 
 ```{python}
 features[0]
@@ -151,7 +226,7 @@ num_features = ["age", "chol", "thalach"]
 k_values = [1, 3, 5, 10]
 ```
 
-## Dictionaries
+### Dictionaries
 
 A dictionary stores key-value pairs. It is similar to a named list in R.
 
@@ -189,29 +264,38 @@ param_grid = {
 
 This means the parameter `C` inside the pipeline step named `"model"`.
 
-## Functions
 
-Python functions are called with parentheses.
 
-```{python}
-round(3.14159, 2)
-```
+## Importing Packages
 
-Named arguments use `name=value`.
+Python packages are loaded with `import`.
+
+The usual imports in these notes are:
 
 ```{python}
-np.linspace(0, 1, num=5)
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 ```
 
-Many `sklearn` objects are created by calling a class with arguments:
+This means:
+
+- `numpy` is used as `np`;
+- `pandas` is used as `pd`;
+- `matplotlib.pyplot` is used as `plt`.
+
+Specific functions or classes can be imported from a package:
 
 ```{python}
-model = LinearRegression()
-model
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 ```
 
+This is similar in spirit to loading a function from an R package, but Python usually names the module path explicitly.
 
-## `numpy.array`
+
+
+### `numpy.array`
 
 The most important data structure for numerical computation is `numpy.array`.
 
@@ -782,3 +866,20 @@ For the rest of these notes, the most important Python ideas are:
 - `.reshape(-1, 1)` converts one predictor into a one-column matrix;
 - `sklearn` models use `.fit()`, `.predict()`, and often `.predict_proba()`;
 - `matplotlib.pyplot` is used for basic scatter plots, line plots, histograms, and subplots.
+
+
+
+
+
+## Exercises
+
+
+::: {#exr-}
+Write a code to implement the following idea.
+
+1. Start an empty list named `acc`.
+2. Run a `for` loop for 10 iterations. 
+3. During each iteration, generate a random number and append it to `acc`.
+
+At the end you will get a list `acc` with 10 random numbers.
+:::

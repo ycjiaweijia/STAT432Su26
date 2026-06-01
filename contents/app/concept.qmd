@@ -1,9 +1,5 @@
----
-jupyter: stats
----
 
-
-# Some Hard Python concepts
+# Some Python concepts
 
 ## Language
 
@@ -13,29 +9,32 @@ Python is a programming language. In other words, it is a collection of syntaxes
 
 Python needs to be interpreted into codes that computers can understand. Therefore there should be some programs that translate Python scripts. These programs are called *interpreters*.
 
-`CPython` is the refernce interpreter of Python programming language, and it is the most widely used ones for Python. It is written in C and Python. When Python programming language introduces new features, they are developed based on `CPython`, and are first implemented in `CPython`. Sometimes an interpreter is also called an *implementation*.
+`CPython` is the reference implementation of Python and the implementation most people use. It is written mainly in C and Python. New Python language features are normally developed and tested first in CPython.
 
-There are alternatives to `CPython`, like [`PyPy`](https://www.pypy.org/), [`Jython`](https://www.jython.org/), [`IronPython`](https://ironpython.net/), etc.. In theory, any Python scripts should be able to run on any of these implementations, and the result should be the same. The differences mainly come from perfamance and compatiblity with non-Python packages. For example, `CPython` is executed by a C interpreter. Therefore it is very easy to write C-extensions for your Python code. `Jython`, since it is implemented in Java, makes it very easy to work with other Java programs that you can import any Java classes with no additional effort.
+Other implementations include [`PyPy`](https://www.pypy.org/), [`Jython`](https://www.jython.org/) and [`IronPython`](https://ironpython.net/). They are useful in specific contexts, but they do not always support the same Python versions or the same package ecosystem as CPython. For example, PyPy focuses on speed through a JIT compiler, Jython integrates with the JVM but its current stable release is Python 2.7-based, and IronPython integrates with .NET but lags behind modern CPython versions.
 
-Since `CPython` is most-widely used and tested, it is the best choice, at least for beginners. And actually, if you have no idea about this topic, but you use Python, it is highly possible that you are using `CPython`.
+
+Since `CPython` is the most widely used and best-supported implementation, it is the best choice, at least for beginners. And actually, if you have no idea about this topic, but you use Python, it is highly possible that you are using `CPython`.
 
 
 ::: {.callout-note collapse="true"}
 We mentioned "interpreter" here. There are mainly two types of implimentations of programming langauges: interpreters and compilers. There are also some additional types like just-in-time compilers which can be treated as combinations of the two. 
 
-Python is usually treated as an *interpreted* language since `CPython` is an interpreter. One of Python's most useful features is its interactive interpreter, which allows for very fast testing of ideas without the overhead of creating test files as is typical in most programming languages.
+
+Python is often described as an *interpreted* language, but `CPython` first compiles source code to bytecode and then executes that bytecode in the Python virtual machine. For beginners, the practical point is that Python supports an interactive workflow and does not require a separate manual compile step.
+
 :::
 
 
 ## REPL 
-There are two ways to use Python interpreter. The default way is that Python interpreter reads a file and execute a script from there. The second way is called *the intereactive shell*, that Python interpreter read the input from user directly, and print the result immediately. The model is like code example: prompt the user for some code, and when they’ve entered it, execute it in the same process. This model is often called a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop), or *Read-Eval-Print-Loop*.
+There are two ways to use Python interpreter. One way is to execute a Python script stored in a file. The second way is called *the intereactive shell*, that Python interpreter read the input from user directly, and print the result immediately. The model is like code example: prompt the user for some code, and when they’ve entered it, execute it in the same process. This model is often called a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop), or *Read-Eval-Print-Loop*.
 
 
 
 *Shell*, *terminal*, *console* have different meanings in their original contexts. However, nowadays, especially when talking about Python intereactive shell, these terminologies are used interchangeably. They are referred to the frontend of the system. In other words, the main task for the Python intereactive shell is to handle the user inputs and communicate with the backend, which is also called a *kernel*. We won't distinguish the real differences between these terminologies. The kernel will be discussed in the next section.
 
 
-The standard interactive Python interpreter can be invoked on the command line with the `python` command. Note that you should make sure that the `PATH` system enviroment variable is configured, otherwise you have to specifiy the path to the Python execuatable file. To quit the intereactive shell you can type the commands `quit()`/`exit()`/`Ctrl+Z` then `Enter`.
+The standard Python REPL can usually be started with `python` or `python3`. On Windows, `py` may also be available. To quit, use `quit()`, `exit()`, `Ctrl+D` on macOS/Linux, or `Ctrl+Z` then `Enter` on Windows.
 
 
 ::: {.callout-note}
@@ -58,45 +57,57 @@ You can launch the `IPython` shell on the command line with the `ipython` comman
 
 The reference Python kernel provided by `IPython` is called `ipykernel`. With `ipykernel` you may create and maintain multiple kernels. 
 
-
 ## `Jupyter`
-[`Jupyter`](https://docs.jupyter.org/en/latest/projects/architecture/content-architecture.html) projects contain many subprojects, which includes `Jupyter` User Interfaces. The `Jupyter` user interfaces offer a foundation of interactive computing environments where scientific computing, data science, and analytics can be performed using a wide range of programming languages. This includes `Jupyter console`, `Jupyter qtconsole`, and `Jupyter notebook`. Here we mainly focus on `Jupyter notebook`.
+
+[`Jupyter`](https://docs.jupyter.org/en/latest/projects/architecture/content-architecture.html) is an ecosystem for interactive computing. It originated from the IPython Notebook project and later evolved into a language-independent platform supporting many programming languages. The name **Jupyter** is inspired by **Julia**, **Python**, and **R**, the three languages that were central to many early data science workflows.
+
+Today, Jupyter includes several user interfaces, such as JupyterLab, Jupyter Notebook, Jupyter Console, and QtConsole. In this course, however, the important idea is not a particular interface, but the relationship among a notebook frontend, a kernel, and the notebook file stored on disk.
+
+A Jupyter notebook is saved as a file with extension `.ipynb`. Internally, the file uses a structured `JSON` format that stores:
+
+- code cells;
+- Markdown cells;
+- outputs;
+- notebook metadata.
+
+When you run code in a notebook, the frontend sends the code to a kernel, which executes the code and returns the results. In a Python notebook, a kernel can be viewed as a Python process running in the background. It executes code, stores variables, and communicates with the notebook interface.
+
+Different programming languages can be supported by different kernels. For example:
+
+- `ipykernel` for Python;
+- `IRkernel` for R;
+- `IJulia` for Julia.
 
 
-`Jupyter notebooks` are structured data that represent your code, metadata, content, and outputs. When saved to disk, the notebook uses the extension `.ipynb`, and uses a `JSON` structure. After receiving the user input, the notebook communicates with the kernel using `JSON` messages sent over `ZeroMQ` sockets. The protocol used between the frontends and the kernel is described in [Messaging in Jupyter](https://jupyter-client.readthedocs.io/en/latest/messaging.html#messaging).
 
-A kernel process can be connected to more than one frontend simultaneously. In this case, the different frontends will have access to the same variables.
+::: {.callout-note}
+## Kernel
+A kernel is associated with a particular Python environment, but it is not the environment itself. For example, multiple kernels may use the same Python environment while maintaining completely separate variables and memory. Conversely, multiple notebook windows may connect to the same kernel and therefore share the same variables and computational state.
 
-This design was intended to allow easy development of different frontends based on the same kernel, but it also made it possible to support new languages in the same frontends, by developing kernels in those languages. The `Jupyter` Notebook Application has three main kernels: the `ipykernel`, `irkernel` and `ijulia` kernels. Actually the name of `Jupyter` comes from these three programming languages for data science: [Julia](https://julialang.org/), Python and R.
+For this course, you can think of the notebook as the user interface, the kernel as the Python process that runs your code, and the `.ipynb` file as the notebook document saved on disk.
+
+:::
 
 
-
-
-## Multi-kernels setup
+### Multi-kernels setup
 This section is mainly following the [official document](https://ipython.readthedocs.io/en/stable/install/kernel_install.html).
 
-To install one `IPython` kernel, you may use `conda` or `pip` to install `ipykernel` in the environment. If you want to have multiple `IPython` kernels for different virtualenvs or `conda` environments, you will need to specify unique names for the kernelspecs.
+To install one `IPython` kernel, you may install `ipykernel` in the environment. If you want to have multiple `IPython` kernels for different venvs, you will need to specify unique names for the kernelspecs.
 
 1. Activate the environment you want.
-
-```{.bash}
-conda activate myenv
-```
-
 2. Install the kernel in the environment.
 
-```{.bash}
-conda install jupyter
-python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
+```bash
+uv add ipykernel
+uv run python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
 ```
 `--user` means that the kernel is installed in the user's folder instead of a system folder, and it can be removed. The `--name` value (in this case it is `myenv`) is used by Jupyter internally. These commands will overwrite any existing kernel with the same name. `--display-name` is what you see in the notebook menus.
-
 
 3. You could use the command to find all kernels installed in your system.
 
 
-```{.bash}
-jupyter kernelspec list
+```bash
+uv run jupyter kernelspec list
 ```
 Available kernels are shown, as well as the path to the kernel configuration file `kernel.json`. The most important configuration is the path to the Python interpreter executatable file.
 
@@ -104,19 +115,20 @@ Available kernels are shown, as well as the path to the kernel configuration fil
 ```{.json filename="kernel.json"}
 {
  "argv": [
-  "C:\\Users\\Xinli\\anaconda3\\envs\\myenv\\python.exe",
+  "C:\\Users\\WDAGUtilityAccount\\Project\\.venv\\Scripts\\python.exe",
+  "-Xfrozen_modules=off",
   "-m",
   "ipykernel_launcher",
   "-f",
   "{connection_file}"
  ],
- "display_name": "Python (3.10)",
+ "display_name": "(myenv)",
  "language": "python",
  "metadata": {
   "debugger": true
- }
+ },
+ "kernel_protocol_version": "5.5"
 }
 ```
 
-4. There is a possibility that `Jupyter` cannot find the kernel you create in a `conda` environment. In this case you may want to try [`nb_conda_kernels`](https://github.com/Anaconda-Platform/nb_conda_kernels/). This is a tool to enable a Jupyter notebook in one `conda` environment to access kernels found in other environments. It should be installed in the environment from which you run `Jupyter` Notebook or `JupyterLab`. This might be your base `conda` environment, but it need not be. After you finish installation, you may use `jupyter kernelspec list` to check whether it works.
-
+Notice that the path in `argv` points to the Python interpreter used by this kernel. Different kernels may point to different Python environments, or multiple kernels may point to the same environment.
