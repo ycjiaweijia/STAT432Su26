@@ -122,38 +122,67 @@ The same idea applies to most `scikit-learn` components, including transformers,
 The meaning of `.` is different in Python and R.
 
 - In Python, `.` is used to access methods and attributes of an object.
-
-  ```python
-  model.fit(X, y)
-  model.coef_
-  ```
-
+```python
+model.fit(X, y)
+model.coef_
+```
 - In R, `.` is usually just part of a variable or function name.
 
-  ```r
-  my.variable <- 1
-  ```
+```r
+my.variable <- 1
+```
 
 Do not interpret dots in R names as object access.
 :::
 
 
 
-<!-- 
+### Importing Packages
 
+Python packages are loaded with `import`.
 
-### Difference to R
+The usual imports in these notes are:
 
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+```
 
+The names on the right are aliases:
+
+- `numpy` is used as `np`;
+- `pandas` is used as `pd`;
+- `matplotlib.pyplot` is used as `plt`.
+
+After importing a package this way, you access its functions using the package name, e.g.
+
+- `np.array([1, 2, 3])` 
+- `pd.DataFrame({"x": [1, 2, 3]})` 
+- `plt.plot([1, 2, 3], [4, 5, 6])`
+
+::: {.callout-note}
+When a package is imported with `import ... as ...`, you must use the alias to access its functions and classes instead of the original name.
+:::
+
+Sometimes only specific functions or classes are imported.
 
 ```{python}
 #| eval: false
-#| echo: false
-values = [10, 20, 30]
-values[0]
-``` 
--->
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+```
 
+These objects can then be used directly.
+
+```{python}
+#| eval: false
+model = LinearRegression()
+```
+
+::: {.callout-note}
+After `from sklearn.linear_model import LinearRegression`, you may use `LinearRegression()` directly, but other objects from `sklearn.linear_model` are not automatically imported.
+:::
 
 ## Data structure
 
@@ -178,76 +207,44 @@ Python is case-sensitive. `x` and `X` are different objects.
 
 ### Lists
 
-A list is an ordered collection of objects.
 
-```{python}
-features = ["age", "income", "education"]
-features
-```
 
-Lists can contain objects of different types, although in data analysis we usually keep them simple.
+A list is an **ordered collection** of objects. Lists are commonly used to store variable names, column names, or collections of parameter values.
 
-```{python}
-mixed = [1, "a", True]
-mixed
-```
+| Purpose                  | Example                                     | Explanation                                                  |
+| ------------------------ | ------------------------------------------- | ------------------------------------------------------------ |
+| Create a list            | `features = ["age", "income", "education"]` | Creates a list containing three strings.                     |
+| Access the first element | `features[0]`                               | Returns `"age"`. Python indexing starts at `0`.              |
+| Access the last element  | `features[-1]`                              | Returns `"education"`. Negative indices count from the end.  |
+| Select several elements  | `features[0:2]`                             | Returns `["age", "income"]`. The stop index is not included. |
+| Add an element           | `features.append("gender")`                 | Adds `"gender"` to the end of the list.                      |
+| Count elements           | `len(features)`                             | Returns the number of elements in the list.                  |
 
-Unlike R, Python uses zero-based indexing. The first element has index `0`.
 
-```{python}
-features[0]
-```
+::: {.callout-note}
+Unlike R, Python uses zero-based indexing, so the first element has index `0`.
+:::
 
-Use negative indexing to count from the end.
-
-```{python}
-features[-1]
-```
-
-Slicing uses `start:stop`, where `stop` is not included.
-
-```{python}
-features[0:2]
-```
-
-This returns the first two elements.
-
-Some common list operations are:
-
-```{python}
-features.append("gender")
-len(features)
-```
-
-Lists are often used to specify columns or hyperparameter grids.
-
-```{python}
-num_features = ["age", "chol", "thalach"]
-k_values = [1, 3, 5, 10]
-```
 
 ### Dictionaries
 
-A dictionary stores key-value pairs. It is similar to a named list in R.
 
-```{python}
-params = {
-    "n_neighbors": 5,
-    "weights": "uniform",
-}
+A dictionary stores **key-value pairs**. It is similar to a named list in R and is commonly used to store settings, options, and model parameters.
 
-params
-```
+| Purpose               | Example                                             | Explanation                                           |
+| --------------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| Create a dictionary   | `params = {"n_neighbors": 5, "weights": "uniform"}` | Creates a dictionary with two keys and their values.  |
+| Access a value        | `params["n_neighbors"]`                             | Returns `5`.                                          |
+| Add or update a value | `params["metric"] = "euclidean"`                    | Adds a new key-value pair or updates an existing one. |
+| Count entries         | `len(params)`                                       | Returns the number of key-value pairs.                |
+| Store model settings  | `{"max_depth": 3, "min_samples_leaf": 5}`           | A common use in machine learning.                     |
+| Store parameter grids | `{"max_depth": [2,3,4]}`                            | Often used when tuning hyperparameters.               |
+<!-- | List all keys         | `params.keys()`                                     | Returns all keys in the dictionary.                   |
+| List all values       | `params.values()`                                   | Returns all values in the dictionary.                 | -->
 
-Access a value by its key:
+A typical parameter grid in `scikit-learn` looks like:
 
-```{python}
-params["n_neighbors"]
-```
-
-Dictionaries are used frequently in `sklearn`, especially for parameter grids.
-
-```{python}
+```python
 param_grid = {
     "max_depth": [2, 3, 4],
     "min_samples_leaf": [1, 5, 10],
@@ -256,48 +253,21 @@ param_grid = {
 
 For pipelines, parameter names often use two underscores:
 
-```{python}
+```python
 param_grid = {
     "model__C": [0.1, 1, 10],
 }
 ```
 
-This means the parameter `C` inside the pipeline step named `"model"`.
+::: {.callout-note}
+In a pipeline, a parameter name of the form `step__parameter` refers to a parameter inside a specific pipeline step. For example, `model__C` means the parameter `C` of the pipeline step named `"model"`. More terminologies will be discussed in related sections.
+:::
 
 
 
-## Importing Packages
+## `numpy.array`
 
-Python packages are loaded with `import`.
-
-The usual imports in these notes are:
-
-```{python}
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-```
-
-This means:
-
-- `numpy` is used as `np`;
-- `pandas` is used as `pd`;
-- `matplotlib.pyplot` is used as `plt`.
-
-Specific functions or classes can be imported from a package:
-
-```{python}
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-```
-
-This is similar in spirit to loading a function from an R package, but Python usually names the module path explicitly.
-
-
-
-### `numpy.array`
-
-The most important data structure for numerical computation is `numpy.array`.
+The most important data structure for numerical computation in Python is `numpy.array`.
 
 ```{python}
 import numpy as np
@@ -306,192 +276,174 @@ x = np.array([1, 2, 3, 4])
 x
 ```
 
-An array has a shape.
+Arrays have a shape and a dimension.
 
 ```{python}
-x.shape
+print(x.shape)
+print(x.ndim)
 ```
 
-For this object, the shape is `(4,)`. This means it is a one-dimensional array with 4 elements.
+So `x` is a 1D array containing 4 elements.
 
-### One-Dimensional Arrays
+### 2D Arrays
 
-A one-dimensional array behaves like a vector.
-
-```{python}
-x = np.array([10, 20, 30])
-x.ndim
-```
+A 2D array is similar to a matrix.
 
 ```{python}
-x.shape
-```
-
-Indexing is zero-based.
-
-```{python}
-x[0]
-```
-
-Vectorized arithmetic works similarly to R.
-
-```{python}
-x + 1
-```
-
-```{python}
-x * 2
-```
-
-```{python}
-np.mean(x)
-```
-
-### Two-Dimensional Arrays
-
-A two-dimensional array is like a matrix.
-
-```{python}
-X = np.array(
-    [
-        [1, 2],
-        [3, 4],
-        [5, 6],
-    ]
-)
+X = np.array([
+    [1, 2],
+    [3, 4],
+    [5, 6]
+])
 
 X
 ```
 
-Check the dimension and shape.
-
 ```{python}
-X.ndim
+print(X.shape)
+print(X.ndim)
 ```
 
-```{python}
-X.shape
-```
+Here `X` is a 2D array with 3 rows and 2 columns.
 
-The shape is `(3, 2)`, meaning 3 rows and 2 columns.
+### Indexing
 
-Indexing uses `[row, column]`.
+Use `[row, column]` indexing.
 
 ```{python}
-X[0, 1]
+#| eval: false
+X[0, 1]      # row 0, column 1
+X[:, 0]      # first column
+X[1, :]      # second row
 ```
 
-This is the entry in row 0 and column 1.
+The symbol `:` means "all indices" along that axis.
 
-Select a column:
+Slicing can select ranges.
 
 ```{python}
-X[:, 0]
+#| eval: false
+X[0:2, 1]      # first 2 rows, column 1
+X[0, 0:2]      # row 0, first 2 columns
+X[0:2, 0:2]    # upper-left 2x2 block
 ```
 
-Select a row:
+::: {.callout-note}
+`X[:, 0]` returns a 1D array with shape `(n,)`, not a column vector.
+
+To obtain a column vector, use
 
 ```{python}
-X[1, :]
+#| eval: false
+X[:, [0]]
+# or
+X[:, 0].reshape(-1, 1)
 ```
+which both have shape `(n, 1)`.
+:::
 
-The colon `:` means "all indices" in that direction.
+### Common Operations
 
-## Dimensions and `sklearn`
-
-The most common Python issue in `sklearn` is array dimension.
-
-In `sklearn`, the predictor matrix `X` should be two-dimensional:
-
-$$
-X:\quad n\times p.
-$$
-
-The response vector `y` should usually be one-dimensional:
-
-$$
-y:\quad n.
-$$
-
-This means:
+Arrays support vectorized arithmetic.
 
 ```{python}
-X = np.array(
-    [
-        [1.0],
-        [2.0],
-        [3.0],
-        [4.0],
-    ]
-)
-
-y = np.array([1.2, 1.9, 3.1, 3.8])
-
-X.shape, y.shape
+#| eval: false
+x + 1
+x * 2
+np.mean(x)
 ```
 
-Here `X` has shape `(4, 1)`, not `(4,)`.
+Operations are applied elementwise.
 
-### Why `(n, 1)` Matters
+### Axis-wise 
 
-Suppose we have one predictor.
+Many functions accept an `axis=` argument. 
 
 ```{python}
-x = np.array([1.0, 2.0, 3.0, 4.0])
-x.shape
+X              # show X
+```
+Computes the sum across rows: 
+```{python}
+X.sum(axis=0)
+```
+Computes the mean across columns:
+```{python}
+X.mean(axis=1)
 ```
 
-This has shape `(4,)`, so `sklearn` treats it as a one-dimensional object, not as a predictor matrix.
+A useful rule:
 
-Use `.reshape(-1, 1)` to convert it to a matrix with one column.
+- `axis=0`: operate down rows (one result per column)
+- `axis=1`: operate across columns (one result per row)
+
+### Reshaping
+
+A 1D array can be converted into a matrix. Consider a 1D array
+```{python}
+x = np.array([1, 2, 3, 4])
+```
+To create a column vector:
+```{python}
+x.reshape(-1, 1)
+```
+
+To create a row vector:
 
 ```{python}
-X = x.reshape(-1, 1)
-X.shape
+x.reshape(1, -1)
 ```
 
-The `-1` means "infer this dimension from the data." In this case, Python infers 4 rows.
+The value `-1` means "infer this dimension automatically."
 
-This pattern appears often in the notes:
+A common pattern is
 
 ```{python}
 test_x = np.linspace(0, 1, 101).reshape(-1, 1)
-test_x.shape
 ```
 
-### Flattening Back to One Dimension
-
-Sometimes we want a one-dimensional array for plotting.
-
-```{python}
-X[:, 0]
-```
-
-or
+On the other side, to flatten an array back to 1D:
 
 ```{python}
 X.reshape(-1)
 ```
 
-Both produce a one-dimensional array.
+`NumPy` reads entries row by row and produces a one-dimensional array.
+
+::: {.callout-tip}
+Other flattening methods include `.ravel()` and `.flatten()`. The difference is about how copy-and-view is handled. We mainly use `.reshape(-1)` because it makes the resulting shape explicit.
+:::
+
+
+::: {.callout-note}
+One common source of bugs in statistical learning is using arrays with incorrect shapes.
+
+In `scikit-learn`, predictors `X` are usually stored as a 2D array and responses `y` as a 1D array. Other libraries may use different conventions, and the required shapes often depend on the specific model or loss function.
+
+When shape-related errors occur, always check the documentation of the library you are using.
+:::
 
 ### Arrays versus Lists
 
-Lists are general containers. Arrays are numerical objects.
-
+Lists are general-purpose containers, and its addition concatenates. For example
 ```{python}
 [1, 2, 3] + [4, 5, 6]
 ```
 
-List addition concatenates.
+Arrays are designed for numerical computation. Its operations are align with the regular math operations. Therefore for numerical work and machine learning, use `numpy.array` whenever possible.
 
-```{python}
-np.array([1, 2, 3]) + np.array([4, 5, 6])
-```
 
-Array addition is elementwise.
 
-For modeling and numerical work, use arrays or pandas data frames, not plain lists.
+
+
+
+
+
+
+
+
+
+
+
 
 ## Random Numbers
 
@@ -504,7 +456,15 @@ x = rng.normal(size=5)
 x
 ```
 
+::: {.callout-note}
+
 The number `1` is a seed. It makes the random output reproducible.
+
+On a single machine, if the seed is fixed the results are supposed to be the same.
+
+You may choose any number as the seed. You may use the same seed when you want to see the same result.
+:::
+
 
 Some common random functions are:
 
@@ -523,181 +483,19 @@ X = rng.normal(size=(10, 3))
 X.shape
 ```
 
-## Basic `sklearn` Workflow
-
-Most `sklearn` models use the same workflow.
-
-1. Create the model object.
-2. Fit the model with `.fit(X_train, y_train)`.
-3. Predict with `.predict(X_test)`.
-4. For classifiers, get probabilities with `.predict_proba(X_test)`.
-
-Example:
-
-```{python}
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.datasets import load_iris
-
-iris = load_iris()
-
-X = iris.data
-y = iris.target
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.3,
-    random_state=1,
-    stratify=y,
-)
-
-model = KNeighborsClassifier(n_neighbors=5)
-model.fit(X_train, y_train)
-
-pred = model.predict(X_test)
-prob = model.predict_proba(X_test)
-
-pred[:5]
-```
-
-Here:
-
-- `X_train` and `X_test` are two-dimensional arrays;
-- `y_train` and `y_test` are one-dimensional arrays;
-- `pred` contains predicted class labels;
-- `prob` contains predicted class probabilities.
-
-Check shapes:
-
-```{python}
-X_train.shape, y_train.shape, pred.shape, prob.shape
-```
-
-## Train-Test Split
-
-`train_test_split` is the standard way to create training and test sets.
-
-```{python}
-from sklearn.model_selection import train_test_split
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.3,
-    random_state=1,
-)
-```
-
-For classification, use `stratify=y` to preserve class proportions.
-
-```{python}
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.3,
-    random_state=1,
-    stratify=y,
-)
-```
-
-This is similar to making a random split in R, but the function returns all four objects at once.
-
-## Pipelines
-
-A pipeline chains preprocessing and modeling steps.
-
-```{python}
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-
-pipe = Pipeline(
-    steps=[
-        ("scaler", StandardScaler()),
-        ("model", LogisticRegression(max_iter=1000)),
-    ]
-)
-
-pipe.fit(X_train, y_train)
-pipe.predict(X_test)
-```
-
-Each step is a pair:
-
-```{python}
-#| eval: false
-("step_name", object)
-```
-
-Pipeline parameters use two underscores.
-
-```{python}
-pipe.get_params()["model__max_iter"]
-```
-
-## Cross-Validation and Grid Search
-
-Cross-validation evaluates a model over several train-validation splits.
-
-```{python}
-from sklearn.model_selection import cross_val_score
-
-scores = cross_val_score(
-    pipe,
-    X,
-    y,
-    cv=5,
-    scoring="accuracy",
-)
-
-scores
-```
-
-The mean score is:
-
-```{python}
-scores.mean()
-```
-
-Grid search tries several hyperparameter values.
-
-```{python}
-from sklearn.model_selection import GridSearchCV
-
-param_grid = {
-    "model__C": [0.1, 1, 10],
-}
-
-grid = GridSearchCV(
-    pipe,
-    param_grid=param_grid,
-    cv=5,
-    scoring="accuracy",
-)
-
-grid.fit(X, y)
-grid.best_params_
-```
-
-The best fitted model is:
-
-```{python}
-grid.best_estimator_
-```
 
 ## `matplotlib` Basics
 
-These notes use only basic `matplotlib`.
-
-The standard import is:
+These notes use only basic `matplotlib`. The standard import is:
 
 ```{python}
 import matplotlib.pyplot as plt
 ```
+We provide some code examples here. Most of the commands are straightforward. Please check the [official document](https://matplotlib.org/) if you need more details.
 
 ### Scatter Plot
 
+<!-- fmt: off -->
 ```{python}
 x = np.array([1, 2, 3, 4])
 y = np.array([1.1, 2.0, 2.8, 4.2])
@@ -705,8 +503,7 @@ y = np.array([1.1, 2.0, 2.8, 4.2])
 plt.scatter(x, y)
 plt.xlabel("x")
 plt.ylabel("y")
-plt.title("Scatter Plot")
-plt.show()
+plt.title("Scatter Plot");
 ```
 
 ### Line Plot
@@ -718,8 +515,7 @@ y_grid = np.sin(x_grid)
 plt.plot(x_grid, y_grid)
 plt.xlabel("x")
 plt.ylabel("sin(x)")
-plt.title("Line Plot")
-plt.show()
+plt.title("Line Plot");
 ```
 
 ### Scatter and Line Together
@@ -735,8 +531,7 @@ plt.scatter(x, y, facecolors="none", edgecolors="black")
 plt.plot(x_grid, np.sin(x_grid), color="C1")
 plt.xlabel("x")
 plt.ylabel("y")
-plt.title("Data and Curve")
-plt.show()
+plt.title("Data and Curve");
 ```
 
 This pattern appears often when we plot data points and a fitted curve.
@@ -752,13 +547,14 @@ axs[0].scatter(x, y)
 axs[0].set_title("scatter")
 
 axs[1].plot(x_grid, np.sin(x_grid))
-axs[1].set_title("line")
-
-plt.show()
+axs[1].set_title("line");
 ```
 
-Notice that when using axes objects, we write `ax.set_title()` instead of `plt.title()`.
+::: {.callout-note}
 
+Notice that when using an axes object, many plotting commands have different names. For example, `plt.title()` becomes `ax.set_title()`. Therefore, you cannot always replace `plt` with `ax` directly. For details, consult the official documentation.
+
+:::
 ### Histograms
 
 ```{python}
@@ -767,9 +563,19 @@ z = rng.normal(size=200)
 plt.hist(z, bins=20, edgecolor="black")
 plt.xlabel("z")
 plt.ylabel("count")
-plt.title("Histogram")
-plt.show()
+plt.title("Histogram");
 ```
+<!-- fmt: on -->
+
+
+
+
+
+
+
+
+
+
 
 ## Common Errors
 
@@ -777,33 +583,11 @@ plt.show()
 
 The most common error is passing a one-dimensional predictor array to `sklearn`.
 
-Bad:
+| Bad | Good |
+|------|------|
+| `x = np.array([1, 2, 3, 4])`<br>`model.fit(x, y)` | `X = x.reshape(-1, 1)`<br>`model.fit(X, y)` |
 
-```{python}
-#| eval: false
-x = np.array([1, 2, 3, 4])
-model.fit(x, y)
-```
 
-Good:
-
-```{python}
-#| eval: false
-X = x.reshape(-1, 1)
-model.fit(X, y)
-```
-
-### Forgetting Parentheses
-
-In Python, methods need parentheses.
-
-```{python}
-#| eval: false
-model.fit(X_train, y_train)
-model.predict(X_test)
-```
-
-Writing `model.predict` without parentheses refers to the method itself, but does not call it.
 
 ### Class Name versus Model Object
 
@@ -811,61 +595,21 @@ Another common mistake is confusing an `sklearn` class with an object created fr
 
 For example, `DecisionTreeClassifier` is the class itself.
 
-```{python}
-#| eval: false
-from sklearn.tree import DecisionTreeClassifier
+| Bad | Good |
+|------|------|
+| `model = DecisionTreeClassifier`<br>`model.fit(X_train, y_train)` | `model = DecisionTreeClassifier()`<br>`model.fit(X_train, y_train)` |
 
-DecisionTreeClassifier
-```
-
-To create a model object, call the class with parentheses.
-
-```{python}
-#| eval: false
-model = DecisionTreeClassifier()
-```
-
-Arguments go inside the parentheses.
-
-```{python}
-#| eval: false
-model = DecisionTreeClassifier(max_depth=3)
-model.fit(X_train, y_train)
-```
-
-Do not write:
-
-```{python}
-#| eval: false
-model = DecisionTreeClassifier
-model.fit(X_train, y_train)
-```
-
-The first version creates an estimator object. The second version only stores the class itself, so `.fit()` will not work as intended.
 
 ### Mixing Lists and Arrays
 
 Use arrays for elementwise numerical operations.
 
 ```{python}
-np.array([1, 2, 3]) * 2
+#| eval: false
+[1, 2, 3] * 2
 ```
 
 Plain lists do not always behave like numerical vectors.
-
-## Summary
-
-For the rest of these notes, the most important Python ideas are:
-
-- indexing starts at 0;
-- lists store ordered objects;
-- dictionaries store key-value pairs;
-- `numpy.array` is the basic numerical vector or matrix object;
-- `X` in `sklearn` should be two-dimensional;
-- `y` is usually one-dimensional;
-- `.reshape(-1, 1)` converts one predictor into a one-column matrix;
-- `sklearn` models use `.fit()`, `.predict()`, and often `.predict_proba()`;
-- `matplotlib.pyplot` is used for basic scatter plots, line plots, histograms, and subplots.
 
 
 
