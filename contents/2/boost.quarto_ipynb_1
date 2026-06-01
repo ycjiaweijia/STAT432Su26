@@ -129,7 +129,7 @@
         "\n",
         "In `sklearn`, a decision stump is created by"
       ],
-      "id": "4f7a4491"
+      "id": "56fb4234"
     },
     {
       "cell_type": "code",
@@ -140,7 +140,7 @@
         "\n",
         "DecisionTreeClassifier(max_depth=1)"
       ],
-      "id": "0b06358f",
+      "id": "439347c9",
       "execution_count": null,
       "outputs": []
     },
@@ -171,7 +171,7 @@
         "::: {#exm-}\n",
         "Consider the following data:"
       ],
-      "id": "96646660"
+      "id": "6f18e487"
     },
     {
       "cell_type": "code",
@@ -189,7 +189,7 @@
         "df = pd.DataFrame(data, columns=name)\n",
         "df.style.hide(axis='index')"
       ],
-      "id": "2fd5b095",
+      "id": "c3526b16",
       "execution_count": null,
       "outputs": []
     },
@@ -394,7 +394,7 @@
         "## AdaBoost in Python\n",
         "The basic APIs are as usual. We use `AdaBoostClassifier` from `sklearn.ensemble` to implement AdaBoost. All the regular APIs are the same to other models."
       ],
-      "id": "806d9f24"
+      "id": "b124fb92"
     },
     {
       "cell_type": "code",
@@ -413,7 +413,7 @@
         "\n",
         "ada.fit(X_train, y_train)"
       ],
-      "id": "7b31bb83",
+      "id": "59433ce2",
       "execution_count": null,
       "outputs": []
     },
@@ -478,7 +478,7 @@
         "\n",
         "The following example uses a manually crafted dataset. We track training error, test error, and margins as the number of boosting rounds increases."
       ],
-      "id": "5c01ba0c"
+      "id": "18b11c59"
     },
     {
       "cell_type": "code",
@@ -511,7 +511,7 @@
         "    X, y, test_size=0.5, stratify=y, random_state=1\n",
         ")"
       ],
-      "id": "7302196d",
+      "id": "f85f2a32",
       "execution_count": null,
       "outputs": []
     },
@@ -521,7 +521,7 @@
       "source": [
         "We first train the model. "
       ],
-      "id": "384bb97d"
+      "id": "86216658"
     },
     {
       "cell_type": "code",
@@ -539,7 +539,7 @@
         "\n",
         "ada.fit(X_train, y_train)"
       ],
-      "id": "4212077c",
+      "id": "40ff23ed",
       "execution_count": null,
       "outputs": []
     },
@@ -554,7 +554,7 @@
         "\n",
         "We would like to record all the training and test scores."
       ],
-      "id": "11c3ea0a"
+      "id": "e3cf2cf3"
     },
     {
       "cell_type": "code",
@@ -571,7 +571,7 @@
         "    train_acc.append(accuracy_score(y_train, pred_train))\n",
         "    test_acc.append(accuracy_score(y_test, pred_test))"
       ],
-      "id": "f759872f",
+      "id": "dc6a34c3",
       "execution_count": null,
       "outputs": []
     },
@@ -581,7 +581,7 @@
       "source": [
         "In addition, the 10th-percentile margin is of our interesting, since we treat margin<10% as no confidence."
       ],
-      "id": "4799bb4f"
+      "id": "8a5580ee"
     },
     {
       "cell_type": "code",
@@ -600,7 +600,7 @@
         "    train_margin_10.append(np.quantile(train_margins, 0.1))\n",
         "    test_margin_10.append(np.quantile(test_margins, 0.1))"
       ],
-      "id": "8e227c0b",
+      "id": "eb0c9b0c",
       "execution_count": null,
       "outputs": []
     },
@@ -610,7 +610,7 @@
       "source": [
         "We also need to test when the training score becomes `1.0`, and when the test score is the highest. Then we have the interesting output. "
       ],
-      "id": "3d0446fa"
+      "id": "1ce0161e"
     },
     {
       "cell_type": "code",
@@ -626,7 +626,7 @@
         "print(\"Final training accuracy:\", train_acc[-1])\n",
         "print(\"Final test accuracy:\", test_acc[-1])"
       ],
-      "id": "0db62401",
+      "id": "8c3b4913",
       "execution_count": null,
       "outputs": []
     },
@@ -638,7 +638,7 @@
         "\n",
         "<!-- fmt: off -->"
       ],
-      "id": "3d6bdd19"
+      "id": "0ff52ba8"
     },
     {
       "cell_type": "code",
@@ -663,7 +663,7 @@
         "plt.title(\"Accuracy Curves\")\n",
         "plt.legend();"
       ],
-      "id": "b83f40a3",
+      "id": "e49cdfca",
       "execution_count": null,
       "outputs": []
     },
@@ -678,7 +678,7 @@
         "- If the lower-percentile margin continues to increase while test performance remains stable or improves, this suggests that the model is still improving its confidence on difficult cases and is not yet clearly overfitting.\n",
         "- If the lower-percentile margin decreases together with decreasing validation or test performance, this suggests that the model may be becoming less reliable on difficult cases and may be starting to overfit.\n"
       ],
-      "id": "b06d861e"
+      "id": "4d83cbd2"
     },
     {
       "cell_type": "code",
@@ -701,7 +701,7 @@
         "plt.title(\"10th Percentile Margin\")\n",
         "plt.legend();"
       ],
-      "id": "807a95ce",
+      "id": "ca482c9b",
       "execution_count": null,
       "outputs": []
     },
@@ -747,7 +747,7 @@
         "\n",
         "The following code tunes AdaBoost by grid search cross-validation."
       ],
-      "id": "adeb01fb"
+      "id": "6986e12f"
     },
     {
       "cell_type": "code",
@@ -775,7 +775,7 @@
         "grid.fit(X_train, y_train)\n",
         "grid.best_params_"
       ],
-      "id": "18370549",
+      "id": "e38ffa88",
       "execution_count": null,
       "outputs": []
     },
@@ -799,7 +799,7 @@
         "\n",
         "We first use a synthetic nonlinear classification problem. This example shows that many weak learners can create a flexible decision boundary."
       ],
-      "id": "ab8fe6a0"
+      "id": "31327f3e"
     },
     {
       "cell_type": "code",
@@ -814,7 +814,7 @@
         "    X, y, test_size=0.3, stratify=y, random_state=1\n",
         ")"
       ],
-      "id": "5ed5d7ac",
+      "id": "287eb923",
       "execution_count": null,
       "outputs": []
     },
@@ -824,7 +824,7 @@
       "source": [
         "Fit a baseline stump and an AdaBoost model."
       ],
-      "id": "3650999d"
+      "id": "fb445ea8"
     },
     {
       "cell_type": "code",
@@ -848,7 +848,7 @@
         "print(\"Stump accuracy:\", stump.score(X_test, y_test))\n",
         "print(\"AdaBoost accuracy:\", ada.score(X_test, y_test))"
       ],
-      "id": "8736d119",
+      "id": "d92b0933",
       "execution_count": null,
       "outputs": []
     },
@@ -858,7 +858,7 @@
       "source": [
         "Now tune the AdaBoost model."
       ],
-      "id": "417d7052"
+      "id": "2b65cb0b"
     },
     {
       "cell_type": "code",
@@ -889,7 +889,7 @@
         "print(\"Best CV accuracy:\", grid.best_score_)\n",
         "print(\"Test accuracy:\", best_ada.score(X_test, y_test))"
       ],
-      "id": "b326823a",
+      "id": "5cfcaf44",
       "execution_count": null,
       "outputs": []
     },
@@ -899,7 +899,7 @@
       "source": [
         "<!-- Plot the decision boundary. -->"
       ],
-      "id": "32e1ba25"
+      "id": "397605ed"
     },
     {
       "cell_type": "code",
@@ -930,7 +930,7 @@
         "\n",
         "plot_decision_boundary(best_ada, X_test, y_test, \"AdaBoost Decision Boundary\")"
       ],
-      "id": "9bd8c9d4",
+      "id": "b4b7a005",
       "execution_count": null,
       "outputs": []
     },
@@ -1587,7 +1587,7 @@
         "\n",
         "A typical XGBoost regression model looks like this."
       ],
-      "id": "bfe8cad8"
+      "id": "472193ba"
     },
     {
       "cell_type": "code",
@@ -1610,7 +1610,7 @@
         "\n",
         "xgb.fit(X_train, y_train)"
       ],
-      "id": "dc43d75b",
+      "id": "5e31ab15",
       "execution_count": null,
       "outputs": []
     },
@@ -1675,7 +1675,7 @@
         "\n",
         "Example grid:\n"
       ],
-      "id": "29958a21"
+      "id": "985ddca5"
     },
     {
       "cell_type": "code",
@@ -1700,7 +1700,7 @@
         "\n",
         "grid.fit(X_train, y_train)"
       ],
-      "id": "725e1654",
+      "id": "a6385b7b",
       "execution_count": null,
       "outputs": []
     },
@@ -1728,7 +1728,7 @@
         "\n",
         "Since now we can search in a very large space, usually we make a really large space, by directly choosing hyperparameters based on distributions. We use distributions from the library `scipy.stats`. Here we give an examples.\n"
       ],
-      "id": "dc17d8e8"
+      "id": "b467fc34"
     },
     {
       "cell_type": "code",
@@ -1750,7 +1750,7 @@
         "    xgb, param_distributions=param_distributions, n_iter=30, cv=5, random_state=0\n",
         ")"
       ],
-      "id": "47bbbb26",
+      "id": "e3d9569a",
       "execution_count": null,
       "outputs": []
     },
@@ -1792,7 +1792,7 @@
         "\n",
         "In XGBoost, this is commonly implemented using an evaluation set together with `early_stopping_rounds`. For example, `early_stopping_rounds=20` means that training stops if the validation score does not improve for 20 consecutive boosting rounds."
       ],
-      "id": "cef2df7c"
+      "id": "e192fc94"
     },
     {
       "cell_type": "code",
@@ -1802,7 +1802,7 @@
         "xgb = XGBRegressor(early_stopping_rounds=20)\n",
         "xgb.fit(X_train, y_train, eval_set=[(X_val, y_val)])"
       ],
-      "id": "a21ab8b5",
+      "id": "e0bd0999",
       "execution_count": null,
       "outputs": []
     },
@@ -1838,7 +1838,7 @@
         "\n",
         "We now use the diabetes regression dataset from `sklearn` introduced earlier. The response is a quantitative measure of disease progression one year after baseline."
       ],
-      "id": "743b031d"
+      "id": "b63c1063"
     },
     {
       "cell_type": "code",
@@ -1851,7 +1851,7 @@
         "\n",
         "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)"
       ],
-      "id": "263f0219",
+      "id": "b9da5473",
       "execution_count": null,
       "outputs": []
     },
@@ -1865,7 +1865,7 @@
         "\n",
         "We first build a baseline model, with all default hyperparameters."
       ],
-      "id": "4e486634"
+      "id": "8b63c9a6"
     },
     {
       "cell_type": "code",
@@ -1877,7 +1877,7 @@
         "xgb_baseline.fit(X_train, y_train)\n",
         "xgb_baseline.score(X_test, y_test)"
       ],
-      "id": "346fb3bc",
+      "id": "fd2ebf94",
       "execution_count": null,
       "outputs": []
     },
@@ -1889,7 +1889,7 @@
         "\n",
         "The first round we use random search to try to find a good enough point. Note that we choose a relatively large `n_estimators` which we will tune in the next early stopping stage."
       ],
-      "id": "e542f1b2"
+      "id": "8202f135"
     },
     {
       "cell_type": "code",
@@ -1918,7 +1918,7 @@
         "random_search.fit(X_train, y_train)\n",
         "random_search.best_params_"
       ],
-      "id": "edb7638b",
+      "id": "07eb2127",
       "execution_count": null,
       "outputs": []
     },
@@ -1928,7 +1928,7 @@
       "source": [
         "The purpose of this random search is to find a rough range of the best combination in order for the refined grid search. According to the result, we may construct a smaller range for refined grid search. "
       ],
-      "id": "5a46ccd2"
+      "id": "304dd8af"
     },
     {
       "cell_type": "code",
@@ -1942,7 +1942,7 @@
         "    \"reg_lambda\": [5.0, 8.5, 12.0],\n",
         "}"
       ],
-      "id": "929fc625",
+      "id": "aee24a33",
       "execution_count": null,
       "outputs": []
     },
@@ -1953,7 +1953,7 @@
         "### Early stopping\n",
         "Before we run the refined grid search, we need to determine the `n_estimators` using early stopping."
       ],
-      "id": "3511080b"
+      "id": "8816bb99"
     },
     {
       "cell_type": "code",
@@ -1976,7 +1976,7 @@
         "best_round = xgb_es.best_iteration + 1\n",
         "best_round "
       ],
-      "id": "c71e164a",
+      "id": "d8a4f361",
       "execution_count": null,
       "outputs": []
     },
@@ -1987,7 +1987,7 @@
         "### Refined grid search\n",
         "Now we can run refined grid search using `n_estimators=best_round` (which is `{python} best_round` in this example). "
       ],
-      "id": "4eb99935"
+      "id": "d335424a"
     },
     {
       "cell_type": "code",
@@ -2013,7 +2013,7 @@
         "grid_search = GridSearchCV(xgb_base, param_grid=param_grid_refined, cv=5, n_jobs=-1)\n",
         "grid_search.fit(X_train, y_train)"
       ],
-      "id": "916bafc6",
+      "id": "e1348d64",
       "execution_count": null,
       "outputs": []
     },
@@ -2026,7 +2026,7 @@
         "::: {.callout-note collapse=\"true\"}\n",
         "## Stage 1: tune tree complexity\n"
       ],
-      "id": "192efc09"
+      "id": "d9044d9c"
     },
     {
       "cell_type": "code",
@@ -2052,7 +2052,7 @@
         "grid_1.fit(X_train, y_train)\n",
         "grid_1.best_params_"
       ],
-      "id": "b3082605",
+      "id": "299a2769",
       "execution_count": null,
       "outputs": []
     },
@@ -2066,7 +2066,7 @@
         "::: {.callout-note collapse=\"true\"}\n",
         "## Stage 2: tune learning rate around the selected number of trees"
       ],
-      "id": "8f9bc822"
+      "id": "6798d2de"
     },
     {
       "cell_type": "code",
@@ -2090,7 +2090,7 @@
         "grid_2.fit(X_train, y_train)\n",
         "grid_2.best_params_"
       ],
-      "id": "171e0e07",
+      "id": "889fe23d",
       "execution_count": null,
       "outputs": []
     },
@@ -2104,7 +2104,7 @@
         "::: {.callout-note collapse=\"true\"}\n",
         "## Stage 3: tune sampling parameters"
       ],
-      "id": "d1679f7a"
+      "id": "5c9c5467"
     },
     {
       "cell_type": "code",
@@ -2133,7 +2133,7 @@
         "grid_3.fit(X_train, y_train)\n",
         "grid_3.best_params_"
       ],
-      "id": "b0a6f95e",
+      "id": "54a219e1",
       "execution_count": null,
       "outputs": []
     },
@@ -2148,7 +2148,7 @@
         "::: {.callout-note collapse=\"true\"}\n",
         "## Stage 4: tune regularization"
       ],
-      "id": "65018cf6"
+      "id": "5b301614"
     },
     {
       "cell_type": "code",
@@ -2177,7 +2177,7 @@
         "grid_4.fit(X_train, y_train)\n",
         "grid_4.best_params_"
       ],
-      "id": "3cb9f8bb",
+      "id": "ec759e5b",
       "execution_count": null,
       "outputs": []
     },
@@ -2190,7 +2190,7 @@
         "\n",
         "Finally we put all hyperparameters together for a final training."
       ],
-      "id": "392b317c"
+      "id": "a0d64d45"
     },
     {
       "cell_type": "code",
@@ -2213,7 +2213,7 @@
         "final_model.fit(X_train, y_train)\n",
         "final_model.score(X_test, y_test)"
       ],
-      "id": "7e0b3306",
+      "id": "4fdfbfc2",
       "execution_count": null,
       "outputs": []
     },
@@ -2231,7 +2231,7 @@
         "\n",
         "However, they are not exactly the same. In Random Forests, MDI is based on reductions in RSS or Gini impurity, while in XGBoost the gain is computed from reductions in the regularized boosting objective."
       ],
-      "id": "3d2c169b"
+      "id": "48f45ce7"
     },
     {
       "cell_type": "code",
@@ -2245,7 +2245,7 @@
         "plt.xlabel(\"feature importance\")\n",
         "plt.title(\"XGBoost Feature Importance\")"
       ],
-      "id": "0fb43a55",
+      "id": "a1494521",
       "execution_count": null,
       "outputs": []
     },
@@ -2255,7 +2255,7 @@
       "source": [
         "Feature importance describes how much the fitted model uses each predictor for prediction. It should not be interpreted as a causal effect."
       ],
-      "id": "bec88082"
+      "id": "7acaffb6"
     }
   ],
   "metadata": {

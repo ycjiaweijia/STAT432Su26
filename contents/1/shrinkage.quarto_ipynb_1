@@ -721,7 +721,7 @@
         "\n",
         "The covariance matrix has a very high correlation, so the two predictors $x_1$ and $x_2$ are highly correlated."
       ],
-      "id": "032f2dc1"
+      "id": "c9a9994c"
     },
     {
       "cell_type": "code",
@@ -738,7 +738,7 @@
         "X = rng.multivariate_normal(mean, Sigma, size=n)\n",
         "y = rng.normal(loc=X[:, 0] + X[:, 1], scale=1)"
       ],
-      "id": "b19862d6",
+      "id": "29366edf",
       "execution_count": null,
       "outputs": []
     },
@@ -755,7 +755,7 @@
         "\n",
         "For simplicity, we use a no-intercept model, so we set `fit_intercept=False`."
       ],
-      "id": "c266fc09"
+      "id": "d7f495b4"
     },
     {
       "cell_type": "code",
@@ -766,7 +766,7 @@
         "ridge = Ridge(alpha=5, fit_intercept=False).fit(X, y)\n",
         "print(f\"Ridge beta = {ridge.coef_}\")"
       ],
-      "id": "40b5934c",
+      "id": "366a9dca",
       "execution_count": null,
       "outputs": []
     },
@@ -776,7 +776,7 @@
       "source": [
         "For comparison, we also fit the OLS estimator."
       ],
-      "id": "013da82a"
+      "id": "1c3754f4"
     },
     {
       "cell_type": "code",
@@ -787,7 +787,7 @@
         "ols = LinearRegression(fit_intercept=False).fit(X, y)\n",
         "print(f\"OLS beta = {ols.coef_}\")"
       ],
-      "id": "d34f4378",
+      "id": "a21d6bbf",
       "execution_count": null,
       "outputs": []
     },
@@ -802,7 +802,7 @@
         "\n",
         "The second point is due to randomness in the simulated data. To see the general pattern, we repeat the simulation many times.\n"
       ],
-      "id": "d891358b"
+      "id": "30fa6188"
     },
     {
       "cell_type": "code",
@@ -826,7 +826,7 @@
         "    )\n",
         "res = pd.DataFrame(res)"
       ],
-      "id": "19f891a5",
+      "id": "320a4c9c",
       "execution_count": null,
       "outputs": []
     },
@@ -836,7 +836,7 @@
       "source": [
         "The first five results are shown below. We can see that the OLS estimates vary substantially from sample to sample."
       ],
-      "id": "d5c6b232"
+      "id": "8fa41645"
     },
     {
       "cell_type": "code",
@@ -844,7 +844,7 @@
       "source": [
         "res.head(5)"
       ],
-      "id": "16cd6b94",
+      "id": "dc75ca9b",
       "execution_count": null,
       "outputs": []
     },
@@ -854,7 +854,7 @@
       "source": [
         "This becomes even clearer in the boxplot below, which shows that the ridge estimator has much smaller variance than the OLS estimator.\n"
       ],
-      "id": "d9051af6"
+      "id": "8a1af1f9"
     },
     {
       "cell_type": "code",
@@ -863,7 +863,7 @@
         "import seaborn as sns\n",
         "sns.boxplot(res)"
       ],
-      "id": "570f0b6a",
+      "id": "7f04be17",
       "execution_count": null,
       "outputs": []
     },
@@ -880,7 +880,7 @@
         "\n",
         "To see things in more details, we first build the RSS function. For each $\\beta_1$ and $\\beta_2$ in the range, we form a model $\\hat y_{\\beta}=\\beta_1x_1+\\beta_2x_2$ and use it to compute $\\rss = \\sum (y-\\hat y)^2$. "
       ],
-      "id": "14d93473"
+      "id": "159e0b01"
     },
     {
       "cell_type": "code",
@@ -895,7 +895,7 @@
         "rss_term = np.sum((y[:, None] - preds) ** 2, axis=0)\n",
         "rss_value0 = rss_term.reshape(B1.shape)"
       ],
-      "id": "530b9325",
+      "id": "b9b41a36",
       "execution_count": null,
       "outputs": []
     },
@@ -905,7 +905,7 @@
       "source": [
         "We then construct the contour map for the $\\rss$ surface, plotting the isolines that correspond to the 1%, 2.5%, 5%, 20%, 50%, and 75% quantiles of the distribution. The ture coefficient $(\\beta_1=1,\\beta_2=1)$ is displayed as the red dot, as well as the estimated $\\beta$ as a blue square in the countour map.\n"
       ],
-      "id": "b2f490f7"
+      "id": "456cfb5e"
     },
     {
       "cell_type": "code",
@@ -929,7 +929,7 @@
         "ax.legend()\n",
         "plt.tight_layout()"
       ],
-      "id": "939f45c6",
+      "id": "e3e594d4",
       "execution_count": null,
       "outputs": []
     },
@@ -944,7 +944,7 @@
         "\n",
         "Here we show the $\\rss$ objective function contours for $\\lambda=0.1$, $1$, $10$ and $100$."
       ],
-      "id": "f94b62ec"
+      "id": "fcd16c5b"
     },
     {
       "cell_type": "code",
@@ -988,7 +988,7 @@
         "fig.legend(handles, labels, loc=\"right\")\n",
         "plt.tight_layout()"
       ],
-      "id": "3d40de94",
+      "id": "b646f984",
       "execution_count": null,
       "outputs": []
     },
@@ -1017,7 +1017,7 @@
         "\n",
         "Mathematically, these two directions (the longitudinal axis and the perpendicular axis) correspond to the eigenvectors of the $\\mathbf{X}^T\\mathbf{X}$ matrix (or, equivalently, the principal components of the predictor space). The flatness or steepness in those directions is governed by their corresponding eigenvalues."
       ],
-      "id": "28a6a8a1"
+      "id": "69dd6cff"
     },
     {
       "cell_type": "code",
@@ -1028,7 +1028,7 @@
         "for i in range(len(eigenvalues)):\n",
         "    print(f'eigenvalue: {eigenvalues[i]: .2f}, eigenbasis: {eigenvectors[i]}')"
       ],
-      "id": "507a6fde",
+      "id": "9ffb1ed2",
       "execution_count": null,
       "outputs": []
     },
@@ -1038,7 +1038,7 @@
       "source": [
         "Then mark the eigenvectors in the contour map."
       ],
-      "id": "06bc2ef0"
+      "id": "7ea551fa"
     },
     {
       "cell_type": "code",
@@ -1080,7 +1080,7 @@
         "ax.legend()\n",
         "plt.tight_layout()"
       ],
-      "id": "b2296074",
+      "id": "2a9e5359",
       "execution_count": null,
       "outputs": []
     },
@@ -1127,7 +1127,7 @@
         "- `alphas` should be a list of candidate values for $\\alpha$. In the example below, $\\alpha$ is selected from values ranging from `1e-4` to `1e4`.\n",
         "- `cv` works in the same way as in ordinary cross-validation and specifies the number of folds used in the cross-validation procedure. If it is not set, LOOCV will be used.\n"
       ],
-      "id": "d2eda8e7"
+      "id": "ac719861"
     },
     {
       "cell_type": "code",
@@ -1151,7 +1151,7 @@
         "best_alpha_ridge = ridge_cv_pipe.named_steps[\"model\"].alpha_\n",
         "best_alpha_ridge"
       ],
-      "id": "68e134d5",
+      "id": "ab1bd2b6",
       "execution_count": null,
       "outputs": []
     },
@@ -1165,7 +1165,7 @@
         "\n",
         "`sklearn` provides `validation_curve()` to streamline the process.\n"
       ],
-      "id": "a5c724bb"
+      "id": "f499dfab"
     },
     {
       "cell_type": "code",
@@ -1202,7 +1202,7 @@
         "plt.title(\"Validation curve for ridge regression\")\n",
         "plt.legend()"
       ],
-      "id": "84d6551d",
+      "id": "02296ff9",
       "execution_count": null,
       "outputs": []
     },
@@ -1216,7 +1216,7 @@
         "\n",
         "Similarly, if we want to examine how the coefficients change with `alpha`, we fit ordinary `Ridge` repeatedly over a grid of `alpha` values and record the fitted coefficients. In this case, cross-validation is not needed, since the goal is only to visualize the coefficient path rather than to compare models.\n"
       ],
-      "id": "633934a4"
+      "id": "1ab9415a"
     },
     {
       "cell_type": "code",
@@ -1250,7 +1250,7 @@
         "plt.axis(\"tight\")\n",
         "plt.legend()"
       ],
-      "id": "fd8c785a",
+      "id": "901ca89d",
       "execution_count": null,
       "outputs": []
     },
@@ -1540,7 +1540,7 @@
         "\n",
         "Therefore, ridge is mainly a shrinkage method, whereas lasso is both a shrinkage method and a variable-selection method.\n"
       ],
-      "id": "1e400461"
+      "id": "0196d281"
     },
     {
       "cell_type": "code",
@@ -1603,7 +1603,7 @@
         "\n",
         "plt.tight_layout()"
       ],
-      "id": "f288cbea",
+      "id": "b1aa3f77",
       "execution_count": null,
       "outputs": []
     },
@@ -1816,7 +1816,7 @@
         "- many predictors are almost collinear (that they are obtained from a rank 12 latent structure),\n",
         "- but only 10 predictors truly contribute to the response.\n"
       ],
-      "id": "e47bb3fd"
+      "id": "81e11db0"
     },
     {
       "cell_type": "code",
@@ -1839,7 +1839,7 @@
         "\n",
         "y = X @ beta + 12 * rng.normal(size=n)"
       ],
-      "id": "3e302d8f",
+      "id": "f5bd2e23",
       "execution_count": null,
       "outputs": []
     },
@@ -1849,7 +1849,7 @@
       "source": [
         "We split the data into training and test sets."
       ],
-      "id": "5c28183e"
+      "id": "48b87a4d"
     },
     {
       "cell_type": "code",
@@ -1861,7 +1861,7 @@
         "    X, y, test_size=0.3, random_state=0\n",
         ")"
       ],
-      "id": "2994df3d",
+      "id": "8a4280d0",
       "execution_count": null,
       "outputs": []
     },
@@ -1873,7 +1873,7 @@
         "\n",
         "Before tuning the regularization parameter, we first fit OLS, ridge, and lasso with simple default or manually chosen settings. This gives a first look at how the methods behave on the same dataset."
       ],
-      "id": "6d4e859c"
+      "id": "2f5cea58"
     },
     {
       "cell_type": "code",
@@ -1899,7 +1899,7 @@
         "print(f\"Test RMSE: {mean_squared_error(y_test, y_pred_ols)}\")\n",
         "print(f\"Test R^2 : {r2_score(y_test, y_pred_ols)}\")"
       ],
-      "id": "660982eb",
+      "id": "f5877031",
       "execution_count": null,
       "outputs": []
     },
@@ -1923,7 +1923,7 @@
         "print(f\"Test RMSE: {mean_squared_error(y_test, y_pred_ridge)}\")\n",
         "print(f\"Test R^2 : {r2_score(y_test, y_pred_ridge)}\")"
       ],
-      "id": "68d44e15",
+      "id": "258eaba2",
       "execution_count": null,
       "outputs": []
     },
@@ -1946,7 +1946,7 @@
         "print(f\"Test RMSE: {mean_squared_error(y_test, y_pred_lasso)}\")\n",
         "print(f\"Test R^2 : {r2_score(y_test, y_pred_lasso)}\")"
       ],
-      "id": "4f1d2fce",
+      "id": "e62ee94a",
       "execution_count": null,
       "outputs": []
     },
@@ -1956,7 +1956,7 @@
       "source": [
         "One important difference between ridge and lasso is that lasso can set some coefficients exactly to zero, while ridge typically only shrinks coefficients toward zero without eliminating them."
       ],
-      "id": "9fdba992"
+      "id": "df33a551"
     },
     {
       "cell_type": "code",
@@ -1969,7 +1969,7 @@
         "print(\"Number of nonzero ridge coefficients:\", np.sum(ridge_coef != 0))\n",
         "print(\"Number of nonzero lasso coefficients:\", np.sum(lasso_coef != 0))"
       ],
-      "id": "a94f590b",
+      "id": "161833cd",
       "execution_count": null,
       "outputs": []
     },
@@ -1986,7 +1986,7 @@
         "- In the lasso plot, some coefficient curves hit exactly $0$ as `alpha` increases.\n",
         "- In the ridge plot, all coefficients are shrunk continuously toward $0$, but usually remain nonzero.\n"
       ],
-      "id": "ad3be973"
+      "id": "90cee805"
     },
     {
       "cell_type": "code",
@@ -2030,7 +2030,7 @@
         "\n",
         "plt.tight_layout()"
       ],
-      "id": "6c9407b1",
+      "id": "11db00b6",
       "execution_count": null,
       "outputs": []
     },
@@ -2044,7 +2044,7 @@
         "\n",
         "We first use `LassoCV` to select the best value of alpha."
       ],
-      "id": "708048b4"
+      "id": "db8851ac"
     },
     {
       "cell_type": "code",
@@ -2068,7 +2068,7 @@
         "print(\"LassoCV Test RMSE:\", mean_squared_error(y_test, y_pred_lasso_cv))\n",
         "print(\"LassoCV Test R^2 :\", r2_score(y_test, y_pred_lasso_cv))"
       ],
-      "id": "62b8f89e",
+      "id": "34880c7d",
       "execution_count": null,
       "outputs": []
     },
@@ -2078,7 +2078,7 @@
       "source": [
         "For comparison, we also fit ridge regression with `RidgeCV`."
       ],
-      "id": "427d599c"
+      "id": "166933e0"
     },
     {
       "cell_type": "code",
@@ -2103,7 +2103,7 @@
         "print(\"LassoCV Test RMSE:\", mean_squared_error(y_test, y_pred_ridge_cv))\n",
         "print(\"LassoCV Test R^2 :\", r2_score(y_test, y_pred_ridge_cv))"
       ],
-      "id": "b63fa6db",
+      "id": "0b619aa7",
       "execution_count": null,
       "outputs": []
     },
@@ -2113,7 +2113,7 @@
       "source": [
         "After obtaining the best regularization parameters, we mark them on the coefficient path plots. This helps connect the selected model to the whole regularization path."
       ],
-      "id": "9200a0bc"
+      "id": "c3afbe2a"
     },
     {
       "cell_type": "code",
@@ -2165,7 +2165,7 @@
         "\n",
         "plt.tight_layout()"
       ],
-      "id": "d3c82bfe",
+      "id": "0ac85308",
       "execution_count": null,
       "outputs": []
     },
@@ -2181,7 +2181,7 @@
         "- When `alpha` is too large, the model may underfit.\n",
         "- A good value of `alpha` balances these two effects."
       ],
-      "id": "e87a8ca0"
+      "id": "6f651e0a"
     },
     {
       "cell_type": "code",
@@ -2258,7 +2258,7 @@
         "\n",
         "plt.tight_layout()"
       ],
-      "id": "64561128",
+      "id": "e9558b48",
       "execution_count": null,
       "outputs": []
     },
@@ -2270,7 +2270,7 @@
         "\n",
         "Finally, we summarize the test performance and the number of nonzero coefficients for each model."
       ],
-      "id": "97f63735"
+      "id": "4453a296"
     },
     {
       "cell_type": "code",
@@ -2305,7 +2305,7 @@
         "\n",
         "pd.DataFrame(results)"
       ],
-      "id": "52ac8ee9",
+      "id": "6c4d6029",
       "execution_count": null,
       "outputs": []
     },
@@ -2320,7 +2320,7 @@
         "\n",
         "In high-dimensional settings with collinearity and only a subset of truly relevant predictors, lasso often provides a more interpretable model, while ridge often gives more stable coefficient estimates.\n"
       ],
-      "id": "f822a586"
+      "id": "d9d230ba"
     },
     {
       "cell_type": "code",
@@ -2507,7 +2507,7 @@
         "plt.tight_layout()\n",
         "plt.show()"
       ],
-      "id": "6e374ca1",
+      "id": "bc942b49",
       "execution_count": null,
       "outputs": []
     }
