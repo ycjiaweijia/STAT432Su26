@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Appendix C — Some Hard Python concepts – Statistical Learning</title>
+<title>Appendix C — Some Python concepts – Statistical Learning</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -306,7 +306,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-          <h1 class="quarto-secondary-nav-title">Appendix C — Some Hard Python concepts</h1>
+          <h1 class="quarto-secondary-nav-title">Appendix C — Some Python concepts</h1>
         </a>     
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
@@ -455,7 +455,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/app/concept.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Some Hard Python concepts</span></span></a>
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Some Python concepts</span></span></a>
   </div>
 </li>
       </ul>
@@ -474,8 +474,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#interpreters" id="toc-interpreters" class="nav-link" data-scroll-target="#interpreters"><span class="header-section-number">C.2</span> Interpreters</a></li>
   <li><a href="#repl" id="toc-repl" class="nav-link" data-scroll-target="#repl"><span class="header-section-number">C.3</span> REPL</a></li>
   <li><a href="#ipython" id="toc-ipython" class="nav-link" data-scroll-target="#ipython"><span class="header-section-number">C.4</span> <code>IPython</code></a></li>
-  <li><a href="#jupyter" id="toc-jupyter" class="nav-link" data-scroll-target="#jupyter"><span class="header-section-number">C.5</span> <code>Jupyter</code></a></li>
-  <li><a href="#multi-kernels-setup" id="toc-multi-kernels-setup" class="nav-link" data-scroll-target="#multi-kernels-setup"><span class="header-section-number">C.6</span> Multi-kernels setup</a></li>
+  <li><a href="#jupyter" id="toc-jupyter" class="nav-link" data-scroll-target="#jupyter"><span class="header-section-number">C.5</span> <code>Jupyter</code></a>
+  <ul class="collapse">
+  <li><a href="#multi-kernels-setup" id="toc-multi-kernels-setup" class="nav-link" data-scroll-target="#multi-kernels-setup"><span class="header-section-number">C.5.1</span> Multi-kernels setup</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -485,7 +487,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block">Appendix C — Some Hard Python concepts</h1>
+<h1 class="title d-none d-lg-block">Appendix C — Some Python concepts</h1>
 </div>
 
 
@@ -509,9 +511,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="interpreters" class="level2" data-number="C.2">
 <h2 data-number="C.2" class="anchored" data-anchor-id="interpreters"><span class="header-section-number">C.2</span> Interpreters</h2>
 <p>Python needs to be interpreted into codes that computers can understand. Therefore there should be some programs that translate Python scripts. These programs are called <em>interpreters</em>.</p>
-<p><code>CPython</code> is the refernce interpreter of Python programming language, and it is the most widely used ones for Python. It is written in C and Python. When Python programming language introduces new features, they are developed based on <code>CPython</code>, and are first implemented in <code>CPython</code>. Sometimes an interpreter is also called an <em>implementation</em>.</p>
-<p>There are alternatives to <code>CPython</code>, like <a href="https://www.pypy.org/"><code>PyPy</code></a>, <a href="https://www.jython.org/"><code>Jython</code></a>, <a href="https://ironpython.net/"><code>IronPython</code></a>, etc.. In theory, any Python scripts should be able to run on any of these implementations, and the result should be the same. The differences mainly come from perfamance and compatiblity with non-Python packages. For example, <code>CPython</code> is executed by a C interpreter. Therefore it is very easy to write C-extensions for your Python code. <code>Jython</code>, since it is implemented in Java, makes it very easy to work with other Java programs that you can import any Java classes with no additional effort.</p>
-<p>Since <code>CPython</code> is most-widely used and tested, it is the best choice, at least for beginners. And actually, if you have no idea about this topic, but you use Python, it is highly possible that you are using <code>CPython</code>.</p>
+<p><code>CPython</code> is the reference implementation of Python and the implementation most people use. It is written mainly in C and Python. New Python language features are normally developed and tested first in CPython.</p>
+<p>Other implementations include <a href="https://www.pypy.org/"><code>PyPy</code></a>, <a href="https://www.jython.org/"><code>Jython</code></a> and <a href="https://ironpython.net/"><code>IronPython</code></a>. They are useful in specific contexts, but they do not always support the same Python versions or the same package ecosystem as CPython. For example, PyPy focuses on speed through a JIT compiler, Jython integrates with the JVM but its current stable release is Python 2.7-based, and IronPython integrates with .NET but lags behind modern CPython versions.</p>
+<p>Since <code>CPython</code> is the most widely used and best-supported implementation, it is the best choice, at least for beginners. And actually, if you have no idea about this topic, but you use Python, it is highly possible that you are using <code>CPython</code>.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -525,16 +527,16 @@ Note
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>We mentioned “interpreter” here. There are mainly two types of implimentations of programming langauges: interpreters and compilers. There are also some additional types like just-in-time compilers which can be treated as combinations of the two.</p>
-<p>Python is usually treated as an <em>interpreted</em> language since <code>CPython</code> is an interpreter. One of Python’s most useful features is its interactive interpreter, which allows for very fast testing of ideas without the overhead of creating test files as is typical in most programming languages.</p>
+<p>Python is often described as an <em>interpreted</em> language, but <code>CPython</code> first compiles source code to bytecode and then executes that bytecode in the Python virtual machine. For beginners, the practical point is that Python supports an interactive workflow and does not require a separate manual compile step.</p>
 </div>
 </div>
 </div>
 </section>
 <section id="repl" class="level2" data-number="C.3">
 <h2 data-number="C.3" class="anchored" data-anchor-id="repl"><span class="header-section-number">C.3</span> REPL</h2>
-<p>There are two ways to use Python interpreter. The default way is that Python interpreter reads a file and execute a script from there. The second way is called <em>the intereactive shell</em>, that Python interpreter read the input from user directly, and print the result immediately. The model is like code example: prompt the user for some code, and when they’ve entered it, execute it in the same process. This model is often called a <a href="https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop">REPL</a>, or <em>Read-Eval-Print-Loop</em>.</p>
+<p>There are two ways to use Python interpreter. One way is to execute a Python script stored in a file. The second way is called <em>the intereactive shell</em>, that Python interpreter read the input from user directly, and print the result immediately. The model is like code example: prompt the user for some code, and when they’ve entered it, execute it in the same process. This model is often called a <a href="https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop">REPL</a>, or <em>Read-Eval-Print-Loop</em>.</p>
 <p><em>Shell</em>, <em>terminal</em>, <em>console</em> have different meanings in their original contexts. However, nowadays, especially when talking about Python intereactive shell, these terminologies are used interchangeably. They are referred to the frontend of the system. In other words, the main task for the Python intereactive shell is to handle the user inputs and communicate with the backend, which is also called a <em>kernel</em>. We won’t distinguish the real differences between these terminologies. The kernel will be discussed in the next section.</p>
-<p>The standard interactive Python interpreter can be invoked on the command line with the <code>python</code> command. Note that you should make sure that the <code>PATH</code> system enviroment variable is configured, otherwise you have to specifiy the path to the Python execuatable file. To quit the intereactive shell you can type the commands <code>quit()</code>/<code>exit()</code>/<code>Ctrl+Z</code> then <code>Enter</code>.</p>
+<p>The standard Python REPL can usually be started with <code>python</code> or <code>python3</code>. On Windows, <code>py</code> may also be available. To quit, use <code>quit()</code>, <code>exit()</code>, <code>Ctrl+D</code> on macOS/Linux, or <code>Ctrl+Z</code> then <code>Enter</code> on Windows.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -564,54 +566,77 @@ Note
 </section>
 <section id="jupyter" class="level2" data-number="C.5">
 <h2 data-number="C.5" class="anchored" data-anchor-id="jupyter"><span class="header-section-number">C.5</span> <code>Jupyter</code></h2>
-<p><a href="https://docs.jupyter.org/en/latest/projects/architecture/content-architecture.html"><code>Jupyter</code></a> projects contain many subprojects, which includes <code>Jupyter</code> User Interfaces. The <code>Jupyter</code> user interfaces offer a foundation of interactive computing environments where scientific computing, data science, and analytics can be performed using a wide range of programming languages. This includes <code>Jupyter console</code>, <code>Jupyter qtconsole</code>, and <code>Jupyter notebook</code>. Here we mainly focus on <code>Jupyter notebook</code>.</p>
-<p><code>Jupyter notebooks</code> are structured data that represent your code, metadata, content, and outputs. When saved to disk, the notebook uses the extension <code>.ipynb</code>, and uses a <code>JSON</code> structure. After receiving the user input, the notebook communicates with the kernel using <code>JSON</code> messages sent over <code>ZeroMQ</code> sockets. The protocol used between the frontends and the kernel is described in <a href="https://jupyter-client.readthedocs.io/en/latest/messaging.html#messaging">Messaging in Jupyter</a>.</p>
-<p>A kernel process can be connected to more than one frontend simultaneously. In this case, the different frontends will have access to the same variables.</p>
-<p>This design was intended to allow easy development of different frontends based on the same kernel, but it also made it possible to support new languages in the same frontends, by developing kernels in those languages. The <code>Jupyter</code> Notebook Application has three main kernels: the <code>ipykernel</code>, <code>irkernel</code> and <code>ijulia</code> kernels. Actually the name of <code>Jupyter</code> comes from these three programming languages for data science: <a href="https://julialang.org/">Julia</a>, Python and R.</p>
-</section>
-<section id="multi-kernels-setup" class="level2" data-number="C.6">
-<h2 data-number="C.6" class="anchored" data-anchor-id="multi-kernels-setup"><span class="header-section-number">C.6</span> Multi-kernels setup</h2>
+<p><a href="https://docs.jupyter.org/en/latest/projects/architecture/content-architecture.html"><code>Jupyter</code></a> is an ecosystem for interactive computing. It originated from the IPython Notebook project and later evolved into a language-independent platform supporting many programming languages. The name <strong>Jupyter</strong> is inspired by <strong>Julia</strong>, <strong>Python</strong>, and <strong>R</strong>, the three languages that were central to many early data science workflows.</p>
+<p>Today, Jupyter includes several user interfaces, such as JupyterLab, Jupyter Notebook, Jupyter Console, and QtConsole. In this course, however, the important idea is not a particular interface, but the relationship among a notebook frontend, a kernel, and the notebook file stored on disk.</p>
+<p>A Jupyter notebook is saved as a file with extension <code>.ipynb</code>. Internally, the file uses a structured <code>JSON</code> format that stores:</p>
+<ul>
+<li>code cells;</li>
+<li>Markdown cells;</li>
+<li>outputs;</li>
+<li>notebook metadata.</li>
+</ul>
+<p>When you run code in a notebook, the frontend sends the code to a kernel, which executes the code and returns the results. In a Python notebook, a kernel can be viewed as a Python process running in the background. It executes code, stores variables, and communicates with the notebook interface.</p>
+<p>Different programming languages can be supported by different kernels. For example:</p>
+<ul>
+<li><code>ipykernel</code> for Python;</li>
+<li><code>IRkernel</code> for R;</li>
+<li><code>IJulia</code> for Julia.</li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Kernel
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A kernel is associated with a particular Python environment, but it is not the environment itself. For example, multiple kernels may use the same Python environment while maintaining completely separate variables and memory. Conversely, multiple notebook windows may connect to the same kernel and therefore share the same variables and computational state.</p>
+<p>For this course, you can think of the notebook as the user interface, the kernel as the Python process that runs your code, and the <code>.ipynb</code> file as the notebook document saved on disk.</p>
+</div>
+</div>
+<section id="multi-kernels-setup" class="level3" data-number="C.5.1">
+<h3 data-number="C.5.1" class="anchored" data-anchor-id="multi-kernels-setup"><span class="header-section-number">C.5.1</span> Multi-kernels setup</h3>
 <p>This section is mainly following the <a href="https://ipython.readthedocs.io/en/stable/install/kernel_install.html">official document</a>.</p>
-<p>To install one <code>IPython</code> kernel, you may use <code>conda</code> or <code>pip</code> to install <code>ipykernel</code> in the environment. If you want to have multiple <code>IPython</code> kernels for different virtualenvs or <code>conda</code> environments, you will need to specify unique names for the kernelspecs.</p>
+<p>To install one <code>IPython</code> kernel, you may install <code>ipykernel</code> in the environment. If you want to have multiple <code>IPython</code> kernels for different venvs, you will need to specify unique names for the kernelspecs.</p>
 <ol type="1">
 <li>Activate the environment you want.</li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> activate myenv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<ol start="2" type="1">
 <li>Install the kernel in the environment.</li>
 </ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> install jupyter</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> ipykernel install <span class="at">--user</span> <span class="at">--name</span> myenv <span class="at">--display-name</span> <span class="st">"Python (myenv)"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> add ipykernel</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python <span class="at">-m</span> ipykernel install <span class="at">--user</span> <span class="at">--name</span> myenv <span class="at">--display-name</span> <span class="st">"Python (myenv)"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>--user</code> means that the kernel is installed in the user’s folder instead of a system folder, and it can be removed. The <code>--name</code> value (in this case it is <code>myenv</code>) is used by Jupyter internally. These commands will overwrite any existing kernel with the same name. <code>--display-name</code> is what you see in the notebook menus.</p>
 <ol start="3" type="1">
 <li>You could use the command to find all kernels installed in your system.</li>
 </ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">jupyter</span> kernelspec list</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run jupyter kernelspec list</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Available kernels are shown, as well as the path to the kernel configuration file <code>kernel.json</code>. The most important configuration is the path to the Python interpreter executatable file.</p>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
 <pre><strong>kernel.json</strong></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-filename="kernel.json"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a> <span class="dt">"argv"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"C:</span><span class="ch">\\</span><span class="st">Users</span><span class="ch">\\</span><span class="st">Xinli</span><span class="ch">\\</span><span class="st">anaconda3</span><span class="ch">\\</span><span class="st">envs</span><span class="ch">\\</span><span class="st">myenv</span><span class="ch">\\</span><span class="st">python.exe"</span><span class="ot">,</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"-m"</span><span class="ot">,</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ipykernel_launcher"</span><span class="ot">,</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"-f"</span><span class="ot">,</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"{connection_file}"</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a> <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a> <span class="dt">"display_name"</span><span class="fu">:</span> <span class="st">"Python (3.10)"</span><span class="fu">,</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a> <span class="dt">"language"</span><span class="fu">:</span> <span class="st">"python"</span><span class="fu">,</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a> <span class="dt">"metadata"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"debugger"</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a> <span class="fu">}</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-filename="kernel.json"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a> <span class="dt">"argv"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"C:</span><span class="ch">\\</span><span class="st">Users</span><span class="ch">\\</span><span class="st">WDAGUtilityAccount</span><span class="ch">\\</span><span class="st">Project</span><span class="ch">\\</span><span class="st">.venv</span><span class="ch">\\</span><span class="st">Scripts</span><span class="ch">\\</span><span class="st">python.exe"</span><span class="ot">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"-Xfrozen_modules=off"</span><span class="ot">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"-m"</span><span class="ot">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ipykernel_launcher"</span><span class="ot">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"-f"</span><span class="ot">,</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"{connection_file}"</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a> <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a> <span class="dt">"display_name"</span><span class="fu">:</span> <span class="st">"(myenv)"</span><span class="fu">,</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a> <span class="dt">"language"</span><span class="fu">:</span> <span class="st">"python"</span><span class="fu">,</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a> <span class="dt">"metadata"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"debugger"</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a> <span class="fu">},</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a> <span class="dt">"kernel_protocol_version"</span><span class="fu">:</span> <span class="st">"5.5"</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<ol start="4" type="1">
-<li>There is a possibility that <code>Jupyter</code> cannot find the kernel you create in a <code>conda</code> environment. In this case you may want to try <a href="https://github.com/Anaconda-Platform/nb_conda_kernels/"><code>nb_conda_kernels</code></a>. This is a tool to enable a Jupyter notebook in one <code>conda</code> environment to access kernels found in other environments. It should be installed in the environment from which you run <code>Jupyter</code> Notebook or <code>JupyterLab</code>. This might be your base <code>conda</code> environment, but it need not be. After you finish installation, you may use <code>jupyter kernelspec list</code> to check whether it works.</li>
-</ol>
+<p>Notice that the path in <code>argv</code> points to the Python interpreter used by this kernel. Different kernels may point to different Python environments, or multiple kernels may point to the same environment.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
