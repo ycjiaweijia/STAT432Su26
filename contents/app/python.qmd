@@ -444,7 +444,6 @@ Arrays are designed for numerical computation. Its operations are align with the
 
 
 
-
 ## Random Numbers
 
 These notes often use `numpy` random number generators for simulation.
@@ -482,6 +481,186 @@ For a two-dimensional predictor matrix:
 X = rng.normal(size=(10, 3))
 X.shape
 ```
+
+
+
+
+## `pandas`
+
+`pandas` can be treated as a wrapper of `numpy.array` which make it more readable. The complete `pandas` is very complicated. Here we only mention a few very important concepts.
+
+To import `pandas`, in most cases we set `pd` as its alias.
+
+```{python}
+import pandas as pd
+```
+
+
+### `DataFrame` and `Series`
+
+In `pandas`, `DataFrame` is the 2D data table, and `Series` is the 1D column. There are many ways to create a `DataFrame`. Here we focus on one of them, that is to convert a `dict` into a `DataFrame`.
+
+```{python}
+results = {
+    'round': [1, 2, 3, 4, 5],
+    'score': [0.22, 0.33, 0.44, 0.55, 0.66], 
+    'mse': [0.12, 0.11, 0.10, 0.09, 0.08]
+}
+df_res = pd.DataFrame(results)
+df_res
+```
+A single column is a `Series`.
+
+```{python}
+df_res['score']
+```
+Note that similar to the `numpy.array` case, if we select the column as a set (even if the set contains only 1 element), we will get a 2D object, which is a `DataFrame` in this case.
+
+```{python}
+df_res[['score']]
+```
+
+
+### Read files
+
+
+In `scikit-learn`, predictors and responses can be stored either as `numpy` arrays or as `pandas` objects. Throughout this course, many examples use `numpy`, but most code works equally well with `pandas` data structures.
+
+When working with external datasets, a common workflow is:
+
+1. Read the data into a `DataFrame`.
+2. Perform data cleaning and preprocessing.
+3. Extract predictors and responses.
+4. Fit a statistical learning model.
+
+
+
+Two of the most common tabular file formats are CSV files and Excel spreadsheets.
+
+::: {.callout-note collapse="true"}
+## CSV
+
+CSV stands for comma-separated values. A CSV file is a plain-text file that stores tabular data using a separator between columns.
+
+Common separators include:
+
+- `,` (comma)
+- `;` (semicolon)
+- `\t` (tab)
+
+Consider the following file `example.csv`.
+
+```
+round	score	mse
+1	0.220000	0.120000
+2	0.330000	0.110000
+3	0.440000	0.100000
+4	0.550000	0.090000
+5	0.660000	0.080000
+```
+In Python we could use `pd.read_csv()` to read it.
+
+
+```{python}
+import pandas as pd
+df = pd.read_csv('example.csv')
+df
+```
+
+The result is incorrect because this file uses tab characters (`\t`) rather than commas as separators.
+
+Specify the separator explicitly:
+
+```{python}
+df = pd.read_csv('example.csv', sep='\t')
+df
+```
+
+:::
+
+
+::: {.callout-note collapse="true"}
+## Excel
+Excel spreadsheets can be read using `pd.read_excel()`. We provide the [`exmaple.xlsx`](example.xlsx) as an example.
+
+
+```{python}
+import pandas as pd
+df = pd.read_excel('example.xlsx')
+df
+```
+
+Unlike CSV files, Excel files are stored in a binary format. Therefore, `pandas` requires an additional package called an engine to read and write them. The most commonly used engine is `openpyxl`.
+
+```bash
+uv add openpyxl
+```
+
+
+In this course, `openpyxl` is already included in the project's `pyproject.toml`, so no additional installation is required.
+
+
+
+:::
+
+
+Writing files is similar to reading files. The main difference is that writing starts from an existing `DataFrame` instead of starting from `pd`.
+
+
+```python
+df.to_csv('example2.csv')
+df.to_excel('example2.xlsx')
+```
+
+
+
+
+
+
+### Relative paths
+
+In this course, always use relative paths when reading or writing files. 
+
+A relative path starts from the current working directory rather than from the root of the file system.
+
+Suppose your working directory is
+
+```text
+C:/Users/WDAGUtilityAccount/Project/
+```
+and you have the following structure:
+
+```text
+Project/
+├── example.csv
+└── foldername/
+```
+
+Then you can read and write files using:
+
+```python
+df = pd.read_csv("example.csv")
+df.to_csv("foldername/result.csv")
+```
+
+
+Notice that neither path begins with a drive name such as `C:` or `D:`.
+
+
+If your files are stored outside the working directory, copy them into the working directory before reading them.
+
+
+::: {.callout-note}
+Although absolute paths such as
+
+```python
+pd.read_csv("D:/Files/example.csv")
+```
+often work on your own computer, they may fail on another computer because the file locations are different.
+
+Using relative paths makes your code more portable and easier to share.
+:::
+
 
 
 ## `matplotlib` Basics
@@ -578,6 +757,8 @@ plt.title("Histogram");
 
 
 ## Common Errors
+
+
 
 ### One-Dimensional `X`
 
