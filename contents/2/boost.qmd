@@ -1621,21 +1621,18 @@ Before we run the refined grid search, we need to determine the `n_estimators` u
 
 ```{python}
 X_tr, X_val, y_tr, y_val = train_test_split(
-    X_train,
-    y_train,
-    test_size=0.2,
-    random_state=0,
+    X_train, y_train, test_size=0.2, random_state=0
 )
 xgb_es = XGBRegressor(
     n_estimators=3000,
     **random_search.best_params_,
-    early_stopping_rounds=50,  
+    early_stopping_rounds=50,
     random_state=0,
     n_jobs=-1,
 )
 xgb_es.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], verbose=False)
 best_round = xgb_es.best_iteration + 1
-best_round 
+best_round
 ```
 
 ### Refined grid search
@@ -1645,11 +1642,7 @@ Now we can run refined grid search using `n_estimators=best_round` (which is `{p
 #| eval: false
 from sklearn.model_selection import GridSearchCV
 
-xgb_base = XGBRegressor(
-    n_estimators=best_round,
-    random_state=0,
-    n_jobs=1,
-)
+xgb_base = XGBRegressor(n_estimators=best_round, random_state=0, n_jobs=1)
 
 param_grid_refined = {
     "learning_rate": [0.008, 0.0125, 0.018],
@@ -1669,22 +1662,11 @@ Sometimes a full refined grid search is still computationally expensive. In this
 
 
 ```{python}
-xgb_base = XGBRegressor(
-    n_estimators=best_round,
-    random_state=0,
-    n_jobs=1,
-)
+xgb_base = XGBRegressor(n_estimators=best_round, random_state=0, n_jobs=1)
 
-param_grid_1 = {
-    "max_depth": [1, 2, 3]
-}
+param_grid_1 = {"max_depth": [1, 2, 3]}
 
-grid_1 = GridSearchCV(
-    xgb_base,
-    param_grid=param_grid_1,
-    cv=5,
-    n_jobs=-1,
-)
+grid_1 = GridSearchCV(xgb_base, param_grid=param_grid_1, cv=5, n_jobs=-1)
 
 grid_1.fit(X_train, y_train)
 grid_1.best_params_
@@ -1701,16 +1683,9 @@ xgb_stage2 = XGBRegressor(
     n_estimators=best_round, random_state=0, n_jobs=1, **grid_1.best_params_
 )
 
-param_grid_2 = {
-    "learning_rate": [0.035, 0.05, 0.07],
-}
+param_grid_2 = {"learning_rate": [0.035, 0.05, 0.07]}
 
-grid_2 = GridSearchCV(
-    xgb_stage2,
-    param_grid=param_grid_2,
-    cv=5,
-    n_jobs=-1,
-)
+grid_2 = GridSearchCV(xgb_stage2, param_grid=param_grid_2, cv=5, n_jobs=-1)
 
 grid_2.fit(X_train, y_train)
 grid_2.best_params_
@@ -1731,17 +1706,9 @@ xgb_stage3 = XGBRegressor(
     **grid_2.best_params_,
 )
 
-param_grid_3 = {
-    "subsample": [0.60, 0.66, 0.75],
-    "colsample_bytree": [0.85, 0.90, 0.95],
-}
+param_grid_3 = {"subsample": [0.60, 0.66, 0.75], "colsample_bytree": [0.85, 0.90, 0.95]}
 
-grid_3 = GridSearchCV(
-    xgb_stage3,
-    param_grid=param_grid_3,
-    cv=5,
-    n_jobs=-1,
-)
+grid_3 = GridSearchCV(xgb_stage3, param_grid=param_grid_3, cv=5, n_jobs=-1)
 
 grid_3.fit(X_train, y_train)
 grid_3.best_params_
@@ -1763,16 +1730,9 @@ xgb_stage4 = XGBRegressor(
     **grid_3.best_params_,
 )
 
-param_grid_4 = {
-    "reg_lambda": [2.0, 3.25, 5.0],
-}
+param_grid_4 = {"reg_lambda": [2.0, 3.25, 5.0]}
 
-grid_4 = GridSearchCV(
-    xgb_stage4,
-    param_grid=param_grid_4,
-    cv=5,
-    n_jobs=-1,
-)
+grid_4 = GridSearchCV(xgb_stage4, param_grid=param_grid_4, cv=5, n_jobs=-1)
 
 grid_4.fit(X_train, y_train)
 grid_4.best_params_
@@ -1790,10 +1750,7 @@ best_params = {
 }
 
 final_model = XGBRegressor(
-    n_estimators=best_round,
-    random_state=0,
-    n_jobs=-1,
-    **best_params,
+    n_estimators=best_round, random_state=0, n_jobs=-1, **best_params
 )
 
 final_model.fit(X_train, y_train)
@@ -1810,6 +1767,7 @@ XGBoost provides impurity-like feature importance through `.feature_importances_
 
 However, they are not exactly the same. In Random Forests, MDI is based on reductions in RSS or Gini impurity, while in XGBoost the gain is computed from reductions in the regularized boosting objective.
 
+<!-- fmt: off -->
 ```{python}
 import matplotlib.pyplot as plt
 importance = pd.Series(final_model.feature_importances_).sort_values(ascending=True)
@@ -1817,7 +1775,8 @@ importance = pd.Series(final_model.feature_importances_).sort_values(ascending=T
 plt.figure(figsize=(7, 4))
 importance.plot(kind="barh")
 plt.xlabel("feature importance")
-plt.title("XGBoost Feature Importance")
+plt.title("XGBoost Feature Importance");
 ```
+<!-- fmt: on -->
 
 Feature importance describes how much the fitted model uses each predictor for prediction. It should not be interpreted as a causal effect.

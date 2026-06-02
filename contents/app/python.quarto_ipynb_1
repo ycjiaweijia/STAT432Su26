@@ -1,0 +1,1325 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "jupyter: stats\n",
+        "---\n",
+        "\n",
+        "# Python Basics for `sklearn`\n",
+        "\n",
+        "This note introduces only the Python syntax needed for the rest of these notes. The goal is not to cover Python as a full programming language. The goal is to make code using `numpy`, `matplotlib`, and `sklearn` readable.\n",
+        "\n",
+        "\n",
+        "\n",
+        "<!-- The intended reader already knows R. Many ideas are the same: objects have names, functions take arguments, vectors and matrices are central, and modeling workflows usually follow a fit-then-predict pattern. -->\n",
+        "\n",
+        "## Running Python Code\n",
+        "\n",
+        "A Python code chunk looks like this:"
+      ],
+      "id": "461fe089"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "# This is a comment\n",
+        "\n",
+        "x = 10      # assignment uses =\n",
+        "\n",
+        "a, b = 2, 3\n",
+        "a + b       # last expression is automatically displayed"
+      ],
+      "id": "496d1715",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: {.callout-note}\n",
+        "## Notebook\n",
+        "\n",
+        "1. When a code cell is executed, the value of the last expression is automatically displayed. Any explicit output commands, such as `print()`, will also produce output.\n",
+        "\n",
+        "2. Use `#` comments only for short notes that help explain the code. Detailed explanations and discussion should be written in Markdown cells, where they are easier to read and maintain.\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Indentation\n",
+        "\n",
+        "Python uses indentation to mark code blocks. R uses braces `{}`; Python uses indentation.\n",
+        "\n",
+        "For example, a `for` loop:"
+      ],
+      "id": "ccadb320"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "for k in [1, 3, 5]:\n",
+        "    print(k)"
+      ],
+      "id": "a095f7c2",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The indented block belongs to the loop. These notes use loops only when they are helpful for plotting or comparing models.\n",
+        "\n",
+        "### `if` and `for`\n",
+        "\n",
+        "\n",
+        "The logic of `if` statements and `for` loops is straightforward. When using them, pay attention to indentation. A colon `:` indicates the beginning of an indented code block."
+      ],
+      "id": "87641375"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "x = 1\n",
+        "if x == 2:\n",
+        "    print('good')\n",
+        "else:\n",
+        "    print('not good')"
+      ],
+      "id": "7beca5ec",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "for k in range(4):\n",
+        "    print(k)"
+      ],
+      "id": "4091c756",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Functions and Objects\n",
+        "\n",
+        "This is not an object-oriented programming course, so don't worry too much about the details. The important idea is the distinction between a function, a class, and an object created from a class.\n",
+        "\n",
+        "- Function: performs an action and returns a result. Called with parentheses: `round(3.14, 2)`\n",
+        "- Class: a blueprint for creating objects.\n",
+        "- Object: stores information and provides methods. Accessed with a dot: `object.method()`\n",
+        "\n",
+        "\n",
+        "\n",
+        "Example in scikit-learn:\n",
+        "\n",
+        "```python\n",
+        "model = LinearRegression()\n",
+        "```\n",
+        "\n",
+        "Here\n",
+        "\n",
+        "- `LinearRegression` is the class;\n",
+        "- `LinearRegression()` creates a linear regression model object;\n",
+        "- the object is assigned to the variable `model`.\n",
+        "\n",
+        "```python\n",
+        "model.fit(X_train, y_train)\n",
+        "coef = model.coef_\n",
+        "```\n",
+        "\n",
+        "Here\n",
+        "\n",
+        "- `fit()` is method;\n",
+        "- `coef_` stores information about the fitted model;\n",
+        "- methods are called using `object.method(...)`;\n",
+        "- stored information is accessed using `object.attribute`.\n",
+        "\n",
+        "\n",
+        "In almost all `scikit-learn` code, you should work with objects rather than classes. A common mistake is to pass a class where an object is required.\n",
+        "\n",
+        "```python\n",
+        "pipe = make_pipeline(StandardScaler, LinearRegression)     # wrong\n",
+        "pipe = make_pipeline(StandardScaler(), LinearRegression()) # correct\n",
+        "```\n",
+        "\n",
+        "The same idea applies to most `scikit-learn` components, including transformers, models, and pipelines. In general, if something is used as a step in a pipeline, you should create an object by adding `()`.\n",
+        "\n",
+        "\n",
+        "\n",
+        "::: {.callout-caution}\n",
+        "## `.` (Dot)\n",
+        "\n",
+        "The meaning of `.` is different in Python and R.\n",
+        "\n",
+        "- In Python, `.` is used to access methods and attributes of an object.\n",
+        "```python\n",
+        "model.fit(X, y)\n",
+        "model.coef_\n",
+        "```\n",
+        "- In R, `.` is usually just part of a variable or function name.\n",
+        "\n",
+        "```r\n",
+        "my.variable <- 1\n",
+        "```\n",
+        "\n",
+        "Do not interpret dots in R names as object access.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Importing Packages\n",
+        "\n",
+        "Python packages are loaded with `import`.\n",
+        "\n",
+        "The usual imports in these notes are:"
+      ],
+      "id": "0a2867dd"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "import matplotlib.pyplot as plt"
+      ],
+      "id": "e00bcfb3",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The names on the right are aliases:\n",
+        "\n",
+        "- `numpy` is used as `np`;\n",
+        "- `pandas` is used as `pd`;\n",
+        "- `matplotlib.pyplot` is used as `plt`.\n",
+        "\n",
+        "After importing a package this way, you access its functions using the package name, e.g.\n",
+        "\n",
+        "- `np.array([1, 2, 3])` \n",
+        "- `pd.DataFrame({\"x\": [1, 2, 3]})` \n",
+        "- `plt.plot([1, 2, 3], [4, 5, 6])`\n",
+        "\n",
+        "::: {.callout-note}\n",
+        "When a package is imported with `import ... as ...`, you must use the alias to access its functions and classes instead of the original name.\n",
+        ":::\n",
+        "\n",
+        "Sometimes only specific functions or classes are imported."
+      ],
+      "id": "1fa15281"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "from sklearn.model_selection import train_test_split"
+      ],
+      "id": "afe2e07c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "These objects can then be used directly."
+      ],
+      "id": "0dd2fb64"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "model = LinearRegression()"
+      ],
+      "id": "818e5a86",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: {.callout-note}\n",
+        "After `from sklearn.linear_model import LinearRegression`, you may use `LinearRegression()` directly, but other objects from `sklearn.linear_model` are not automatically imported.\n",
+        ":::\n",
+        "\n",
+        "## Data structure\n",
+        "\n",
+        "### Basic Objects\n",
+        "\n",
+        "Python has several basic data types."
+      ],
+      "id": "906d41d6"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "x = 3          # integer\n",
+        "y = 2.5        # float\n",
+        "name = \"tree\"  # string\n",
+        "flag = True    # Boolean"
+      ],
+      "id": "333e9edb",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Use `type()` to check the type of an object."
+      ],
+      "id": "e23de673"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "type(y)"
+      ],
+      "id": "3623bf79",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Python is case-sensitive. `x` and `X` are different objects.\n",
+        "\n",
+        "### Lists\n",
+        "\n",
+        "\n",
+        "\n",
+        "A list is an **ordered collection** of objects. Lists are commonly used to store variable names, column names, or collections of parameter values.\n",
+        "\n",
+        "| Purpose                  | Example                                     | Explanation                                                  |\n",
+        "| ------------------------ | ------------------------------------------- | ------------------------------------------------------------ |\n",
+        "| Create a list            | `features = [\"age\", \"income\", \"education\"]` | Creates a list containing three strings.                     |\n",
+        "| Access the first element | `features[0]`                               | Returns `\"age\"`. Python indexing starts at `0`.              |\n",
+        "| Access the last element  | `features[-1]`                              | Returns `\"education\"`. Negative indices count from the end.  |\n",
+        "| Select several elements  | `features[0:2]`                             | Returns `[\"age\", \"income\"]`. The stop index is not included. |\n",
+        "| Add an element           | `features.append(\"gender\")`                 | Adds `\"gender\"` to the end of the list.                      |\n",
+        "| Count elements           | `len(features)`                             | Returns the number of elements in the list.                  |\n",
+        "\n",
+        "\n",
+        "::: {.callout-note}\n",
+        "Unlike R, Python uses zero-based indexing, so the first element has index `0`.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "### Dictionaries\n",
+        "\n",
+        "\n",
+        "A dictionary stores **key-value pairs**. It is similar to a named list in R and is commonly used to store settings, options, and model parameters.\n",
+        "\n",
+        "| Purpose               | Example                                             | Explanation                                           |\n",
+        "| --------------------- | --------------------------------------------------- | ----------------------------------------------------- |\n",
+        "| Create a dictionary   | `params = {\"n_neighbors\": 5, \"weights\": \"uniform\"}` | Creates a dictionary with two keys and their values.  |\n",
+        "| Access a value        | `params[\"n_neighbors\"]`                             | Returns `5`.                                          |\n",
+        "| Add or update a value | `params[\"metric\"] = \"euclidean\"`                    | Adds a new key-value pair or updates an existing one. |\n",
+        "| Count entries         | `len(params)`                                       | Returns the number of key-value pairs.                |\n",
+        "| Store model settings  | `{\"max_depth\": 3, \"min_samples_leaf\": 5}`           | A common use in machine learning.                     |\n",
+        "| Store parameter grids | `{\"max_depth\": [2,3,4]}`                            | Often used when tuning hyperparameters.               |\n",
+        "<!-- | List all keys         | `params.keys()`                                     | Returns all keys in the dictionary.                   |\n",
+        "| List all values       | `params.values()`                                   | Returns all values in the dictionary.                 | -->\n",
+        "\n",
+        "A typical parameter grid in `scikit-learn` looks like:\n",
+        "\n",
+        "```python\n",
+        "param_grid = {\n",
+        "    \"max_depth\": [2, 3, 4],\n",
+        "    \"min_samples_leaf\": [1, 5, 10],\n",
+        "}\n",
+        "```\n",
+        "\n",
+        "For pipelines, parameter names often use two underscores:\n",
+        "\n",
+        "```python\n",
+        "param_grid = {\n",
+        "    \"model__C\": [0.1, 1, 10],\n",
+        "}\n",
+        "```\n",
+        "\n",
+        "::: {.callout-note}\n",
+        "In a pipeline, a parameter name of the form `step__parameter` refers to a parameter inside a specific pipeline step. For example, `model__C` means the parameter `C` of the pipeline step named `\"model\"`. More terminologies will be discussed in related sections.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "## `numpy.array`\n",
+        "\n",
+        "The most important data structure for numerical computation in Python is `numpy.array`."
+      ],
+      "id": "b413ca8b"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import numpy as np\n",
+        "\n",
+        "x = np.array([1, 2, 3, 4])\n",
+        "x"
+      ],
+      "id": "87233c0d",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Arrays have a shape and a dimension."
+      ],
+      "id": "12dd0524"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "print(x.shape)\n",
+        "print(x.ndim)"
+      ],
+      "id": "7fcf0c18",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "So `x` is a 1D array containing 4 elements.\n",
+        "\n",
+        "### 2D Arrays\n",
+        "\n",
+        "A 2D array is similar to a matrix."
+      ],
+      "id": "f17cc595"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "X = np.array([\n",
+        "    [1, 2],\n",
+        "    [3, 4],\n",
+        "    [5, 6]\n",
+        "])\n",
+        "\n",
+        "X"
+      ],
+      "id": "ef813068",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "print(X.shape)\n",
+        "print(X.ndim)"
+      ],
+      "id": "ab1e1e54",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Here `X` is a 2D array with 3 rows and 2 columns.\n",
+        "\n",
+        "### Indexing\n",
+        "\n",
+        "Use `[row, column]` indexing."
+      ],
+      "id": "56e0f51a"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "X[0, 1]      # row 0, column 1\n",
+        "X[:, 0]      # first column\n",
+        "X[1, :]      # second row"
+      ],
+      "id": "a098e9a1",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The symbol `:` means \"all indices\" along that axis.\n",
+        "\n",
+        "Slicing can select ranges."
+      ],
+      "id": "a261763e"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "X[0:2, 1]      # first 2 rows, column 1\n",
+        "X[0, 0:2]      # row 0, first 2 columns\n",
+        "X[0:2, 0:2]    # upper-left 2x2 block"
+      ],
+      "id": "e48e38fa",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: {.callout-note}\n",
+        "`X[:, 0]` returns a 1D array with shape `(n,)`, not a column vector.\n",
+        "\n",
+        "To obtain a column vector, use"
+      ],
+      "id": "ac48e88c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "X[:, [0]]\n",
+        "# or\n",
+        "X[:, 0].reshape(-1, 1)"
+      ],
+      "id": "50bd156f",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "which both have shape `(n, 1)`.\n",
+        ":::\n",
+        "\n",
+        "### Common Operations\n",
+        "\n",
+        "Arrays support vectorized arithmetic."
+      ],
+      "id": "d8e79327"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "x + 1\n",
+        "x * 2\n",
+        "np.mean(x)"
+      ],
+      "id": "1755846d",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Operations are applied elementwise.\n",
+        "\n",
+        "### Axis-wise \n",
+        "\n",
+        "Many functions accept an `axis=` argument. "
+      ],
+      "id": "b96728b2"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "X              # show X"
+      ],
+      "id": "8b099867",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Computes the sum across rows: "
+      ],
+      "id": "88de8690"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "X.sum(axis=0)"
+      ],
+      "id": "b61d107f",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Computes the mean across columns:"
+      ],
+      "id": "257d7161"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "X.mean(axis=1)"
+      ],
+      "id": "06530953",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "A useful rule:\n",
+        "\n",
+        "- `axis=0`: operate down rows (one result per column)\n",
+        "- `axis=1`: operate across columns (one result per row)\n",
+        "\n",
+        "### Reshaping\n",
+        "\n",
+        "A 1D array can be converted into a matrix. Consider a 1D array"
+      ],
+      "id": "c5fdf74f"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "x = np.array([1, 2, 3, 4])"
+      ],
+      "id": "4a1ffd61",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "To create a column vector:"
+      ],
+      "id": "e0a5f796"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "x.reshape(-1, 1)"
+      ],
+      "id": "45a9bc4c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "To create a row vector:"
+      ],
+      "id": "8289bcbe"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "x.reshape(1, -1)"
+      ],
+      "id": "12d1e8cf",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The value `-1` means \"infer this dimension automatically.\"\n",
+        "\n",
+        "A common pattern is"
+      ],
+      "id": "ef4a25ad"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "test_x = np.linspace(0, 1, 101).reshape(-1, 1)"
+      ],
+      "id": "c5d6a092",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "On the other side, to flatten an array back to 1D:"
+      ],
+      "id": "826205b5"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "X.reshape(-1)"
+      ],
+      "id": "e5aacc25",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "`NumPy` reads entries row by row and produces a one-dimensional array.\n",
+        "\n",
+        "::: {.callout-tip}\n",
+        "Other flattening methods include `.ravel()` and `.flatten()`. The difference is about how copy-and-view is handled. We mainly use `.reshape(-1)` because it makes the resulting shape explicit.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "::: {.callout-note}\n",
+        "One common source of bugs in statistical learning is using arrays with incorrect shapes.\n",
+        "\n",
+        "In `scikit-learn`, predictors `X` are usually stored as a 2D array and responses `y` as a 1D array. Other libraries may use different conventions, and the required shapes often depend on the specific model or loss function.\n",
+        "\n",
+        "When shape-related errors occur, always check the documentation of the library you are using.\n",
+        ":::\n",
+        "\n",
+        "### Arrays versus Lists\n",
+        "\n",
+        "Lists are general-purpose containers, and its addition concatenates. For example"
+      ],
+      "id": "e5f4acf7"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "[1, 2, 3] + [4, 5, 6]"
+      ],
+      "id": "f842af61",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Arrays are designed for numerical computation. Its operations are align with the regular math operations. Therefore for numerical work and machine learning, use `numpy.array` whenever possible.\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "## Random Numbers\n",
+        "\n",
+        "These notes often use `numpy` random number generators for simulation."
+      ],
+      "id": "155a0f0f"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "rng = np.random.default_rng(1)\n",
+        "\n",
+        "x = rng.normal(size=5)\n",
+        "x"
+      ],
+      "id": "4565e4c7",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: {.callout-note}\n",
+        "\n",
+        "The number `1` is a seed. It makes the random output reproducible.\n",
+        "\n",
+        "On a single machine, if the seed is fixed the results are supposed to be the same.\n",
+        "\n",
+        "You may choose any number as the seed. You may use the same seed when you want to see the same result.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "Some common random functions are:"
+      ],
+      "id": "b6b6ad9b"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "rng.normal(loc=0, scale=1, size=5)"
+      ],
+      "id": "c0643f35",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "rng.uniform(0, 1, size=5)"
+      ],
+      "id": "5f77bd06",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "For a two-dimensional predictor matrix:"
+      ],
+      "id": "6d628f19"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "X = rng.normal(size=(10, 3))\n",
+        "X.shape"
+      ],
+      "id": "19295239",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## `pandas`\n",
+        "\n",
+        "`pandas` can be treated as a wrapper of `numpy.array` which make it more readable. The complete `pandas` is very complicated. Here we only mention a few very important concepts.\n",
+        "\n",
+        "To import `pandas`, in most cases we set `pd` as its alias."
+      ],
+      "id": "b4095f49"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd"
+      ],
+      "id": "fa876d54",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### `DataFrame` and `Series`\n",
+        "\n",
+        "In `pandas`, `DataFrame` is the 2D data table, and `Series` is the 1D column. There are many ways to create a `DataFrame`. Here we focus on one of them, that is to convert a `dict` into a `DataFrame`."
+      ],
+      "id": "2d014b56"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "results = {\n",
+        "    'round': [1, 2, 3, 4, 5],\n",
+        "    'score': [0.22, 0.33, 0.44, 0.55, 0.66], \n",
+        "    'mse': [0.12, 0.11, 0.10, 0.09, 0.08]\n",
+        "}\n",
+        "df_res = pd.DataFrame(results)\n",
+        "df_res"
+      ],
+      "id": "28db2e5d",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "A single column is a `Series`."
+      ],
+      "id": "e6e4645b"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "df_res['score']"
+      ],
+      "id": "bf9641e3",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Note that similar to the `numpy.array` case, if we select the column as a set (even if the set contains only 1 element), we will get a 2D object, which is a `DataFrame` in this case."
+      ],
+      "id": "991dbcb8"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "df_res[['score']]"
+      ],
+      "id": "6c3ce1e2",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Read and write files\n",
+        "\n",
+        "\n",
+        "In `scikit-learn`, predictors and responses can be stored either as `numpy` arrays or as `pandas` objects. Throughout this course, many examples use `numpy`, but most code works equally well with `pandas` data structures.\n",
+        "\n",
+        "When working with external datasets, a common workflow is:\n",
+        "\n",
+        "1. Read the data into a `DataFrame`.\n",
+        "2. Perform data cleaning and preprocessing.\n",
+        "3. Extract predictors and responses.\n",
+        "4. Fit a statistical learning model.\n",
+        "\n",
+        "\n",
+        "\n",
+        "Two of the most common tabular file formats are CSV files and Excel spreadsheets.\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## CSV\n",
+        "\n",
+        "CSV stands for comma-separated values. A CSV file is a plain-text file that stores tabular data using a separator between columns.\n",
+        "\n",
+        "Common separators include:\n",
+        "\n",
+        "- `,` (comma)\n",
+        "- `;` (semicolon)\n",
+        "- `\\t` (tab)\n",
+        "\n",
+        "Consider the following file [`example.csv`](example.csv).\n",
+        "\n",
+        "```\n",
+        "round\tscore\tmse\n",
+        "1\t0.220000\t0.120000\n",
+        "2\t0.330000\t0.110000\n",
+        "3\t0.440000\t0.100000\n",
+        "4\t0.550000\t0.090000\n",
+        "5\t0.660000\t0.080000\n",
+        "```\n",
+        "In Python we could use `pd.read_csv()` to read it.\n"
+      ],
+      "id": "7889048e"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd\n",
+        "df = pd.read_csv('example.csv')\n",
+        "df"
+      ],
+      "id": "3f773e86",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The result is incorrect because this file uses tab characters (`\\t`) rather than commas as separators.\n",
+        "\n",
+        "Specify the separator explicitly:"
+      ],
+      "id": "6162b37e"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "df = pd.read_csv('example.csv', sep='\\t')\n",
+        "df"
+      ],
+      "id": "44a34873",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "\n",
+        "::: {.callout-note collapse=\"true\"}\n",
+        "## Excel\n",
+        "Excel spreadsheets can be read using `pd.read_excel()`. We provide the [`exmaple.xlsx`](example.xlsx) as an example.\n"
+      ],
+      "id": "b910dc30"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd\n",
+        "df = pd.read_excel('example.xlsx')\n",
+        "df"
+      ],
+      "id": "c864c161",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Unlike CSV files, Excel files are stored in a binary format. Therefore, `pandas` requires an additional package called an engine to read and write them. The most commonly used engine is `openpyxl`.\n",
+        "\n",
+        "```bash\n",
+        "uv add openpyxl\n",
+        "```\n",
+        "\n",
+        "\n",
+        "In this course, `openpyxl` is already included in the project's `pyproject.toml`, so no additional installation is required.\n",
+        "\n",
+        "\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "Writing files is similar to reading files. The main difference is that writing starts from an existing `DataFrame` instead of starting from `pd`.\n",
+        "\n",
+        "\n",
+        "```python\n",
+        "df.to_csv('example2.csv')\n",
+        "df.to_excel('example2.xlsx')\n",
+        "```\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Relative paths\n",
+        "\n",
+        "In this course, always use relative paths when reading or writing files. \n",
+        "\n",
+        "A relative path starts from the current working directory rather than from the root of the file system.\n",
+        "\n",
+        "Suppose your working directory is\n",
+        "\n",
+        "```text\n",
+        "C:/Users/WDAGUtilityAccount/Project/\n",
+        "```\n",
+        "and you have the following structure:\n",
+        "\n",
+        "```text\n",
+        "Project/\n",
+        "├── example.csv\n",
+        "└── foldername/\n",
+        "```\n",
+        "\n",
+        "Then you can read and write files using:\n",
+        "\n",
+        "```python\n",
+        "df = pd.read_csv(\"example.csv\")\n",
+        "df.to_csv(\"foldername/result.csv\")\n",
+        "```\n",
+        "\n",
+        "\n",
+        "Notice that neither path begins with a drive name such as `C:` or `D:`.\n",
+        "\n",
+        "\n",
+        "If your files are stored outside the working directory, **copy them into the working directory** before reading them.\n",
+        "\n",
+        "\n",
+        "::: {.callout-note}\n",
+        "Although absolute paths such as\n",
+        "\n",
+        "```python\n",
+        "pd.read_csv(\"D:/Files/example.csv\")\n",
+        "```\n",
+        "often work on your own computer, they may fail on another computer because the file locations are different.\n",
+        "\n",
+        "Using relative paths makes your code more portable and easier to share.\n",
+        ":::\n",
+        "\n",
+        "\n",
+        "\n",
+        "## `matplotlib` Basics\n",
+        "\n",
+        "These notes use only basic `matplotlib`. The standard import is:"
+      ],
+      "id": "e5d4751e"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import matplotlib.pyplot as plt"
+      ],
+      "id": "3e15d50c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "We provide some code examples here. Most of the commands are straightforward. Please check the [official document](https://matplotlib.org/) if you need more details.\n",
+        "\n",
+        "### Scatter Plot\n",
+        "\n",
+        "<!-- fmt: off -->"
+      ],
+      "id": "ecd476b0"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "x = np.array([1, 2, 3, 4])\n",
+        "y = np.array([1.1, 2.0, 2.8, 4.2])\n",
+        "\n",
+        "plt.scatter(x, y)\n",
+        "plt.xlabel(\"x\")\n",
+        "plt.ylabel(\"y\")\n",
+        "plt.title(\"Scatter Plot\");"
+      ],
+      "id": "d53b967c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Line Plot"
+      ],
+      "id": "f9781d13"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "x_grid = np.linspace(0, 2 * np.pi, 200)\n",
+        "y_grid = np.sin(x_grid)\n",
+        "\n",
+        "plt.plot(x_grid, y_grid)\n",
+        "plt.xlabel(\"x\")\n",
+        "plt.ylabel(\"sin(x)\")\n",
+        "plt.title(\"Line Plot\");"
+      ],
+      "id": "db28202a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Scatter and Line Together"
+      ],
+      "id": "9781f710"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "rng = np.random.default_rng(1)\n",
+        "\n",
+        "x = rng.uniform(0, 2 * np.pi, size=30)\n",
+        "y = np.sin(x) + rng.normal(scale=0.2, size=30)\n",
+        "x_grid = np.linspace(0, 2 * np.pi, 200)\n",
+        "\n",
+        "plt.scatter(x, y, facecolors=\"none\", edgecolors=\"black\")\n",
+        "plt.plot(x_grid, np.sin(x_grid), color=\"C1\")\n",
+        "plt.xlabel(\"x\")\n",
+        "plt.ylabel(\"y\")\n",
+        "plt.title(\"Data and Curve\");"
+      ],
+      "id": "06c74d82",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This pattern appears often when we plot data points and a fitted curve.\n",
+        "\n",
+        "### Multiple Plots\n",
+        "\n",
+        "Use `plt.subplots` for multiple panels."
+      ],
+      "id": "f9884297"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "fig, axs = plt.subplots(1, 2, figsize=(10, 4))\n",
+        "\n",
+        "axs[0].scatter(x, y)\n",
+        "axs[0].set_title(\"scatter\")\n",
+        "\n",
+        "axs[1].plot(x_grid, np.sin(x_grid))\n",
+        "axs[1].set_title(\"line\");"
+      ],
+      "id": "0ef7dcdc",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: {.callout-note}\n",
+        "\n",
+        "Notice that when using an axes object, many plotting commands have different names. For example, `plt.title()` becomes `ax.set_title()`. Therefore, you cannot always replace `plt` with `ax` directly. For details, consult the official documentation.\n",
+        "\n",
+        ":::\n",
+        "### Histograms"
+      ],
+      "id": "8a613ca9"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "z = rng.normal(size=200)\n",
+        "\n",
+        "plt.hist(z, bins=20, edgecolor=\"black\")\n",
+        "plt.xlabel(\"z\")\n",
+        "plt.ylabel(\"count\")\n",
+        "plt.title(\"Histogram\");"
+      ],
+      "id": "beef9eaf",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "<!-- fmt: on -->\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "## Common Errors\n",
+        "\n",
+        "\n",
+        "\n",
+        "### One-Dimensional `X`\n",
+        "\n",
+        "The most common error is passing a one-dimensional predictor array to `sklearn`.\n",
+        "\n",
+        "| Bad | Good |\n",
+        "|------|------|\n",
+        "| `x = np.array([1, 2, 3, 4])`<br>`model.fit(x, y)` | `X = x.reshape(-1, 1)`<br>`model.fit(X, y)` |\n",
+        "\n",
+        "\n",
+        "\n",
+        "### Class Name versus Model Object\n",
+        "\n",
+        "Another common mistake is confusing an `sklearn` class with an object created from that class.\n",
+        "\n",
+        "For example, `DecisionTreeClassifier` is the class itself.\n",
+        "\n",
+        "| Bad | Good |\n",
+        "|------|------|\n",
+        "| `model = DecisionTreeClassifier`<br>`model.fit(X_train, y_train)` | `model = DecisionTreeClassifier()`<br>`model.fit(X_train, y_train)` |\n",
+        "\n",
+        "\n",
+        "### Mixing Lists and Arrays\n",
+        "\n",
+        "Use arrays for elementwise numerical operations."
+      ],
+      "id": "fbefba14"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "[1, 2, 3] * 2"
+      ],
+      "id": "528efbd7",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Plain lists do not always behave like numerical vectors.\n"
+      ],
+      "id": "53ee75e4"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "stats",
+      "language": "python",
+      "display_name": "(stats)",
+      "path": "C:\\Users\\xiaox\\AppData\\Roaming\\jupyter\\kernels\\stats"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
