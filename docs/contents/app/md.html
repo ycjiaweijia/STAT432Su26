@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Appendix A — Python IDE Setup – Statistical Learning</title>
+<title>Appendix B — Jupyter Notebook and Markdown – Statistical Learning</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -68,8 +68,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../contents/app/md.html" rel="next">
-<link href="../../contents/2/boost.html" rel="prev">
+<link href="../../contents/app/python.html" rel="next">
+<link href="../../contents/app/ide.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -130,6 +130,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       </style>
     
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles/fonts.css">
 <link rel="stylesheet" href="../../styles/blocks.css">
@@ -307,7 +336,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-          <h1 class="quarto-secondary-nav-title">Appendix A — Python IDE Setup</h1>
+          <h1 class="quarto-secondary-nav-title">Appendix B — Jupyter Notebook and Markdown</h1>
         </a>     
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
@@ -443,13 +472,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../contents/app/ide.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../contents/app/ide.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Python IDE Setup</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../contents/app/md.html" class="sidebar-item-text sidebar-link">
+  <a href="../../contents/app/md.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Jupyter Notebook and Markdown</span></span></a>
   </div>
 </li>
@@ -477,14 +506,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#sec-vscode" id="toc-sec-vscode" class="nav-link active" data-scroll-target="#sec-vscode"><span class="header-section-number">A.1</span> VS Code</a></li>
-  <li><a href="#python-virtual-environment-installation" id="toc-python-virtual-environment-installation" class="nav-link" data-scroll-target="#python-virtual-environment-installation"><span class="header-section-number">A.2</span> Python Virtual Environment installation</a>
-  <ul class="collapse">
-  <li><a href="#install-the-first-python" id="toc-install-the-first-python" class="nav-link" data-scroll-target="#install-the-first-python"><span class="header-section-number">A.2.1</span> Install the first Python</a></li>
-  <li><a href="#setup-the-environment-for-the-course" id="toc-setup-the-environment-for-the-course" class="nav-link" data-scroll-target="#setup-the-environment-for-the-course"><span class="header-section-number">A.2.2</span> Setup the environment for the course</a></li>
-  </ul></li>
-  <li><a href="#back-to-vs-code-and-start-jupyter-notebook" id="toc-back-to-vs-code-and-start-jupyter-notebook" class="nav-link" data-scroll-target="#back-to-vs-code-and-start-jupyter-notebook"><span class="header-section-number">A.3</span> Back to VS Code and start Jupyter notebook</a></li>
-  <li><a href="#sec-wsl" id="toc-sec-wsl" class="nav-link" data-scroll-target="#sec-wsl"><span class="header-section-number">A.4</span> WSL</a></li>
+  <li><a href="#text-formatting" id="toc-text-formatting" class="nav-link active" data-scroll-target="#text-formatting"><span class="header-section-number">B.1</span> Text Formatting</a></li>
+  <li><a href="#headings" id="toc-headings" class="nav-link" data-scroll-target="#headings"><span class="header-section-number">B.2</span> Headings</a></li>
+  <li><a href="#lists" id="toc-lists" class="nav-link" data-scroll-target="#lists"><span class="header-section-number">B.3</span> Lists</a></li>
+  <li><a href="#essential-latex" id="toc-essential-latex" class="nav-link" data-scroll-target="#essential-latex"><span class="header-section-number">B.4</span> Essential LaTeX</a></li>
   </ul>
 </nav>
     </div>
@@ -494,7 +519,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block">Appendix A — Python IDE Setup</h1>
+<h1 class="title d-none d-lg-block">Appendix B — Jupyter Notebook and Markdown</h1>
 </div>
 
 
@@ -511,253 +536,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>There are many ways to set up a Python development environment, and each has its own advantages and disadvantages. In this tutorial, we will cover one of the most popular current setups: VS Code + <code>uv</code>.</p>
-<p>For now, we will focus only on the practical setup steps. The underlying concepts will be discussed in the later appendices.</p>
-<p>This tutorial uses Windows 11. If you use another operating system, the steps are very similar, but you may need to make some minor but straightforward modifications. If you encounter major issues, please contact me.</p>
-<section id="sec-vscode" class="level2" data-number="A.1">
-<h2 data-number="A.1" class="anchored" data-anchor-id="sec-vscode"><span class="header-section-number">A.1</span> VS Code</h2>
-<p>We choose VS Code as our IDE for Python. The installation is straightforward starting from the <a href="https://code.visualstudio.com/">Official website</a>. After installation, we need to do a few configurations to make the experience better.</p>
-<ol type="1">
-<li>For development of Python, the essential plugins are the Python plugin and Jupyter plugin. You only need to install the two main ones, and all related plugins will be installed automatically.</li>
-</ol>
-<p><img src="assets/img/20250811114515.png" class="img-fluid"></p>
-<p>You may either search the extensions directly from VS Code extension tab (which is usually located on the left side bar), or you may install it from the link <a href="https://marketplace.visualstudio.com/items?itemName=ms-python.python">python</a> and <a href="https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter">jupyter</a>.</p>
-<ol start="2" type="1">
-<li>Sometimes you may need to use the terminal inside VS Code. You may start the terminal from top menu (whose hotkey is by default <code>ctrl+shift+`</code>).</li>
-</ol>
-<p><img src="assets/img/20250811113649.png" class="img-fluid"></p>
-<p>Note that there are many different choices of terminals. After you start the first default terminal, you may start any new terminals using the small <code>+</code> and the <code>v</code> mark on the right.</p>
-<p><img src="assets/img/20250811120220.png" class="img-fluid"></p>
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Caution</span>Change Terminal default profile
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>In Windows the default terminal is Powershell when you first install VS Code. In the past it had bugs with <code>conda</code> (and I don’t know whether it is fixed now). In order to avoid headaches due to the bugs, we simply switch to other terminals, like Command Prompt. You may change the default terminal by</p>
-<ol type="1">
-<li>Press <code>Ctrl+Shift+P</code> or <code>F1</code> to open the top prompt menu.</li>
-<li>Find the <code>Terminal: Select Default Profile</code> command.</li>
-</ol>
-<p><img src="assets/img/20250811114818.png" class="img-fluid"></p>
-<ol start="3" type="1">
-<li>Select the desired terminal as the default one.</li>
-</ol>
-<p><img src="assets/img/20250811114921.png" class="img-fluid"></p>
-</div>
-</div>
-</div>
-<!-- Since many Python functionalities in VS Code depends on Python itself, we should turn to install Python now. -->
-</section>
-<section id="python-virtual-environment-installation" class="level2" data-number="A.2">
-<h2 data-number="A.2" class="anchored" data-anchor-id="python-virtual-environment-installation"><span class="header-section-number">A.2</span> Python Virtual Environment installation</h2>
-<p>There are many tools available for managing Python environments and packages. As of Summer 2026, <code>uv</code> has become one of the most popular choices.</p>
-<p><code>uv</code> is an all-in-one tool for managing Python installations, virtual environments, and project dependencies. With <code>uv</code>, you do not need to install Python separately, as it can download and manage Python versions for you. You may visit the <a href="https://docs.astral.sh/uv/getting-started/installation/">official documentation</a> to install <code>uv</code>.</p>
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Caution</span>Windows headache
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>There is a possibility that Smart App Control (SAC) or other Application Control policies in Windows 11 may block the execution of <code>uv.exe</code>. In this case, you may see a message similar to</p>
-<pre class="text"><code>'C:\Users\WDAGUtilityAccount\.local\bin\uv.exe'
-was blocked by your organization's Device Guard policy.
-Contact your support person for more info.</code></pre>
-<p>This may occur because Windows does not yet consider the executable sufficiently trusted under its application-control policies.</p>
-<p>If this happens, note that the exact cause and solution can vary across machines, Windows versions, and security configurations. In addition, both Windows and <code>uv</code> are evolving rapidly, so solutions that work today may change in the future.</p>
-<p>You are encouraged to search for the solution that best fits your situation. For this course, one workaround is to use WSL (see <a href="#sec-wsl" class="quarto-xref"><span>Section A.4</span></a>).</p>
-</div>
-</div>
-</div>
-<p>After installation (and you may need to restart VS Code or open a new terminal window so that the <code>uv</code> command becomes available), you can use the following commands to verify that <code>uv</code> is working correctly.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Command</th>
-<th>Purpose</th>
-<th>Example Output</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>uv --version</code></td>
-<td>Display the installed <code>uv</code> version. Useful for verifying that <code>uv</code> is installed correctly.</td>
-<td><code>uv 0.11.17</code></td>
-</tr>
-<tr class="even">
-<td><code>uv self update</code></td>
-<td>Update <code>uv</code> itself to the latest available version. Similar to updating package managers such as <code>pip</code> or <code>cargo</code>.</td>
-<td><code>Upgraded uv from v0.11.4 to v0.11.17!</code></td>
-</tr>
-<tr class="odd">
-<td><code>uv python list</code></td>
-<td>Show all Python versions available locally and those that can be installed through <code>uv</code>.</td>
-<td>Lists installed and downloadable Python versions.</td>
-</tr>
-</tbody>
-</table>
-<section id="install-the-first-python" class="level3" data-number="A.2.1">
-<h3 data-number="A.2.1" class="anchored" data-anchor-id="install-the-first-python"><span class="header-section-number">A.2.1</span> Install the first Python</h3>
-<p>Since VS Code often expects to discover at least one Python interpreter before it can fully initialize its Python and Jupyter services, we first install a Python version managed by <code>uv</code>.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> python install</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This Python installation is managed entirely by <code>uv</code>; it is not intended to be used directly for course work. Instead, it serves as a bootstrap interpreter that allows VS Code to detect Python correctly and manage project-specific virtual environments more reliably. You can verify the installed Python versions using <code>uv python list</code> as mentioned above.</p>
-<p>If you skip this step and directly jump into the virtual environment, there is a possibility that Python in VS Code doesn’t work well.</p>
-</section>
-<section id="setup-the-environment-for-the-course" class="level3" data-number="A.2.2">
-<h3 data-number="A.2.2" class="anchored" data-anchor-id="setup-the-environment-for-the-course"><span class="header-section-number">A.2.2</span> Setup the environment for the course</h3>
-<p>To set up the environment for this course, we provide the <a href="../../pyproject.toml">toml file</a> and <a href="../../.python-version">python version file</a> for this course.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[project]</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">name</span> <span class="op">=</span> <span class="st">"STAT432"</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">version</span> <span class="op">=</span> <span class="st">"0.1.0"</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="dt">requires-python</span> <span class="op">=</span> <span class="st">"&gt;=3.13"</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="dt">dependencies</span> <span class="op">=</span> <span class="op">[</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"jupyter&gt;=1.1.1"</span><span class="op">,</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"matplotlib&gt;=3.10.9"</span><span class="op">,</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"openpyxl&gt;=3.1.5"</span><span class="op">,</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pandas&gt;=3.0.2"</span><span class="op">,</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"scikit-learn&gt;=1.8.0"</span><span class="op">,</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"seaborn&gt;=0.13.2"</span><span class="op">,</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"statsmodels&gt;=0.14.6"</span><span class="op">,</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"xgboost&gt;=3.2.0"</span><span class="op">,</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The python version file only contains the version number <code>3.13</code> inside since this is the version of Python I use when I wrote the notes. You may either download the file and put it inside the folder or create a file with the name <code>.python-version</code> and write <code>3.13</code> inside.</p>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Warning</span>Autosave
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Before proceeding, make sure the file is saved.</p>
-<p>By default, VS Code does not enable Auto Save. If you see a small dot next to the file name, the file contains unsaved changes.</p>
-<p><img src="assets/img/20260529122024.png" class="img-fluid"></p>
-<p>Many beginner problems occur because they modify a file but forget to save it before running commands.</p>
-</div>
-</div>
-<ol type="1">
-<li>Create a new folder. The folder name is irrelevant. Put the files <code>pyproject.toml</code> and <code>.python-version</code> in the folder.</li>
-<li>Open a terminal (no matter whether within VS Code or not) and enter the folder. Use the command <code>uv sync</code>.</li>
-</ol>
-<p>After the command finishes, <code>uv</code> creates a virtual environment named <code>.venv</code> and installs all required packages specified in <code>pyproject.toml</code>. The resulting environment should closely match the one used to prepare these notes.</p>
-<p>Now it is possible to start using the virtual environment for the course. In case that you need to modify the virtual environment, please continue the read the following optional part.</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Jupyter kernels and modifying venv
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>A Jupyter kernel is the Python environment used by a notebook. When a notebook cell is executed, the code runs inside the selected kernel. For this reason, it is important to connect the notebook to the kernel associated with your course virtual environment.</p>
-<p>Modern versions of VS Code can often detect a virtual environment automatically and use it directly as a notebook kernel without requiring you to manually register a Jupyter kernel using <code>ipykernel</code> install. Therefore if everything works well the actions before this note is enough.</p>
-<p>However, there are situations in which you may need to create a dedicated Jupyter kernel manually. In addition, you may occasionally need to modify the virtual environment by installing additional packages. Therefore, it is useful to understand these operations.</p>
-<ol type="1">
-<li>Activate the virvutal environment.</li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Windows</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Linux / macOS</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<ol start="2" type="1">
-<li>After activation, your terminal prompt will typically change to something like indicating that the virtual environment is active:</li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Windows</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">stat432</span><span class="kw">)</span> <span class="ex">C:\Users\yourname\project</span><span class="op">&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Linux / macOS</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">stat432</span><span class="kw">)</span> <span class="ex">user@computer:~/project$</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Note that the name <code>stat432</code> is indicated in the <code>pyproject.toml</code> that <code>name = "STAT432"</code>. It doesn’t do anything special if you don’t publish this environment. It is different from the jupyter kernel name.</p>
-<ol start="3" type="1">
-<li>You may use <code>where python</code> (Windows) or <code>which python</code> (Linux / macOS) to see whether the correct python version is activated. The path should be <code>.venv</code> in the current folder.</li>
-<li>To install an additional package and update the project configuration, use</li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> add <span class="op">&lt;</span>package name<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>More commands can be found in <a href="https://docs.astral.sh/uv/getting-started/"><code>uv</code> official document</a>.</p>
-<ol start="5" type="1">
-<li>If you need to create a dedicated Jupyter kernel, run</li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> ipykernel install <span class="at">--user</span> <span class="at">--name</span> stats <span class="at">--display-name</span> <span class="st">"(stats)"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Note that <code>--name stats</code> specifies the kernel identifier. In this example the identifier is <code>stats</code>, but you may choose any name that is easy for you to recognize. Later, when selecting a kernel in Jupyter or VS Code, this identifier is used internally to distinguish one kernel from another, so it should be unique on your system.</p>
-<p>The option <code>--display-name "(stats)"</code> specifies the name displayed in Jupyter and VS Code when selecting a kernel. Unlike <code>--name</code>, the display name does not need to be unique, although choosing a descriptive name is recommended.</p>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="back-to-vs-code-and-start-jupyter-notebook" class="level2" data-number="A.3">
-<h2 data-number="A.3" class="anchored" data-anchor-id="back-to-vs-code-and-start-jupyter-notebook"><span class="header-section-number">A.3</span> Back to VS Code and start Jupyter notebook</h2>
-<p>After Python is installed and virtual environment is set up, we could start to do a Hello World project.</p>
-<p>The way VS Code organizes projects is through folders by default. So we first start a new folder (called the working folder) and all project related files should be put inside this folder. (There are ways to work with files outside the working folder, but you don’t need it in most cases.)</p>
-<p>Since we already set up a folder (with a virtual environment), we open it as our working folder.</p>
-<p><img src="assets/img/20250811124111.png" class="img-fluid"></p>
-<p>The folder already contains the project files and the environment files. You may see them from the file explorer.</p>
-<p><img src="assets/img/20260529132900.png" class="img-fluid"></p>
-<p>Then you may create new files/folders or copy files/folders into this working folder. For demonstration a new file called <code>helloworld.ipynb</code> is created.</p>
-<p><img src="assets/img/20260529133205.png" class="img-fluid"></p>
-<p><code>ipynb</code> means this is a Jupyter notebook file (which is short for <code>interactive Python notebook</code>). This is the format for this course’s homework assignment.</p>
-<p>This is the appearance of an empty notebook file.</p>
-<p><img src="assets/img/20260529133321.png" class="img-fluid"></p>
-<p>We attach the kernel we just created to this notebook. Click the <code>Select Kernel</code> / <code>Detecting Kernels</code> on the right upper corner and select the environment we want.</p>
-<p><img src="assets/img/20260529150001.png" class="img-fluid"></p>
+<p>One of the best features of a Jupyter Notebook is that it can combine code, narrative text, and output in a single file.</p>
+<p>There are two types of cells in a notebook: Code cells and Markdown cells.</p>
 <ul>
-<li>If you created a new Jupyter kernel, you can find it from <code>Jupyter kernel...</code>.</li>
-<li>If not, you can find your virtual environement in the working folder from <code>Python Environments...</code>.</li>
+<li>Code cells are used to run Python code.</li>
+<li>Markdown cells are used to write text, explanations, equations, and documentation.</li>
 </ul>
-<p><img src="assets/img/20260530232943.png" class="img-fluid"></p>
-<p>After the kernel is selected, we could start using the notebook. I prefer to use the following code as hello world. It can also tell us whether the correct python is used.</p>
-<div id="7d56bd1d" class="cell" data-execution_count="1">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sys.executable)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p><img src="assets/img/20260530233118.png" class="img-fluid"></p>
-</section>
-<section id="sec-wsl" class="level2" data-number="A.4">
-<h2 data-number="A.4" class="anchored" data-anchor-id="sec-wsl"><span class="header-section-number">A.4</span> WSL</h2>
-<p>WSL stands for Windows subsystem for Linux. It allows you to run a Linux environment directly inside Windows without installing a separate operating system.</p>
-<p>To install WSL, please follow the <a href="https://learn.microsoft.com/en-us/windows/wsl/install">official Microsoft guide</a>.</p>
-<p>After installation, you will have a Linux system (usually Ubuntu) running alongside Windows. The Linux file system is separate from the Windows file system, although you can access it through File Explorer.</p>
-<p><img src="assets/img/20260601170305.png" class="img-fluid"></p>
-<p>VS Code provides excellent support for WSL through the Remote WSL extension. To open a WSL window, you may:</p>
-<ul>
-<li>Click the button in the lower-left corner of VS Code <img src="assets/img/20260601170444.png" class="img-fluid"></li>
-<li>Or open the Command Palette (<code>Ctrl+Shift+P</code> or <code>F1</code>), search for <code>WSL</code>, and select one of the available options. For most situations, <code>Connect to WSL in New Window</code> is the easiest choice. <img src="assets/img/20260601170609.png" class="img-fluid"></li>
-</ul>
-<p>Once connected to WSL, you are working inside a Linux environment rather than Windows.</p>
-<p>Because WSL is a separate system, you will need to:</p>
-<ul>
-<li>Open your project folder again.</li>
-<li>Install Python and other tools inside WSL.</li>
-<li>Create virtual environments inside WSL.</li>
-<li>Install packages inside WSL.</li>
-</ul>
-<p>You may follow the same instructions presented earlier to install <code>uv</code> and set up your Python environment. The overall process is the same, although the commands will be the Linux versions rather than the Windows versions.</p>
-<p>Note that if you install <code>uv</code> in Windows, it is not automatically available inside WSL. Similarly, software installed inside WSL is generally not available in Windows.</p>
-<p>In practice, it is usually easiest to keep an entire project inside WSL and perform all Python-related work there.</p>
+<p>In statistical learning, code cells are typically used for data analysis, model fitting, and computations, while Markdown cells are used to explain the methods, interpret the results, and document the workflow.</p>
+<p><img src="assets/img/20260530234530.png" class="img-fluid"></p>
+<p>A notebook combines code, output, and narrative in a single document, making it an ideal environment for data science and machine learning.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -768,9 +555,177 @@ Tip
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Avoid storing virtual environments inside the Windows file system when working primarily in WSL. For best performance and compatibility, create your project folders inside your Linux home directory (for example, <code>~/Project</code>) rather than in mounted Windows directories (for example, <code>/mnt/c/...</code>).</p>
+<p>You can always click the small <code>Edit</code> / <code>Stop Editing</code> button to preview how your Markdown text will be rendered.</p>
 </div>
 </div>
+<p><img src="assets/img/20260530233822.png" class="img-fluid"></p>
+<p><img src="assets/img/20260530233847.png" class="img-fluid"></p>
+<p>Markdown is a lightweight text format. In this course, we will use only the most basic Markdown syntax.</p>
+<section id="text-formatting" class="level2" data-number="B.1">
+<h2 data-number="B.1" class="anchored" data-anchor-id="text-formatting"><span class="header-section-number">B.1</span> Text Formatting</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Markdown Syntax</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>*italics*, **bold**, ***bold italics***</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
+<td><em>italics</em>, <strong>bold</strong>, <strong><em>bold italics</em></strong></td>
+</tr>
+<tr class="even">
+<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>superscript^2^ / subscript~2~</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
+<td>superscript<sup>2</sup> / subscript<sub>2</sub></td>
+</tr>
+<tr class="odd">
+<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>~~strikethrough~~</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
+<td><del>strikethrough</del></td>
+</tr>
+<tr class="even">
+<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="in">`verbatim code`</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
+<td><code>verbatim code</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="headings" class="level2" data-number="B.2">
+<h2 data-number="B.2" class="anchored" data-anchor-id="headings"><span class="header-section-number">B.2</span> Headings</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Markdown Syntax</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Heading 1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
+<td><h1 id="heading-1" class="unnumbered">Heading 1</h1></td>
+</tr>
+<tr class="even">
+<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">## Heading 2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
+<td><h2 id="heading-2" class="unnumbered anchored">Heading 2</h2></td>
+</tr>
+<tr class="odd">
+<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">### Heading 3</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
+<td><h3 id="heading-3" class="unnumbered anchored">Heading 3</h3></td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note that for heading, there is a space after <code>#</code>.</p>
+</div>
+</div>
+</section>
+<section id="lists" class="level2" data-number="B.3">
+<h2 data-number="B.3" class="anchored" data-anchor-id="lists"><span class="header-section-number">B.3</span> Lists</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Markdown Syntax</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>unordered list</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ss">  + </span>sub-item 1</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  + </span>sub-item 2</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>sub-sub-item 1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
+<td><ul>
+<li>unordered list
+<ul>
+<li>sub-item 1</li>
+<li>sub-item 2
+<ul>
+<li>sub-sub-item 1</li>
+</ul></li>
+</ul></li>
+</ul></td>
+</tr>
+<tr class="even">
+<td><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>ordered list</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>item 2</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>   i) sub-item 1</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>      A.  sub-sub-item 1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></td>
+<td><ol type="1">
+<li>ordered list</li>
+<li>item 2
+<ol type="i">
+<li>sub-item 1
+<ol type="A">
+<li>sub-sub-item 1</li>
+</ol></li>
+</ol></li>
+</ol></td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note that for lists, there is a space after <code>.</code>.</p>
+</div>
+</div>
+</section>
+<section id="essential-latex" class="level2" data-number="B.4">
+<h2 data-number="B.4" class="anchored" data-anchor-id="essential-latex"><span class="header-section-number">B.4</span> Essential LaTeX</h2>
+<p>Use single dollar signs for inline math:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>The fitted value is $\hat y_i$.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<blockquote class="blockquote">
+<p>The fitted value is <span class="math inline">\(\hat y_i\)</span>.</p>
+</blockquote>
+<p>Use double dollar signs for displayed equations:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>Y = \beta_0 + \beta_1 X + \epsilon.</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>$$</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><span class="math display">\[
+Y = \beta_0 + \beta_1 X + \epsilon.
+\]</span></p>
+<p>Common symbols:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>$\hat y$        predicted value</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>$\bar x$        sample mean</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>$\beta_0$       coefficient</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>$X^\top X$      transpose</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>$\sum_{i=1}^n$  summation</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<blockquote class="blockquote">
+<p><span class="math inline">\(\hat y\)</span>: predicted value</p>
+<p><span class="math inline">\(\bar x\)</span>: sample mean</p>
+<p><span class="math inline">\(\beta_0\)</span>: coefficient</p>
+<p><span class="math inline">\(X^\top X\)</span>: transpose</p>
+<p><span class="math inline">\(\sum_{i=1}^n\)</span>: summation</p>
+</blockquote>
+<p>LaTeX supports a wide range of mathematical notation, but the basic symbols introduced here will be enough for all of the work in this course.</p>
 
 
 </section>
@@ -1232,13 +1187,13 @@ Tip
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../contents/2/boost.html" class="pagination-link" aria-label="Boosting">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Boosting</span></span>
+      <a href="../../contents/app/ide.html" class="pagination-link" aria-label="Python IDE Setup">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Python IDE Setup</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../contents/app/md.html" class="pagination-link" aria-label="Jupyter Notebook and Markdown">
-        <span class="nav-page-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Jupyter Notebook and Markdown</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../contents/app/python.html" class="pagination-link" aria-label="Python Basics for `sklearn`">
+        <span class="nav-page-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Python Basics for <code>sklearn</code></span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
