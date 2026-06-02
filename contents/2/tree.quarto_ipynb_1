@@ -85,7 +85,7 @@
         "\n",
         "<!-- fmt: off -->"
       ],
-      "id": "64bfe06f"
+      "id": "86b3a2d4"
     },
     {
       "cell_type": "code",
@@ -110,7 +110,7 @@
         "\n",
         "plot_tree(clf, filled=True, impurity=True, node_ids=True);  "
       ],
-      "id": "7e039b91",
+      "id": "1a46e9ce",
       "execution_count": null,
       "outputs": []
     },
@@ -132,7 +132,7 @@
         "\n",
         "<!-- fmt: off -->"
       ],
-      "id": "138072bc"
+      "id": "45846be9"
     },
     {
       "cell_type": "code",
@@ -168,7 +168,7 @@
         "ax.set_xlim(xmin, xmax)\n",
         "ax.set_ylim(ymin, ymax);"
       ],
-      "id": "737f7719",
+      "id": "d25daff7",
       "execution_count": null,
       "outputs": []
     },
@@ -523,7 +523,7 @@
         "\n",
         "<!-- fmt: off -->"
       ],
-      "id": "964290a3"
+      "id": "5f1930cb"
     },
     {
       "cell_type": "code",
@@ -535,7 +535,7 @@
         "plt.figure(figsize=(5, 5), dpi=300)\n",
         "plot_tree(clf, filled=True, impurity=True, node_ids=True);"
       ],
-      "id": "85bf2b8c",
+      "id": "09db3f0c",
       "execution_count": null,
       "outputs": []
     },
@@ -547,7 +547,7 @@
         "\n",
         "In this example there is one exception. #13 node is not pure. We could list all data in node #13. "
       ],
-      "id": "f6b2289c"
+      "id": "178313d6"
     },
     {
       "cell_type": "code",
@@ -562,7 +562,7 @@
         "\n",
         "pd.DataFrame({\"x[0]\": X[nodeids, 0], \"x[1]\": X[nodeids, 1], \"y\": y[nodeids]})"
       ],
-      "id": "5a9cb1b6",
+      "id": "36672846",
       "execution_count": null,
       "outputs": []
     },
@@ -666,7 +666,7 @@
         "\n",
         "The `iris` dataset is a classic classification dataset. The goal is to use four numeric flower measurements to classify the species of iris. The dataset contains 150 observations and 3 classes. More information can be found in the `sklearn` [documentation]((https://scikit-learn.org/stable/datasets/toy_dataset.html#iris-dataset)) for datasets.\n"
       ],
-      "id": "15298df5"
+      "id": "2ad60687"
     },
     {
       "cell_type": "code",
@@ -682,7 +682,7 @@
         "\n",
         "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)"
       ],
-      "id": "2802cfd2",
+      "id": "536d97fc",
       "execution_count": null,
       "outputs": []
     },
@@ -692,7 +692,7 @@
       "source": [
         "The following code shows the basic `sklearn` API."
       ],
-      "id": "d4b75a60"
+      "id": "d4c8e62e"
     },
     {
       "cell_type": "code",
@@ -704,7 +704,7 @@
         "clf.fit(X_train, y_train)\n",
         "clf.score(X_test, y_test)"
       ],
-      "id": "4c522259",
+      "id": "75589b94",
       "execution_count": null,
       "outputs": []
     },
@@ -717,7 +717,7 @@
         "\n",
         "<!-- fmt: off -->"
       ],
-      "id": "2b19c848"
+      "id": "0a173fa8"
     },
     {
       "cell_type": "code",
@@ -729,7 +729,7 @@
         "plt.figure(figsize=(5, 5), dpi=300)\n",
         "plot_tree(clf, filled=True, impurity=True, node_ids=True); # <1>"
       ],
-      "id": "ee021e5d",
+      "id": "f33ed70e",
       "execution_count": null,
       "outputs": []
     },
@@ -743,7 +743,7 @@
         "\n",
         "Now we prune the tree. We first find all critical `ccp_alpha` values.\n"
       ],
-      "id": "0bc3cc4b"
+      "id": "38eec21b"
     },
     {
       "cell_type": "code",
@@ -752,7 +752,7 @@
         "ccp_path = clf.cost_complexity_pruning_path(X_train, y_train)\n",
         "ccp_alphas = ccp_path.ccp_alphas[:-1]"
       ],
-      "id": "d37766e9",
+      "id": "c1089db5",
       "execution_count": null,
       "outputs": []
     },
@@ -764,7 +764,7 @@
         "\n",
         "We then train one model for each effective `ccp_alpha`. After fitting the trees, we record both predictive performance and model complexity. Here we use `accuracy` as our metric, which comes automatically from `clf.score()`.\n"
       ],
-      "id": "99c781c7"
+      "id": "6f784310"
     },
     {
       "cell_type": "code",
@@ -783,7 +783,7 @@
         "train_acc = [clf.score(X_train, y_train) for clf in clfs]\n",
         "test_acc = [clf.score(X_test, y_test) for clf in clfs]"
       ],
-      "id": "d27b8d5b",
+      "id": "817976b9",
       "execution_count": null,
       "outputs": []
     },
@@ -797,7 +797,7 @@
         "\n",
         "The results are easier to compare visually.\n"
       ],
-      "id": "d718911f"
+      "id": "ca24a10b"
     },
     {
       "cell_type": "code",
@@ -823,7 +823,7 @@
         "ax[0].legend()\n",
         "ax[1].legend(loc=\"lower left\")"
       ],
-      "id": "d5f45278",
+      "id": "9473031b",
       "execution_count": null,
       "outputs": []
     },
@@ -841,7 +841,7 @@
         "\n",
         "<!-- fmt:off -->"
       ],
-      "id": "943185ae"
+      "id": "dee07af0"
     },
     {
       "cell_type": "code",
@@ -851,7 +851,7 @@
         "clf.fit(X_train, y_train)\n",
         "plot_tree(clf, filled=True, impurity=True, node_ids=True);"
       ],
-      "id": "8c34ff38",
+      "id": "7340c9fd",
       "execution_count": null,
       "outputs": []
     },
@@ -875,7 +875,7 @@
         "\n",
         "We now look at a regression example. The `diabetes` dataset uses 10 baseline variables to predict a quantitative measure of disease progression one year after baseline. More information can be found in the `sklearn` [documentation]((https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset)) and the original diabetes dataset [description]((https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html)).\n"
       ],
-      "id": "2f7b3c4e"
+      "id": "f4695fec"
     },
     {
       "cell_type": "code",
@@ -887,7 +887,7 @@
         "X, y = load_diabetes(return_X_y=True)\n",
         "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)"
       ],
-      "id": "d49c90ab",
+      "id": "b80ebe6b",
       "execution_count": null,
       "outputs": []
     },
@@ -899,7 +899,7 @@
         "\n",
         "We first create a temporary tree to compute the critical `ccp_alpha` values. The method `cost_complexity_pruning_path()` internally grows a tree in order to compute the effective pruning path, although the estimator itself is not stored as a fitted model.\n"
       ],
-      "id": "3e23260b"
+      "id": "4fc8df5b"
     },
     {
       "cell_type": "code",
@@ -911,7 +911,7 @@
         "path = base_tree.cost_complexity_pruning_path(X_train, y_train)\n",
         "ccp_alphas = path.ccp_alphas[:-1]"
       ],
-      "id": "1befda66",
+      "id": "6d32f4ab",
       "execution_count": null,
       "outputs": []
     },
@@ -927,7 +927,7 @@
         "\n",
         "Now we run `GridSearchCV` over these `ccp_alpha` values. We use $R^2$ as the model metric in this example. \n"
       ],
-      "id": "92830bb5"
+      "id": "459acc7f"
     },
     {
       "cell_type": "code",
@@ -952,7 +952,7 @@
         "print(f\"Training R^2: {r2_score(y_train, y_pred_train)}\")\n",
         "print(f\"Testing R^2: {r2_score(y_test, y_pred_test)}\")"
       ],
-      "id": "062f1341",
+      "id": "2b818fc8",
       "execution_count": null,
       "outputs": []
     },
@@ -962,7 +962,7 @@
       "source": [
         "We can visualize the cross-validation curve. `GridSearchCV` records validation scores, but it does not automatically record tree complexity measures such as the number of nodes. Therefore, if we want to display the complexity curve, we need to refit the models for the same `ccp_alpha` values and record their node counts."
       ],
-      "id": "6cbe798a"
+      "id": "821d6660"
     },
     {
       "cell_type": "code",
@@ -993,7 +993,7 @@
         "ax[0].legend()\n",
         "ax[1].legend(loc=\"lower left\")"
       ],
-      "id": "c96087ad",
+      "id": "8c032e93",
       "execution_count": null,
       "outputs": []
     },
@@ -1070,7 +1070,7 @@
         "\n",
         " -->\n"
       ],
-      "id": "ab0fd6ca"
+      "id": "2181b428"
     }
   ],
   "metadata": {

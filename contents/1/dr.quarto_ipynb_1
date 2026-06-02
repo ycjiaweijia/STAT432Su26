@@ -164,7 +164,7 @@
         "<summary><strong>Click to expand.</strong></summary>\n",
         "To demonstrate the idea, we generate the following dataset. It contains 2 variables."
       ],
-      "id": "c6a102cd"
+      "id": "4c7e723a"
     },
     {
       "cell_type": "code",
@@ -187,7 +187,7 @@
         "plt.xlabel(\"x1\")\n",
         "plt.ylabel(\"x2\")"
       ],
-      "id": "6f57476a",
+      "id": "843aea2e",
       "execution_count": null,
       "outputs": []
     },
@@ -260,7 +260,7 @@
         "\n",
         "We use the same previous dataset `X`, centering it as `Xc` and standarizing it as `Xs`."
       ],
-      "id": "a4587cbc"
+      "id": "fc84e178"
     },
     {
       "cell_type": "code",
@@ -269,7 +269,7 @@
         "Xc = X - X.mean(axis=0)\n",
         "Xs = Xc / Xc.std(axis=0)"
       ],
-      "id": "28e5ccb2",
+      "id": "12554057",
       "execution_count": null,
       "outputs": []
     },
@@ -279,7 +279,7 @@
       "source": [
         "Now we plot them together with the princial compoenent. `pca()` from `sklearn` will automatically centering columns. In order to show the sceanario, we use `svd()` from `numpy.linalg` to do the computation.\n"
       ],
-      "id": "37cd993e"
+      "id": "0708fb43"
     },
     {
       "cell_type": "code",
@@ -316,7 +316,7 @@
         "\n",
         "plt.tight_layout()"
       ],
-      "id": "4c389e24",
+      "id": "80e1e3e2",
       "execution_count": null,
       "outputs": []
     },
@@ -448,7 +448,7 @@
         "\n",
         "`scikit-learn` provides `PCA` for computing principal components. To demonstrate the code we use the same dataset from lasso."
       ],
-      "id": "40f8195f"
+      "id": "977b4068"
     },
     {
       "cell_type": "code",
@@ -477,7 +477,7 @@
         "    X, y, test_size=0.3, random_state=0\n",
         ")"
       ],
-      "id": "e5b50b6c",
+      "id": "4787d5a8",
       "execution_count": null,
       "outputs": []
     },
@@ -487,7 +487,7 @@
       "source": [
         "`pca` is an unsupervised learnning method. Therefore to perform it we only need `X`."
       ],
-      "id": "f94e5c76"
+      "id": "2e00ff87"
     },
     {
       "cell_type": "code",
@@ -497,7 +497,7 @@
         "\n",
         "pca = PCA().fit(X_train)"
       ],
-      "id": "30c4751c",
+      "id": "c525e10e",
       "execution_count": null,
       "outputs": []
     },
@@ -507,7 +507,7 @@
       "source": [
         "All important information can be accessed from the returned object."
       ],
-      "id": "c5e7051e"
+      "id": "9533108d"
     },
     {
       "cell_type": "code",
@@ -519,7 +519,7 @@
         "var = pca.explained_variance_           # variance that are explained\n",
         "ratio = pca.explained_variance_ratio_   # the ratio of variance that are explained"
       ],
-      "id": "e1e38e2f",
+      "id": "6c976fc8",
       "execution_count": null,
       "outputs": []
     },
@@ -529,7 +529,7 @@
       "source": [
         "With `var` and `ratio`, we may plot the scree plot (although we won't really use it to select the number of components).\n"
       ],
-      "id": "65220459"
+      "id": "04f8ac15"
     },
     {
       "cell_type": "code",
@@ -555,7 +555,7 @@
         "plt.scatter(elbow_k, elbow_val)\n",
         "plt.text(elbow_k + 0.2, elbow_val + 0.004, f\"k={elbow_k}\\n{elbow_val:.3f}\")"
       ],
-      "id": "5a594731",
+      "id": "ccbdef88",
       "execution_count": null,
       "outputs": []
     },
@@ -573,7 +573,7 @@
         "\n",
         "We first use 13 components (which comes from the scree plot) as our starting point. We will tune it later using cross-validation."
       ],
-      "id": "a0086c67"
+      "id": "eb0d86e1"
     },
     {
       "cell_type": "code",
@@ -598,7 +598,7 @@
         "print(f\"Test RMSE: {mean_squared_error(y_test, y_pred_pcr)}\")\n",
         "print(f\"Test R^2 : {r2_score(y_test, y_pred_pcr)}\")"
       ],
-      "id": "a323cba3",
+      "id": "e3ea8aa4",
       "execution_count": null,
       "outputs": []
     },
@@ -611,7 +611,7 @@
         "### Choosing number of components by cross-validation\n",
         "We use $K$-fold cross validation to find the best number of components. Our criterion is negative MSE."
       ],
-      "id": "0b318d4a"
+      "id": "3a980c88"
     },
     {
       "cell_type": "code",
@@ -632,7 +632,7 @@
         "gs_pcr.fit(X_train, y_train)\n",
         "gs_pcr.best_params_[\"pca__n_components\"]"
       ],
-      "id": "e492cf49",
+      "id": "46e6cce5",
       "execution_count": null,
       "outputs": []
     },
@@ -644,7 +644,7 @@
         "\n",
         "It shows that `{python} gs_pcr.best_params_[\"pca__n_components\"]` is the best number. Then we check the test result."
       ],
-      "id": "35526327"
+      "id": "d696c48d"
     },
     {
       "cell_type": "code",
@@ -655,7 +655,7 @@
         "print(f\"Test RMSE: {mean_squared_error(y_test, y_pred_pcr)}\")\n",
         "print(f\"Test R^2 : {r2_score(y_test, y_pred_pcr)}\")"
       ],
-      "id": "ae8310c8",
+      "id": "26b9d7e2",
       "execution_count": null,
       "outputs": []
     },
@@ -667,7 +667,7 @@
         "\n",
         "We could also look at the validation curve on the mean test score."
       ],
-      "id": "3c59b4fb"
+      "id": "b75fcf42"
     },
     {
       "cell_type": "code",
@@ -680,7 +680,7 @@
         "plt.axvline(13, linestyle=\"--\", color=\"blue\", label=\"best_elbow\")\n",
         "plt.legend()"
       ],
-      "id": "cead7740",
+      "id": "ecfad072",
       "execution_count": null,
       "outputs": []
     },
@@ -881,7 +881,7 @@
         "\n",
         "We choose the default number of componenets (which is 2) here. The specific hyperparameter will be tuned later by cross-validation."
       ],
-      "id": "13f82cb1"
+      "id": "9e23cd3d"
     },
     {
       "cell_type": "code",
@@ -894,7 +894,7 @@
         "\n",
         "pls.fit(X_train, y_train)"
       ],
-      "id": "18deb33e",
+      "id": "cd71a70d",
       "execution_count": null,
       "outputs": []
     },
@@ -904,7 +904,7 @@
       "source": [
         "We could use the following code to get access to the parameters."
       ],
-      "id": "33a06fbb"
+      "id": "0a759f02"
     },
     {
       "cell_type": "code",
@@ -915,7 +915,7 @@
         "Z = pls.x_scores_     # scores, components (Z)\n",
         "P = pls.x_loadings_   # loadings (P)"
       ],
-      "id": "75e327d2",
+      "id": "0e65b4d4",
       "execution_count": null,
       "outputs": []
     },
@@ -927,7 +927,7 @@
         "\n",
         "We use the same simulated dataset as before.\n"
       ],
-      "id": "92490b75"
+      "id": "29b52025"
     },
     {
       "cell_type": "code",
@@ -956,7 +956,7 @@
         "    X, y, test_size=0.3, random_state=0\n",
         ")"
       ],
-      "id": "c4ab13f3",
+      "id": "d399d034",
       "execution_count": null,
       "outputs": []
     },
@@ -966,7 +966,7 @@
       "source": [
         "Similar to PCR, we need to choose the number of components. Since PLS is fit inside cross-validation, the maximum number of components should be no larger than the number of observations in each training fold."
       ],
-      "id": "5f6a77aa"
+      "id": "f1dc35b9"
     },
     {
       "cell_type": "code",
@@ -988,7 +988,7 @@
         "gs_pls.fit(X_train, y_train)\n",
         "gs_pls.best_params_[\"n_components\"]"
       ],
-      "id": "9407e5d2",
+      "id": "83675827",
       "execution_count": null,
       "outputs": []
     },
@@ -998,7 +998,7 @@
       "source": [
         "After selecting the number of components by cross-validation, we evaluate the fitted model on the test set."
       ],
-      "id": "dd4ba990"
+      "id": "ac4bb29c"
     },
     {
       "cell_type": "code",
@@ -1009,7 +1009,7 @@
         "print(f\"Test RMSE: {mean_squared_error(y_test, y_pred_pls)}\")\n",
         "print(f\"Test R^2 : {r2_score(y_test, y_pred_pls)}\")"
       ],
-      "id": "d2584e73",
+      "id": "4feaface",
       "execution_count": null,
       "outputs": []
     },
@@ -1019,7 +1019,7 @@
       "source": [
         "The validation curve shows how the cross-validation error changes as the number of PLS components increases."
       ],
-      "id": "506b5c28"
+      "id": "0de9bf62"
     },
     {
       "cell_type": "code",
@@ -1036,7 +1036,7 @@
         ")\n",
         "plt.legend()"
       ],
-      "id": "8f3ae52b",
+      "id": "819223dc",
       "execution_count": null,
       "outputs": []
     },
@@ -1058,7 +1058,7 @@
         "\n",
         "The results for this dataset are summarized in the following table.\n"
       ],
-      "id": "2a6f007f"
+      "id": "9ac9d353"
     },
     {
       "cell_type": "code",
@@ -1159,7 +1159,7 @@
         "\n",
         "    return pd.DataFrame(rows).set_index(\"Model\")"
       ],
-      "id": "0f443570",
+      "id": "84661de4",
       "execution_count": null,
       "outputs": []
     },
@@ -1171,7 +1171,7 @@
         "#| warning: false\n",
         "run_comparison(X_train, X_test, y_train, y_test)"
       ],
-      "id": "2ee3c407",
+      "id": "dc937397",
       "execution_count": null,
       "outputs": []
     },
@@ -1205,7 +1205,7 @@
         "- Therefore, the predictive signal lies in low-variance but structured (low-rank) directions of $X$.\n",
         "- For simplicity, we take $Z_1$ to be one-dimensional in the following example.\n"
       ],
-      "id": "8989bc71"
+      "id": "774ab7db"
     },
     {
       "cell_type": "code",
@@ -1232,7 +1232,7 @@
         "\n",
         "y = 12 * Z_1.ravel() + 0.5 * rng.normal(size=n)"
       ],
-      "id": "835bb031",
+      "id": "a6b9f65e",
       "execution_count": null,
       "outputs": []
     },
@@ -1249,7 +1249,7 @@
         ")\n",
         "run_comparison(X_train, X_test, y_train, y_test, ols_in=False)"
       ],
-      "id": "b2ccb2bc",
+      "id": "a147fbdd",
       "execution_count": null,
       "outputs": []
     },
@@ -1291,7 +1291,7 @@
         "This example illustrates that OLS does not necessarily fail in high-dimensional settings. When the signal lies in a well-represented low-dimensional subspace and the noise level is moderate, the minimum-norm solution can still achieve good predictive performance.\n",
         "::: -->"
       ],
-      "id": "3ce83b85"
+      "id": "79403396"
     }
   ],
   "metadata": {

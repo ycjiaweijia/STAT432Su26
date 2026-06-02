@@ -458,7 +458,7 @@
         "\n",
         "We use a pipeline with standardization. Scaling is especially important for penalized logistic regression, because the penalty is applied to coefficients."
       ],
-      "id": "ea01abc5"
+      "id": "e0e9d384"
     },
     {
       "cell_type": "code",
@@ -496,7 +496,7 @@
         "test_prob = logit.predict_proba(X_test)[:, 1]\n",
         "test_pred = logit.predict(X_test)"
       ],
-      "id": "247e336c",
+      "id": "cedd7818",
       "execution_count": null,
       "outputs": []
     },
@@ -506,7 +506,7 @@
       "source": [
         "`predict` returns class labels. `predict_proba` returns estimated class probabilities."
       ],
-      "id": "32b3ab71"
+      "id": "c3d7066d"
     },
     {
       "cell_type": "code",
@@ -514,7 +514,7 @@
       "source": [
         "logit.predict_proba(X_test[:5])"
       ],
-      "id": "2db8630c",
+      "id": "3fba1dd3",
       "execution_count": null,
       "outputs": []
     },
@@ -535,7 +535,7 @@
         "\n",
         "Threshold-based metrics compare true labels with predicted labels."
       ],
-      "id": "6f0e084e"
+      "id": "e59fcbd7"
     },
     {
       "cell_type": "code",
@@ -551,7 +551,7 @@
         "\n",
         "confusion_matrix(y_test, test_pred)"
       ],
-      "id": "6a7e3f3e",
+      "id": "6065decd",
       "execution_count": null,
       "outputs": []
     },
@@ -570,7 +570,7 @@
         "\n",
         "We can extract the four entries and compute common metrics."
       ],
-      "id": "924dabeb"
+      "id": "df496c16"
     },
     {
       "cell_type": "code",
@@ -587,7 +587,7 @@
         "\n",
         "basic_metrics"
       ],
-      "id": "8b159120",
+      "id": "c42bbdf9",
       "execution_count": null,
       "outputs": []
     },
@@ -605,7 +605,7 @@
         "- tune it on validation data or by cross-validation for a target metric;\n",
         "- derive it from an explicit cost function when error costs are known."
       ],
-      "id": "be776f2c"
+      "id": "365e4e3c"
     },
     {
       "cell_type": "code",
@@ -616,7 +616,7 @@
         "\n",
         "confusion_matrix(y_test, pred_03)"
       ],
-      "id": "ba6027de",
+      "id": "e7fed3f8",
       "execution_count": null,
       "outputs": []
     },
@@ -626,7 +626,7 @@
       "source": [
         "A small helper function makes it easier to compare thresholds."
       ],
-      "id": "e4a459bc"
+      "id": "2d860b24"
     },
     {
       "cell_type": "code",
@@ -648,7 +648,7 @@
         "        \"f1\": f1_score(y_true, pred, zero_division=0),\n",
         "    }"
       ],
-      "id": "1375c0c9",
+      "id": "594f65bb",
       "execution_count": null,
       "outputs": []
     },
@@ -658,7 +658,7 @@
       "source": [
         "For illustration, first examine a grid of thresholds on the current evaluation data. In a real analysis, the threshold should be selected on validation data or through cross-validation, not on the final test set."
       ],
-      "id": "b5cb79b5"
+      "id": "c8414261"
     },
     {
       "cell_type": "code",
@@ -675,7 +675,7 @@
         "\n",
         "threshold_df.head()"
       ],
-      "id": "1e7ef238",
+      "id": "9d0e9cee",
       "execution_count": null,
       "outputs": []
     },
@@ -685,7 +685,7 @@
       "source": [
         "Plot precision and recall as functions of the threshold."
       ],
-      "id": "810e8a65"
+      "id": "eefe0c92"
     },
     {
       "cell_type": "code",
@@ -700,7 +700,7 @@
         "plt.title(\"Precision and Recall versus Threshold\")\n",
         "plt.legend()"
       ],
-      "id": "22b6c9eb",
+      "id": "04206ea8",
       "execution_count": null,
       "outputs": []
     },
@@ -722,7 +722,7 @@
         "\n",
         "The following example chooses the threshold that maximizes validation F1 score."
       ],
-      "id": "8b269837"
+      "id": "d191be27"
     },
     {
       "cell_type": "code",
@@ -759,7 +759,7 @@
         "\n",
         "best_f1_row"
       ],
-      "id": "f9ff1f49",
+      "id": "83ac6fc9",
       "execution_count": null,
       "outputs": []
     },
@@ -769,7 +769,7 @@
       "source": [
         "The selected threshold can then be applied to the test probabilities from the original fitted model."
       ],
-      "id": "8083824b"
+      "id": "1b70383a"
     },
     {
       "cell_type": "code",
@@ -783,7 +783,7 @@
         "    threshold=best_threshold,\n",
         ")"
       ],
-      "id": "006c58ab",
+      "id": "d9dc297c",
       "execution_count": null,
       "outputs": []
     },
@@ -793,7 +793,7 @@
       "source": [
         "The same idea can be used for other goals. For example, we may want the largest recall among thresholds whose precision is at least $0.90$."
       ],
-      "id": "93efc770"
+      "id": "a8e03024"
     },
     {
       "cell_type": "code",
@@ -809,7 +809,7 @@
         "\n",
         "best_recall_row"
       ],
-      "id": "8430aff4",
+      "id": "6fa406e5",
       "execution_count": null,
       "outputs": []
     },
@@ -823,7 +823,7 @@
         "    threshold=best_recall_row[\"threshold\"],\n",
         ")"
       ],
-      "id": "3b3fe43f",
+      "id": "8078c0f8",
       "execution_count": null,
       "outputs": []
     },
@@ -837,7 +837,7 @@
         "\n",
         "If the threshold is fixed in advance, use `FixedThresholdClassifier`."
       ],
-      "id": "3dbbe4f3"
+      "id": "8d788d34"
     },
     {
       "cell_type": "code",
@@ -858,7 +858,7 @@
         "\n",
         "confusion_matrix(y_test, fixed_pred)"
       ],
-      "id": "90fc13fb",
+      "id": "b2ce27ea",
       "execution_count": null,
       "outputs": []
     },
@@ -868,7 +868,7 @@
       "source": [
         "If the threshold should be selected from data, use `TunedThresholdClassifierCV`. This performs cross-validation to choose a threshold for a specified scoring criterion."
       ],
-      "id": "874c423e"
+      "id": "510ff1d0"
     },
     {
       "cell_type": "code",
@@ -895,7 +895,7 @@
         "    \"f1\": f1_score(y_test, tuned_pred),\n",
         "}"
       ],
-      "id": "087847cd",
+      "id": "08fe0ac7",
       "execution_count": null,
       "outputs": []
     },
@@ -932,7 +932,7 @@
         "0.167.\n",
         "$$"
       ],
-      "id": "ee99f6fb"
+      "id": "45e349e8"
     },
     {
       "cell_type": "code",
@@ -949,7 +949,7 @@
         "    threshold=cost_threshold,\n",
         ")"
       ],
-      "id": "8ba872c6",
+      "id": "a499e613",
       "execution_count": null,
       "outputs": []
     },
@@ -990,7 +990,7 @@
         "\n",
         "The ROC curve plots $TPR(c)$ against $FPR(c)$ as the threshold varies over the range of possible scores."
       ],
-      "id": "dcd2962a"
+      "id": "5d1f8e36"
     },
     {
       "cell_type": "code",
@@ -1008,7 +1008,7 @@
         "plt.title(\"ROC Curve\")\n",
         "plt.legend()"
       ],
-      "id": "492991b9",
+      "id": "af673630",
       "execution_count": null,
       "outputs": []
     },
@@ -1033,7 +1033,7 @@
         "\n",
         "Precision-recall curves are often useful when the positive class is rare or when performance on the positive class is the main concern."
       ],
-      "id": "2591972a"
+      "id": "13da4588"
     },
     {
       "cell_type": "code",
@@ -1050,7 +1050,7 @@
         "plt.title(\"Precision-Recall Curve\")\n",
         "plt.legend()"
       ],
-      "id": "c079a28f",
+      "id": "f49d9231",
       "execution_count": null,
       "outputs": []
     },
@@ -1088,7 +1088,7 @@
         "\\right].\n",
         "$$"
       ],
-      "id": "b3efb47a"
+      "id": "a743e435"
     },
     {
       "cell_type": "code",
@@ -1103,7 +1103,7 @@
         "\n",
         "probability_scores"
       ],
-      "id": "7460855c",
+      "id": "ae27da23",
       "execution_count": null,
       "outputs": []
     },
@@ -1113,7 +1113,7 @@
       "source": [
         "Calibration curves diagnose whether predicted probabilities are numerically meaningful."
       ],
-      "id": "28ba2df3"
+      "id": "9b6a178d"
     },
     {
       "cell_type": "code",
@@ -1129,7 +1129,7 @@
         ")\n",
         "plt.title(\"Calibration Curve\")"
       ],
-      "id": "6ed1f58c",
+      "id": "c00252ec",
       "execution_count": null,
       "outputs": []
     },
@@ -1144,7 +1144,7 @@
         "\n",
         "With two predictors, we can visualize the fitted probability surface and the decision boundary."
       ],
-      "id": "2c07aa26"
+      "id": "8243e86b"
     },
     {
       "cell_type": "code",
@@ -1193,7 +1193,7 @@
         "plt.title(\"Logistic Regression Probability Surface\")\n",
         "plt.show()"
       ],
-      "id": "9957f365",
+      "id": "0cea224a",
       "execution_count": null,
       "outputs": []
     },
@@ -1255,7 +1255,7 @@
         "\n",
         "Smaller `C` means stronger regularization."
       ],
-      "id": "907376e9"
+      "id": "d56f0162"
     },
     {
       "cell_type": "code",
@@ -1287,7 +1287,7 @@
         "\n",
         "grid.best_params_"
       ],
-      "id": "d663fbe3",
+      "id": "389844d9",
       "execution_count": null,
       "outputs": []
     },
@@ -1297,7 +1297,7 @@
       "source": [
         "The selected model is available as:"
       ],
-      "id": "ad38ecb9"
+      "id": "9d2fc567"
     },
     {
       "cell_type": "code",
@@ -1305,7 +1305,7 @@
       "source": [
         "grid.best_estimator_"
       ],
-      "id": "698a2344",
+      "id": "afdf87ab",
       "execution_count": null,
       "outputs": []
     },
@@ -1335,7 +1335,7 @@
         "\n",
         "Use `sklearn` when prediction, pipelines, cross-validation, threshold tuning, and model selection are the main goal."
       ],
-      "id": "f2daa35f"
+      "id": "f1cf81ad"
     }
   ],
   "metadata": {

@@ -55,6 +55,28 @@ There are many tools available for managing Python environments and packages. As
 
 `uv` is an all-in-one tool for managing Python installations, virtual environments, and project dependencies. With `uv`, you do not need to install Python separately, as it can download and manage Python versions for you. You may visit the [official documentation](https://docs.astral.sh/uv/getting-started/installation/) to install `uv`. 
 
+
+
+::: {.callout-caution collapse="true"}
+## Windows headache
+
+
+There is a possibility that Smart App Control (SAC) or other Application Control policies in Windows 11 may block the execution of `uv.exe`. In this case, you may see a message similar to
+
+```text
+'C:\Users\WDAGUtilityAccount\.local\bin\uv.exe'
+was blocked by your organization's Device Guard policy.
+Contact your support person for more info.
+```
+
+This may occur because Windows does not yet consider the executable sufficiently trusted under its application-control policies.
+
+If this happens, note that the exact cause and solution can vary across machines, Windows versions, and security configurations. In addition, both Windows and `uv` are evolving rapidly, so solutions that work today may change in the future.
+
+You are encouraged to search for the solution that best fits your situation. For this course, one workaround is to use WSL (see @sec-wsl).
+
+:::
+
 After installation (and you may need to restart VS Code or open a new terminal window so that the `uv` command becomes available), you can use the following commands to verify that `uv` is working correctly.
 
 | Command | Purpose | Example Output |
@@ -348,3 +370,45 @@ $\sum_{i=1}^n$  summation
 
 
 LaTeX supports a wide range of mathematical notation, but the basic symbols introduced here will be enough for all of the work in this course.
+
+
+
+
+## WSL {#sec-wsl}
+
+WSL stands for Windows subsystem for Linux. It allows you to run a Linux environment directly inside Windows without installing a separate operating system.
+
+To install WSL, please follow the [official Microsoft guide](https://learn.microsoft.com/en-us/windows/wsl/install).
+
+After installation, you will have a Linux system (usually Ubuntu) running alongside Windows. The Linux file system is separate from the Windows file system, although you can access it through File Explorer.
+
+![](assets/img/20260601170305.png)
+
+
+VS Code provides excellent support for WSL through the Remote WSL extension. To open a WSL window, you may:
+
+- Click the button in the lower-left corner of VS Code
+![](assets/img/20260601170444.png)
+- Or open the Command Palette (`Ctrl+Shift+P` or `F1`), search for `WSL`, and select one of the available options. For most situations, `Connect to WSL in New Window` is the easiest choice.
+![](assets/img/20260601170609.png)
+
+
+Once connected to WSL, you are working inside a Linux environment rather than Windows.
+
+Because WSL is a separate system, you will need to:
+
+- Open your project folder again.
+- Install Python and other tools inside WSL.
+- Create virtual environments inside WSL.
+- Install packages inside WSL.
+
+You may follow the same instructions presented earlier to install `uv` and set up your Python environment. The overall process is the same, although the commands will be the Linux versions rather than the Windows versions.
+
+Note that if you install `uv` in Windows, it is not automatically available inside WSL. Similarly, software installed inside WSL is generally not available in Windows.
+
+In practice, it is usually easiest to keep an entire project inside WSL and perform all Python-related work there.
+
+
+::: {.callout-tip}
+Avoid storing virtual environments inside the Windows file system when working primarily in WSL. For best performance and compatibility, create your project folders inside your Linux home directory (for example, `~/Project`) rather than in mounted Windows directories (for example, `/mnt/c/...`).
+:::

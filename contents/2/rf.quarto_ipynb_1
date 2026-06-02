@@ -642,7 +642,7 @@
         "\n",
         "In the intial demo, we will only talk about Classifier since it is very similar to Regressor. We will use the following generated dataset as the demo example.\n"
       ],
-      "id": "dce01fd7"
+      "id": "ca609d3c"
     },
     {
       "cell_type": "code",
@@ -665,7 +665,7 @@
         "    X, y, test_size=0.3, random_state=1, stratify=y\n",
         ")"
       ],
-      "id": "2783dde3",
+      "id": "e5160628",
       "execution_count": null,
       "outputs": []
     },
@@ -677,7 +677,7 @@
         "\n",
         "The following code creates a bagged ensemble of regression trees."
       ],
-      "id": "d92183a5"
+      "id": "197249e4"
     },
     {
       "cell_type": "code",
@@ -695,7 +695,7 @@
         "    random_state=0,\n",
         ")"
       ],
-      "id": "6b0c3796",
+      "id": "759dd3ab",
       "execution_count": null,
       "outputs": []
     },
@@ -713,7 +713,7 @@
         "\n",
         "After creating the model, we use the same `.fit()` and `.predict()` and `.score()` workflow as before. "
       ],
-      "id": "78254df5"
+      "id": "10a2beec"
     },
     {
       "cell_type": "code",
@@ -722,7 +722,7 @@
         "bag.fit(X_train, y_train)\n",
         "bag.score(X_test, y_test)"
       ],
-      "id": "8a67edf8",
+      "id": "b0f7ba19",
       "execution_count": null,
       "outputs": []
     },
@@ -734,7 +734,7 @@
         "\n",
         "A random forest classifier is similar, but the random feature selection is built in."
       ],
-      "id": "f3ff9667"
+      "id": "5810a6b2"
     },
     {
       "cell_type": "code",
@@ -753,7 +753,7 @@
         "rf.fit(X_train, y_train)\n",
         "rf.score(X_test, y_test)"
       ],
-      "id": "0b148b88",
+      "id": "05a8f340",
       "execution_count": null,
       "outputs": []
     },
@@ -765,7 +765,7 @@
         "\n",
         "For example:"
       ],
-      "id": "e358ac83"
+      "id": "a5a36586"
     },
     {
       "cell_type": "code",
@@ -776,7 +776,7 @@
         "RandomForestClassifier(max_features=\"sqrt\")\n",
         "RandomForestClassifier(max_features=0.5)"
       ],
-      "id": "f7d577e5",
+      "id": "acc51935",
       "execution_count": null,
       "outputs": []
     },
@@ -797,7 +797,7 @@
         "\n",
         "- `.estimators_` stores the fitted trees, and we could indicate which tree we want to use by calling the index."
       ],
-      "id": "4ccdc50e"
+      "id": "f52d1525"
     },
     {
       "cell_type": "code",
@@ -805,7 +805,7 @@
       "source": [
         "rf.estimators_[0]"
       ],
-      "id": "a5b3d3ab",
+      "id": "0395c68f",
       "execution_count": null,
       "outputs": []
     },
@@ -815,7 +815,7 @@
       "source": [
         "- `.oob_score_` gives the OOB score if `oob_score=True`. For classification, `bag.oob_score_` is the OOB accuracy. For regression, it is the OOB $R^2$ score."
       ],
-      "id": "003463da"
+      "id": "da5eb961"
     },
     {
       "cell_type": "code",
@@ -823,7 +823,7 @@
       "source": [
         "rf.oob_score_"
       ],
-      "id": "ffe0da46",
+      "id": "d3c8103f",
       "execution_count": null,
       "outputs": []
     },
@@ -834,7 +834,7 @@
         "#### Feature importance\n",
         "MDI can be directly computated using `.feature_importances_` after the model is fitted. "
       ],
-      "id": "17f79708"
+      "id": "f6eca79b"
     },
     {
       "cell_type": "code",
@@ -842,7 +842,7 @@
       "source": [
         "rf.feature_importances_"
       ],
-      "id": "5683166e",
+      "id": "140ab5cc",
       "execution_count": null,
       "outputs": []
     },
@@ -852,7 +852,7 @@
       "source": [
         "For permutation importance, we use `permutation_importance` from `sklearn.inspection`."
       ],
-      "id": "12fb8c8b"
+      "id": "1846f473"
     },
     {
       "cell_type": "code",
@@ -864,7 +864,7 @@
         "\n",
         "pi.importances_mean"
       ],
-      "id": "5b57941a",
+      "id": "a06a77ba",
       "execution_count": null,
       "outputs": []
     },
@@ -874,7 +874,7 @@
       "source": [
         "In this example you may see that the two are very similar to each other. "
       ],
-      "id": "23379cd4"
+      "id": "fe8616a1"
     },
     {
       "cell_type": "code",
@@ -892,7 +892,7 @@
         "plt.xlabel(\"importance\")\n",
         "plt.title(\"Feature Importance Comparison\")"
       ],
-      "id": "53a20908",
+      "id": "4bb0e7a5",
       "execution_count": null,
       "outputs": []
     },
@@ -945,7 +945,7 @@
         "\n",
         "We could use oob score to tune hyperparameters. However we have to manually write the tuning code.\n"
       ],
-      "id": "3bd700b1"
+      "id": "32dda09a"
     },
     {
       "cell_type": "code",
@@ -968,7 +968,7 @@
         "\n",
         "print(best_param)"
       ],
-      "id": "1df0de92",
+      "id": "fe7bbd1a",
       "execution_count": null,
       "outputs": []
     },
@@ -984,7 +984,7 @@
         "\n",
         "We could still use cross-validation to tune a random forest classifier."
       ],
-      "id": "05d7dd71"
+      "id": "2d0c3366"
     },
     {
       "cell_type": "code",
@@ -1008,7 +1008,7 @@
         "best_rf = grid.best_estimator_\n",
         "grid.best_params_"
       ],
-      "id": "45a14315",
+      "id": "cc986d0c",
       "execution_count": null,
       "outputs": []
     },
@@ -1023,7 +1023,7 @@
         "\n",
         "If the dataset is large, a full grid can be slow. In that case, `RandomizedSearchCV` is often a better choice. In this case, only a few random combinations will be searched. In the following example, we only search 30 combinations."
       ],
-      "id": "60a37fb8"
+      "id": "f44388b9"
     },
     {
       "cell_type": "code",
@@ -1047,7 +1047,7 @@
         "search.fit(X_train, y_train)\n",
         "search.best_params_"
       ],
-      "id": "676e0166",
+      "id": "550190ee",
       "execution_count": null,
       "outputs": []
     },
@@ -1085,7 +1085,7 @@
         "## time it\n",
         "We first write a helper function to compute the runtime."
       ],
-      "id": "c98e9039"
+      "id": "dbb17b77"
     },
     {
       "cell_type": "code",
@@ -1102,7 +1102,7 @@
         "\n",
         "    print(f\"{name}: {end - start:.4f} seconds\")"
       ],
-      "id": "9498b347",
+      "id": "acd4f246",
       "execution_count": null,
       "outputs": []
     },
@@ -1112,7 +1112,7 @@
       "source": [
         "Then use it to test the time for different `n_jobs`."
       ],
-      "id": "6bd71c14"
+      "id": "0520a087"
     },
     {
       "cell_type": "code",
@@ -1134,7 +1134,7 @@
         "with timer(\"n_jobs=1\"):\n",
         "    grid.fit(X_train, y_train)"
       ],
-      "id": "30fa10af",
+      "id": "05a9c4b7",
       "execution_count": null,
       "outputs": []
     },
@@ -1149,7 +1149,7 @@
         "\n",
         "We now use the diabetes regression dataset from `sklearn`. In order to compare results using trees, we use the same split with `random_state=1`."
       ],
-      "id": "9ea98e3b"
+      "id": "1a1c8397"
     },
     {
       "cell_type": "code",
@@ -1167,7 +1167,7 @@
         "\n",
         "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)"
       ],
-      "id": "29c998fe",
+      "id": "1c968650",
       "execution_count": null,
       "outputs": []
     },
@@ -1181,7 +1181,7 @@
         "2. bagging with regression trees,\n",
         "3. a random forest."
       ],
-      "id": "09c19ad6"
+      "id": "ce967193"
     },
     {
       "cell_type": "code",
@@ -1206,7 +1206,7 @@
         "    random_state=1,\n",
         ")"
       ],
-      "id": "dd444e5a",
+      "id": "66b53957",
       "execution_count": null,
       "outputs": []
     },
@@ -1217,7 +1217,7 @@
         "tree.fit(X_train, y_train)\n",
         "tree.score(X_test, y_test)"
       ],
-      "id": "d676dd10",
+      "id": "b1d14090",
       "execution_count": null,
       "outputs": []
     },
@@ -1228,7 +1228,7 @@
         "bag.fit(X_train, y_train)\n",
         "bag.score(X_test, y_test)"
       ],
-      "id": "edfbec47",
+      "id": "b9e49f0d",
       "execution_count": null,
       "outputs": []
     },
@@ -1239,7 +1239,7 @@
         "rf.fit(X_train, y_train)\n",
         "rf.score(X_test, y_test)"
       ],
-      "id": "93ada956",
+      "id": "eb2f3fca",
       "execution_count": null,
       "outputs": []
     },
@@ -1251,7 +1251,7 @@
         "\n",
         "For the bagging and random forest models, we can also check OOB performance."
       ],
-      "id": "89cb83c3"
+      "id": "4ceb9b5f"
     },
     {
       "cell_type": "code",
@@ -1259,7 +1259,7 @@
       "source": [
         "bag.oob_score_"
       ],
-      "id": "ee3c455e",
+      "id": "b4594dac",
       "execution_count": null,
       "outputs": []
     },
@@ -1269,7 +1269,7 @@
       "source": [
         "rf.oob_score_"
       ],
-      "id": "f436cf88",
+      "id": "4867a25c",
       "execution_count": null,
       "outputs": []
     },
@@ -1285,7 +1285,7 @@
         "\n",
         "We showed `Bagging` in the previous section. Since it overlaps with `RandomForest`, we will only focus on the Random Forest model in this section. We first tune `max_features`, `min_samples_leaf`, and `max_samples` by cross-validation, with a relative small number of estimators."
       ],
-      "id": "53c6fb74"
+      "id": "06d76336"
     },
     {
       "cell_type": "code",
@@ -1308,7 +1308,7 @@
         "print(f\"Best parameters: {grid.best_params_}\")\n",
         "print(f\"Best CV R^2: {grid.best_score_}\")"
       ],
-      "id": "dcef35aa",
+      "id": "5c9e4329",
       "execution_count": null,
       "outputs": []
     },
@@ -1318,7 +1318,7 @@
       "source": [
         "Now evaluate the tuned model on the test set."
       ],
-      "id": "0d342275"
+      "id": "14382f0b"
     },
     {
       "cell_type": "code",
@@ -1326,7 +1326,7 @@
       "source": [
         "grid.best_estimator_.score(X_test, y_test)"
       ],
-      "id": "16e8d9a8",
+      "id": "37ca3526",
       "execution_count": null,
       "outputs": []
     },
@@ -1338,7 +1338,7 @@
         "\n",
         "The number of trees controls how stable the ensemble average is. The following code fits forests with different numbers of trees and records OOB performance."
       ],
-      "id": "abedd26a"
+      "id": "07d280ca"
     },
     {
       "cell_type": "code",
@@ -1375,7 +1375,7 @@
         "ax[1].set_ylabel(\"test R^2\")\n",
         "ax[1].set_title(\"Validation score (using test set)\");"
       ],
-      "id": "18b1b554",
+      "id": "6fcee3ba",
       "execution_count": null,
       "outputs": []
     },
@@ -1387,7 +1387,7 @@
         "\n",
         "Therefore our best model so far is "
       ],
-      "id": "0c04445d"
+      "id": "46baa337"
     },
     {
       "cell_type": "code",
@@ -1404,7 +1404,7 @@
         ")\n",
         "best_rf.fit(X_train, y_train)"
       ],
-      "id": "f1c68038",
+      "id": "7069f547",
       "execution_count": null,
       "outputs": []
     },
@@ -1416,7 +1416,7 @@
         "\n",
         "We first examine impurity-based feature importance."
       ],
-      "id": "581b541b"
+      "id": "0f0b8141"
     },
     {
       "cell_type": "code",
@@ -1428,7 +1428,7 @@
         "plt.xlabel(\"impurity-based importance\")\n",
         "plt.title(\"Random Forest Feature Importance\")"
       ],
-      "id": "31dece7c",
+      "id": "6b14ddbe",
       "execution_count": null,
       "outputs": []
     },
@@ -1440,7 +1440,7 @@
         "\n",
         "Permutation importance gives a more direct performance-based measure."
       ],
-      "id": "e2ea02c4"
+      "id": "57333430"
     },
     {
       "cell_type": "code",
@@ -1457,7 +1457,7 @@
         "plt.xlabel(\"decrease in R^2 after permutation\")\n",
         "plt.title(\"Permutation Importance\")"
       ],
-      "id": "9d3d80ed",
+      "id": "0e32f994",
       "execution_count": null,
       "outputs": []
     },
@@ -1469,7 +1469,7 @@
         "\n",
         "From the two plots, feature 2 and 8 are the two most important features. If we go back to check the description of the dataset, they are `bmi: body mass index` and `s5: ltg, possibly log of serum triglycerides level`."
       ],
-      "id": "48e6e801"
+      "id": "e73fcffa"
     }
   ],
   "metadata": {

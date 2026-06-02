@@ -767,7 +767,7 @@
         "### Load the dataset\n",
         "First load the data and split it into training and test sets. By default, the dataset uses `0` for malignant and `1` for benign. Since many classification metrics interpret label `1` as the positive class, we redefine malignant as `1`. Therefore we need to modify the `y` value."
       ],
-      "id": "d75867b0"
+      "id": "46683ba4"
     },
     {
       "cell_type": "code",
@@ -786,7 +786,7 @@
         "    X, y, test_size=0.3, stratify=y, random_state=1\n",
         ")"
       ],
-      "id": "6dc7c2c1",
+      "id": "0b0e35ca",
       "execution_count": null,
       "outputs": []
     },
@@ -796,7 +796,7 @@
       "source": [
         "We may want to see the distribution of the test set."
       ],
-      "id": "44b9e2e8"
+      "id": "2f5ba5c4"
     },
     {
       "cell_type": "code",
@@ -805,7 +805,7 @@
         "import pandas as pd\n",
         "pd.Series(y_test).value_counts().sort_index()"
       ],
-      "id": "1e991eb4",
+      "id": "0c436225",
       "execution_count": null,
       "outputs": []
     },
@@ -817,7 +817,7 @@
         "\n",
         "We fit logistic regression model as an example, which is a typical strong baseline model."
       ],
-      "id": "79877bf9"
+      "id": "6f840130"
     },
     {
       "cell_type": "code",
@@ -836,7 +836,7 @@
         "\n",
         "logit_prob = logit.predict_proba(X_test)[:, 1]"
       ],
-      "id": "8d1ca7f5",
+      "id": "e6f53f6a",
       "execution_count": null,
       "outputs": []
     },
@@ -860,7 +860,7 @@
         "\n",
         "By default, `predict()` in `sklearn` uses threshold $0.5$ for binary classification."
       ],
-      "id": "d0db99e0"
+      "id": "c5a6a661"
     },
     {
       "cell_type": "code",
@@ -875,7 +875,7 @@
         "rec = recall_score(y_test, y_pred)\n",
         "f1 = f1_score(y_test, y_pred)"
       ],
-      "id": "c95b4015",
+      "id": "95651178",
       "execution_count": null,
       "outputs": []
     },
@@ -885,7 +885,7 @@
       "source": [
         "We can also compute the confusion matrix and extract the values of TP, TN, FP, and FN from it."
       ],
-      "id": "1e4bf9fb"
+      "id": "c6664fe2"
     },
     {
       "cell_type": "code",
@@ -895,7 +895,7 @@
         "\n",
         "confusion_matrix(y_test, y_pred)"
       ],
-      "id": "b704c365",
+      "id": "252b4fdd",
       "execution_count": null,
       "outputs": []
     },
@@ -905,7 +905,7 @@
       "source": [
         "TN, FP, FN, TP = confusion_matrix(y_test, y_pred).ravel()"
       ],
-      "id": "494ea355",
+      "id": "3ec408c9",
       "execution_count": null,
       "outputs": []
     },
@@ -921,7 +921,7 @@
         "\n",
         "The default model use 0.5 as the threshold in `sklearn`. If you want to change the threshold, you may manually write the code. "
       ],
-      "id": "4f46aa09"
+      "id": "2fda0362"
     },
     {
       "cell_type": "code",
@@ -931,7 +931,7 @@
         "logit_prob = logit.predict_proba(X_test)[:, 1] \n",
         "y_pred = (logit_prob >= threshold).astype(int)"
       ],
-      "id": "f719546a",
+      "id": "0da15867",
       "execution_count": null,
       "outputs": []
     },
@@ -941,7 +941,7 @@
       "source": [
         "You may also use `FixedThresholdClassifier` from `sklearn.model_selection` when you want the threshold to be part of the estimator workflow."
       ],
-      "id": "2ad8a72b"
+      "id": "851d9cc1"
     },
     {
       "cell_type": "code",
@@ -961,7 +961,7 @@
         "model_with_threshold.fit(X_train, y_train)\n",
         "y_pred_wrapper = model_with_threshold.predict(X_test)"
       ],
-      "id": "810d198a",
+      "id": "c743a11b",
       "execution_count": null,
       "outputs": []
     },
@@ -980,7 +980,7 @@
         "\n",
         "In order to make the tuning process easier, we build an interface to quickly display the results."
       ],
-      "id": "68bede1b"
+      "id": "8ca2499c"
     },
     {
       "cell_type": "code",
@@ -1002,7 +1002,7 @@
         "        \"f1\": f1_score(y_true, pred),\n",
         "    }"
       ],
-      "id": "347980fd",
+      "id": "3d47a927",
       "execution_count": null,
       "outputs": []
     },
@@ -1012,7 +1012,7 @@
       "source": [
         "Now examine how metrics change as the threshold changes. To save space I only show the first few rows of the table."
       ],
-      "id": "0f268f1d"
+      "id": "36e1b0f3"
     },
     {
       "cell_type": "code",
@@ -1032,7 +1032,7 @@
         "\n",
         "threshold_df.head()"
       ],
-      "id": "287c5df3",
+      "id": "efc5c759",
       "execution_count": null,
       "outputs": []
     },
@@ -1042,7 +1042,7 @@
       "source": [
         "Plot precision and recall as functions of the threshold."
       ],
-      "id": "22becd86"
+      "id": "ce0ae30a"
     },
     {
       "cell_type": "code",
@@ -1057,7 +1057,7 @@
         "plt.title(\"Precision and Recall versus Threshold\")\n",
         "plt.legend()"
       ],
-      "id": "46d6e618",
+      "id": "87277e2b",
       "execution_count": null,
       "outputs": []
     },
@@ -1091,7 +1091,7 @@
         "\n",
         "Then the corresponding result is"
       ],
-      "id": "d6dd5cfe"
+      "id": "9416142b"
     },
     {
       "cell_type": "code",
@@ -1108,7 +1108,7 @@
         "    threshold=cost_threshold,\n",
         ")"
       ],
-      "id": "945cf378",
+      "id": "134f8fa4",
       "execution_count": null,
       "outputs": []
     },
@@ -1125,7 +1125,7 @@
         "\n",
         "<!-- AUC may also be interpreted as the probability that a randomly chosen positive observation receives a higher score than a randomly chosen negative observation. -->"
       ],
-      "id": "fa468ff1"
+      "id": "b3e68972"
     },
     {
       "cell_type": "code",
@@ -1144,7 +1144,7 @@
         "plt.legend()\n",
         "plt.show()"
       ],
-      "id": "afb8c318",
+      "id": "cd3eba44",
       "execution_count": null,
       "outputs": []
     },
@@ -1154,7 +1154,7 @@
       "source": [
         "We may fit another model and draw their ROC curve and AUC together in one plot to compare them.\n"
       ],
-      "id": "033910a8"
+      "id": "b23b1285"
     },
     {
       "cell_type": "code",
@@ -1180,7 +1180,7 @@
         "plt.title(\"ROC Curve\")\n",
         "plt.legend()"
       ],
-      "id": "c56b3d82",
+      "id": "56e299eb",
       "execution_count": null,
       "outputs": []
     },
@@ -1196,7 +1196,7 @@
         "\n",
         "The precision-recall curve can be produced in a similar way."
       ],
-      "id": "7efadd52"
+      "id": "725322ab"
     },
     {
       "cell_type": "code",
@@ -1217,7 +1217,7 @@
         "plt.title(\"Precision-Recall Curve\")\n",
         "plt.legend()"
       ],
-      "id": "d4cc30ad",
+      "id": "e68e15c3",
       "execution_count": null,
       "outputs": []
     },
@@ -1230,7 +1230,7 @@
         "### Calibration Curves\n",
         "Calibration focuses on probability quality rather than threshold-based decision quality or ranking quality. Calibration curves can be produced using `CalibrationDisplay` from `sklearn.calibration`."
       ],
-      "id": "6a3ecfa9"
+      "id": "36fbe5d4"
     },
     {
       "cell_type": "code",
@@ -1241,7 +1241,7 @@
         "CalibrationDisplay.from_predictions(y_test, logit_prob, n_bins=10)\n",
         "plt.title(\"Calibration Curve\")"
       ],
-      "id": "6e0e4fec",
+      "id": "2aef2632",
       "execution_count": null,
       "outputs": []
     },
@@ -1251,7 +1251,7 @@
       "source": [
         "This is a packaged function provided by `sklearn`. If we want to plot multiple curves together in one plot, we can put the axis in the argument of this function.\n"
       ],
-      "id": "2206a978"
+      "id": "1f991684"
     },
     {
       "cell_type": "code",
@@ -1267,7 +1267,7 @@
         "    y_test, rf_prob, n_bins=10, name=\"Random forest\", ax=ax\n",
         ")"
       ],
-      "id": "17ede2c5",
+      "id": "7544b434",
       "execution_count": null,
       "outputs": []
     },
@@ -1279,7 +1279,7 @@
         "\n",
         "Calibration curves diagnose probability quality; they do not by themselves recalibrate the model. Recalibration methods such as Platt scaling or isotonic regression can change the probability scale, but they do not necessarily improve AUC because AUC mainly depends on ranking."
       ],
-      "id": "191baa09"
+      "id": "8734acaf"
     }
   ],
   "metadata": {
