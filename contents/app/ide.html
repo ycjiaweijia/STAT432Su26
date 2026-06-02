@@ -84,8 +84,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/bootstrap/bootstrap-dark-7e342b42b1d8244df6d5a8d63372ab02.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
-<script src="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
-<link href="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -112,23 +110,92 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script>
-    <style type="text/css">
-    .ps-root .ps-algorithm {
-      border-top: 2px solid;
-      border-bottom: 2px solid;
+}</script><!-- mathjax-header.html -->
+
+
+
+<script>
+
+window.MathJax = {
+
+  loader: {
+
+    load: [
+
+      '[tex]/physics',
+
+      '[tex]/mathtools'
+
+    ]
+
+  },
+
+  tex: {
+
+    packages: {
+
+      '[+]': [
+
+        'physics',
+
+        'mathtools'
+
+      ]
+
     }
-    .pseudocode-container {
-      text-align: left;
-    }
-    </style>
-  
-      <style type="text/css">
-      .ps-algorithm > .ps-line {
-        text-align: left;
-      }
-      </style>
-    
+
+  }
+
+};
+
+</script>
+<script>
+window.MathJax = {
+  loader: {
+    load: [
+      '[tex]/physics',
+      '[tex]/mathtools'
+    ]
+  },
+  tex: {
+    packages: {
+      '[+]': [
+        'physics',
+        'mathtools'
+      ]
+    },
+    macros: {
+      dl: ["{\\hspace{#1mu}\\mathrm d}", 1],
+      me: "{\\mathrm e}",
+      rss: "\\mathrm{RSS}",
+      ols: "\\mathrm{OLS}",
+      ridge: "\\mathrm{ridge}",
+      lasso: "\\mathrm{lasso}",
+      mle: "\\mathrm{MLE}",
+      constant: "\\mathrm{constant}",
+      resid: "\\mathrm{residual}",
+      gini: "\\mathrm{Gini}",
+      Exp: "\\operatorname{E}",
+      Var: "\\operatorname{Var}",
+      Cov: "\\operatorname{Cov}",
+      Mode: "\\operatorname{mode}",
+      cor: "\\operatorname{Corr}",
+      nll: "\\operatorname{nll}",
+      pdfbinom: "{\\ttfamily binom}",
+      pdfbeta: "{\\ttfamily beta}",
+      pdfpois: "{\\ttfamily poisson}",
+      pdfgamma: "{\\ttfamily gamma}",
+      pdfnormal: "{\\ttfamily norm}",
+      pdfexp: "{\\ttfamily expon}",
+      distbinom: "\\operatorname{B}",
+      distbeta: "\\operatorname{Beta}",
+      distgamma: "\\operatorname{Gamma}",
+      distexp: "\\operatorname{Exp}",
+      distpois: "\\operatorname{Poisson}",
+      distnormal: "\\mathcal{N}"    }
+  }
+};
+</script>
 
 
 <link rel="stylesheet" href="../../styles/fonts.css">
@@ -322,7 +389,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="../../">Statistical Learning</a> 
-        <div class="sidebar-tools-main">
+        <div class="sidebar-tools-main tools-wide">
+    <a href="../../Statistical-Learning.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
   <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -733,7 +801,7 @@ Contact your support person for more info.</code></pre>
 </ul>
 <p><img src="assets/img/20260530232943.png" class="img-fluid"></p>
 <p>After the kernel is selected, we could start using the notebook. I prefer to use the following code as hello world. It can also tell us whether the correct python is used.</p>
-<div id="60e07255" class="cell" data-execution_count="1">
+<div id="9b748a54" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sys.executable)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -1263,39 +1331,6 @@ Tip
   </div>
 </nav>
 </div> <!-- /content -->
-    <script type="text/javascript">
-    (function(d) {
-      d.querySelectorAll(".pseudocode-container").forEach(function(el) {
-        let pseudocodeOptions = {
-          indentSize: el.dataset.indentSize,
-          commentDelimiter: " " + el.dataset.commentDelimiter + " ",
-          lineNumber: el.dataset.lineNumber.toLowerCase() === "true",
-          lineNumberPunc: el.dataset.lineNumberPunc,
-          noEnd: el.dataset.noEnd.toLowerCase() === "true",
-          scopeLines: el.dataset.indentLines.toLowerCase() === "true",
-          titlePrefix: el.dataset.captionPrefix,
-        };
-        pseudocode.renderElement(el.querySelector(".pseudocode"), pseudocodeOptions);
-      });
-    })(document);
-    (function(d) {
-      d.querySelectorAll(".pseudocode-container").forEach(function(el) {
-        let captionSpan = el.querySelector(".ps-root > .ps-algorithm > .ps-line > .ps-keyword")
-        if (captionSpan !== null) {
-          let captionPrefix = el.dataset.captionPrefix + " ";
-          let captionNumber = "";
-          if (el.dataset.pseudocodeNumber) {
-            captionNumber = el.dataset.pseudocodeNumber + " ";
-            if (el.dataset.chapterLevel) {
-              captionNumber = el.dataset.chapterLevel + "." + captionNumber;
-            }
-          }
-          captionSpan.innerHTML = captionPrefix + captionNumber;
-        }
-      });
-    })(document);
-    </script>
-  
 
 
 
