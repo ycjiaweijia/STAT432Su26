@@ -2,209 +2,571 @@
 jupyter: stats
 ---
 
-<!-- {{< include ../math.qmd >}}  -->
+
+
 
 # Logistic Regression
 
-Logistic regression is a classification method for binary outcomes. It models the conditional probability of the positive class as a function of the predictors.
+Logistic regression is a classification method for binary outcomes. It estimates the conditional probability of the positive class and then converts that probability into a class decision only after a threshold is chosen. Many of the materials were already covered in @sec-cla_dec. We provide more details in this section.
 
-For a binary response, write
 
-$$
-Y\in\{0,1\}.
-$$
 
-The main target is the conditional probability
+## Binary Response
 
+
+### Probability
+
+Suppose $Y \in \qty{0,1}$. We usually call $Y=1$ the positive class, success class, or class $1$, and $Y=0$ the negative class, failure class, or class $0$.
+
+For a given predictor vector $x$, define
 $$
 p(x)=\Pr(Y=1\mid X=x).
 $$
+Then
+$$
+\Pr(Y=0\mid X=x)=1-p(x).
+$$
 
-Once this probability is estimated, it can be used for several related tasks:
-
-- probability estimation;
-- ranking observations by risk;
-- hard classification after choosing a threshold.
 
 ::: {.callout-note}
-## Model and decision
-
-Logistic regression estimates probabilities. A classification threshold then converts those probabilities into decisions.
-
-These are related, but they are not the same problem.
+Any probability is within $[0,1]$. Therefore it is bounded.
 :::
 
 
-## Modeling Binary Outcomes
+### Odds
 
-In linear regression, we model a quantitative response by
+If an event occurs with probability $p$, its odds are $\frac{p}{1-p}$. Odds compare the probability that the event occurs with the probability that it does not occur.
+
+For binary classification,
 
 $$
-Y=\beta_0+\beta_1x_1+\cdots+\beta_px_p+\varepsilon.
+\text{odds of class }1
+=
+\frac{P(Y=1\mid X=x)}
+     {P(Y=0\mid X=x)}
+=
+\frac{p(x)}
+     {1-p(x)}.
 $$
 
-This is not appropriate for a binary response if the fitted value is interpreted as a probability. A linear function can be below 0 or above 1.
 
-Logistic regression solves this problem by modeling the probability through the logistic function.
 
-Let
+::: {.callout-note}
+Odds take values in $(0,\infty)$. Comparing to probability, odds remove the upper bound of probability, but they are still restricted to be positive.
+:::
+
+### Logit and Log-Odds
+
+To remove the positivity restriction of odds, we take a logarithm.
+
+:::{#def-logit}
+## Logit
+
+The **logit** of a probability $p$ is
+
+$$
+\logit(p)=\log\qty(\frac{p}{1-p}).
+$$
+
+
+It is also called the **log-odds**.
+:::
+
+
+
+::: {.callout-note}
+The logit transformation maps probabilities from $(0,1)$ to the entire real line $(-\infty,\infty)$.
+:::
+
+
+::: {#exm-}
+
+| $p$ | Odds | Logit | Interpretation |
+|----------------|------|--------|----------------|
+| $0.10$ | $1/9$ | $\log(1/9)\approx -2.197$ | Failure is much more likely than success |
+| $0.50$ | $1$ | $0$ | Success and failure are equally likely |
+| $0.75$ | $3$ | $\log(3)\approx 1.099$ | Success is three times as likely as failure |
+| $0.90$ | $9$ | $\log(9)\approx 2.197$ | Success is nine times as likely as failure |
+
+:::
+
+
+
+
+
+## The Logistic Regression Model
+
+<!-- The logit gives us a quantity that can reasonably be modeled by a linear function. Let
 
 $$
 \eta(x)
 =
-\beta_0+\beta_1x_1+\cdots+\beta_px_p
-=
-x^\top\beta,
-$$
-
-where $x^\top\beta$ includes the intercept term if the first component of $x$ is 1. Logistic regression defines
-
-$$
-p(x)
-=
-\Pr(Y=1\mid X=x)
-=
-\frac{\exp(\eta(x))}{1+\exp(\eta(x))}
-=
-\frac{1}{1+\exp(-\eta(x))}.
-$$
-
-This guarantees
-
-$$
-0<p(x)<1.
-$$
-
-The inverse transformation is the logit function:
-
-$$
-\log\left(\frac{p(x)}{1-p(x)}\right)
-=
-\eta(x)
+\beta_0+\beta_1x_1+\cdots+\beta_p x_p
 =
 x^\top\beta.
 $$
 
-::: {.callout-note}
-## Main idea
+Here $\eta(x)$ is called the linear predictor. -->
 
-Logistic regression is linear in the log-odds, not linear in the probability.
-:::
-
-
-## Odds and Coefficient Interpretation
-
-The odds of class 1 are
+Logistic regression assumes that the log-odds are linear in the predictors:
 
 $$
-\frac{p(x)}{1-p(x)}.
+\logit(p(x))=\beta_0+\beta_1x_1+\cdots+\beta_p x_p.
+$$
+
+Equivalently,
+
+$$
+\log\qty(\frac{p(x)}{1-p(x)})=\beta_0+\beta_1x_1+\cdots+\beta_p x_p.
+$$
+
+This is the main equation of logistic regression.
+
+### From Log-Odds Back to Probability
+
+Starting from
+
+$$
+\log\qty(\frac{p(x)}{1-p(x)})=\beta_0+\beta_1x_1+\cdots+\beta_p x_p=x^\top\beta,
+$$
+
+exponentiating both sides gives
+
+$$
+\frac{p(x)}{1-p(x)}= \exp(x^\top\beta).
+$$
+
+Solving for $p(x)$ gives
+
+$$
+p(x)= \frac{\exp(x^\top\beta)}{1+\exp(x^\top\beta)}=\frac{1}{1+\exp(-x^\top\beta)}.
+$$
+
+::: {#def-}
+## The Sigmoid function
+
+Define
+$$
+\sigma(z)=\frac{1}{1+\exp(-z)}.
+$$
+This is the Sigmoid function, also called the logistic function.
+:::
+
+With this definition, the logistic regression can be written as
+
+$$
+p(x)=\sigma(x^\top\beta)=\sigma(\beta_0+\beta_1x_1+\cdots+\beta_p x_p=x^\top\beta).
+$$
+
+
+
+The logistic function has several important properties.
+
+1. $0<\sigma(z)<1$. So it always produces a valid probability for every real number $z$.
+2. It is increasing: $z_1<z_2\quad\Rightarrow\quad\sigma(z_1)<\sigma(z_2)$.
+3. $p(x)$ is 
+$$
+\begin{cases}
+\text{close to }0,&\text{ if }x^\top\beta<<0,\\
+0,&\text{ if }x^\top\beta=0,\\
+\text{close to }1,&\text{ if }x^\top\beta>>0.
+\end{cases}
+$$
+
+The curve is displayed as follows.
+
+
+```{python}
+#| echo: false
+
+import matplotlib.pyplot as plt
+import numpy as np
+x = np.linspace(-10, 10, 100)
+y = 1/(1+np.exp(-x))
+
+plt.plot(x, y)
+plt.axvline(x=0, ls='--', color='C1', label='x=0')
+plt.axhline(y=0.5, ls='--', color='C0', label='y=0.5');
+plt.legend()
+```
+
+
+### Logistic Regression as a Linear Classifier
+
+Logistic regression produces probabilities, therefore it can also be used for classification.
+
+Using the common threshold $t=0.5$, we predict
+
+$$
+\hat y
+=
+\begin{cases}
+1,& p(x)\ge 0.5,\\
+0,& p(x)<0.5.
+\end{cases}
 $$
 
 Since
 
 $$
-\log\left(\frac{p(x)}{1-p(x)}\right)
-=
-\beta_0+\beta_1x_1+\cdots+\beta_px_p,
+p(x)\ge 0.5
+\iff
+x^\top\beta\ge 0,
 $$
 
-a one-unit increase in $x_j$, holding all other predictors fixed, changes the log-odds by
+the classification rule becomes
+
+$$
+\hat y
+=
+\begin{cases}
+1,& x^\top\beta\ge 0,\\
+0,& x^\top\beta<0.
+\end{cases}
+$$
+
+Therefore, the decision boundary is
+
+$$
+x^\top\beta=0.
+$$
+
+This is a line in two dimensions, a plane in three dimensions, and a hyperplane in higher dimensions.
+
+Thus logistic regression is a **linear classifier**.
+
+Even though the probability curve is nonlinear, the decision boundary is linear in the original predictor space.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Why Not Linear Regression?
+
+A natural first attempt is to model the probability directly:
+
+$$
+p(x)=\beta_0+\beta_1x_1+\cdots+\beta_p x_p.
+$$
+
+This is called a **linear probability model**.
+
+The problem is that a linear function can produce values smaller than $0$ or greater than $1$. Such values cannot be interpreted as probabilities.
+
+For example, a fitted value such as
+
+$$
+\hat p(x)=1.23
+$$
+
+or
+
+$$
+\hat p(x)=-0.18
+$$
+
+is not meaningful as a probability.
+
+Therefore, we want a model that:
+
+1. produces values between $0$ and $1$;
+2. keeps a linear structure in the predictors;
+3. allows useful coefficient interpretation.
+
+Logistic regression achieves this by moving from probability to odds and then to log-odds.
+
+---
+
+## Probability
+
+A probability satisfies
+
+$$
+0\le p\le 1.
+$$
+
+For binary classification, the probability of interest is usually
+
+$$
+p(x)=P(Y=1\mid X=x).
+$$
+
+Examples:
+
+| Probability | Interpretation |
+|------------|----------------|
+| $0$ | impossible |
+| $0.5$ | equally likely |
+| $1$ | certain |
+
+Probabilities are easy to understand, but their bounded range makes them hard to model directly with a linear function.
+
+---
+
+## Odds
+
+---
+
+## Geometric Interpretation
+
+The equation
+
+$$
+x^\top\beta=0
+$$
+
+defines a separating hyperplane.
+
+The vector
+
+$$
+\beta
+$$
+
+determines the orientation of the hyperplane.
+
+The intercept
+
+$$
+\beta_0
+$$
+
+shifts the hyperplane.
+
+Points on one side of the hyperplane have
+
+$$
+x^\top\beta>0,
+$$
+
+so they are predicted as class $1$ under the $0.5$ threshold.
+
+Points on the other side have
+
+$$
+x^\top\beta<0,
+$$
+
+so they are predicted as class $0$.
+
+This connects logistic regression to other linear classification methods such as perceptrons, linear support vector machines, and linear discriminant analysis.
+
+---
+
+## Interpreting the Coefficients
+
+Suppose all other predictors are held fixed.
+
+Increasing $x_j$ by one unit changes the linear predictor by
 
 $$
 \beta_j.
 $$
 
-Exponentiating gives the odds ratio:
+Because the linear predictor is the log-odds, increasing $x_j$ by one unit changes the log-odds by
 
 $$
-\frac{\text{new odds}}{\text{old odds}}
-=
-\exp(\beta_j).
+\beta_j.
 $$
 
 Thus:
 
-- $\beta_j$ is the change in log-odds for a one-unit increase in $x_j$;
-- $\exp(\beta_j)$ is the multiplicative change in the odds.
+- if $\beta_j>0$, increasing $x_j$ increases the log-odds of class $1$;
+- if $\beta_j<0$, increasing $x_j$ decreases the log-odds of class $1$;
+- if $\beta_j=0$, increasing $x_j$ does not change the log-odds.
 
-::: {.callout-caution}
-## Not a probability change
+---
 
-A logistic regression coefficient is not a direct change in probability. The probability change depends on the current value of all predictors.
+## Odds Ratios
+
+Since
+
+$$
+\beta_j
+$$
+
+is a change in log-odds, exponentiating gives a multiplicative change in odds.
+
+:::{#def-odds-ratio}
+## Odds Ratio
+
+For a one-unit increase in $x_j$, holding all other predictors fixed, the odds are multiplied by
+
+$$
+\exp(\beta_j).
+$$
 :::
 
-For example, if $\beta_j=0.05$, then
+The quantity
 
 $$
-e^{0.05}\approx 1.051.
+\exp(\beta_j)
 $$
 
-Holding other predictors fixed, a one-unit increase in $x_j$ multiplies the odds by about $1.051$, or increases the odds by about $5.1\%$.
+is called the **odds ratio**.
 
+### Example
 
-## A One-Variable Calculation
-
-Suppose the fitted model is
+Suppose
 
 $$
-\log\left(\frac{p(x)}{1-p(x)}\right)
+\beta_j=0.08.
+$$
+
+Then
+
+$$
+\exp(0.08)\approx 1.083.
+$$
+
+A one-unit increase in $x_j$ multiplies the odds by approximately $1.083$.
+
+Equivalently, the odds increase by approximately
+
+$$
+8.3\%.
+$$
+
+### Important Warning
+
+The coefficient $\beta_j$ is not a direct change in probability.
+
+The probability change depends on the current value of
+
+$$
+x^\top\beta
+$$
+
+or equivalently the current probability
+
+$$
+p(x).
+$$
+
+For the same value of $\beta_j$, the probability change can be small when $p(x)$ is already close to $0$ or close to $1$, and larger when $p(x)$ is near $0.5$.
+
+---
+
+## Probability, Odds, and Log-Odds
+
+The three scales are related but different.
+
+| Scale | Formula | Range |
+|------|---------|-------|
+| Probability | $p$ | $[0,1]$ |
+| Odds | $\frac{p}{1-p}$ | $[0,\infty)$ |
+| Log-odds | $\log\left(\frac{p}{1-p}\right)$ | $(-\infty,\infty)$ |
+
+Logistic regression is easiest to interpret on the log-odds scale, but its predictions are usually reported on the probability scale.
+
+---
+
+## From Probability to Classification
+
+Logistic regression outputs a probability:
+
+$$
+p(x)=P(Y=1\mid X=x).
+$$
+
+To convert this probability into a class label, we choose a threshold $t$:
+
+$$
+\hat y
 =
--3.006+0.052x.
+\begin{cases}
+1,& p(x)\ge t,\\
+0,& p(x)<t.
+\end{cases}
 $$
 
-For a subject with $x=55$,
+The most common threshold is
 
 $$
-\eta(55)
-=
--3.006+0.052(55)
-=
--0.146.
+t=0.5.
 $$
 
-The estimated probability is
+However, this is not always the best threshold.
 
-$$
-\hat p(55)
-=
-\frac{e^{-0.146}}{1+e^{-0.146}}
-\approx
-0.463.
-$$
+For example, in medical screening, a false negative may be much more costly than a false positive. In that case, we may choose a lower threshold to classify more patients as positive.
 
-So the model estimates a class-1 probability of about $46.3\%$.
+In fraud detection, we may also choose a threshold based on the cost of investigating suspicious cases and the cost of missing fraud.
 
+The topics of confusion matrices, precision, recall, ROC curves, AUC, and cost-sensitive threshold selection are discussed elsewhere. Here the key point is:
 
-## Estimation by Maximum Likelihood
+> Logistic regression gives probabilities first; classification decisions require an additional threshold.
 
-For observation $i$, let
+---
 
-$$
-p_i=p(x_i)=\Pr(Y_i=1\mid X_i=x_i).
-$$
+## Maximum Likelihood Estimation
 
-The binary response model is
+Logistic regression is usually fit using **maximum likelihood estimation**.
+
+For each observation,
 
 $$
 Y_i\mid X_i=x_i
 \sim
-\operatorname{Bernoulli}(p_i).
+\operatorname{Bernoulli}(p_i),
 $$
 
-Therefore
+where
 
 $$
-\Pr(Y_i=y_i\mid X_i=x_i)
+p_i
 =
-p_i^{y_i}(1-p_i)^{1-y_i}.
+p(x_i)
+=
+\frac{1}
+     {1+\exp(-x_i^\top\beta)}.
 $$
 
-For independent observations, the likelihood is
+The probability mass function of a Bernoulli random variable is
+
+$$
+P(Y_i=y_i)
+=
+p_i^{y_i}(1-p_i)^{1-y_i},
+$$
+
+where
+
+$$
+y_i\in\{0,1\}.
+$$
+
+Assuming independent observations, the likelihood function is
 
 $$
 L(\beta)
 =
-\prod_{i=1}^n
+\prod_{i=1}^{n}
 p_i^{y_i}(1-p_i)^{1-y_i}.
 $$
 
@@ -213,7 +575,7 @@ The log-likelihood is
 $$
 \ell(\beta)
 =
-\sum_{i=1}^n
+\sum_{i=1}^{n}
 \left[
 y_i\log(p_i)
 +
@@ -221,16 +583,557 @@ y_i\log(p_i)
 \right].
 $$
 
-Using
+The maximum likelihood estimate is
 
 $$
-p_i
+\hat\beta
 =
-\frac{\exp(x_i^\top\beta)}{1+\exp(x_i^\top\beta)},
+\arg\max_{\beta}\ell(\beta).
 $$
 
-the log-likelihood can also be written as
+Unlike ordinary least squares, there is no simple closed-form solution for $\hat\beta$. In practice, numerical optimization methods are used.
 
+---
+
+## Connection to Cross-Entropy and Log Loss
+
+The negative log-likelihood is
+
+$$
+-\ell(\beta)
+=
+-\sum_{i=1}^{n}
+\left[
+y_i\log(p_i)
++
+(1-y_i)\log(1-p_i)
+\right].
+$$
+
+In machine learning, this is called **binary cross-entropy loss** or **log loss**.
+
+Thus logistic regression is not just a classification model. It is also a probabilistic model trained by minimizing a loss function that rewards accurate probability estimates.
+
+This connects logistic regression to modern machine learning methods, including neural networks, which often use cross-entropy loss for classification.
+
+---
+
+## Logistic Regression as a Single Neuron
+
+A logistic regression model can be viewed as a single sigmoid neuron.
+
+First compute a linear score:
+
+$$
+z=x^\top\beta.
+$$
+
+Then apply the sigmoid function:
+
+$$
+p=\sigma(z)
+=
+\frac{1}{1+\exp(-z)}.
+$$
+
+Thus the model has the form
+
+$$
+x
+\longmapsto
+x^\top\beta
+\longmapsto
+\sigma(x^\top\beta)
+\longmapsto
+p(x).
+$$
+
+This is essentially a neural network with:
+
+- no hidden layers;
+- one output unit;
+- sigmoid activation;
+- binary cross-entropy loss.
+
+This perspective helps connect classical statistics with modern neural networks.
+
+---
+
+## Logistic Regression and Probability Calibration
+
+Logistic regression often gives probability estimates that are easier to interpret than the raw scores from many classification algorithms.
+
+A predicted probability such as
+
+$$
+p(x)=0.8
+$$
+
+means that the model estimates an $80\%$ chance of class $1$.
+
+A model is well calibrated if, among observations assigned probability close to $0.8$, approximately $80\%$ truly belong to class $1$.
+
+Calibration is different from classification accuracy. A model may classify many observations correctly but still produce poorly calibrated probabilities.
+
+Calibration curves, Brier score, and log loss are discussed in the model evaluation chapter. Here the main point is:
+
+> Logistic regression is naturally probabilistic, so its output can be evaluated as a probability, not only as a class label.
+
+---
+
+## Logistic Regression vs. Naive Bayes
+
+Logistic regression and naive Bayes can both be used for classification, but they take different modeling approaches.
+
+Naive Bayes is a **generative** model. It models how the predictors are generated within each class:
+
+$$
+P(X\mid Y).
+$$
+
+Together with the class prior
+
+$$
+P(Y),
+$$
+
+it uses Bayes' rule to compute
+
+$$
+P(Y\mid X).
+$$
+
+Logistic regression is a **discriminative** model. It directly models
+
+$$
+P(Y\mid X).
+$$
+
+In practice:
+
+- naive Bayes can work well with strong independence assumptions and small data;
+- logistic regression often performs better when the goal is direct prediction of class probabilities.
+
+This distinction between generative and discriminative modeling appears throughout machine learning.
+
+---
+
+## Regularized Logistic Regression
+
+When there are many predictors, logistic regression can overfit.
+
+A common solution is to add regularization.
+
+### Ridge Logistic Regression
+
+Ridge logistic regression penalizes large coefficients using an $L^2$ penalty:
+
+$$
+-\ell(\beta)
++
+\lambda\sum_{j=1}^{p}\beta_j^2.
+$$
+
+This shrinks coefficients toward zero but usually does not set them exactly to zero.
+
+### Lasso Logistic Regression
+
+Lasso logistic regression uses an $L^1$ penalty:
+
+$$
+-\ell(\beta)
++
+\lambda\sum_{j=1}^{p}|\beta_j|.
+$$
+
+This can shrink some coefficients exactly to zero, producing a simpler model.
+
+Regularization is especially useful when:
+
+- the number of predictors is large;
+- predictors are correlated;
+- prediction accuracy is more important than classical inference.
+
+Regularization methods are discussed in more detail in the chapter on shrinkage methods.
+
+---
+
+## Multiclass Extension
+
+The basic logistic regression model handles binary outcomes.
+
+For more than two classes, one common extension is **multinomial logistic regression**.
+
+Suppose
+
+$$
+Y\in\{1,2,\ldots,K\}.
+$$
+
+Multinomial logistic regression models class probabilities
+
+$$
+P(Y=k\mid X=x)
+$$
+
+for each class $k$.
+
+A common form is the softmax model:
+
+$$
+P(Y=k\mid X=x)
+=
+\frac{\exp(\eta_k(x))}
+     {\sum_{\ell=1}^{K}\exp(\eta_\ell(x))}.
+$$
+
+Here each class has its own linear predictor
+
+$$
+\eta_k(x).
+$$
+
+This is the multiclass analogue of the sigmoid function.
+
+---
+
+## Advantages of Logistic Regression
+
+Logistic regression has several strengths.
+
+1. It is simple.
+2. It is fast to fit.
+3. It produces probabilities.
+4. It is interpretable through log-odds and odds ratios.
+5. It works well when the log-odds are approximately linear in the predictors.
+6. It connects naturally to maximum likelihood, cross-entropy loss, and neural networks.
+
+---
+
+## Limitations of Logistic Regression
+
+Logistic regression also has limitations.
+
+1. It assumes a linear relationship between predictors and log-odds.
+2. It cannot automatically capture complex nonlinear patterns.
+3. It may perform poorly when important interactions are missing.
+4. It can be sensitive to outliers or separation.
+5. It may require feature engineering to perform well on complicated data.
+
+More flexible methods such as trees, random forests, boosting, and neural networks can capture nonlinear effects more automatically. However, logistic regression remains an important baseline because of its simplicity, speed, and interpretability.
+
+---
+
+## Complete Separation
+
+A technical issue can occur when the classes are perfectly separable by a linear boundary.
+
+In that case, the likelihood can keep increasing as some coefficients become larger and larger in magnitude. This is called **complete separation**.
+
+When complete separation occurs, the maximum likelihood estimates may not be finite.
+
+Regularization can help stabilize the estimates.
+
+---
+
+## Historical Note
+
+The logistic curve was introduced by Pierre-François Verhulst in 1838 while studying population growth.
+
+The term **logit** was introduced by Joseph Berkson in 1944. Berkson used the word logit for the logarithm of the odds and advocated the logistic function in bioassay problems.
+
+Logistic regression later became a central example of generalized linear models. In GLM terminology, logistic regression uses:
+
+- Bernoulli response distribution;
+- logit link function;
+- linear predictor $x^\top\beta$.
+
+---
+
+## Summary
+
+Logistic regression models binary outcomes by modeling the log-odds as a linear function of the predictors:
+
+$$
+\log\left(
+\frac{p(x)}
+     {1-p(x)}
+\right)
+=
+x^\top\beta.
+$$
+
+Equivalently, the predicted probability is
+
+$$
+p(x)
+=
+\frac{1}
+     {1+\exp(-x^\top\beta)}.
+$$
+
+The model is useful because it:
+
+- produces valid probabilities;
+- has interpretable coefficients;
+- gives a linear decision boundary;
+- can be fit by maximum likelihood;
+- connects to cross-entropy loss and neural networks.
+
+Logistic regression is one of the most important bridges between classical statistics and modern machine learning.
+
+---
+
+## References
+
+```bibtex
+@article{verhulst1838,
+  author = {Pierre-François Verhulst},
+  title = {Notice sur la loi que la population poursuit dans son accroissement},
+  journal = {Correspondance Mathématique et Physique},
+  year = {1838},
+  volume = {10},
+  pages = {113--121}
+}
+
+@article{berkson1944,
+  author = {Joseph Berkson},
+  title = {Application of the Logistic Function to Bio-Assay},
+  journal = {Journal of the American Statistical Association},
+  year = {1944},
+  volume = {39},
+  number = {227},
+  pages = {357--365}
+}
+
+@book{mccullagh1989,
+  author = {McCullagh, Peter and Nelder, John A.},
+  title = {Generalized Linear Models},
+  edition = {2},
+  year = {1989},
+  publisher = {Chapman and Hall}
+}
+
+@book{hosmer2013,
+  author = {Hosmer, David W. and Lemeshow, Stanley and Sturdivant, Rodney X.},
+  title = {Applied Logistic Regression},
+  edition = {3},
+  year = {2013},
+  publisher = {Wiley}
+}
+
+@book{agresti2018,
+  author = {Agresti, Alan},
+  title = {An Introduction to Categorical Data Analysis},
+  edition = {3},
+  year = {2018},
+  publisher = {Wiley}
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Logistic Regression
+
+Logistic regression is a classification method for binary outcomes. It estimates the conditional probability of the positive class and then converts that probability into a class decision only after a threshold is chosen. Many of the materials were covered in @sec-cls_dec. We provide more details here.
+
+For a binary response,
+$$
+Y\in\{0,1\},
+$$
+the target is
+$$
+p(x)=\Pr(Y=1\mid x).
+$$
+
+Logistic regression estimates $p(x)$. A threshold turns $\hat p(x)$ into a class label. As discussed in @sec-cla_dec, estimating probabilities and making decisions are related but distinct tasks.
+
+
+
+
+## The Logistic Model
+
+
+
+### Odds and Coefficients
+
+
+Let the probability that $Y$ equals $1$ be $p$. Then the odds of class $1$ are
+
+$$
+\frac{p}{1-p}.
+$$
+
+:::{#def-logit}
+## Logit
+
+The logit of $Y$ is
+
+$$
+\logit(x)=\ln\qty(\frac{p(x)}{1-p(x)}).
+$$
+:::
+
+
+Holding the other predictors fixed, increasing $x_j$ by one unit changes the log-odds by $\beta_j$. Exponentiating gives the odds ratio
+$$
+\frac{\text{new odds}}{\text{old odds}}
+=
+\exp(\beta_j).
+$$
+
+Thus $\beta_j$ is a change in log-odds, while $\exp(\beta_j)$ is a multiplicative change in odds. It is not a direct change in probability, because the probability change also depends on the current value of $x^\top\beta$.
+
+For example, if $\beta_j=0.05$, then
+$$
+\exp(0.05)\approx 1.051,
+$$
+so a one-unit increase in $x_j$ multiplies the odds by about $1.051$.
+
+
+
+
+
+
+
+
+
+
+
+A linear regression model is not appropriate if its fitted value is interpreted as a probability, because a linear function can be less than $0$ or greater than $1$.
+
+Logistic regression keeps the linear predictor
+$$
+\eta(x)=\beta_0+\beta_1x_1+\cdots+\beta_px_p=x^\top\beta,
+$$
+where $x$ includes a leading $1$ when the intercept is included, but maps it through the logistic function:
+$$
+p(x)
+=
+\frac{\exp\{\eta(x)\}}{1+\exp\{\eta(x)\}}
+=
+\frac{1}{1+\exp\{-\eta(x)\}}.
+$$
+Thus $0<p(x)<1$ for every value of $x$.
+
+Equivalently, the log-odds are linear:
+$$
+\log\left(\frac{p(x)}{1-p(x)}\right)
+=
+x^\top\beta.
+$$
+
+
+
+### One-Variable Example
+
+Suppose the fitted model is
+$$
+\log\left(\frac{p(x)}{1-p(x)}\right)
+=
+-3.006+0.052x.
+$$
+For $x=55$,
+$$
+\eta(55)=-3.006+0.052(55)=-0.146.
+$$
+The estimated probability is
+$$
+\hat p(55)
+=
+\frac{\exp(-0.146)}{1+\exp(-0.146)}
+\approx
+0.463.
+$$
+
+
+## Maximum Likelihood Estimation
+
+For observation $i$, let
+$$
+p_i=p(x_i)
+=
+\frac{\exp(x_i^\top\beta)}{1+\exp(x_i^\top\beta)}.
+$$
+The model assumes
+$$
+Y_i\mid x_i \sim \operatorname{Bernoulli}(p_i),
+$$
+so
+$$
+\Pr(Y_i=y_i\mid x_i)
+=
+p_i^{y_i}(1-p_i)^{1-y_i}.
+$$
+
+For independent observations, the likelihood is
+$$
+L(\beta)
+=
+\prod_{i=1}^n p_i^{y_i}(1-p_i)^{1-y_i},
+$$
+and the log-likelihood is
+$$
+\ell(\beta)
+=
+\sum_{i=1}^n
+\left[
+y_i\log(p_i)+(1-y_i)\log(1-p_i)
+\right].
+$$
+
+Using the logistic form of $p_i$, this can also be written as
 $$
 \ell(\beta)
 =
@@ -242,22 +1145,7 @@ y_i x_i^\top\beta
 \right].
 $$
 
-The negative average log-likelihood is the binary cross-entropy loss:
-
-$$
--\frac1n\ell(\beta)
-=
--\frac1n
-\sum_{i=1}^n
-\left[
-y_i\log(p_i)
-+
-(1-y_i)\log(1-p_i)
-\right].
-$$
-
-Logistic regression chooses
-
+The logistic regression estimator is
 $$
 \hat\beta
 =
@@ -265,40 +1153,36 @@ $$
 =
 \arg\min_\beta \{-\ell(\beta)\}.
 $$
-
-Unlike ordinary least squares, logistic regression does not have a closed-form solution. The coefficients are found by numerical optimization.
-
-The score vector is
-
+The negative average log-likelihood,
 $$
-\nabla_\beta \ell(\beta)
+-\frac1n\ell(\beta)
 =
-X^\top(y-p),
+-\frac1n
+\sum_{i=1}^n
+\left[
+y_i\log(p_i)+(1-y_i)\log(1-p_i)
+\right],
 $$
+is the binary cross-entropy loss.
 
-where $p=(p_1,\ldots,p_n)^\top$. The Hessian is
+Unlike ordinary least squares, logistic regression has no closed-form estimator like $\hat\beta_{\ols}$. The coefficients are found by numerical optimization.
 
+Let $X$ be the design matrix, $y=(y_1,\ldots,y_n)^\top$, and $p=(p_1,\ldots,p_n)^\top$. The score vector is
 $$
-\nabla_\beta^2\ell(\beta)
-=
--X^\top W X,
+\nabla_\beta \ell(\beta)=X^\top(y-p),
 $$
-
-where
-
+and the Hessian is
 $$
+\nabla_\beta^2\ell(\beta)=-X^\top W X,
+\qquad
 W=\operatorname{diag}\{p_i(1-p_i)\}.
 $$
-
-Since the Hessian is negative semidefinite, the log-likelihood is concave in $\beta$. This is why Newton-type algorithms and iteratively reweighted least squares are natural fitting methods for logistic regression.
+Since this Hessian is negative semidefinite, $\ell(\beta)$ is concave in $\beta$. This makes Newton-type algorithms and iteratively reweighted least squares natural fitting methods.
 
 
 ## Deviance
 
-In logistic regression and other generalized linear models, deviance measures lack of fit relative to a saturated model.
-
-For a fitted logistic regression model, the residual deviance is
-
+In logistic regression and other generalized linear models, deviance measures lack of fit relative to a saturated model. For a fitted logistic regression model,
 $$
 D
 =
@@ -306,35 +1190,17 @@ D
 +
 2\ell_{\text{saturated}}.
 $$
-
-For Bernoulli data, the saturated model fits each observation perfectly, so the saturated log-likelihood is 0. Therefore the residual deviance is often written as
-
+For Bernoulli data, the saturated model fits each observation perfectly and has $\ell_{\text{saturated}}=0$, so
 $$
-D
-=
--2\ell(\hat\beta).
+D=-2\ell(\hat\beta).
 $$
 
-Two common quantities are:
-
-- null deviance: deviance for an intercept-only model;
-- residual deviance: deviance for the fitted model.
-
-A large reduction from null deviance to residual deviance means the predictors explain useful information about the class probabilities.
+The null deviance uses an intercept-only model. The residual deviance uses the fitted model with predictors. A large reduction from null deviance to residual deviance indicates that the predictors explain useful information about the class probabilities.
 
 
 ## From Probabilities to Decisions
 
-After fitting the model, the estimated probability is
-
-$$
-\hat p(x)
-=
-\widehat{\Pr}(Y=1\mid X=x).
-$$
-
-A hard classification requires a threshold $c$:
-
+After fitting the model, a hard classification requires a threshold $c$:
 $$
 \hat Y
 =
@@ -344,54 +1210,34 @@ $$
 \end{cases}
 $$
 
-The default threshold is often $c=0.5$, but this is not always the best choice. Changing the threshold changes the confusion matrix and therefore changes accuracy, precision, recall, false positive rate, and F1 score.
+The common default is $c=0.5$, but the best threshold depends on the goal. Changing $c$ changes the confusion matrix and therefore changes accuracy, precision, recall, false positive rate, and F1 score. It does not change the fitted probabilities.
 
-Suppose a false positive has cost $C_{FP}$ and a false negative has cost $C_{FN}$. If $\hat p(x)$ is a calibrated estimate of $p(x)$, then the expected cost of predicting positive is
-
+If false positives cost $C_{FP}$ and false negatives cost $C_{FN}$, and $\hat p(x)$ is calibrated, then the expected costs are
 $$
 \text{Cost}(1\mid x)
 =
 C_{FP}\{1-p(x)\},
-$$
-
-and the expected cost of predicting negative is
-
-$$
+\qquad
 \text{Cost}(0\mid x)
 =
 C_{FN}p(x).
 $$
-
-Predict positive when
-
-$$
-C_{FP}\{1-p(x)\}
-<
-C_{FN}p(x).
-$$
-
-Solving gives the decision-theoretic threshold
-
+Predict class $1$ when $\text{Cost}(1\mid x)<\text{Cost}(0\mid x)$. Solving gives the cost-based threshold
 $$
 c^*
 =
 \frac{C_{FP}}{C_{FP}+C_{FN}}.
 $$
+If false negatives are more costly, then $C_{FN}$ is large and $c^*$ is smaller.
 
-If false negatives are more costly, then $C_{FN}$ is large and the threshold becomes smaller. The classifier predicts the positive class more aggressively.
-
-::: {.callout-note}
-## Threshold tuning
-
-Threshold tuning changes the decision rule built on top of $\hat p(x)$. It does not refit the logistic regression model or change the fitted probabilities.
-:::
+The general ideas behind classification thresholds, error costs, and threshold-based metrics are discussed in @sec-cla_dec. Here we focus on how those ideas appear for logistic regression.
 
 
 ## Logistic Regression in `sklearn`
 
-`sklearn` is usually the better choice for predictive workflows, train-test splits, pipelines, cross-validation, and threshold tuning.
+For predictive workflows we usually use `sklearn`, because it works naturally with train-test splits, pipelines, cross-validation, and tuning.
 
-We use a pipeline with standardization. Scaling is especially important for penalized logistic regression, because the penalty is applied to coefficients.
+The example below uses the breast cancer data. The original target codes malignant tumors as `0` and benign tumors as `1`, so we define `y = 1 - cancer.target` to make malignant the positive class.
 
 ```{python}
 import numpy as np
@@ -427,13 +1273,13 @@ test_prob = logit.predict_proba(X_test)[:, 1]
 test_pred = logit.predict(X_test)
 ```
 
-`predict` returns class labels. `predict_proba` returns estimated class probabilities.
+`predict_proba()` returns estimated class probabilities. The second column is the estimated probability of the positive class.
 
 ```{python}
 logit.predict_proba(X_test[:5])
 ```
 
-The second column is the estimated probability of the positive class, which is malignant in this example.
+`predict()` returns class labels using the default threshold $0.5$.
 
 ::: {.callout-caution}
 ## Regularization default
@@ -442,9 +1288,11 @@ The second column is the estimated probability of the positive class, which is m
 :::
 
 
-## Confusion Matrix and Basic Metrics
+## Confusion Matrix and Metrics
 
 Threshold-based metrics compare true labels with predicted labels.
+
+See @sec-cla_dec for the definitions and interpretation of accuracy, precision, recall, and F1 score. In this section we compute them for the fitted logistic regression model.
 
 ```{python}
 from sklearn.metrics import (
@@ -458,16 +1306,13 @@ from sklearn.metrics import (
 confusion_matrix(y_test, test_pred)
 ```
 
-Since class 0 is negative and class 1 is positive, the entries are ordered as
-
+Since class $0$ is negative and class $1$ is positive, the entries are ordered as
 $$
 \begin{pmatrix}
 TN & FP\\
 FN & TP
 \end{pmatrix}.
 $$
-
-We can extract the four entries and compute common metrics.
 
 ```{python}
 TN, FP, FN, TP = confusion_matrix(y_test, test_pred).ravel()
@@ -482,16 +1327,7 @@ basic_metrics = {
 basic_metrics
 ```
 
-
-## Changing the Classification Threshold
-
-The default threshold used by `predict()` is $0.5$ for binary logistic regression. To use a different threshold, work directly with the estimated probabilities.
-
-There are three common ways to choose a threshold:
-
-- choose it manually based on the desired precision-recall tradeoff;
-- tune it on validation data or by cross-validation for a target metric;
-- derive it from an explicit cost function when error costs are known.
+To use a different threshold, apply it directly to the estimated probabilities.
 
 ```{python}
 threshold = 0.3
@@ -500,7 +1336,7 @@ pred_03 = (test_prob >= threshold).astype(int)
 confusion_matrix(y_test, pred_03)
 ```
 
-A small helper function makes it easier to compare thresholds.
+A small helper function makes threshold comparisons easier.
 
 ```{python}
 def classification_summary(y_true, prob, threshold=0.5):
@@ -520,8 +1356,6 @@ def classification_summary(y_true, prob, threshold=0.5):
     }
 ```
 
-For illustration, first examine a grid of thresholds on the current evaluation data. In a real analysis, the threshold should be selected on validation data or through cross-validation, not on the final test set.
-
 ```{python}
 thresholds = np.linspace(0.05, 0.95, 19)
 
@@ -534,8 +1368,6 @@ threshold_df = pd.DataFrame(
 
 threshold_df.head()
 ```
-
-Plot precision and recall as functions of the threshold.
 
 ```{python}
 import matplotlib.pyplot as plt
@@ -550,15 +1382,17 @@ plt.legend()
 
 As the threshold increases, the classifier becomes more conservative in predicting the positive class. This often reduces false positives and increases precision, but it may also increase false negatives and reduce recall.
 
-### Selecting a Threshold on Validation Data
 
-The threshold should not be selected using the final test set. A common workflow is:
+### Selecting a Threshold
 
-1. split the available training data into a model-training set and a validation set;
+The final test set should not be used to choose a threshold. A common workflow is:
+
+1. split the training data into a model-training set and a validation set;
 2. fit the logistic regression model on the model-training set;
-3. evaluate candidate thresholds on the validation set;
-4. refit the model on the full training set if desired;
-5. evaluate once on the test set.
+3. choose the threshold on the validation set;
+4. evaluate once on the test set.
+
+This is the same distinction between model tuning and threshold tuning described in @sec-cla_dec.
 
 The following example chooses the threshold that maximizes validation F1 score.
 
@@ -595,8 +1429,6 @@ best_f1_row = validation_results.loc[
 best_f1_row
 ```
 
-The selected threshold can then be applied to the test probabilities from the original fitted model.
-
 ```{python}
 best_threshold = best_f1_row["threshold"]
 
@@ -607,7 +1439,7 @@ classification_summary(
 )
 ```
 
-The same idea can be used for other goals. For example, we may want the largest recall among thresholds whose precision is at least $0.90$.
+The same idea can be used for other goals. For example, we may choose the largest recall among thresholds whose precision is at least $0.90$.
 
 ```{python}
 valid_candidates = validation_results[
@@ -630,73 +1462,15 @@ classification_summary(
 ```
 
 
-## Fixed and Tuned Thresholds in `sklearn`
-
-Manual thresholding is often the clearest method. `sklearn` also provides wrappers that make the threshold part of the estimator workflow.
-
-If the threshold is fixed in advance, use `FixedThresholdClassifier`.
-
-```{python}
-from sklearn.model_selection import FixedThresholdClassifier
-
-fixed_threshold_model = FixedThresholdClassifier(
-    make_pipeline(
-        StandardScaler(),
-        LogisticRegression(penalty=None, max_iter=5000),
-    ),
-    threshold=0.3,
-)
-
-fixed_threshold_model.fit(X_train, y_train)
-fixed_pred = fixed_threshold_model.predict(X_test)
-
-confusion_matrix(y_test, fixed_pred)
-```
-
-If the threshold should be selected from data, use `TunedThresholdClassifierCV`. This performs cross-validation to choose a threshold for a specified scoring criterion.
-
-```{python}
-from sklearn.model_selection import TunedThresholdClassifierCV
-
-tuned_threshold_model = TunedThresholdClassifierCV(
-    estimator=make_pipeline(
-        StandardScaler(),
-        LogisticRegression(penalty=None, max_iter=5000),
-    ),
-    scoring="recall",
-    cv=5,
-)
-
-tuned_threshold_model.fit(X_train, y_train)
-tuned_pred = tuned_threshold_model.predict(X_test)
-
-{
-    "accuracy": accuracy_score(y_test, tuned_pred),
-    "precision": precision_score(y_test, tuned_pred),
-    "recall": recall_score(y_test, tuned_pred),
-    "f1": f1_score(y_test, tuned_pred),
-}
-```
-
-::: {.callout-caution}
-## Tune thresholds on training data only
-
-The threshold should be chosen using training data or validation data, not the final test set. The test set should be used only for the final evaluation.
-:::
-
-
-## Choosing a Threshold from Costs
+### Cost-Based Threshold
 
 In a medical screening setting, missing a malignant tumor may be more costly than sending a benign case for additional testing. Suppose
-
 $$
 C_{FN}=5,
 \qquad
 C_{FP}=1.
 $$
-
-The cost-based threshold is
-
+Then
 $$
 c^*
 =
@@ -720,38 +1494,28 @@ classification_summary(
 )
 ```
 
-This lower threshold prioritizes recall. It predicts malignant more aggressively because false negatives are assumed to be more costly.
 
-::: {.callout-note}
-The cost-based threshold formula assumes that the fitted probabilities are reasonably calibrated.
-:::
+## Ranking and Probability Quality
 
-
-## ROC Curve and AUC
-
-ROC analysis evaluates ranking quality across thresholds. It does not depend on a single fixed threshold.
-
-For a threshold $c$, define
-
+ROC analysis evaluates ranking quality across thresholds. Let $s=\hat p(x)$ be the model score for a new observation. For a threshold $c$, define
 $$
 TPR(c)
 =
-\Pr(\hat p(X)>c\mid Y=1)
+\Pr(s>c\mid Y=1)
 =
 \frac{TP(c)}{TP(c)+FN(c)}
 $$
-
 and
-
 $$
 FPR(c)
 =
-\Pr(\hat p(X)>c\mid Y=0)
+\Pr(s>c\mid Y=0)
 =
 \frac{FP(c)}{FP(c)+TN(c)}.
 $$
+The ROC curve plots $TPR(c)$ against $FPR(c)$ as $c$ varies.
 
-The ROC curve plots $TPR(c)$ against $FPR(c)$ as the threshold varies over the range of possible scores.
+ROC curves, AUC, precision-recall curves, Brier score, log loss, and calibration curves are introduced conceptually in @sec-cla_dec. The examples below show their direct implementation for logistic regression.
 
 ```{python}
 from sklearn.metrics import roc_curve, roc_auc_score
@@ -767,20 +1531,13 @@ plt.title("ROC Curve")
 plt.legend()
 ```
 
-AUC is the area under the ROC curve. It can be interpreted as
-
+AUC can be interpreted as
 $$
 AUC
 =
-\Pr\left(s(X^+)>s(X^-)\right),
+\Pr\left(s^+>s^-\right),
 $$
-
-up to small corrections for ties, where $X^+$ is a randomly selected positive observation, $X^-$ is a randomly selected negative observation, and $s(\cdot)$ is the model score.
-
-Thus AUC evaluates ranking quality. It does not evaluate whether the predicted probabilities are numerically calibrated.
-
-
-## Precision-Recall Curve
+up to small corrections for ties, where $s^+$ is the score for a randomly selected positive observation and $s^-$ is the score for a randomly selected negative observation.
 
 Precision-recall curves are often useful when the positive class is rare or when performance on the positive class is the main concern.
 
@@ -797,24 +1554,14 @@ plt.title("Precision-Recall Curve")
 plt.legend()
 ```
 
-Average precision summarizes the precision-recall curve. Compared with ROC AUC, it is often more sensitive to false positives when the positive class is rare.
-
-
-## Probability Quality
-
-Logistic regression directly estimates probabilities, so probability quality is also important.
-
-Two common proper scoring rules are Brier score and log loss:
-
+Because logistic regression estimates probabilities, probability quality is also important. Two common proper scoring rules are the Brier score and log loss:
 $$
 \text{Brier}
 =
 \frac1n\sum_{i=1}^n
 (y_i-\hat p_i)^2,
 $$
-
 and
-
 $$
 \text{LogLoss}
 =
@@ -838,7 +1585,7 @@ probability_scores = {
 probability_scores
 ```
 
-Calibration curves diagnose whether predicted probabilities are numerically meaningful.
+Calibration curves check whether predicted probabilities are numerically meaningful.
 
 ```{python}
 from sklearn.calibration import CalibrationDisplay
@@ -852,12 +1599,10 @@ CalibrationDisplay.from_predictions(
 plt.title("Calibration Curve")
 ```
 
-If a model predicts probability near $0.8$, then a well-calibrated model should have an observed positive frequency near $80\%$ among observations with similar predicted probabilities.
-
 
 ## Decision Boundary
 
-With two predictors, we can visualize the fitted probability surface and the decision boundary.
+With two predictors, we can visualize the fitted probability surface and the $0.5$ decision boundary.
 
 ```{python}
 X2 = cancer.data[["mean radius", "mean texture"]]
@@ -904,26 +1649,20 @@ plt.title("Logistic Regression Probability Surface")
 plt.show()
 ```
 
-The $0.5$ decision boundary is linear in the original predictors because the log-odds are linear. Other thresholds produce parallel boundaries in the two-predictor unpenalized logistic regression model.
+The $0.5$ decision boundary is linear in the predictors because the log-odds are linear. Other thresholds produce parallel boundaries in this two-predictor model.
 
 
 ## Penalized Logistic Regression
 
-Logistic regression can be regularized in the same spirit as ridge regression and lasso.
-
-The unpenalized logistic regression estimator solves
-
+Logistic regression can be regularized in the same spirit as ridge regression and lasso. The unpenalized estimator solves
 $$
 \hat\beta
 =
 \arg\min_\beta
-\left\{
--\ell(\beta)
-\right\}.
+\{-\ell(\beta)\}.
 $$
 
 Ridge logistic regression solves
-
 $$
 \hat\beta_{\ridge}
 =
@@ -931,12 +1670,10 @@ $$
 \left\{
 -\ell(\beta)
 +
-\lambda\sum_{j=1}^p\beta_j^2
-\right\}.
+\lambda\norm{\beta}_2^2
+\right\},
 $$
-
-Lasso logistic regression solves
-
+and lasso logistic regression solves
 $$
 \hat\beta_{\lasso}
 =
@@ -944,19 +1681,13 @@ $$
 \left\{
 -\ell(\beta)
 +
-\lambda\sum_{j=1}^p|\beta_j|
+\lambda\norm{\beta}_1
 \right\}.
 $$
 
-The intercept is usually not penalized. Predictors should usually be standardized before penalized logistic regression because the penalty depends on coefficient scale.
+As in ridge and lasso regression, the intercept is usually not penalized. Predictors should usually be standardized before penalized logistic regression because the penalty depends on coefficient scale.
 
-In `sklearn`, the parameter `C` controls inverse regularization strength:
-
-$$
-C=\frac{1}{\lambda}.
-$$
-
-Smaller `C` means stronger regularization.
+In `sklearn`, `C` controls inverse regularization strength. Larger `C` means weaker regularization, and smaller `C` means stronger regularization.
 
 ```{python}
 from sklearn.model_selection import GridSearchCV
@@ -986,16 +1717,14 @@ grid.fit(X_train, y_train)
 grid.best_params_
 ```
 
-The selected model is available as:
-
 ```{python}
 grid.best_estimator_
 ```
 
 ::: {.callout-note}
-## Regularization and model tuning
+## Regularization and threshold tuning
 
-Regularization changes the fitted probabilities by changing the estimated coefficients. Threshold tuning changes only the final decision rule.
+Regularization changes the fitted coefficients and therefore changes the fitted probabilities. Threshold tuning changes only the final decision rule built from those probabilities.
 :::
 
 
@@ -1007,9 +1736,6 @@ Logistic regression:
 - uses the logit link to make log-odds linear in the predictors;
 - estimates coefficients by maximum likelihood;
 - interprets coefficients through odds ratios;
-- produces both probabilities and class predictions;
 - requires a threshold for hard classification;
-- can be evaluated by threshold-based metrics, ROC AUC, precision-recall curves, and probability-quality metrics;
-- is often combined with regularization in predictive workflows.
-
-Use `sklearn` when prediction, pipelines, cross-validation, threshold tuning, and model selection are the main goal.
+- can be evaluated using threshold-based metrics, ranking metrics, and probability-quality metrics;
+- can be regularized with ridge or lasso penalties.
