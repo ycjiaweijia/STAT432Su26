@@ -589,8 +589,9 @@ window.Quarto = {
   <li><a href="#the-logistic-regression-model" id="toc-the-logistic-regression-model" class="nav-link" data-scroll-target="#the-logistic-regression-model"><span class="header-section-number">6.2</span> The Logistic Regression Model</a>
   <ul class="collapse">
   <li><a href="#from-log-odds-back-to-probability" id="toc-from-log-odds-back-to-probability" class="nav-link" data-scroll-target="#from-log-odds-back-to-probability"><span class="header-section-number">6.2.1</span> From Log-Odds Back to Probability</a></li>
+  <li><a href="#logistic-regression-as-a-linear-classifier" id="toc-logistic-regression-as-a-linear-classifier" class="nav-link" data-scroll-target="#logistic-regression-as-a-linear-classifier"><span class="header-section-number">6.2.2</span> Logistic Regression as a Linear Classifier</a></li>
   </ul></li>
-  <li><a href="#logistic-regression-as-a-linear-classifier" id="toc-logistic-regression-as-a-linear-classifier" class="nav-link" data-scroll-target="#logistic-regression-as-a-linear-classifier"><span class="header-section-number">6.3</span> Logistic Regression as a Linear Classifier</a></li>
+  <li><a href="#interpretations" id="toc-interpretations" class="nav-link" data-scroll-target="#interpretations"><span class="header-section-number">6.3</span> Interpretations</a></li>
   <li><a href="#why-not-linear-regression" id="toc-why-not-linear-regression" class="nav-link" data-scroll-target="#why-not-linear-regression"><span class="header-section-number">6.4</span> Why Not Linear Regression?</a></li>
   <li><a href="#probability-1" id="toc-probability-1" class="nav-link" data-scroll-target="#probability-1"><span class="header-section-number">6.5</span> Probability</a></li>
   <li><a href="#odds-1" id="toc-odds-1" class="nav-link" data-scroll-target="#odds-1"><span class="header-section-number">6.6</span> Odds</a></li>
@@ -832,7 +833,7 @@ p(x)= \frac{\exp(x^\top\beta)}{1+\exp(x^\top\beta)}=\frac{1}{1+\exp(-x^\top\beta
 </div>
 <p>With this definition, the logistic regression can be written as</p>
 <p><span class="math display">\[
-p(x)=\sigma(x^\top\beta).
+p(x)=\sigma(x^\top\beta)=\sigma(\beta_0+\beta_1x_1+\cdots+\beta_p x_p=x^\top\beta).
 \]</span></p>
 <p>The logistic function has several important properties.</p>
 <ol type="1">
@@ -847,7 +848,7 @@ p(x)=\sigma(x^\top\beta).
 \]</span></li>
 </ol>
 <p>The curve is displayed as follows.</p>
-<div id="db6a2161" class="cell" data-execution_count="1">
+<div id="c1d0433a" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -857,15 +858,10 @@ p(x)=\sigma(x^\top\beta).
 </div>
 </div>
 </section>
-</section>
-<section id="logistic-regression-as-a-linear-classifier" class="level2" data-number="6.3">
-<h2 data-number="6.3" class="anchored" data-anchor-id="logistic-regression-as-a-linear-classifier"><span class="header-section-number">6.3</span> Logistic Regression as a Linear Classifier</h2>
-<p>Logistic regression produces probabilities, but it can also be used for classification.</p>
-<p>Using the common threshold</p>
-<p><span class="math display">\[
-t=0.5,
-\]</span></p>
-<p>we predict</p>
+<section id="logistic-regression-as-a-linear-classifier" class="level3" data-number="6.2.2">
+<h3 data-number="6.2.2" class="anchored" data-anchor-id="logistic-regression-as-a-linear-classifier"><span class="header-section-number">6.2.2</span> Logistic Regression as a Linear Classifier</h3>
+<p>Logistic regression produces probabilities, therefore it can also be used for classification.</p>
+<p>Using the common threshold <span class="math inline">\(t=0.5\)</span>, we predict</p>
 <p><span class="math display">\[
 \hat y
 =
@@ -893,9 +889,11 @@ x^\top\beta\ge 0,
 <p><span class="math display">\[
 x^\top\beta=0.
 \]</span></p>
-<p>This is a line in two dimensions, a plane in three dimensions, and a hyperplane in higher dimensions.</p>
-<p>Thus logistic regression is a <strong>linear classifier</strong>.</p>
-<p>Even though the probability curve is nonlinear, the decision boundary is linear in the original predictor space.</p>
+<p>This is a line in two dimensions, a plane in three dimensions, and a hyperplane in higher dimensions. Thus logistic regression is a linear classifier: Even though the probability curve is nonlinear, the decision boundary is linear in the original predictor space.</p>
+</section>
+</section>
+<section id="interpretations" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="interpretations"><span class="header-section-number">6.3</span> Interpretations</h2>
 </section>
 <section id="why-not-linear-regression" class="level2" data-number="6.4">
 <h2 data-number="6.4" class="anchored" data-anchor-id="why-not-linear-regression"><span class="header-section-number">6.4</span> Why Not Linear Regression?</h2>
@@ -1617,7 +1615,7 @@ c^*
 <h2 data-number="7.5" class="anchored" data-anchor-id="logistic-regression-in-sklearn"><span class="header-section-number">7.5</span> Logistic Regression in <code>sklearn</code></h2>
 <p>For predictive workflows we usually use <code>sklearn</code>, because it works naturally with train-test splits, pipelines, cross-validation, and tuning.</p>
 <p>The example below uses the breast cancer data. The original target codes malignant tumors as <code>0</code> and benign tumors as <code>1</code>, so we define <code>y = 1 - cancer.target</code> to make malignant the positive class.</p>
-<div id="f993d4f1" class="cell" data-execution_count="2">
+<div id="2fed68cc" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1655,9 +1653,9 @@ c^*
 </div>
 </div>
 <p><code>predict_proba()</code> returns estimated class probabilities. The second column is the estimated probability of the positive class.</p>
-<div id="e099f482" class="cell" data-execution_count="3">
+<div id="fd7e31a1" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>logit.predict_proba(X_test[:<span class="dv">5</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="24">
+<div class="cell-output cell-output-display" data-execution_count="45">
 <pre><code>array([[9.97324773e-01, 2.67522723e-03],
        [6.19687503e-01, 3.80312497e-01],
        [1.58637887e-06, 9.99998414e-01],
@@ -1684,7 +1682,7 @@ c^*
 <h2 data-number="7.6" class="anchored" data-anchor-id="confusion-matrix-and-metrics"><span class="header-section-number">7.6</span> Confusion Matrix and Metrics</h2>
 <p>Threshold-based metrics compare true labels with predicted labels.</p>
 <p>See <a href="../0/decisioneval.html" class="quarto-xref"><span>Chapter 2</span></a> for the definitions and interpretation of accuracy, precision, recall, and F1 score. In this section we compute them for the fitted logistic regression model.</p>
-<div id="ae9957c1" class="cell" data-execution_count="4">
+<div id="155afa60" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> (</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    confusion_matrix,</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    accuracy_score,</span>
@@ -1694,7 +1692,7 @@ c^*
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>confusion_matrix(y_test, test_pred)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
+<div class="cell-output cell-output-display" data-execution_count="46">
 <pre><code>array([[104,   3],
        [ 12,  52]])</code></pre>
 </div>
@@ -1705,7 +1703,7 @@ TN &amp; FP\\
 FN &amp; TP
 \end{pmatrix}.
 \]</span></p>
-<div id="7e1ed7f6" class="cell" data-execution_count="5">
+<div id="10eed6e4" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>TN, FP, FN, TP <span class="op">=</span> confusion_matrix(y_test, test_pred).ravel()</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>basic_metrics <span class="op">=</span> {</span>
@@ -1716,7 +1714,7 @@ FN &amp; TP
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>basic_metrics</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="26">
+<div class="cell-output cell-output-display" data-execution_count="47">
 <pre><code>{'accuracy': 0.9122807017543859,
  'precision': 0.9454545454545454,
  'recall': 0.8125,
@@ -1724,18 +1722,18 @@ FN &amp; TP
 </div>
 </div>
 <p>To use a different threshold, apply it directly to the estimated probabilities.</p>
-<div id="e82ef5ff" class="cell" data-execution_count="6">
+<div id="5368a739" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>threshold <span class="op">=</span> <span class="fl">0.3</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>pred_03 <span class="op">=</span> (test_prob <span class="op">&gt;=</span> threshold).astype(<span class="bu">int</span>)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>confusion_matrix(y_test, pred_03)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="27">
+<div class="cell-output cell-output-display" data-execution_count="48">
 <pre><code>array([[102,   5],
        [  7,  57]])</code></pre>
 </div>
 </div>
 <p>A small helper function makes threshold comparisons easier.</p>
-<div id="7265696b" class="cell" data-execution_count="7">
+<div id="1d502dff" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> classification_summary(y_true, prob, threshold<span class="op">=</span><span class="fl">0.5</span>):</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    pred <span class="op">=</span> (prob <span class="op">&gt;=</span> threshold).astype(<span class="bu">int</span>)</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    TN, FP, FN, TP <span class="op">=</span> confusion_matrix(y_true, pred).ravel()</span>
@@ -1752,7 +1750,7 @@ FN &amp; TP
 <span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">"f1"</span>: f1_score(y_true, pred, zero_division<span class="op">=</span><span class="dv">0</span>),</span>
 <span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="fbf9965a" class="cell" data-execution_count="8">
+<div id="477234a1" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>thresholds <span class="op">=</span> np.linspace(<span class="fl">0.05</span>, <span class="fl">0.95</span>, <span class="dv">19</span>)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>threshold_df <span class="op">=</span> pd.DataFrame(</span>
@@ -1763,7 +1761,7 @@ FN &amp; TP
 <span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>threshold_df.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="29">
+<div class="cell-output cell-output-display" data-execution_count="50">
 <div>
 
 
@@ -1849,7 +1847,7 @@ FN &amp; TP
 </div>
 </div>
 </div>
-<div id="5749408e" class="cell" data-execution_count="9">
+<div id="959fd3e7" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>plt.plot(threshold_df[<span class="st">"threshold"</span>], threshold_df[<span class="st">"precision"</span>], marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"precision"</span>)</span>
@@ -1878,7 +1876,7 @@ FN &amp; TP
 </ol>
 <p>This is the same distinction between model tuning and threshold tuning described in <a href="../0/decisioneval.html" class="quarto-xref"><span>Chapter 2</span></a>.</p>
 <p>The following example chooses the threshold that maximizes validation F1 score.</p>
-<div id="767589c0" class="cell" data-execution_count="10">
+<div id="09b0e833" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>X_model, X_valid, y_model, y_valid <span class="op">=</span> train_test_split(</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    X_train,</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    y_train,</span>
@@ -1913,7 +1911,7 @@ FN &amp; TP
 <pre><code>D:\Codes\Notes\su26\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:1135: FutureWarning: 'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' instead. Use l1_ratio=0 instead of penalty='l2', l1_ratio=1 instead of penalty='l1', and C=np.inf instead of penalty=None.
   warnings.warn(</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="31">
+<div class="cell-output cell-output-display" data-execution_count="52">
 <pre><code>threshold     0.700000
 TP           32.000000
 FP            0.000000
@@ -1926,7 +1924,7 @@ f1            0.927536
 Name: 65, dtype: float64</code></pre>
 </div>
 </div>
-<div id="fa1584b3" class="cell" data-execution_count="11">
+<div id="33d17249" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>best_threshold <span class="op">=</span> best_f1_row[<span class="st">"threshold"</span>]</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>classification_summary(</span>
@@ -1934,7 +1932,7 @@ Name: 65, dtype: float64</code></pre>
 <span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    test_prob,</span>
 <span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    threshold<span class="op">=</span>best_threshold,</span>
 <span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="32">
+<div class="cell-output cell-output-display" data-execution_count="53">
 <pre><code>{'threshold': np.float64(0.7),
  'TP': np.int64(49),
  'FP': np.int64(2),
@@ -1947,7 +1945,7 @@ Name: 65, dtype: float64</code></pre>
 </div>
 </div>
 <p>The same idea can be used for other goals. For example, we may choose the largest recall among thresholds whose precision is at least <span class="math inline">\(0.90\)</span>.</p>
-<div id="505d9821" class="cell" data-execution_count="12">
+<div id="8eb0a4b6" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>valid_candidates <span class="op">=</span> validation_results[</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    validation_results[<span class="st">"precision"</span>] <span class="op">&gt;=</span> <span class="fl">0.90</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>]</span>
@@ -1957,7 +1955,7 @@ Name: 65, dtype: float64</code></pre>
 <span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>]</span>
 <span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>best_recall_row</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="33">
+<div class="cell-output cell-output-display" data-execution_count="54">
 <pre><code>threshold     0.570000
 TP           33.000000
 FP            3.000000
@@ -1970,13 +1968,13 @@ f1            0.904110
 Name: 52, dtype: float64</code></pre>
 </div>
 </div>
-<div id="db83cb33" class="cell" data-execution_count="13">
+<div id="88266297" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>classification_summary(</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    y_test,</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    test_prob,</span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    threshold<span class="op">=</span>best_recall_row[<span class="st">"threshold"</span>],</span>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="34">
+<div class="cell-output cell-output-display" data-execution_count="55">
 <pre><code>{'threshold': np.float64(0.57),
  'TP': np.int64(51),
  'FP': np.int64(3),
@@ -2004,7 +2002,7 @@ c^*
 \approx
 0.167.
 \]</span></p>
-<div id="f44f1286" class="cell" data-execution_count="14">
+<div id="f6562208" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>cost_fp <span class="op">=</span> <span class="dv">1</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>cost_fn <span class="op">=</span> <span class="dv">5</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2015,7 +2013,7 @@ c^*
 <span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    test_prob,</span>
 <span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    threshold<span class="op">=</span>cost_threshold,</span>
 <span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="35">
+<div class="cell-output cell-output-display" data-execution_count="56">
 <pre><code>{'threshold': 0.16666666666666666,
  'TP': np.int64(58),
  'FP': np.int64(6),
@@ -2045,7 +2043,7 @@ FPR(c)
 \frac{FP(c)}{FP(c)+TN(c)}.
 \]</span> The ROC curve plots <span class="math inline">\(TPR(c)\)</span> against <span class="math inline">\(FPR(c)\)</span> as <span class="math inline">\(c\)</span> varies.</p>
 <p>ROC curves, AUC, precision-recall curves, Brier score, log loss, and calibration curves are introduced conceptually in <a href="../0/decisioneval.html" class="quarto-xref"><span>Chapter 2</span></a>. The examples below show their direct implementation for logistic regression.</p>
-<div id="50652193" class="cell" data-execution_count="15">
+<div id="5cde25bc" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_curve, roc_auc_score</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>fpr, tpr, roc_thresholds <span class="op">=</span> roc_curve(y_test, test_prob)</span>
@@ -2071,7 +2069,7 @@ AUC
 \Pr\left(s^+&gt;s^-\right),
 \]</span> up to small corrections for ties, where <span class="math inline">\(s^+\)</span> is the score for a randomly selected positive observation and <span class="math inline">\(s^-\)</span> is the score for a randomly selected negative observation.</p>
 <p>Precision-recall curves are often useful when the positive class is rare or when performance on the positive class is the main concern.</p>
-<div id="f6bdf26e" class="cell" data-execution_count="16">
+<div id="a2b23d4b" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> precision_recall_curve, average_precision_score</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>precision, recall, pr_thresholds <span class="op">=</span> precision_recall_curve(y_test, test_prob)</span>
@@ -2106,7 +2104,7 @@ y_i\log(\hat p_i)
 (1-y_i)\log(1-\hat p_i)
 \right].
 \]</span></p>
-<div id="7f6b5a97" class="cell" data-execution_count="17">
+<div id="69e979c7" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> brier_score_loss, log_loss</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>probability_scores <span class="op">=</span> {</span>
@@ -2115,12 +2113,12 @@ y_i\log(\hat p_i)
 <span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>probability_scores</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="38">
+<div class="cell-output cell-output-display" data-execution_count="59">
 <pre><code>{'brier_score': 0.06368785859728307, 'log_loss': 0.2183157001746612}</code></pre>
 </div>
 </div>
 <p>Calibration curves check whether predicted probabilities are numerically meaningful.</p>
-<div id="01c033d6" class="cell" data-execution_count="18">
+<div id="bee998c1" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.calibration <span class="im">import</span> CalibrationDisplay</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>CalibrationDisplay.from_predictions(</span>
@@ -2130,7 +2128,7 @@ y_i\log(\hat p_i)
 <span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"Logistic regression"</span>,</span>
 <span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Calibration Curve"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="39">
+<div class="cell-output cell-output-display" data-execution_count="60">
 <pre><code>Text(0.5, 1.0, 'Calibration Curve')</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -2145,7 +2143,7 @@ y_i\log(\hat p_i)
 <section id="decision-boundary" class="level2" data-number="7.8">
 <h2 data-number="7.8" class="anchored" data-anchor-id="decision-boundary"><span class="header-section-number">7.8</span> Decision Boundary</h2>
 <p>With two predictors, we can visualize the fitted probability surface and the <span class="math inline">\(0.5\)</span> decision boundary.</p>
-<div id="9d059f8f" class="cell" data-execution_count="19">
+<div id="a43c1485" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>X2 <span class="op">=</span> cancer.data[[<span class="st">"mean radius"</span>, <span class="st">"mean texture"</span>]]</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>y2 <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> cancer.target</span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2231,7 +2229,7 @@ y_i\log(\hat p_i)
 \]</span></p>
 <p>As in ridge and lasso regression, the intercept is usually not penalized. Predictors should usually be standardized before penalized logistic regression because the penalty depends on coefficient scale.</p>
 <p>In <code>sklearn</code>, <code>C</code> controls inverse regularization strength. Larger <code>C</code> means weaker regularization, and smaller <code>C</code> means stronger regularization.</p>
-<div id="1096e5f4" class="cell" data-execution_count="20">
+<div id="b04c2d08" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>penalized_pipe <span class="op">=</span> make_pipeline(</span>
@@ -2663,14 +2661,14 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:11
 D:\Codes\Notes\su26\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:1160: UserWarning: Inconsistent values: penalty=l1 with l1_ratio=0.0. penalty is deprecated. Please use l1_ratio only.
   warnings.warn(</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="41">
+<div class="cell-output cell-output-display" data-execution_count="62">
 <pre><code>{'logisticregression__C': np.float64(4.832930238571752)}</code></pre>
 </div>
 </div>
-<div id="eef67403" class="cell" data-execution_count="21">
+<div id="dfef2421" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>grid.best_estimator_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="42">
-<style>#sk-container-id-2 {
+<div class="cell-output cell-output-display" data-execution_count="63">
+<style>#sk-container-id-3 {
   /* Definition of color scheme common for light and dark mode */
   --sklearn-color-text: #000;
   --sklearn-color-text-muted: #666;
@@ -2687,7 +2685,7 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:11
   --sklearn-color-fitted-level-3: cornflowerblue;
 }
 
-#sk-container-id-2.light {
+#sk-container-id-3.light {
   /* Specific color for light theme */
   --sklearn-color-text-on-default-background: black;
   --sklearn-color-background: white;
@@ -2695,22 +2693,22 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:11
   --sklearn-color-icon: #696969;
 }
 
-#sk-container-id-2.dark {
+#sk-container-id-3.dark {
   --sklearn-color-text-on-default-background: white;
   --sklearn-color-background: #111;
   --sklearn-color-border-box: white;
   --sklearn-color-icon: #878787;
 }
 
-#sk-container-id-2 {
+#sk-container-id-3 {
   color: var(--sklearn-color-text);
 }
 
-#sk-container-id-2 pre {
+#sk-container-id-3 pre {
   padding: 0;
 }
 
-#sk-container-id-2 input.sk-hidden--visually {
+#sk-container-id-3 input.sk-hidden--visually {
   border: 0;
   clip: rect(1px 1px 1px 1px);
   clip: rect(1px, 1px, 1px, 1px);
@@ -2722,7 +2720,7 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:11
   width: 1px;
 }
 
-#sk-container-id-2 div.sk-dashed-wrapped {
+#sk-container-id-3 div.sk-dashed-wrapped {
   border: 1px dashed var(--sklearn-color-line);
   margin: 0 0.4em 0.5em 0.4em;
   box-sizing: border-box;
@@ -2730,7 +2728,7 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:11
   background-color: var(--sklearn-color-background);
 }
 
-#sk-container-id-2 div.sk-container {
+#sk-container-id-3 div.sk-container {
   /* jupyter's `normalize.less` sets `[hidden] { display: none; }`
      but bootstrap.min.css set `[hidden] { display: none !important; }`
      so we also need the `!important` here to be able to override the
@@ -2740,7 +2738,7 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:11
   position: relative;
 }
 
-#sk-container-id-2 div.sk-text-repr-fallback {
+#sk-container-id-3 div.sk-text-repr-fallback {
   display: none;
 }
 
@@ -2756,14 +2754,14 @@ div.sk-item {
 
 /* Parallel-specific style estimator block */
 
-#sk-container-id-2 div.sk-parallel-item::after {
+#sk-container-id-3 div.sk-parallel-item::after {
   content: "";
   width: 100%;
   border-bottom: 2px solid var(--sklearn-color-text-on-default-background);
   flex-grow: 1;
 }
 
-#sk-container-id-2 div.sk-parallel {
+#sk-container-id-3 div.sk-parallel {
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -2771,28 +2769,28 @@ div.sk-item {
   position: relative;
 }
 
-#sk-container-id-2 div.sk-parallel-item {
+#sk-container-id-3 div.sk-parallel-item {
   display: flex;
   flex-direction: column;
 }
 
-#sk-container-id-2 div.sk-parallel-item:first-child::after {
+#sk-container-id-3 div.sk-parallel-item:first-child::after {
   align-self: flex-end;
   width: 50%;
 }
 
-#sk-container-id-2 div.sk-parallel-item:last-child::after {
+#sk-container-id-3 div.sk-parallel-item:last-child::after {
   align-self: flex-start;
   width: 50%;
 }
 
-#sk-container-id-2 div.sk-parallel-item:only-child::after {
+#sk-container-id-3 div.sk-parallel-item:only-child::after {
   width: 0;
 }
 
 /* Serial-specific style estimator block */
 
-#sk-container-id-2 div.sk-serial {
+#sk-container-id-3 div.sk-serial {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2810,14 +2808,14 @@ clickable and can be expanded/collapsed.
 
 /* Pipeline and ColumnTransformer style (default) */
 
-#sk-container-id-2 div.sk-toggleable {
+#sk-container-id-3 div.sk-toggleable {
   /* Default theme specific background. It is overwritten whether we have a
   specific estimator or a Pipeline/ColumnTransformer */
   background-color: var(--sklearn-color-background);
 }
 
 /* Toggleable label */
-#sk-container-id-2 label.sk-toggleable__label {
+#sk-container-id-3 label.sk-toggleable__label {
   cursor: pointer;
   display: flex;
   width: 100%;
@@ -2830,13 +2828,13 @@ clickable and can be expanded/collapsed.
   gap: 0.5em;
 }
 
-#sk-container-id-2 label.sk-toggleable__label .caption {
+#sk-container-id-3 label.sk-toggleable__label .caption {
   font-size: 0.6rem;
   font-weight: lighter;
   color: var(--sklearn-color-text-muted);
 }
 
-#sk-container-id-2 label.sk-toggleable__label-arrow:before {
+#sk-container-id-3 label.sk-toggleable__label-arrow:before {
   /* Arrow on the left of the label */
   content: "▸";
   float: left;
@@ -2844,25 +2842,25 @@ clickable and can be expanded/collapsed.
   color: var(--sklearn-color-icon);
 }
 
-#sk-container-id-2 label.sk-toggleable__label-arrow:hover:before {
+#sk-container-id-3 label.sk-toggleable__label-arrow:hover:before {
   color: var(--sklearn-color-text);
 }
 
 /* Toggleable content - dropdown */
 
-#sk-container-id-2 div.sk-toggleable__content {
+#sk-container-id-3 div.sk-toggleable__content {
   display: none;
   text-align: left;
   /* unfitted */
   background-color: var(--sklearn-color-unfitted-level-0);
 }
 
-#sk-container-id-2 div.sk-toggleable__content.fitted {
+#sk-container-id-3 div.sk-toggleable__content.fitted {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-0);
 }
 
-#sk-container-id-2 div.sk-toggleable__content pre {
+#sk-container-id-3 div.sk-toggleable__content pre {
   margin: 0.2em;
   border-radius: 0.25em;
   color: var(--sklearn-color-text);
@@ -2870,78 +2868,78 @@ clickable and can be expanded/collapsed.
   background-color: var(--sklearn-color-unfitted-level-0);
 }
 
-#sk-container-id-2 div.sk-toggleable__content.fitted pre {
+#sk-container-id-3 div.sk-toggleable__content.fitted pre {
   /* unfitted */
   background-color: var(--sklearn-color-fitted-level-0);
 }
 
-#sk-container-id-2 input.sk-toggleable__control:checked~div.sk-toggleable__content {
+#sk-container-id-3 input.sk-toggleable__control:checked~div.sk-toggleable__content {
   /* Expand drop-down */
   display: block;
   width: 100%;
   overflow: visible;
 }
 
-#sk-container-id-2 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
+#sk-container-id-3 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
   content: "▾";
 }
 
 /* Pipeline/ColumnTransformer-specific style */
 
-#sk-container-id-2 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
+#sk-container-id-3 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
   color: var(--sklearn-color-text);
   background-color: var(--sklearn-color-unfitted-level-2);
 }
 
-#sk-container-id-2 div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+#sk-container-id-3 div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
   background-color: var(--sklearn-color-fitted-level-2);
 }
 
 /* Estimator-specific style */
 
 /* Colorize estimator box */
-#sk-container-id-2 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
+#sk-container-id-3 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
   /* unfitted */
   background-color: var(--sklearn-color-unfitted-level-2);
 }
 
-#sk-container-id-2 div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+#sk-container-id-3 div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-2);
 }
 
-#sk-container-id-2 div.sk-label label.sk-toggleable__label,
-#sk-container-id-2 div.sk-label label {
+#sk-container-id-3 div.sk-label label.sk-toggleable__label,
+#sk-container-id-3 div.sk-label label {
   /* The background is the default theme color */
   color: var(--sklearn-color-text-on-default-background);
 }
 
 /* On hover, darken the color of the background */
-#sk-container-id-2 div.sk-label:hover label.sk-toggleable__label {
+#sk-container-id-3 div.sk-label:hover label.sk-toggleable__label {
   color: var(--sklearn-color-text);
   background-color: var(--sklearn-color-unfitted-level-2);
 }
 
 /* Label box, darken color on hover, fitted */
-#sk-container-id-2 div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
+#sk-container-id-3 div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
   color: var(--sklearn-color-text);
   background-color: var(--sklearn-color-fitted-level-2);
 }
 
 /* Estimator label */
 
-#sk-container-id-2 div.sk-label label {
+#sk-container-id-3 div.sk-label label {
   font-family: monospace;
   font-weight: bold;
   line-height: 1.2em;
 }
 
-#sk-container-id-2 div.sk-label-container {
+#sk-container-id-3 div.sk-label-container {
   text-align: center;
 }
 
 /* Estimator-specific */
-#sk-container-id-2 div.sk-estimator {
+#sk-container-id-3 div.sk-estimator {
   font-family: monospace;
   border: 1px dotted var(--sklearn-color-border-box);
   border-radius: 0.25em;
@@ -2951,18 +2949,18 @@ clickable and can be expanded/collapsed.
   background-color: var(--sklearn-color-unfitted-level-0);
 }
 
-#sk-container-id-2 div.sk-estimator.fitted {
+#sk-container-id-3 div.sk-estimator.fitted {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-0);
 }
 
 /* on hover */
-#sk-container-id-2 div.sk-estimator:hover {
+#sk-container-id-3 div.sk-estimator:hover {
   /* unfitted */
   background-color: var(--sklearn-color-unfitted-level-2);
 }
 
-#sk-container-id-2 div.sk-estimator.fitted:hover {
+#sk-container-id-3 div.sk-estimator.fitted:hover {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-2);
 }
@@ -3053,7 +3051,7 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
 
 /* "?"-specific style due to the `<a>` HTML tag */
 
-#sk-container-id-2 a.estimator_doc_link {
+#sk-container-id-3 a.estimator_doc_link {
   float: right;
   font-size: 1rem;
   line-height: 1em;
@@ -3068,7 +3066,7 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
   border: var(--sklearn-color-unfitted-level-1) 1pt solid;
 }
 
-#sk-container-id-2 a.estimator_doc_link.fitted {
+#sk-container-id-3 a.estimator_doc_link.fitted {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-0);
   border: var(--sklearn-color-fitted-level-1) 1pt solid;
@@ -3076,14 +3074,14 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
 }
 
 /* On hover */
-#sk-container-id-2 a.estimator_doc_link:hover {
+#sk-container-id-3 a.estimator_doc_link:hover {
   /* unfitted */
   background-color: var(--sklearn-color-unfitted-level-3);
   color: var(--sklearn-color-background);
   text-decoration: none;
 }
 
-#sk-container-id-2 a.estimator_doc_link.fitted:hover {
+#sk-container-id-3 a.estimator_doc_link.fitted:hover {
   /* fitted */
   background-color: var(--sklearn-color-fitted-level-3);
 }
@@ -3220,11 +3218,11 @@ a.param-doc-link::before {
     height: 14px;
     cursor: pointer;
 }
-</style><div id="sk-container-id-2" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[('standardscaler', StandardScaler()),
+</style><div id="sk-container-id-3" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[('standardscaler', StandardScaler()),
                 ('logisticregression',
                  LogisticRegression(C=np.float64(4.832930238571752),
                                     max_iter=5000, penalty='l1',
-                                    solver='liblinear'))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-4" type="checkbox"><label for="sk-estimator-id-4" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.8/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link fitted">i<span>Fitted</span></span></div></label><div class="sk-toggleable__content fitted" data-param-prefix="">
+                                    solver='liblinear'))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-7" type="checkbox"><label for="sk-estimator-id-7" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.8/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link fitted">i<span>Fitted</span></span></div></label><div class="sk-toggleable__content fitted" data-param-prefix="">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -3293,7 +3291,7 @@ is completed.</span></a></td>
 
             </details>
         </div>
-    </div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-5" type="checkbox"><label for="sk-estimator-id-5" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>StandardScaler</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.8/modules/generated/sklearn.preprocessing.StandardScaler.html">?<span>Documentation for StandardScaler</span></a></div></label><div class="sk-toggleable__content fitted" data-param-prefix="standardscaler__">
+    </div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-8" type="checkbox"><label for="sk-estimator-id-8" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>StandardScaler</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.8/modules/generated/sklearn.preprocessing.StandardScaler.html">?<span>Documentation for StandardScaler</span></a></div></label><div class="sk-toggleable__content fitted" data-param-prefix="standardscaler__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -3339,7 +3337,7 @@ unit standard deviation).</span></a></td>
 
             </details>
         </div>
-    </div></div></div><div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-6" type="checkbox"><label for="sk-estimator-id-6" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>LogisticRegression</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.8/modules/generated/sklearn.linear_model.LogisticRegression.html">?<span>Documentation for LogisticRegression</span></a></div></label><div class="sk-toggleable__content fitted" data-param-prefix="logisticregression__">
+    </div></div></div><div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-9" type="checkbox"><label for="sk-estimator-id-9" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>LogisticRegression</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.8/modules/generated/sklearn.linear_model.LogisticRegression.html">?<span>Documentation for LogisticRegression</span></a></div></label><div class="sk-toggleable__content fitted" data-param-prefix="logisticregression__">
         <div class="estimator-table">
             <details>
                 <summary>Parameters</summary>
@@ -3699,7 +3697,7 @@ function forceTheme(elementId) {
     }
 }
 
-forceTheme('sk-container-id-2');</script>
+forceTheme('sk-container-id-3');</script>
 </div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
