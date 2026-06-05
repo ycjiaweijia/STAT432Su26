@@ -58,13 +58,271 @@ Kernel smoothing uses a fixed distance scale, controlled by the bandwidth $h$.
 KNN fits are often discontinuous because the neighbor set can change abruptly as $x_0$ moves. Kernel smoothers, especially with smooth kernels such as the Gaussian kernel, usually produce smooth fitted curves.
 
 
+
+
+
+## Kernel Density Estimation
+
+Kernel density estimation estimates the density of a random variable from observed data $\qty{x_1,\ldots,x_n}$. The kernel density estimator is
+
+$$
+\hat f(x)
+=
+\frac{1}{n}
+\sum_{i=1}^n
+K_h(x,x_i).
+$$
+
+Equivalently,
+
+$$
+\hat f(x)
+=
+\frac{1}{nh}
+\sum_{i=1}^n
+K\left(\frac{x-x_i}{h}\right).
+$$
+
+The interpretation is simple: place a small smooth bump at every observation, then add the bumps together and divide by $n$.
+
+We use two normal distribution to generate a simple dataset to illustrate the method. The dataset is `x`, and its histogram is displayed.
+
+<!-- fmt: off -->
+```{python}
+rng = np.random.default_rng(1)
+
+n1 = rng.normal(loc=-1.0, scale=0.55, size=150)
+n2 = rng.normal(loc=1.2, scale=0.35, size=100)
+x = np.concatenate([n1, n2])
+
+plt.hist(x, bins=20, density=True, alpha=0.35, edgecolor="black")
+plt.xlabel("x")
+plt.ylabel("density");
+```
+<!-- fmt: on -->
+
+
+
+### Uniform Kernel and Histograms
+
+A histogram estimates density by counting observations inside fixed bins. Kernel density estimation generalizes this idea by replacing fixed bins with a moving window.
+
+Using the uniform kernel
+$$
+K(u)=\begin{cases}1,&\abs{u}\leq1/2,\\0,&\text{otherwise,}\end{cases}
+$$
+
+the kernel density estimater becomes
+
+$$
+\hat f(x)
+=
+\frac{
+\#\{x_i:x_i\in[x-h/2,x+h/2]\}
+}{nh}.
+$$
+
+This can be viewed as a moving histogram. Instead of counting observations in fixed bins, we center a window of width $h$ at the evaluation point $x$ and count the observations that fall inside the window.
+
+<!-- fmt: off -->
+```{python}
+x_grid = np.linspace(x.min() - 1, x.max() + 1, 500)
+h = 0.35
+
+counts = [np.mean((x >= x0 - h / 2) & (x <= x0 + h / 2)) / h for x0 in x_grid]
+
+plt.hist(x, bins=20, density=True, alpha=0.35, edgecolor="black")
+plt.plot(x_grid, counts, color="C1", linewidth=2, label="uniform kernel")
+plt.xlabel("x")
+plt.ylabel("density")
+plt.title("Uniform Kernel Density Estimate")
+plt.legend();
+```
+<!-- fmt: on -->
+
+### Gaussian Kernel Density Estimate
+
+The uniform kernel gives equal weight to all observations inside the window and zero weight to observations outside.
+
+A Gaussian kernel uses a smoother weighting scheme in which nearby observations receive more weight than distant observations.
+
+The Gaussian kernel is
+$$
+K(u)=\frac{1}{\sqrt{2\pi}}
+e^{-u^2/2}.
+$$
+
+Substituting this kernel into the kernel density estimator gives
+$$
+\hat f(x)=\frac{1}{nh\sqrt{2\pi}}
+\sum_{i=1}^{n}
+\exp\qty(-\frac12\qty(\frac{x-x_i}{h})^2).
+$$
+
+This estimator can be interpreted as placing a small Gaussian density centered at each observation and then summing the contributions from all observations. The bandwidth $h$ controls the width of these Gaussian curves.
+
+In practice, kernel density estimation is usually performed using software rather than by evaluating the formula directly. `KernelDensity` from `sklearn.neighbors` provides an implementation of KDE with several kernel choices, including the Gaussian kernel.
+
+
+```{python}
+from sklearn.neighbors import KernelDensity
+
+kde = KernelDensity(kernel="gaussian", bandwidth=0.25*x.std())
+kde.fit(x.reshape(-1, 1)) # <1>
+
+log_density = kde.score_samples(x_grid.reshape(-1, 1))
+density = np.exp(log_density)
+```
+1. As with most `sklearn` estimators, `KernelDensity` expects a 2D predictor matrix. Therefore the 1D array `x` is reshaped to an n×1 matrix before fitting the model.
+
+The method `.score_samples()` returns the logarithm of the estimated density rather than the density itself. This is done for numerical stability. Applying `np.exp()` converts the values back to the density scale.
+
+Finally, we can plot the estimated density.
+
+<!-- fmt: off -->
+```{python}
+plt.hist(x, bins=20, density=True, alpha=0.35, edgecolor="black")
+plt.plot(x_grid, density, color="C1", linewidth=2, label="Gaussian KDE")
+plt.xlabel("x")
+plt.ylabel("density")
+plt.title("Gaussian Kernel Density Estimate")
+plt.legend();
+```
+<!-- fmt: on -->
+
+
+
+### Effect of Bandwidth
+
+We can plot the KDE curve with different bandwidth to see the effect of bandwidth.
+
+<!-- fmt: off -->
+```{python}
+#| code-fold: true
+bandwidths = [0.1, 0.25, 0.6]
+
+plt.hist(x, bins=20, density=True, alpha=0.25, edgecolor="black")
+
+for bw in bandwidths:
+    kde = KernelDensity(kernel="gaussian", bandwidth=bw)
+    kde.fit(x.reshape(-1, 1))
+    density = np.exp(kde.score_samples(x_grid.reshape(-1, 1)))
+    plt.plot(x_grid, density, linewidth=2, label=f"h = {bw}")
+
+plt.xlabel("x")
+plt.ylabel("density")
+plt.title("Bandwidth Controls Smoothness")
+plt.legend();
+```
+<!-- fmt: on -->
+
+From the plot, we can see that the bandwidth controls the smoothness of the estimated density.
+
+- Small bandwidth: more local detail, more variability, and a greater risk of overfitting.
+- Large bandwidth: smoother estimates, less variability, and a greater risk of oversmoothing.
+
+Thus, bandwidth selection is a bias--variance tradeoff similar to choosing $K$ in KNN.
+
+### Expectation of the Kernel Density Estimator
+
+Assume $x_1,\ldots,x_n$ are independent samples from a density $f$. The estimator is
+
+$$
+\hat f(x)
+=
+\frac{1}{n}
+\sum_{i=1}^n
+\frac{1}{h}
+K\left(\frac{x-x_i}{h}\right).
+$$
+
+Its expectation is
+
+$$
+\begin{aligned}
+\Exp[\hat f(x)]
+&=
+\Exp\left[
+\frac{1}{h}K\left(\frac{x-X}{h}\right)
+\right] \\
+&=
+\int
+\frac{1}{h}
+K\left(\frac{x-t}{h}\right)
+f(t)\,dt.
+\end{aligned}
+$$
+
+Let
+
+$$
+u=\frac{x-t}{h},
+\qquad
+t=x-hu.
+$$
+
+Then
+
+$$
+\Exp[\hat f(x)]
+=
+\int
+K(u)f(x-hu)\,du.
+$$
+
+If $h$ is small and $f$ is smooth, then $f(x-hu)$ is close to $f(x)$. Since $\int K(u)\,du=1$,
+
+$$
+\Exp[\hat f(x)]
+\approx
+f(x).
+$$
+
+This explains why kernel density estimation can recover the true density when the bandwidth is small enough, but not too small.
+
+
+
+
+
+## Kernel Functions
+
+A kernel function is a nonnegative function that gives larger values to points near zero. For density estimation, we usually require
+
+$$
+K(u)\ge 0,
+\qquad
+\int_{-\infty}^{\infty}K(u)\,du=1.
+$$
+
+The scaled kernel is
+
+$$
+K_h(x,x_i)
+=
+\frac{1}{h}
+K\left(\frac{x-x_i}{h}\right).
+$$
+
+The bandwidth $h$ controls how wide the kernel is.
+
+
+
+
+Common choices of kernel is 
+
+- The Gaussian kernel $K(u)=\frac1{\sqrt2}\exp\qty(-\frac{u^2}{2})$.
+- The uniform kernel $K(u)=\frac{1}{2}I(|u|\le 1)$.
+- The Epanechnikov kernel $K(u)=\frac{3}{4}(1-u^2)I(|u|\le 1)$.
+
+The exact kernel shape is usually less important than the bandwidth. The bandwidth controls the main bias-variance tradeoff.
+
 ### Gaussian Kernel Regression
 
-One common choice of kernel is the Gaussian kernel
+The Gaussian kernel is
 
 $$
 K(u)
-=
+=\frac1{\sqrt{2\pi}}
 \exp\qty(-\frac{u^2}{2}).
 $$
 
@@ -158,74 +416,49 @@ def kernel_regression_predict(X, y, X_new, bandwidth):
     weights = np.exp(-0.5 * (diff / bandwidth) ** 2)
     weights = weights / weights.sum(axis=1, keepdims=True)
     return weights @ y
+
+h=np.std(X) * 0.25
+y_kernel = kernel_regression_predict(X, y, X_grid, bandwidth=h)
 ```
 
 Here `diff = X_new[:, None] - X[None, :] ` was discussed in @sec-common_operations. It uses `numpy` broadcasting to create a matrix of pairwise differences. If `X_new` contains $m$ points and `X` contains $n$ points, then `diff` has shape $(m,n)$, where the $(i,j)$ entry is the difference between the $i$th prediction point and the $j$th training point.
 
+The bandwidth is chosen to be 0.25 of the standard deviation of the feature. We will come to it later.
 
+We may plot the fitted results for visualization.
 
+<!-- fmt: off -->
 ```{python}
+#| code-fold: true
 import matplotlib.pyplot as plt
-
-
-
-
-def kernel_regression_predict(X_train, y_train, X_new, bandwidth):
-    distances = X_new[:, None] - X_train[None, :]
-    weights = np.exp(-0.5 * (distances / bandwidth) ** 2)
-    weights = weights / weights.sum(axis=1, keepdims=True)
-    return weights @ y_train
-
-
-y_kernel = kernel_regression_predict(
-    x_compare,
-    y_compare,
-    x_compare_grid,
-    bandwidth=np.std(x_compare) * 0.25,
-)
 
 fig, axs = plt.subplots(1, 2, figsize=(12, 4), sharey=True)
 
-axs[0].scatter(x_compare, y_compare, s=35, facecolors="none", edgecolors="black")
-axs[0].plot(x_compare_grid, 2 * np.sin(x_compare_grid), color="C0", label="true function")
-axs[0].plot(x_compare_grid, y_knn, color="C1", label="KNN")
+axs[0].scatter(X, y, s=35, facecolors="none", edgecolors="black")
+axs[0].plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+axs[0].plot(X_grid, y_knn, color="C1", label="KNN")
 axs[0].set_title("KNN Regression")
 
-axs[1].scatter(x_compare, y_compare, s=35, facecolors="none", edgecolors="black")
-axs[1].plot(x_compare_grid, 2 * np.sin(x_compare_grid), color="C0", label="true function")
-axs[1].plot(x_compare_grid, y_kernel, color="C1", label="Gaussian kernel")
+axs[1].scatter(X, y, s=35, facecolors="none", edgecolors="black")
+axs[1].plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+axs[1].plot(X_grid, y_kernel, color="C2", label="Gaussian kernel")
 axs[1].set_title("Gaussian Kernel Regression")
 
 for ax in axs:
     ax.set_xlabel("x")
     ax.legend()
 
-axs[0].set_ylabel("y")
-plt.show()
+axs[0].set_ylabel("y");
 ```
-:::
+<!-- fmt: on -->
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-[pic]
 
 
 The KNN fit is piecewise constant because the prediction is the average of a fixed set of nearest neighbors. As the target point moves, the neighbor set may suddenly change, causing abrupt jumps in the fitted curve.
 
 The Gaussian kernel fit changes smoothly because every observation contributes to the prediction. The weights vary continuously with distance, producing a smooth estimate of the regression function.
 
+:::
 
 
 
@@ -233,273 +466,27 @@ The Gaussian kernel fit changes smoothly because every observation contributes t
 
 
 
-
-
-
-
-
-The following example compares a KNN regression curve with a Gaussian kernel regression curve on the same data.
-
-
-The KNN fit is piecewise constant. The Gaussian kernel fit changes smoothly because the weights change smoothly as the target point moves.
-
-## Kernel Functions
-
-A kernel function is a nonnegative function that gives larger values to points near zero. For density estimation, we usually require
-
-$$
-K(u)\ge 0,
-\qquad
-\int_{-\infty}^{\infty}K(u)\,du=1.
-$$
-
-The scaled kernel is
-
-$$
-K_h(x,x_i)
-=
-\frac{1}{h}
-K\left(\frac{x-x_i}{h}\right).
-$$
-
-The bandwidth $h$ controls how wide the kernel is.
-
-### Common Kernels
-
-The Gaussian kernel is
-
-$$
-K(u)
-=
-\frac{1}{\sqrt{2\pi}}
-\exp\left(-\frac{u^2}{2}\right).
-$$
-
-The uniform kernel is
-
-$$
-K(u)
-=
-\frac{1}{2}I(|u|\le 1).
-$$
-
-The Epanechnikov kernel is
-
-$$
-K(u)
-=
-\frac{3}{4}(1-u^2)I(|u|\le 1).
-$$
-
-The exact kernel shape is usually less important than the bandwidth. The bandwidth controls the main bias-variance tradeoff.
-
-```{python}
-u = np.linspace(-3, 3, 1001)
-
-gaussian = np.exp(-0.5 * u**2) / np.sqrt(2 * np.pi)
-uniform = 0.5 * (np.abs(u) <= 1)
-epanechnikov = 0.75 * (1 - u**2) * (np.abs(u) <= 1)
-
-plt.plot(u, gaussian, label="Gaussian")
-plt.plot(u, uniform, label="uniform")
-plt.plot(u, epanechnikov, label="Epanechnikov")
-plt.xlabel("u")
-plt.ylabel("K(u)")
-plt.title("Common Kernel Functions")
-plt.legend()
-plt.show()
-```
-
-## Bandwidth
+### Bandwidth
 
 The bandwidth $h$ is the most important tuning parameter in kernel smoothing.
 
 - Small $h$: uses very local information and gives a flexible, variable estimate.
 - Large $h$: averages over a wider region and gives a smoother, more biased estimate.
 
-This is the same bias-variance tradeoff seen in KNN.
 
-::: {.callout-note}
-## Bandwidth and smoothness
+This is the same bias--variance tradeoff seen in KNN. In fact, the bandwidth plays a role similar to the parameter $K$ in KNN: both control how local the prediction is.
 
-Smaller bandwidth means less smoothing.
+Numerous bandwidth selection methods have been developed in the literature. The optimal choice often depends on the underlying distribution, the sample size, and the purpose of the analysis. In practice, bandwidth selection is usually treated as a tuning problem.
 
-Larger bandwidth means more smoothing.
-:::
+For exploratory data analysis, simple rule-of-thumb methods are often sufficient. A commonly used choice is $h = 0.25 s$ where $s$ is the sample standard deviation of the predictor variable. This rule scales the bandwidth according to the spread of the data and often provides a reasonable starting point for visualization.
 
-## Kernel Density Estimation
+However, a rule-of-thumb bandwidth should generally not be regarded as the final choice when predictive performance is important. More sophisticated methods include cross-validation, plug-in estimators, and methods based on minimizing various forms of estimation error. These approaches can provide better performance, especially for large datasets, but are beyond the scope of this course.
 
-Kernel density estimation estimates the density of a random variable from observed data
 
-$$
-x_1,\ldots,x_n.
-$$
 
-The kernel density estimator is
 
-$$
-\hat f(x)
-=
-\frac{1}{n}
-\sum_{i=1}^n
-K_h(x,x_i).
-$$
 
-Equivalently,
 
-$$
-\hat f(x)
-=
-\frac{1}{nh}
-\sum_{i=1}^n
-K\left(\frac{x-x_i}{h}\right).
-$$
-
-The interpretation is simple: place a small smooth bump at every observation, then add the bumps together and divide by $n$.
-
-### Uniform Kernel and Histograms
-
-A histogram counts observations inside bins. A uniform-kernel density estimate counts observations in a moving window:
-
-$$
-\hat f(x)
-=
-\frac{
-\#\{x_i:x_i\in[x-h/2,x+h/2]\}
-}{nh}.
-$$
-
-This is like a histogram whose bin center moves continuously with $x$.
-
-```{python}
-rng = np.random.default_rng(2)
-
-x = np.concatenate(
-    [
-        rng.normal(loc=-1.0, scale=0.55, size=150),
-        rng.normal(loc=1.2, scale=0.35, size=100),
-    ]
-)
-
-x_grid = np.linspace(x.min() - 1, x.max() + 1, 500)
-h = 0.35
-
-counts = np.array(
-    [
-        np.mean((x >= x0 - h / 2) & (x <= x0 + h / 2)) / h
-        for x0 in x_grid
-    ]
-)
-
-plt.hist(x, bins=20, density=True, alpha=0.35, edgecolor="black")
-plt.plot(x_grid, counts, color="C1", linewidth=2, label="uniform kernel")
-plt.xlabel("x")
-plt.ylabel("density")
-plt.title("Moving-Window Density Estimate")
-plt.legend()
-plt.show()
-```
-
-### Gaussian Kernel Density Estimate
-
-The Gaussian kernel replaces the moving-window count with a smooth weight.
-
-```{python}
-from sklearn.neighbors import KernelDensity
-
-kde = KernelDensity(kernel="gaussian", bandwidth=0.25)
-kde.fit(x.reshape(-1, 1))
-
-log_density = kde.score_samples(x_grid.reshape(-1, 1))
-density = np.exp(log_density)
-
-plt.hist(x, bins=20, density=True, alpha=0.35, edgecolor="black")
-plt.plot(x_grid, density, color="C1", linewidth=2, label="Gaussian KDE")
-plt.xlabel("x")
-plt.ylabel("density")
-plt.title("Kernel Density Estimate")
-plt.legend()
-plt.show()
-```
-
-### Effect of Bandwidth
-
-```{python}
-bandwidths = [0.1, 0.25, 0.6]
-
-plt.hist(x, bins=20, density=True, alpha=0.25, edgecolor="black")
-
-for bw in bandwidths:
-    kde = KernelDensity(kernel="gaussian", bandwidth=bw)
-    kde.fit(x.reshape(-1, 1))
-    density = np.exp(kde.score_samples(x_grid.reshape(-1, 1)))
-    plt.plot(x_grid, density, linewidth=2, label=f"h = {bw}")
-
-plt.xlabel("x")
-plt.ylabel("density")
-plt.title("Bandwidth Controls Smoothness")
-plt.legend()
-plt.show()
-```
-
-The small bandwidth produces many local bumps. The large bandwidth hides local structure.
-
-### Expectation of the Kernel Density Estimator
-
-Assume $x_1,\ldots,x_n$ are independent samples from a density $f$. The estimator is
-
-$$
-\hat f(x)
-=
-\frac{1}{n}
-\sum_{i=1}^n
-\frac{1}{h}
-K\left(\frac{x-x_i}{h}\right).
-$$
-
-Its expectation is
-
-$$
-\begin{aligned}
-\Exp[\hat f(x)]
-&=
-\Exp\left[
-\frac{1}{h}K\left(\frac{x-X}{h}\right)
-\right] \\
-&=
-\int
-\frac{1}{h}
-K\left(\frac{x-t}{h}\right)
-f(t)\,dt.
-\end{aligned}
-$$
-
-Let
-
-$$
-u=\frac{x-t}{h},
-\qquad
-t=x-hu.
-$$
-
-Then
-
-$$
-\Exp[\hat f(x)]
-=
-\int
-K(u)f(x-hu)\,du.
-$$
-
-If $h$ is small and $f$ is smooth, then $f(x-hu)$ is close to $f(x)$. Since $\int K(u)\,du=1$,
-
-$$
-\Exp[\hat f(x)]
-\approx
-f(x).
-$$
-
-This explains why kernel density estimation can recover the true density when the bandwidth is small enough, but not too small.
 
 ## Kernel Regression
 
