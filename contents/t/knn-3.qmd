@@ -1,0 +1,909 @@
+---
+jupyter: stats
+---
+
+<!-- {{< include ../math.qmd >}}  -->
+
+# KNN Regression
+
+K-nearest neighbors (KNN) regression is one of the simplest nonparametric regression methods. It is called nonparametric because it does not assume a fixed formula for the regression function. Instead, it estimates the response at a new point by using the responses of nearby training points.
+
+## KNN regression model
+
+Given training data
+
+$$
+\{(x_i,y_i)\}_{i=1}^n,\quad x_i\in\mathbb R^p,\; y_i\in\mathbb R,
+$$
+
+we want to estimate the regression function
+
+$$
+f(x)=\Exp[Y\mid X=x].
+$$
+
+::: {#def-knn-regressor}
+## KNN regressor
+
+For a new point $x_0$, let $N_K(x_0)$ be the set of indices corresponding to the $K$ training points closest to $x_0$. The KNN regression estimate is
+
+$$
+\hat f(x_0)
+=
+\frac{1}{K}\sum_{i\in N_K(x_0)} y_i.
+$$
+
+That is, the predicted value is the average response among the $K$ nearest neighbors of $x_0$.
+
+:::
+
+
+Sometimes, different neighbors are given different weights. In that case, the weighted KNN regressor has the form
+
+$$
+\hat f(x_0)
+=
+\sum_{i=1}^n w_i(x_0)y_i,
+$$
+
+where $w_i(x_0)\ge 0$ and
+
+$$
+\sum_{i=1}^n w_i(x_0)=1.
+$$
+
+In ordinary KNN regression,
+
+$$
+w_i(x_0)
+=
+\begin{cases}
+1/K, & i\in N_K(x_0),\\
+0, & i\notin N_K(x_0).
+\end{cases}
+$$
+
+
+
+::: {#exm-}
+
+Here are two examples of KNN regression on a one-dimensional dataset. We show the 1-nearest neighbor (1NN) and 3-nearest neighbor (3NN) regression lines.
+
+You can see that the 3NN regression line is smoother than the 1NN regression line, since it averages over more nearby points.
+
+
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neighbors import KNeighborsRegressor
+
+rng = np.random.default_rng(1)
+
+x = rng.uniform(0, 2 * np.pi, size=15)
+y = 2 * np.sin(x) + rng.normal(size=len(x))
+
+plt.scatter(x, y, s=40, facecolors="none", edgecolors="black")
+
+test_x = np.linspace(0, 2 * np.pi, 1001)
+
+knn = KNeighborsRegressor(n_neighbors=1, weights="uniform")
+knn.fit(x.reshape(-1, 1), y)
+test_pred = knn.predict(test_x.reshape(-1, 1))
+plt.plot(test_x, test_pred, label="1NN regression line")
+
+
+knn = KNeighborsRegressor(n_neighbors=3, weights="uniform")
+knn.fit(x.reshape(-1, 1), y)
+test_pred = knn.predict(test_x.reshape(-1, 1))
+plt.plot(test_x, test_pred, label="3NN regression line")
+
+
+plt.title("K-Nearest Neighbor Regression (2 examples)")
+plt.xlim(0, 2 * np.pi)
+plt.legend(loc="upper right")
+```
+
+:::
+
+
+
+
+::: {.callout-note}
+## Tuning $K$
+
+The tuning parameter $K$ is the most important hyperparameter in KNN.
+
+- small $K$: uses very local information, therefore it is more sensitive to noise  
+- large $K$: averages over more points, therefore it is more stable but more biased  
+
+This reflects the bias–variance tradeoff: smaller $K$ leads to a more flexible (wiggly) fit, while larger $K$ produces a smoother estimate.
+
+In practice, $K$ is typically chosen using cross-validation.
+:::
+
+
+### Distance
+
+$$
+d(x,x')=\sqrt{\sum_{j=1}^p (x_j-x'_j)^2}
+$$
+
+
+
+
+### Curse of dimensionality
+
+-   high $p$ → sparse neighbors\
+-   performance degrades
+
+
+### Comparison
+
+-   linear model: global\
+-   KNN: local
+
+
+
+## KNN in Python
+
+We may use `KNeighborsRegressor` from `sklearn.neighbors` to implement KNN. The API is almost the same as in linear models. So we can set up the same cross-validation, pipeline, etc.. Here is a simple example.
+
+First we simulate a dataset based on $\sin(x)$.
+
+```{python}
+import numpy as np
+
+rng = np.random.default_rng(1)
+
+N = 100
+X = rng.uniform(0, 2 * np.pi, size=N).reshape(-1, 1)
+y = (2 * np.sin(X.reshape(-1)) + rng.normal(size=N)).reshape(-1)  # <1>
+```
+1. The purpose of these reshape is that `X` is requrired to be of 2D array, and `y` is required to be 1D arrary.
+
+We generate test points on a fine grid (with 1001 points) for visualization.
+
+```{python}
+X_test = np.linspace(0, 2 * np.pi, 1001).reshape(-1, 1)
+```
+
+Then we initialize a KNN model with $K=3$, fit the model and make prediction.
+
+```{python}
+from sklearn.neighbors import KNeighborsRegressor
+
+knn = KNeighborsRegressor(n_neighbors=3)
+knn.fit(X, y)
+y_pred = knn.predict(X_test)
+```
+
+
+
+Finally we could plot the result using `matplotlib.pyplot`.
+
+```{python}
+import matplotlib.pyplot as plt
+
+plt.scatter(X.reshape(-1), y, s=40, facecolors="none", edgecolors="black")
+plt.plot(X_test, y_pred, color="C1")
+plt.title("KNN Regression (k=3)")
+plt.xlim(0, 2 * np.pi)
+```
+
+### Tuning $K$
+Before applying cross-validation, we first visualize how different values of $K$ affect the fit.
+
+```{python}
+#| code-fold: true
+
+knn1 = KNeighborsRegressor(n_neighbors=1)
+knn1.fit(X, y)
+y_pred1 = knn1.predict(X_test)
+
+knn3 = KNeighborsRegressor(n_neighbors=3)
+knn3.fit(X, y)
+y_pred3 = knn3.predict(X_test)
+
+knn10 = KNeighborsRegressor(n_neighbors=10)
+knn10.fit(X, y)
+y_pred10 = knn10.predict(X_test)
+
+knn20 = KNeighborsRegressor(n_neighbors=20)
+knn20.fit(X, y)
+y_pred20 = knn20.predict(X_test)
+
+fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+axs[0, 0].scatter(X.reshape(-1), y, s=40, facecolors="none", edgecolors="black")
+axs[0, 0].plot(X_test, y_pred1, color="C0")
+axs[0, 0].set_title(f"K=1")
+axs[0, 1].scatter(X.reshape(-1), y, s=40, facecolors="none", edgecolors="black")
+axs[0, 1].plot(X_test, y_pred3, color="C1")
+axs[0, 1].set_title(f"K=3")
+axs[1, 0].scatter(X.reshape(-1), y, s=40, facecolors="none", edgecolors="black")
+axs[1, 0].plot(X_test, y_pred10, color="C2")
+axs[1, 0].set_title(f"K=10")
+axs[1, 1].scatter(X.reshape(-1), y, s=40, facecolors="none", edgecolors="black")
+axs[1, 1].plot(X_test, y_pred20, color="C3")
+axs[1, 1].set_title(f"K=20")
+```
+
+The fitted curve becomes smoother but more biased as $K$ increases.
+
+We now select $K$ using cross-validation. In this example we search up to $K=80$ because in 5-fold CV, each training split contains about 80 observations. Using very large $K$ (close to the training size) effectively averages over nearly all points, which usually leads to poor models. Therefore in general we can choose a smaller range.
+
+
+
+```{python}
+from sklearn.model_selection import GridSearchCV
+
+klist = list(range(1, 81))
+params = {"n_neighbors": klist}
+gs = GridSearchCV(
+    KNeighborsRegressor(),
+    param_grid=params,
+    cv=5
+)
+gs.fit(X, y)
+```
+
+```{python}
+plt.plot(klist, gs.cv_results_["mean_test_score"])
+plt.axvline(x=gs.best_params_["n_neighbors"], color="black", linestyle="--")
+plt.title(f"Cross-validation: best K = {gs.best_params_['n_neighbors']}")
+```
+
+With this best $K$, the fitted curve is
+
+
+```{python}
+y_pred = gs.predict(X_test)
+plt.scatter(X.reshape(-1), y, s=40, facecolors="none", edgecolors="black")
+plt.plot(X_test, y_pred, color="C0")
+```
+
+
+## k-Nearest Neighbors Algorithm (k-NN)
+
+### Ideas
+Assume that we have a set of labeled data $\{(X_i, y_i)\}$ where $y_i$ denotes the label. Given a new data $X$, how do we determine the label of it? 
+
+k-NN algorithm starts from a very straightforward idea. We use the distances from the new data point $X$ to the known data points to identify the label. If $X$ is closer to $y_i$ points, then we will label $X$ as $y_i$. 
+
+Let us take cities and countries as an example. <span style="color:red">New York</span> and <span style="color:red">Los Angeles</span> are U.S cities, and <span style="color:grey">Beijing</span> and <span style="color:grey">Shanghai</span> are Chinese cities. Now we would like to consider Tianjin and Russellville. Do they belong to China or U.S? We calculate the distances from Tianjin (resp. Russellville) to all four known cities. Since Tianjin is closer to <span style="color:grey">Beijing</span> and <span style="color:grey">Shanghai</span> comparing to <span style="color:red">New York</span> and <span style="color:red">Los Angeles</span>, we classify Tianjin as a Chinese city. Similarly, since Russellville is closer to <span style="color:red">New York</span> and <span style="color:red">Los Angeles</span> comparing to <span style="color:grey">Beijing</span> and <span style="color:grey">Shanghai</span>, we classify it as a U.S. city.
+
+
+
+```{dot}
+digraph G {
+    layout=circo
+
+    Beijing [color=black]
+    Shanghai [color=black]
+    Tianjin [color=blue, fontcolor=black, shape=box]
+
+    "New York" [color=red, fontcolor=red]
+    "Los Angelis" [color=red, fontcolor=red]
+    Russellville [color=blue, fontcolor=red, shape=box]
+
+
+ 
+    Tianjin -> Beijing [label="closer"];
+    Tianjin -> Shanghai [label="closer   "];
+    Tianjin -> "New York" [style=dashed, color=blue, fontcolor=blue, label=" far away"];
+    Tianjin -> "Los Angelis" [style=dashed, color=blue, fontcolor=blue, label=" far away"];
+    Russellville -> "New York" [color=red, label="closer  ", fontcolor=red];
+    Russellville -> "Los Angelis" [color=red, label="closer", fontcolor=red];
+    Russellville -> Beijing [color=red, style=dashed, color=blue, label="far away ", fontcolor=blue];
+    Russellville -> Shanghai [color=red, style=dashed, color=blue, label="far away", fontcolor=blue];
+}
+```
+
+This naive example explains the idea of k-NN. Here is a more detailed description of the algorithm. 
+
+### The Algorithm
+
+
+
+::: {.callout-note}
+# k-NN Classifier
+
+**Inputs**: Given the training data set $\{(X_i, y_i)\}$ where $X_i=(x_i^1,x_i^2,\ldots,x_i^n)$ represents $n$ features and $y_i$ represents labels. Given a new data point $\tilde{X}=(\tilde{x}^1,\tilde{x}^2,\ldots,\tilde{x}^n)$.
+
+**Outputs**: Want to find the best label for $\tilde{X}$.
+
+1. Compute the distance from $\tilde{X}$ to each $X_i$.
+2. Sort all these distances from the nearest to the furthest. 
+3. Find the nearest $k$ data points.
+4. Determine the labels for each of these $k$ nearest points, and compute the frenqucy of each labels.
+5. The most frequent label is considered to be the label of $\tilde{X}$.
+
+:::
+
+### Details
+- The distance between two data points are defined by the Euclidean distance:
+  
+$$
+dist\left((x^j_i)_{j=1}^n, (\tilde{x}^j)_{j=1}^n\right)=\sqrt{\sum_{j=1}^n(x^j_i-\tilde{x}^j)^2}.
+$$
+  
+- Using linear algebra notations: 
+  
+$$
+dist(X_i,\tilde{X})=\sqrt{(X_i-\tilde{X})\cdot(X_i-\tilde{X})}.
+$$
+
+- All the distances are stored in a $1$-dim numpy array, and we will combine it together with another $1$-dim array that store the labels of each point.
+
+### The codes
+
+
+<details>
+<summary>This part is optional.</summary>
+
+
+
+- `argsort`
+- `unique`
+- `argmax`
+
+```{python}
+import numpy as np
+
+def classify_kNN(inX, X, y, k=5):
+    # compute the distance between each row of X and Xmat
+    Dmat = np.sqrt(((inX - X)**2).sum(axis=1))
+    # sort by distance
+    k = min(k, Dmat.shape[0])
+    argsorted = Dmat.argsort()[:k]
+    relatedy = y[argsorted]
+    # count the freq. of the first k labels
+    labelcounts = np.unique(relatedy, return_counts=True)
+    # find the label with the most counts
+    label = labelcounts[0][labelcounts[1].argmax()]
+    return label
+```
+
+</details>
+
+### `sklearn` packages
+You may also directly use the kNN function `KNeighborsClassifier` packaged in `sklearn.neighbors`. You may check the description of the function online from [here](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html).
+
+There are many ways to modify the kNN algorithm. What we just mentioned is the simplest idea. It is correspondent to the argument `weights='uniform'`, `algorithm='brute` and `metric='euclidean'`. However due to the implementation details, the results we got from `sklearn` are still a little bit different from the results produced by our naive codes.
+
+```{python}
+#| eval: false
+from sklearn.neighbors import KNeighborsClassifier
+clf = KNeighborsClassifier(n_neighbors=10, weights='uniform',
+                           algorithm='brute', metric='euclidean')
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+```
+
+
+### Normalization
+Different features may have different scales. It might be unfair for those features that have small scales. Therefore usually it is better to rescale all the features to make them have similar scales. After examining all the data, we find the minimal value `minVal` and the range `ranges` for each column. The normalization formula is:
+
+$$
+X_{norm} = \frac{X_{original}-minVal}{ranges}.
+$$
+
+We could also convert the normalized number back to the original value by 
+
+$$
+X_{original} = X_{norm} \times ranges + minVal.
+$$
+
+
+
+
+<details>
+<summary>The sample codes are listed below. This part is optional.</summary>
+
+
+
+```{python}
+import numpy as np
+
+def encodeNorm(X, parameters=None):
+    # parameters contains minVals and ranges
+    if parameters is None:
+        minVals = np.min(X, axis=0)
+        maxVals = np.max(X, axis=0)
+        ranges = np.maximum(maxVals - minVals, np.ones(minVals.size))
+        parameters = {'ranges': ranges, 'minVals': minVals}
+    else:
+        minVals = parameters['minVals']
+        ranges = parameters['ranges']
+    Nmat = np.tile(minVals, (X.shape[0], 1))
+    Xnorm = (X - Nmat)/ranges
+    return (Xnorm, parameters)
+
+
+def decodeNorm(X, parameters):
+    # parameters contains minVals and ranges
+    ranges = parameters['ranges']
+    minVals = parameters['minVals']
+    Nmat = np.tile(minVals, (X.shape[0], 1))
+    Xoriginal = X * ranges + Nmat
+    return Xoriginal
+```
+
+</details>
+
+You could use `MinMaxScaler` from `sklearn.preprocessing` to achive the goal. The API is very similar to an estimator.
+
+
+```{python}
+#| eval: false
+from sklearn.preprocessing import MinMaxScaler
+
+mm = MinMaxScaler()
+mm.fit(X)
+X_norm = mm.transform(X)
+```
+
+The last two lines can be combined into 
+
+```{python}
+#| eval: false
+X_norm = mm.fit_transform(X)
+```
+
+
+
+## k-NN Project 1: `iris` Classification
+
+This data is from `sklearn.datasets`. This dataset consists of 3 different types of irises' petal / sepal length / width, stored in a $150\times4$ `numpy.ndarray`. We already explored the dataset briefly in the previous chapter. This time we will try to use the feature provided to predict the type of the irises. For the purpose of plotting, we will only use the first two features: `sepal length` and `sepal width`.
+
+### Explore the dataset
+We first load the dataset. 
+
+
+
+```{python}
+from sklearn import datasets
+iris = datasets.load_iris()
+X = iris.data[:, :2]
+y = iris.target
+```
+
+
+Then we would like to split the dataset into trainning data and test data. Here we are going to use `sklearn.model_selection.train_test_split` function. Besides the dataset, we should also provide the propotion of the test set comparing to the whole dataset. We will choose `test_size=0.1` here, which means that the size of the test set is 0.1 times the size of the whole dataset. `stratify=y` means that when split the dataset we want to split respects the distribution of labels in `y`. 
+
+The split will be randomly. You may set the argument `random_state` to be a certain number to control the random process. If you set a `random_state`, the result of the random process will stay the same. This is for reproducible output across multiple function calls.
+
+
+After we get the training set, we should also normalize it. All our normalization should be based on the training set. When we want to use our model on some new data points, we will use the same normalization parameters to normalize the data points in interests right before we apply the model. Here since we mainly care about the test set, we could normalize the test set at this stage.
+
+Note that in the following code, we mainly use the implementation from `sklearn`. 
+<!-- the function `encodeNorm` defined in the previous section is used.  -->
+<!-- I import it from `assests.codes.knn`. You need to modify this part based on your file structure. See @sec-applyourknn for more details. -->
+
+
+```{python}
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=1, stratify=y)
+
+mm = MinMaxScaler()
+X_train_norm = mm.fit_transform(X_train)
+X_test_norm = mm.transform(X_test)
+```
+
+Before we start to play with k-NN, let us look at the data first. Since we only choose two features, it is able to plot these data points on a 2D plane, with different colors representing different classes. 
+
+
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Plot the scatter plot.
+fig = plt.figure(figsize=(10,7))
+ax = fig.add_subplot(111)
+scatter = ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train)
+
+# Generate legends.
+labels = ['setosa', 'versicolor', 'virginica']
+_ = fig.legend(handles=scatter.legend_elements()[0], labels=labels,
+               loc="right", title="Labels")
+```
+
+
+### Apply our k-NN model {#sec-applyourknn}
+
+Now let us apply k-NN to this dataset. Since our data is prepared, what we need to do is directly call the functions.
+
+
+```{python}
+from sklearn.neighbors import KNeighborsClassifier
+n_neighbors = 10
+clf = KNeighborsClassifier(n_neighbors, weights="uniform", metric="euclidean",
+                           algorithm='brute')
+clf.fit(X_train_norm, y_train)
+y_pred_sk = clf.predict(X_test_norm)
+
+acc = np.mean(y_pred_sk == y_test)
+acc
+```
+
+
+### Using data pipeline
+We may organize the above process in a neater way. After we get a data, the usual process is to apply several transforms to the data before we really get to the model part. Using terminolgies from `sklearn`, the former are called *transforms*, and the latter is called an *estimator*. In this example, we have exactly one tranform which is the normalization. The estimator here we use is the k-NN classifier. 
+
+`sklearn` provides a standard way to write these codes, which is called `pipeline`. We may chain the transforms and estimators in a sequence and let the data go through the pipeline. In this example, the pipeline contains two steps:
+1. The normalization transform `sklearn.preprocessing.MinMaxScaler`. 
+2. The k-NN classifier `sklearn.neighbors.KNeighborsClassifier`. This is the same one as we use previously.
+
+The code is as follows. It is a straightforward code. Note that the `()` after the class in each step of `steps` is very important. The codes cannot run if you miss it.
+
+After we setup the pipeline, we may use it as other estimators since it is an estimator. Here we may also use the accuracy function provided by `sklearn` to perform the computation. It is essentially the same as our `acc` computation.
+
+
+```{python}
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import accuracy_score
+
+n_neighbors = 10
+steps = [('scaler', MinMaxScaler()),
+         ('knn', KNeighborsClassifier(n_neighbors, weights="uniform",
+                                      metric="euclidean", algorithm='brute'))]
+pipe = Pipeline(steps=steps)
+pipe.fit(X_train, y_train)
+y_pipe = pipe.predict(X_test)
+accuracy_score(y_pipe, y_test)
+```
+
+Once a pipeline is set, you may use `step name` with TWO underscores `__` with `parameter name` to get access to a specific parameter. Please check the following code.
+
+```{python}
+pipe.get_params()['knn__n_neighbors']
+```
+
+
+```{python}
+pipe.set_params(knn__n_neighbors=5)
+pipe.get_params()['knn__n_neighbors']
+```
+
+
+
+### Visualize the Decision boundary
+
+<details>
+<summary>This section is optional.</summary>
+
+Using the classifier we get above, we are able to classify every points on the plane. This enables us to draw the following plot, which is called the Decision boundary. It helps us to visualize the relations between features and the classes.
+
+We use `DecisionBoundaryDisplay` from `sklearn.inspection` to plot the decision boundary. The function requires us to have a fitted classifier. We may use the classifier `pipe` we got above. Note that this classifier should have some build-in structures that our `classify_kNN` function doesn't have. We may rewrite our codes to make it work, but this goes out of the scope of this section. This is supposed to be Python programming exercise. We will talk about it in the future if we have enough time.
+
+We first plot the dicision boundary using `DecisionBoundaryDisplay.from_estimator`. Then we plot the points from `X_test`. From the plot it is very clear which points are misclassified.
+
+
+```{python}
+from sklearn.inspection import DecisionBoundaryDisplay
+
+disp = DecisionBoundaryDisplay.from_estimator(
+            pipe, 
+            X_train,
+            response_method="predict",
+            plot_method="pcolormesh",
+            xlabel=iris.feature_names[0],
+            ylabel=iris.feature_names[1],
+            alpha=0.5)
+disp.ax_.scatter(X_test[:, 0], X_test[:, 1], c=y_test, edgecolor="k")
+disp.figure_.set_size_inches((10,7))
+```
+
+
+</details>
+
+### k-Fold Cross-Validation {#sec-cross-validation}
+
+Previously we perform a random split and test our model in this case. What would happen if we fit our model on another split? We might get a different accuracy score. So in order to evaluate the performance of our model, it is natual to consider several different split and compute the accuracy socre for each case, and combine all these socres together to generate an index to indicate whehter our model is good or bad. This naive idea is called *k-Fold Cross-Validation*.
+
+The algorithm is described as follows. We first randomly split the dataset into `k` groups of the same size. We use one of them as the test set, and the rest together forming the training set, and use this setting to get an accuracy score. We did this for each group to be chosen as the test set. Then the final score is the mean.
+
+
+::: {.callout-note collapse="true"}
+# `KFold`
+`KFold` from `sklearn.model.selection` is used to split the dataset into `k` groups and in each iteration to chooose one as the validation set. 
+
+
+```{python}
+from sklearn.model_selection import KFold
+
+kf = KFold(n_splits=5)
+
+for train_idx, val_idx in kf.split(range(10)):
+    print(train_idx, val_idx)
+```
+
+- I only put `range(10)` in `kf.split` since it only needs to work with the index. If a dataset is put there, the output is still the index of which data is in the training set and which is in the validation set.
+- If you want to randomize the selection, when set up `KFold` we could add an argument `shuffle=True`. In this case, we may use `random_state` to control the outcome provide reproducing ability.
+
+Let us see an example for our data.
+
+```{python}
+from sklearn.model_selection import KFold
+from sklearn.base import clone
+
+kf = KFold(n_splits=5, shuffle=True, random_state=1)
+
+cv_scores = []
+for train_idx, val_idx in kf.split(X):
+    pipe_tmp = clone(pipe)
+    pipe_tmp.fit(X[train_idx], y[train_idx])
+    cv_scores.append(pipe_tmp.score(X[val_idx], y[val_idx]))
+cv_scores
+```
+
+```{python}
+np.mean(cv_scores)
+```
+
+Note that here `sklearn.base.clone` is used to initialize an unfitted model which has the same hyperpamaters as `pipe`.
+
+:::
+
+
+::: {.callout-note collapse="true"}
+# `cross_validate`
+`KFold` is too "manual". We may use `cross_validate` to autmate the above process. Note that depending on the arguments given `cross_validate` may be implemented by `KFold`.
+
+```{python}
+from sklearn.model_selection import cross_validate
+
+cv_result = cross_validate(pipe, X, y, cv=5, scoring='accuracy')
+cv_result
+```
+And you may only see the scores if this is the only thing that interests you.
+
+```{python}
+cv_result['test_score']
+```
+
+
+- You may choose different scoring methods. More info can be found in [the document](https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter).
+- If `cv=5`, `KFold(5, shuffle=False)` is applied here. If you prefer random split, you may directly use `KFold` here.
+
+```{python}
+cv_result = cross_validate(pipe, X, y, scoring='accuracy',
+                           cv=KFold(5, shuffle=True, random_state=1))
+cv_result['test_score']
+```
+You may compare this result with the previous one and the one in `KFold` section.
+Of course, the cv score is usually the mean of all the scores.
+
+```{python}
+cv_result['test_score'].mean()
+```
+
+
+:::
+
+::: {.callout-note collapse="true"}
+# `cross_val_score`
+This is a faster way to directly get `cv_result['test_score']` in `cross_validate` section. The argument about `cv` and `scoring` are the same as `cross_validate`.
+
+```{python}
+from sklearn.model_selection import cross_val_score
+cv_scores = cross_val_score(pipe, X, y, cv=KFold(5, shuffle=True, random_state=1))
+cv_scores
+```
+
+```{python}
+cv_scores.mean()
+```
+
+
+:::
+
+
+
+### Choosing a `k` value
+In the previous example we choose `k` to be `10` as an example. To choose a `k` value we usually run some test by trying different `k` and choose the one with the best performance. In this case, best performance means the highest cross-validation score.
+
+
+
+
+::: {.callout-note collapse="true"}
+# Grid search
+
+`sklearn.model_selection.GridSearchCV` provides a way to do this directly. We only need to setup the esitimator, the metric (which is the cross-validation score in this case), and the hyperparameters to be searched through, and `GridSearchCV` will run the search automatically.
+
+We let `k` go from `1` to `100`. The code is as follows.
+
+Note that `parameters` is where we set the search space. It is a dictionary. The key is the name of the estimator plus double `_` and then plus the name of the parameter. 
+
+
+```{python}
+from sklearn.model_selection import GridSearchCV
+n_list = list(range(1, 101))
+parameters = dict(knn__n_neighbors=n_list)
+clf = GridSearchCV(pipe, parameters)
+clf.fit(X, y)
+clf.best_estimator_.get_params()["knn__n_neighbors"]
+```
+
+
+After we fit the data, the `best_estimator_.get_params()` can be printed. It tells us that it is best to use `31` neibhours for our model. We can directly use the best estimator by calling `clf.best_estimator_`.
+
+
+```{python}
+cv_scores = cross_val_score(clf.best_estimator_, X, y, cv=5)
+np.mean(cv_scores)
+```
+
+
+The cross-validation score using `k=31` is calculated. This serves as a benchmark score and we may come back to dataset using other methods and compare the scores.
+:::
+
+
+
+::: {.callout-note collapse="true"}
+# Plot the curve
+Grid search can only give us a single number that has the best cross validation score. However there are many cases that the number might not be really the best. So usually we also want to see the result for all `k`. The best way to display all results simutanously is to plot the curve.
+
+
+```{python}
+import matplotlib.pyplot as plt
+
+n_list = list(range(1, 101))
+cv_scores = []
+for k in n_list:
+    pipe_tmp = clone(pipe)
+    pipe_tmp.set_params(knn__n_neighbors=k)
+    cv_scores.append(cross_val_score(pipe_tmp, X, y, cv=5).mean())
+
+plt.plot(cv_scores)
+```
+
+From this plot, combining with the best cv score happens at `k=31`, we could make our final decision about which `k` to choose.
+
+:::
+
+
+
+
+
+
+
+
+## Kernel Smoothing
+
+KNN regression predicts by averaging the responses of nearby observations. A natural extension is to allow different neighbors to receive different weights according to their distance from the query point.
+
+Suppose the training data are
+
+$$
+{(x_i,y_i)}_{i=1}^n.
+$$
+
+For a point $x_0$, kernel smoothing estimates the regression function by a weighted average
+
+$$
+\hat f(x_0)
+===========
+
+\frac{
+\sum_{i=1}^n
+K!\left(\frac{x_i-x_0}{h}\right)
+y_i
+}{
+\sum_{i=1}^n
+K!\left(\frac{x_i-x_0}{h}\right)
+}.
+$$
+
+Here
+
+* $K(\cdot)$ is called the **kernel function**,
+* $h>0$ is called the **bandwidth**.
+
+The kernel assigns larger weights to observations closer to $x_0$ and smaller weights to observations farther away.
+
+For example, a Gaussian kernel uses
+
+$$
+K(u)
+====
+
+\exp!\left(-\frac{u^2}{2}\right),
+$$
+
+so observations closer to $x_0$ receive exponentially larger weights.
+
+The figure below illustrates the general idea. Observations near the query point receive larger weights, while observations farther away contribute less to the prediction.
+
+### Relationship with KNN
+
+Kernel smoothing and KNN regression are closely related.
+
+Recall that KNN regression can be written as
+
+$$
+\hat f(x_0)
+===========
+
+\sum_{i=1}^n w_i(x_0)y_i,
+$$
+
+where
+
+$$
+w_i(x_0)
+========
+
+\begin{cases}
+1/K, & i\in N_K(x_0),\
+0, & \text{otherwise}.
+\end{cases}
+$$
+
+Thus KNN assigns equal weight to the $K$ nearest observations and zero weight to all others.
+
+Kernel smoothing uses a continuous weighting scheme instead. Nearby observations receive larger weights, while distant observations receive smaller weights. This often produces smoother fitted curves because the prediction changes gradually as $x_0$ moves.
+
+One way to view KNN is that it uses a very simple kernel: every selected neighbor receives the same weight.
+
+### The Role of the Bandwidth
+
+The bandwidth $h$ controls how local the fit is.
+
+* Small $h$: only very nearby observations receive substantial weight.
+* Large $h$: many observations contribute to the estimate.
+
+This is analogous to the role of $K$ in KNN regression.
+
+* Small $h$ corresponds to small $K$.
+* Large $h$ corresponds to large $K$.
+
+As a result:
+
+* Small $h$ produces a flexible fit with low bias but high variance.
+* Large $h$ produces a smoother fit with higher bias but lower variance.
+
+Choosing an appropriate bandwidth is therefore one of the most important aspects of kernel smoothing.
+
+### Advantages and Limitations
+
+Kernel smoothing is simple and can adapt to nonlinear relationships without specifying a parametric model.
+
+However, it shares many of the same limitations as KNN:
+
+* performance deteriorates in high dimensions,
+* predictions can become unstable when data are sparse,
+* the choice of bandwidth strongly affects the fit,
+* computation can become expensive for large datasets.
+
+For these reasons, kernel smoothing is mainly used as a conceptual foundation for more advanced nonparametric methods.
+
+
+::: {.callout-note}
+
+## Looking Ahead
+
+Kernel smoothing is one of the simplest examples of a **local regression method**.
+
+Several important techniques developed later in statistical learning can be viewed as refinements of this idea:
+
+- **Local polynomial regression**, which fits a small polynomial locally instead of taking a weighted average.
+- **LOESS (LOWESS)**, which combines local polynomial fitting with distance-based weighting.
+- **Splines**, which build a global smooth function from local polynomial pieces.
+- **Generalized Additive Models (GAMs)**, which extend smooth regression ideas to multiple predictors.
+- **Gaussian Process Regression**, which provides a probabilistic framework for smooth function estimation.
+
+These methods often achieve better accuracy and smoother behavior than basic kernel smoothing, especially near the boundaries of the data.
+
+In this book we will not study these methods in detail. The main purpose of introducing kernel smoothing is to illustrate the general idea of **local averaging** and the role of a **smoothing parameter** in nonparametric regression.
+
+:::
+
+
+The main purpose of introducing kernel smoothing is to illustrate the general idea of local averaging and the role of a smoothing parameter in nonparametric regression.

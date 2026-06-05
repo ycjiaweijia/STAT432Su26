@@ -126,51 +126,40 @@ After the command finishes, `uv` creates a virtual environment named `.venv` and
 
 Now it is possible to start using the virtual environment for the course. In case that you need to modify the virtual environment, please continue the read the following optional part.
 
+
+
+::: {.callout-note}
+## Modifying the Environment
+
+To install a package and update the project configuration, use `uv add <package-name>`. 
+
+For example, you may need `openpyxl` to read and write Excel files: 
+
+```bash
+uv add openpyxl
+```
+This command updates the project configuration in `pyproject.toml` and installs the package into the project's virtual environment `.venv`.
+
+Most package management tasks can be handled through `uv add`.
+:::
+
+
 ::: {.callout-note collapse="true"}
 ## Jupyter kernels and modifying venv
-A Jupyter kernel is the Python environment used by a notebook. When a notebook cell is executed, the code runs inside the selected kernel. For this reason, it is important to connect the notebook to the kernel associated with your course virtual environment. 
 
-Modern versions of VS Code can often detect a virtual environment automatically and use it directly as a notebook kernel without requiring you to manually register a Jupyter kernel using `ipykernel` install. Therefore if everything works well the actions before this note is enough. 
+A Jupyter kernel is the Python environment used by a notebook. When a notebook cell is executed, the code runs inside the selected kernel. Therefore, it is important to connect the notebook to the kernel associated with your course environment.
 
-However, there are situations in which you may need to create a dedicated Jupyter kernel manually. In addition, you may occasionally need to modify the virtual environment by installing additional packages. Therefore, it is useful to understand these operations.
-
-
-1. Activate the virvutal environment.
+Modern versions of VS Code can usually detect a project managed by `uv` and use it directly as a notebook kernel. In many cases, no manual kernel registration is required. If VS Code does not automatically detect the environment, you can create a dedicated Jupyter kernel:
 
 ```bash
-# Windows
-.venv\Scripts\activate
-
-# Linux / macOS
-source .venv/bin/activate
+uv run python -m ipykernel install --user --name stat432 --display-name "(STAT432)"
 ```
 
-2. After activation, your terminal prompt will typically change to something like indicating that the virtual environment is active:
-```bash
-# Windows
-(stat432) C:\Users\yourname\project>
+The option `--name stat432` specifies the kernel identifier. In this example the identifier is `stat432`, but you may choose any name that is easy for you to recognize. This identifier is used internally by Jupyter and should be unique on your system.
 
-# Linux / macOS
-(stat432) user@computer:~/project$
-```
-Note that the name `stat432` is indicated in the `pyproject.toml` that `name = "STAT432"`. It doesn't do anything special if you don't publish this environment. It is different from the jupyter kernel name.
+The option `--display-name "(STAT432)"` specifies the name shown in VS Code and Jupyter when selecting a kernel. Unlike the identifier, the display name does not need to be unique, although a descriptive name is recommended.
 
-3. You may use `where python` (Windows) or `which python` (Linux / macOS) to see whether the correct python version is activated. The path should be `.venv` in the current folder.
-4. To install an additional package and update the project configuration, use
 
-```bash
-uv add <package name>
-```
-More commands can be found in [`uv` official document](https://docs.astral.sh/uv/getting-started/).
-
-5. If you need to create a dedicated Jupyter kernel, run
-   
-```bash
-python -m ipykernel install --user --name stats --display-name "(stats)"
-```
-Note that `--name stats` specifies the kernel identifier. In this example the identifier is `stats`, but you may choose any name that is easy for you to recognize. Later, when selecting a kernel in Jupyter or VS Code, this identifier is used internally to distinguish one kernel from another, so it should be unique on your system.
-
-The option `--display-name "(stats)"` specifies the name displayed in Jupyter and VS Code when selecting a kernel. Unlike `--name`, the display name does not need to be unique, although choosing a descriptive name is recommended.
 
 :::
 
@@ -229,6 +218,7 @@ Since we do not want to spend too much time on document formatting, we will use 
 
 Our workflow is:
 
+0. Restart the kernel and run all.
 1. Export the notebook to HTML using VS Code.
 2. Open the HTML file in a web browser.
 3. Print the page to a PDF file.
@@ -249,6 +239,19 @@ This will create an HTML file. Open the file in your preferred web browser and p
 For assignment submission, submit both the PDF file and the notebook file. Grading will be based primarily on the PDF file, while the notebook file serves as a backup source in case I need to inspect the code or verify specific parts of the submission.
 
 
+
+::: {.callout-note}
+
+## Restart and Run All
+
+A Jupyter notebook keeps its internal state in memory while you work. As a result, cells can be executed in different orders, making it possible for the notebook contents and the actual execution state to become inconsistent.
+
+For example, a variable may exist because it was created in an earlier session, even though the cell that creates it has been deleted and no longer appears before its first use in the notebook. Such notebooks may appear to run correctly during editing but fail when executed from scratch.
+
+To avoid these issues, you are required to restart the kernel and run all cells before creating your submission PDF. Any errors that occur during this process must be fixed before submission.
+
+Although notebook workflows have several well-known limitations, Jupyter notebooks remain the dominant platform for data science, machine learning, and scientific computing. New alternatives such as `marimo` have attracted considerable attention in recent years, but they are still relatively young and may require several more years to reach the level of adoption enjoyed by Jupyter — if they ever do.
+:::
 
 
 ## WSL {#sec-wsl}

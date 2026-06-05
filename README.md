@@ -6,7 +6,7 @@ stats notes
 ## jupyter kernel
 
 ```
-python -m ipykernel install --user --name stats --display-name "(stats)"
+uv run python -m ipykernel install --user --name stats --display-name "(stats)"
 ```
 
 ## Theme

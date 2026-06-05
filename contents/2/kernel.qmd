@@ -2,7 +2,6 @@
 jupyter: stats
 ---
 
-<!-- {{< include ../math.qmd >}}  -->
 
 # Kernel Smoothing
 
@@ -12,7 +11,13 @@ The main idea is:
 
 > Nearby observations should have more influence than distant observations, and the influence should decrease smoothly with distance.
 
-This chapter focuses on kernel smoothing, not kernel machines such as support vector machines or kernel ridge regression. The connection is that both use a kernel function to measure similarity, but the modeling goals are different.
+::: {.callout-note}
+
+This chapter focuses on **kernel smoothing**, not kernel machines such as support vector machines or kernel ridge regression. The connection is that both use a kernel function to measure similarity, but the modeling goals are different.
+
+:::
+
+Unlike many models covered in this book, classical kernel smoothing is not provided as a standard `sklearn` estimator. Therefore, in this section, we implement the basic ideas directly using `numpy`.
 
 ## KNN versus Kernel Smoothing
 
@@ -32,7 +37,7 @@ Kernel smoothing instead assigns a weight to each observation based on its dista
 $$
 w_i(x_0)
 \propto
-K\left(\frac{x_0-x_i}{h}\right).
+K\qty(\frac{x_0-x_i}{h}).
 $$
 
 Here:
@@ -52,23 +57,117 @@ Kernel smoothing uses a fixed distance scale, controlled by the bandwidth $h$.
 
 KNN fits are often discontinuous because the neighbor set can change abruptly as $x_0$ moves. Kernel smoothers, especially with smooth kernels such as the Gaussian kernel, usually produce smooth fitted curves.
 
+
+### Gaussian Kernel Regression
+
+One common choice of kernel is the Gaussian kernel
+
+$$
+K(u)
+=
+\exp\qty(-\frac{u^2}{2}).
+$$
+
+Substituting this kernel into the kernel smoothing estimator gives
+
+$$
+\hat f(x_0)
+=
+\frac{
+\sum_{i=1}^n
+\exp\qty(
+-\frac{(x_i-x_0)^2}{2h^2}
+)
+y_i
+}
+{
+\sum_{i=1}^n
+\exp\qty(-\frac{(x_i-x_0)^2}{2h^2})
+}.
+$$
+
+The quantity
+
+$$
+w_i(x_0)
+=
+\frac{
+\exp\qty(
+-\frac{(x_i-x_0)^2}{2h^2}
+)
+}
+{
+\sum_{j=1}^n
+\exp\qty(
+-\frac{(x_j-x_0)^2}{2h^2}
+)
+}
+$$
+
+can be interpreted as the weight assigned to observation $i$.
+
+These weights are nonnegative and sum to one:
+
+$$
+w_i(x_0)\ge 0,
+\qquad
+\sum_{i=1}^n w_i(x_0)=1.
+$$
+
+Observations close to $x_0$ receive large weights, while observations far away receive weights close to zero.
+
+
+
+
+KNN fits are often discontinuous because the neighbor set can change abruptly as
+$x_0$ moves. Kernel smoothers, especially with smooth kernels such as the Gaussian kernel, usually produce smooth fitted curves.
+
 The following example compares a KNN regression curve with a Gaussian kernel regression curve on the same data.
+
+
+
+
+
+::: {#exm-}
+
+We first generate a one-feature dataset, as well as a X grid for plotting predictions.
 
 ```{python}
 import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.neighbors import KNeighborsRegressor
 
 rng = np.random.default_rng(1)
 
-x_compare = rng.uniform(0, 2 * np.pi, size=40)
-y_compare = 2 * np.sin(x_compare) + rng.normal(size=len(x_compare))
-x_compare_grid = np.linspace(0, 2 * np.pi, 500)
+X = rng.uniform(0, 2 * np.pi, size=40)
+y = 2 * np.sin(X) + rng.normal(size=len(X))
+X_grid = np.linspace(0, 2 * np.pi, 500)
+```
+For comparison we fit a KNN regressor with `n_neighbors=10`. Since the purpose is to show the idea, for simplicity we don't split train-test or tune $K$.
 
-knn_compare = KNeighborsRegressor(n_neighbors=10)
-knn_compare.fit(x_compare.reshape(-1, 1), y_compare)
-y_knn = knn_compare.predict(x_compare_grid.reshape(-1, 1))
+```{python}
+from sklearn.neighbors import KNeighborsRegressor
+knn = KNeighborsRegressor(n_neighbors=10)
+knn.fit(X.reshape(-1, 1), y)
+y_knn = knn.predict(X_grid.reshape(-1, 1))
+```
+
+Now we define the Gaussian kernel regression using the formula above.
+
+```{python}
+def kernel_regression_predict(X, y, X_new, bandwidth):
+    diff = X_new[:, None] - X[None, :] 
+    weights = np.exp(-0.5 * (diff / bandwidth) ** 2)
+    weights = weights / weights.sum(axis=1, keepdims=True)
+    return weights @ y
+```
+
+Here `diff = X_new[:, None] - X[None, :] ` was discussed in @sec-common_operations. It uses `numpy` broadcasting to create a matrix of pairwise differences. If `X_new` contains $m$ points and `X` contains $n$ points, then `diff` has shape $(m,n)$, where the $(i,j)$ entry is the difference between the $i$th prediction point and the $j$th training point.
+
+
+
+```{python}
+import matplotlib.pyplot as plt
+
+
 
 
 def kernel_regression_predict(X_train, y_train, X_new, bandwidth):
@@ -104,6 +203,43 @@ for ax in axs:
 axs[0].set_ylabel("y")
 plt.show()
 ```
+:::
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[pic]
+
+
+The KNN fit is piecewise constant because the prediction is the average of a fixed set of nearest neighbors. As the target point moves, the neighbor set may suddenly change, causing abrupt jumps in the fitted curve.
+
+The Gaussian kernel fit changes smoothly because every observation contributes to the prediction. The weights vary continuously with distance, producing a smooth estimate of the regression function.
+
+
+
+
+
+
+
+
+
+
+
+
+
+The following example compares a KNN regression curve with a Gaussian kernel regression curve on the same data.
+
 
 The KNN fit is piecewise constant. The Gaussian kernel fit changes smoothly because the weights change smoothly as the target point moves.
 
