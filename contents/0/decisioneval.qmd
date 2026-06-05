@@ -837,11 +837,12 @@ def classification_summary(y_true, prob, threshold=0.5):
         "FN": FN,
         "TN": TN,
         "accuracy": accuracy_score(y_true, pred),
-        "precision": precision_score(y_true, pred),
-        "recall": recall_score(y_true, pred),
-        "f1": f1_score(y_true, pred),
+        "precision": precision_score(y_true, pred, zero_division=0), # <1>
+        "recall": recall_score(y_true, pred, zero_division=0),
+        "f1": f1_score(y_true, pred, zero_division=0),
     }
 ```
+1. `zero_division=0` means that if the denominator is 0 the return value will be set to 0. This always happens in this case since some of the counts might be 0.
 
 Now examine how metrics change as the threshold changes. To save space I only show the first few rows of the table.
 
@@ -934,7 +935,6 @@ plt.xlabel("false positive rate")
 plt.ylabel("true positive rate")
 plt.title("ROC Curve")
 plt.legend()
-plt.show()
 ```
 
 
@@ -992,12 +992,14 @@ For highly imbalanced datasets, precision--recall curves are often more informat
 ### Calibration Curves
 Calibration focuses on probability quality rather than threshold-based decision quality or ranking quality. Calibration curves can be produced using `CalibrationDisplay` from `sklearn.calibration`.
 
+<!-- fmt: off -->
 ```{python}
 from sklearn.calibration import CalibrationDisplay
 
 CalibrationDisplay.from_predictions(y_test, logit_prob, n_bins=10)
-plt.title("Calibration Curve")
+plt.title("Calibration Curve");
 ```
+<!-- fmt: on -->
 
 This is a packaged function provided by `sklearn`. If we want to plot multiple curves together in one plot, we can put the axis in the argument of this function.
 

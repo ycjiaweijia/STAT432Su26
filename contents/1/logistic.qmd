@@ -11,6 +11,7 @@ Logistic regression is a classification method for binary outcomes. It estimates
 
 
 
+
 ## Binary Response
 
 
@@ -72,7 +73,7 @@ $$
 It is also called the **log-odds**.
 :::
 
-
+The inverse of the logit function is the logistic (sigmoid) function. It will be discussed next.
 
 ::: {.callout-note}
 The logit transformation maps probabilities from $(0,1)$ to the entire real line $(-\infty,\infty)$.
@@ -82,11 +83,13 @@ The logit transformation maps probabilities from $(0,1)$ to the entire real line
 ::: {#exm-}
 
 | $p$ | Odds | Logit | Interpretation |
-|----------------|------|--------|----------------|
+|----|-----|--------|----------------|
 | $0.10$ | $1/9$ | $\log(1/9)\approx -2.197$ | Failure is much more likely than success |
 | $0.50$ | $1$ | $0$ | Success and failure are equally likely |
 | $0.75$ | $3$ | $\log(3)\approx 1.099$ | Success is three times as likely as failure |
 | $0.90$ | $9$ | $\log(9)\approx 2.197$ | Success is nine times as likely as failure |
+
+: {tbl-colwidths="[8,10,22,60]"}
 
 :::
 
@@ -168,7 +171,7 @@ The logistic function has several important properties.
 $$
 \begin{cases}
 \text{close to }0,&\text{ if }x^\top\beta<<0,\\
-0,&\text{ if }x^\top\beta=0,\\
+0.5,&\text{ if }x^\top\beta=0,\\
 \text{close to }1,&\text{ if }x^\top\beta>>0.
 \end{cases}
 $$
@@ -189,6 +192,22 @@ plt.axvline(x=0, ls='--', color='C1', label='x=0')
 plt.axhline(y=0.5, ls='--', color='C0', label='y=0.5');
 plt.legend()
 ```
+
+
+
+::: {.callout-note}
+## Historical Note
+
+The logistic curve was introduced by Pierre-François Verhulst in 1838 @verhulst1838 while studying population growth.
+
+The term **logit** was introduced by Joseph Berkson in 1944 @Berkson1944. Berkson used the word logit for the logarithm of the odds and advocated the logistic function in bioassay problems.
+
+Logistic regression later became a central example of generalized linear models. In GLM terminology, logistic regression uses:
+
+- Bernoulli response distribution;
+- logit link function;
+- linear predictor $x^\top\beta$.
+:::
 
 
 ### Logistic Regression as a Linear Classifier
@@ -242,14 +261,14 @@ Thus logistic regression is a linear classifier: Even though the probability cur
 
 
 
-## Interpreting the Coefficients
+### Interpreting the Coefficients
 Consider the model
 $$
 p(x)=\sigma(\beta_0+\beta_1x_1+\ldots+\beta_px_p),
 $$
 where $\beta_0+\beta_1x_1+\ldots+\beta_px_p=x^\top \beta$ is the linear predictor. 
 
-Suppose all other predictors are held fixed. Increasing $x_j$ by one unit changes the linear predictor by $\beta_j$. Because the linear predictor is the log-odds, increasing $x_j$ by one unit changes the log-odds by $\beta_j$.
+Suppose all other predictors are held fixed. Increasing $x_j$ by one unit changes the linear predictor by $\beta_j$. Because the linear predictor represents the log-odds, increasing $x_j$ by one unit changes the log-odds by $\beta_j$.
 
 Thus:
 
@@ -258,74 +277,41 @@ Thus:
 - if $\beta_j=0$, increasing $x_j$ does not change the log-odds.
 
 
-### Odds Ratios
 
-Since $\beta_j$ is a change in log-odds, exponentiating gives a multiplicative change in odds.
+For a one-unit increase in $x_j$, holding all other predictors fixed, the linear predictor increases by $\beta_j$. Since $\beta_j$ is a change in log-odds, exponentiating gives a multiplicative change in odds, then the odds are expected to be multiplied by $\exp(\beta_j)$:
+
+Consider
+$$
+\log(\text{odds}_1)-\log(\text{odds}_2)=\beta_j.
+$$
+Then
+$$
+\frac{\text{odds}_1}{\text{odds}_2}=\me^{\beta_j}.
+$$
+
+
 
 :::{#def-odds-ratio}
 ## Odds Ratio
-
-For a one-unit increase in $x_j$, holding all other predictors fixed, the odds are multiplied by
-
-$$
-\exp(\beta_j).
-$$
+The quantity $\exp(\beta_j)$ is called the **odds ratio**.
 :::
-
-The quantity
-
-$$
-\exp(\beta_j)
-$$
-
-is called the **odds ratio**.
-
 
 ::: {#exm-}
 ## Example
 
-Suppose
+Suppose $\beta_j=0.08$. Since
 
 $$
-\beta_j=0.08.
+\exp(0.08)\approx 1.083,
 $$
-
-Then
-
-$$
-\exp(0.08)\approx 1.083.
-$$
-
-A one-unit increase in $x_j$ multiplies the odds by approximately $1.083$.
-
-Equivalently, the odds increase by approximately
-
-$$
-8.3\%.
-$$
+Then a one-unit increase in $x_j$ multiplies the odds by approximately $1.083$. Equivalently, the odds increase by approximately $8.3\%$.
 :::
 
 
 
 ::: {.callout-note}
 
-## Important Warning
-
-The coefficient $\beta_j$ is not a direct change in probability.
-
-The probability change depends on the current value of
-
-$$
-x^\top\beta
-$$
-
-or equivalently the current probability
-
-$$
-p(x).
-$$
-
-For the same value of $\beta_j$, the probability change can be small when $p(x)$ is already close to $0$ or close to $1$, and larger when $p(x)$ is near $0.5$.
+The coefficient $\beta_j$ is not a direct change in probability since the relation between the logit and the probability is a sigmoid function (which is non-linear). So the probability change depends on the current value of $x^\top\beta$. For the same value of $\beta_j$, the probability change can be small when $p(x)$ is already close to $0$ or close to $1$, and larger when $p(x)$ is near $0.5$.
 
 :::
 
@@ -352,42 +338,27 @@ For the same value of $\beta_j$, the probability change can be small when $p(x)$
 
 ## Maximum Likelihood Estimation
 
-Logistic regression is usually fit using **maximum likelihood estimation**.
+Logistic regression is usually fit using maximum likelihood estimation. 
 
-For each observation,
-
+Assume we are given a dataset $\qty{(x_i,y_i)}_{i=1}^n$, where $y_i\in\qty{0,1}$. In logistic regression, we model the conditional probability that the response belongs to class $1$:
 $$
-Y_i\mid X_i=x_i
-\sim
-\operatorname{Bernoulli}(p_i),
+p_i=\Pr(Y_i=1\mid X_i=x_i)=\sigma(x_i^\top\beta).
 $$
 
-where
-
+Since $Y_i$ only takes the values $0$ and $1$, it is natural to model its conditional distribution using a Bernoulli distribution.
 $$
-p_i
-=
-p(x_i)
-=
-\frac{1}
-     {1+\exp(-x_i^\top\beta)}.
+Y_i\mid X_i=x_i\sim\operatorname{Bernoulli}(p_i).
 $$
 
 The probability mass function of a Bernoulli random variable is
 
 $$
-P(Y_i=y_i)
+\Pr(Y_i=y_i)
 =
-p_i^{y_i}(1-p_i)^{1-y_i},
+p_i^{y_i}(1-p_i)^{1-y_i}.
 $$
 
-where
-
-$$
-y_i\in\{0,1\}.
-$$
-
-Assuming independent observations, the likelihood function is
+Assuming the observations are independent and conditional on the predictors, the likelihood function is
 
 $$
 L(\beta)
@@ -396,17 +367,10 @@ L(\beta)
 p_i^{y_i}(1-p_i)^{1-y_i}.
 $$
 
-The log-likelihood is
+Taking the logarithm, the log-likelihood is
 
 $$
-\ell(\beta)
-=
-\sum_{i=1}^{n}
-\left[
-y_i\log(p_i)
-+
-(1-y_i)\log(1-p_i)
-\right].
+\ell(\beta)=\sum_{i=1}^{n}\qty[y_i\log(p_i)+(1-y_i)\log(1-p_i)].
 $$
 
 The maximum likelihood estimate is
@@ -417,9 +381,19 @@ $$
 \arg\max_{\beta}\ell(\beta).
 $$
 
-Unlike ordinary least squares, there is no simple closed-form solution for $\hat\beta$. In practice, numerical optimization methods are used.
+::: {.callout-note}
+## Gradient descent
+Unlike ordinary least squares, logistic regression does not have a simple closed-form solution for $\hat\beta$. In practice, numerical optimization methods are used.
 
-### Connection to Cross-Entropy and Log Loss
+Gradient descent is one of the most widely used optimization methods in machine learning. Although linear regression and logistic regression use different models and different loss functions, their gradient expressions have a similar matrix form. As a result, their gradient descent update formulas also look very similar.
+
+Gradient descent is beyond the scope of this course, although it plays an important role in modern machine learning.
+
+:::
+
+
+
+### Binary Cross-Entropy and a Single Neuron
 
 The negative log-likelihood is
 
@@ -434,31 +408,11 @@ y_i\log(p_i)
 \right].
 $$
 
-In machine learning, this is called **binary cross-entropy loss** or **log loss**.
+In machine learning, this is called binary cross-entropy loss or log loss. It is simply the negative of the log-likelihood mentioned in the previous section. The reason of this negative is that in machine learning it is usually preferred to lower the loss function.
 
-Thus logistic regression is not just a classification model. It is also a probabilistic model trained by minimizing a loss function that rewards accurate probability estimates.
+Therefore logistic regression is not just a classification model. It is also a probabilistic model trained by minimizing a loss function that rewards accurate probability estimates.
 
-This connects logistic regression to modern machine learning methods, including neural networks, which often use cross-entropy loss for classification.
-
-### Logistic Regression as a Single Neuron
-
-A logistic regression model can be viewed as a single sigmoid neuron.
-
-First compute a linear score:
-
-$$
-z=x^\top\beta.
-$$
-
-Then apply the sigmoid function:
-
-$$
-p=\sigma(z)
-=
-\frac{1}{1+\exp(-z)}.
-$$
-
-Thus the model has the form
+What is more, a logistic regression model can be viewed as a single sigmoid neuron, since the model has the form
 
 $$
 x
@@ -470,185 +424,34 @@ x^\top\beta
 p(x).
 $$
 
-This is essentially a neural network with:
+This is essentially a neural network with no hidden layers and one output unit, with sigmoid activation and binary cross-entropy loss.
 
-- no hidden layers;
-- one output unit;
-- sigmoid activation;
-- binary cross-entropy loss.
-
-This perspective helps connect classical statistics with modern neural networks.
+This connects logistic regression to modern machine learning methods, including neural networks, which often use cross-entropy loss for classification.
 
 
-## Logistic Regression and Probability Calibration
-
-Logistic regression often gives probability estimates that are easier to interpret than the raw scores from many classification algorithms.
-
-A predicted probability such as
-
-$$
-p(x)=0.8
-$$
-
-means that the model estimates an $80\%$ chance of class $1$.
-
-A model is well calibrated if, among observations assigned probability close to $0.8$, approximately $80\%$ truly belong to class $1$.
-
-Calibration is different from classification accuracy. A model may classify many observations correctly but still produce poorly calibrated probabilities.
-
-Calibration curves, Brier score, and log loss are discussed in the model evaluation chapter. Here the main point is:
-
-> Logistic regression is naturally probabilistic, so its output can be evaluated as a probability, not only as a class label.
 
 
 ## Regularized Logistic Regression
 
-When there are many predictors, logistic regression can overfit.
+When there are many predictors, logistic regression can overfit. A common solution is to add regularization, like ridge and lasso for linear regression.
 
-A common solution is to add regularization.
-
-### Ridge Logistic Regression
-
-Ridge logistic regression penalizes large coefficients using an $L^2$ penalty:
+1. Ridge logistic regression penalizes large coefficients using an $L^2$ penalty:
 
 $$
 -\ell(\beta)
 +
 \lambda\sum_{j=1}^{p}\beta_j^2.
 $$
-
 This shrinks coefficients toward zero but usually does not set them exactly to zero.
 
-### Lasso Logistic Regression
-
-Lasso logistic regression uses an $L^1$ penalty:
+2. Lasso logistic regression uses an $L^1$ penalty:
 
 $$
 -\ell(\beta)
 +
 \lambda\sum_{j=1}^{p}|\beta_j|.
 $$
-
 This can shrink some coefficients exactly to zero, producing a simpler model.
-
-Regularization is especially useful when:
-
-- the number of predictors is large;
-- predictors are correlated;
-- prediction accuracy is more important than classical inference.
-
-Regularization methods are discussed in more detail in the chapter on shrinkage methods.
-
-
-## Multiclass Extension
-
-The basic logistic regression model handles binary outcomes.
-
-For more than two classes, one common extension is **multinomial logistic regression**.
-
-Suppose
-
-$$
-Y\in\{1,2,\ldots,K\}.
-$$
-
-Multinomial logistic regression models class probabilities
-
-$$
-P(Y=k\mid X=x)
-$$
-
-for each class $k$.
-
-A common form is the softmax model:
-
-$$
-P(Y=k\mid X=x)
-=
-\frac{\exp(\eta_k(x))}
-     {\sum_{\ell=1}^{K}\exp(\eta_\ell(x))}.
-$$
-
-Here each class has its own linear predictor
-
-$$
-\eta_k(x).
-$$
-
-This is the multiclass analogue of the sigmoid function.
-
-
-::: {.callout-note}
-
-## Complete Separation
-
-A technical issue can occur when the classes are perfectly separable by a linear boundary.
-
-In that case, the likelihood can keep increasing as some coefficients become larger and larger in magnitude. This is called **complete separation**.
-
-When complete separation occurs, the maximum likelihood estimates may not be finite.
-
-Regularization can help stabilize the estimates.
-
-
-:::
-
-::: {.callout-note}
-## Historical Note
-
-The logistic curve was introduced by Pierre-François Verhulst in 1838 @verhulst1838 while studying population growth.
-
-The term **logit** was introduced by Joseph Berkson in 1944 @Berkson1944. Berkson used the word logit for the logarithm of the odds and advocated the logistic function in bioassay problems.
-
-Logistic regression later became a central example of generalized linear models. In GLM terminology, logistic regression uses:
-
-- Bernoulli response distribution;
-- logit link function;
-- linear predictor $x^\top\beta$.
-:::
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -660,110 +463,119 @@ Logistic regression later became a central example of generalized linear models.
 
 ## Logistic Regression in `sklearn`
 
-For predictive workflows we usually use `sklearn`, because it works naturally with train-test splits, pipelines, cross-validation, and tuning.
+We usually use `LogisticRegression` from `sklearn.linear_model` to implement logistic regression. The most commonly used solver in modern versions of scikit-learn is `lbfgs`, which is the default choice for `LogisticRegression()`. It is a quasi-Newton optimization method that usually converges much faster than simple gradient descent. In addition it is automatically extended to multiclass cases.
 
-The example below uses the breast cancer data. The original target codes malignant tumors as `0` and benign tumors as `1`, so we define `y = 1 - cancer.target` to make malignant the positive class.
+The basic code is as usual:
 
 ```{python}
-import numpy as np
-import pandas as pd
-
-from sklearn.datasets import load_breast_cancer
-from sklearn.model_selection import train_test_split
+#| eval: false
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 
-cancer = load_breast_cancer(as_frame=True)
-
-X = cancer.data[["mean radius", "mean texture", "mean concavity"]]
-y = 1 - cancer.target
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.3,
-    stratify=y,
-    random_state=1,
-)
-
 logit = make_pipeline(
     StandardScaler(),
-    LogisticRegression(penalty=None, max_iter=5000),
+    LogisticRegression(max_iter=5000),
 )
 
 logit.fit(X_train, y_train)
 
-test_prob = logit.predict_proba(X_test)[:, 1]
+test_prob = logit.predict_proba(X_test)
 test_pred = logit.predict(X_test)
 ```
 
-`predict_proba()` returns estimated class probabilities. The second column is the estimated probability of the positive class.
+Logistic regression is very similar to linear regression, that the scales of features matters. Therefore we need to set up a pipeline to standarize al features first.
+
+The model actually has two types of outputs:
+
+- `predict_proba()` returns estimated class probabilities. The second column is the estimated probability of the positive class.
+- `predict()` returns class labels using the default threshold $0.5$.
+
+
+### Regularization 
+
+
+The general idea of regularization in `LogisticRegression()` is based on the elastic-net style penalty, which is controlled by two arguments `l1_ratio` and `C`. Conceptually, the penalty behaves like
+$$
+-\ell+\frac1C(\verb|l1_ratio|\norm{\beta}_1+(1-\verb|l1_ratio|)\norm{\beta}_2^2).
+$$
+
+- `l1_ratio` is to control the type of regularization: 
+  - `l1_ratio = 0`: pure L2 regularization;
+  - `l1_ratio = 1`: pure L1 regularization;
+  - `0 < l1_ratio < 1`: elastic-net regularization.
+- `C`, which is $1/\lambda$, is to control the regularization strength:
+  - `C=np.inf` means no penalty.
+
+The exact formula used inside `sklearn` is more complicated which incorprates other aspects such as number of observations.
+
+Note that some combinations of regularization and solvers are not compatible. For example, 
+
+- elastic-net regularization requires the `saga` solver;
+- the default solve `lbfgs` requires `l2` so `l1_ratio` has to be 0.
+
+The default setting for `LogisticRegression()` is that `l1_ratio=0`, `C=1` and `solver="lbfgs"`.
+
+
+## Example 1: Binary classification 
+
+We first consider a binary classification problem.
+
+The Titanic dataset records information about passengers aboard the Titanic. Our goal is to predict whether a passenger survived. We load the dataset from the database from `seaborn`.
+
 
 ```{python}
-logit.predict_proba(X_test[:5])
-```
+import seaborn as sns
+from sklearn.model_selection import train_test_split
 
-`predict()` returns class labels using the default threshold $0.5$.
-
-::: {.callout-caution}
-## Regularization default
-
-`sklearn.linear_model.LogisticRegression` uses regularization by default. Use `penalty=None` for an unpenalized logistic regression.
-:::
-
-
-### Confusion Matrix and Metrics
-
-Threshold-based metrics compare true labels with predicted labels.
-
-See @sec-cla_dec for the definitions and interpretation of accuracy, precision, recall, and F1 score. In this section we compute them for the fitted logistic regression model.
-
-```{python}
-from sklearn.metrics import (
-    confusion_matrix,
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
+titanic = sns.load_dataset("titanic")
+data = titanic[["survived", "age", "fare", "pclass"]].dropna()
+X = data[["age", "fare", "pclass"]]
+y = data["survived"]
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, stratify=y, random_state=1
 )
-
-confusion_matrix(y_test, test_pred)
 ```
+Here we only use 3 features `age`, `fare` and `pclass` to predict `survived`. 
 
-Since class $0$ is negative and class $1$ is positive, the entries are ordered as
-$$
-\begin{pmatrix}
-TN & FP\\
-FN & TP
-\end{pmatrix}.
-$$
+We quickly fit the model with default setting.
 
 ```{python}
-TN, FP, FN, TP = confusion_matrix(y_test, test_pred).ravel()
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
 
-basic_metrics = {
-    "accuracy": accuracy_score(y_test, test_pred),
-    "precision": precision_score(y_test, test_pred),
-    "recall": recall_score(y_test, test_pred),
-    "f1": f1_score(y_test, test_pred),
-}
-
-basic_metrics
+logit = make_pipeline(StandardScaler(), LogisticRegression(max_iter=5000))
+logit.fit(X_train, y_train)
+test_prob = logit.predict_proba(X_test)[:, 1] # <1>
+test_pred = logit.predict(X_test)
 ```
+1. For binary classification, the output of `.predict_proba()` contains two columns, each for a class. We want to test 1, so we choose column 1.
 
-To use a different threshold, apply it directly to the estimated probabilities.
+We focus on tuning `C` and the threshold. Note that the two hyperparameters take effects in different stage. `C` is about the training of the model, while the threshold is about prediction. Therefore for logistic regression we usually tune `C` first and then find the best threshold afterwards.
+
+### Tuning `C`
+
+We use cross-validation with the F1 score as the evaluation metric. Since the F1 score combines precision and recall, it is useful when we want to balance false positives and false negatives. In this example, we use it to select a model that balances the two types of classification errors when predicting passenger survival.
 
 ```{python}
-threshold = 0.3
-pred_03 = (test_prob >= threshold).astype(int)
+import numpy as np
+from sklearn.model_selection import GridSearchCV
 
-confusion_matrix(y_test, pred_03)
+param_grid = {"logisticregression__C": np.logspace(-3, 3, 20)}
+grid = GridSearchCV(logit, param_grid=param_grid, cv=5, scoring="f1")
+grid.fit(X_train, y_train)
+grid.best_params_
 ```
 
-A small helper function makes threshold comparisons easier.
+### Tuning the threshold
+
+To tune the threshold, we use the helper function defined in @sec-cla_dec.
 
 ```{python}
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import confusion_matrix
+
 def classification_summary(y_true, prob, threshold=0.5):
     pred = (prob >= threshold).astype(int)
     TN, FP, FN, TP = confusion_matrix(y_true, pred).ravel()
@@ -779,388 +591,279 @@ def classification_summary(y_true, prob, threshold=0.5):
         "recall": recall_score(y_true, pred, zero_division=0),
         "f1": f1_score(y_true, pred, zero_division=0),
     }
-```
+```  
+
+We may use the regular split-validation method. The model use the best `C` from the cross-validation from the previous section.
 
 ```{python}
-thresholds = np.linspace(0.05, 0.95, 19)
+from sklearn.model_selection import train_test_split
+import pandas as pd
 
-threshold_df = pd.DataFrame(
-    [
-        classification_summary(y_test, test_prob, threshold=t)
-        for t in thresholds
-    ]
-)
-
-threshold_df.head()
-```
-
-```{python}
-import matplotlib.pyplot as plt
-
-plt.plot(threshold_df["threshold"], threshold_df["precision"], marker="o", label="precision")
-plt.plot(threshold_df["threshold"], threshold_df["recall"], marker="o", label="recall")
-plt.xlabel("threshold")
-plt.ylabel("metric value")
-plt.title("Precision and Recall versus Threshold")
-plt.legend()
-```
-
-As the threshold increases, the classifier becomes more conservative in predicting the positive class. This often reduces false positives and increases precision, but it may also increase false negatives and reduce recall.
-
-
-### Selecting a Threshold
-
-The final test set should not be used to choose a threshold. A common workflow is:
-
-1. split the training data into a model-training set and a validation set;
-2. fit the logistic regression model on the model-training set;
-3. choose the threshold on the validation set;
-4. evaluate once on the test set.
-
-This is the same distinction between model tuning and threshold tuning described in @sec-cla_dec.
-
-The following example chooses the threshold that maximizes validation F1 score.
-
-```{python}
 X_model, X_valid, y_model, y_valid = train_test_split(
-    X_train,
-    y_train,
-    test_size=0.25,
-    stratify=y_train,
-    random_state=11,
+    X_train, y_train, test_size=0.25, stratify=y_train, random_state=1
 )
 
-validation_model = make_pipeline(
-    StandardScaler(),
-    LogisticRegression(penalty=None, max_iter=5000),
-)
-
-validation_model.fit(X_model, y_model)
-valid_prob = validation_model.predict_proba(X_valid)[:, 1]
+best_C = grid.best_params_['logisticregression__C']
 
 candidate_thresholds = np.linspace(0.05, 0.95, 91)
 
-validation_results = pd.DataFrame(
-    [
-        classification_summary(y_valid, valid_prob, threshold=t)
-        for t in candidate_thresholds
-    ]
-)
+results = []
+for t in candidate_thresholds:
+    best_logit = make_pipeline(
+        StandardScaler(),
+        LogisticRegression(C=best_C, max_iter=5000),
+    )
+    best_logit.fit(X_model, y_model)
+    valid_prob = best_logit.predict_proba(X_valid)[:, 1]
+    results.append(classification_summary(y_valid, valid_prob, threshold=t))
 
-best_f1_row = validation_results.loc[
-    validation_results["f1"].idxmax()
-]
+threshold_df = pd.DataFrame(results)
 
-best_f1_row
+best_row = threshold_df.loc[threshold_df["f1"].idxmax()] # <1>
+best_row
 ```
+1. `best_row` is a Series object. Therefore although it is a row, it is displayed as a column. 
+
+We can fix the threshold and treat it as part of the prediction rule.
+
 
 ```{python}
-best_threshold = best_f1_row["threshold"]
+from sklearn.model_selection import FixedThresholdClassifier
 
-classification_summary(
-    y_test,
-    test_prob,
-    threshold=best_threshold,
+final_logit = make_pipeline(
+    StandardScaler(), LogisticRegression(C=best_C, max_iter=5000)
 )
-```
-
-The same idea can be used for other goals. For example, we may choose the largest recall among thresholds whose precision is at least $0.90$.
-
-```{python}
-valid_candidates = validation_results[
-    validation_results["precision"] >= 0.90
-]
-
-best_recall_row = valid_candidates.loc[
-    valid_candidates["recall"].idxmax()
-]
-
-best_recall_row
-```
-
-```{python}
-classification_summary(
-    y_test,
-    test_prob,
-    threshold=best_recall_row["threshold"],
+model_with_threshold = FixedThresholdClassifier(
+    final_logit, threshold=best_row["threshold"]
 )
+model_with_threshold.fit(X_train, y_train)
+model_with_threshold.score(X_test, y_test)
 ```
 
 
-### Cost-Based Threshold
 
-In a medical screening setting, missing a malignant tumor may be more costly than sending a benign case for additional testing. Suppose
-$$
-C_{FN}=5,
-\qquad
-C_{FP}=1.
-$$
-Then
-$$
-c^*
-=
-\frac{C_{FP}}{C_{FP}+C_{FN}}
-=
-\frac{1}{1+5}
-\approx
-0.167.
-$$
-
-```{python}
-cost_fp = 1
-cost_fn = 5
-
-cost_threshold = cost_fp / (cost_fp + cost_fn)
-
-classification_summary(
-    y_test,
-    test_prob,
-    threshold=cost_threshold,
-)
-```
-
-
-### Ranking and Probability Quality
-
-ROC analysis evaluates ranking quality across thresholds. Let $s=\hat p(x)$ be the model score for a new observation. For a threshold $c$, define
-$$
-TPR(c)
-=
-\Pr(s>c\mid Y=1)
-=
-\frac{TP(c)}{TP(c)+FN(c)}
-$$
-and
-$$
-FPR(c)
-=
-\Pr(s>c\mid Y=0)
-=
-\frac{FP(c)}{FP(c)+TN(c)}.
-$$
-The ROC curve plots $TPR(c)$ against $FPR(c)$ as $c$ varies.
-
-ROC curves, AUC, precision-recall curves, Brier score, log loss, and calibration curves are introduced conceptually in @sec-cla_dec. The examples below show their direct implementation for logistic regression.
-
-```{python}
-from sklearn.metrics import roc_curve, roc_auc_score
-
-fpr, tpr, roc_thresholds = roc_curve(y_test, test_prob)
-auc = roc_auc_score(y_test, test_prob)
-
-plt.plot(fpr, tpr, label=f"Logistic regression AUC = {auc:.3f}")
-plt.plot([0, 1], [0, 1], "k--", label="random guessing")
-plt.xlabel("false positive rate")
-plt.ylabel("true positive rate")
-plt.title("ROC Curve")
-plt.legend()
-```
-
-AUC can be interpreted as
-$$
-AUC
-=
-\Pr\left(s^+>s^-\right),
-$$
-up to small corrections for ties, where $s^+$ is the score for a randomly selected positive observation and $s^-$ is the score for a randomly selected negative observation.
-
-Precision-recall curves are often useful when the positive class is rare or when performance on the positive class is the main concern.
-
-```{python}
-from sklearn.metrics import precision_recall_curve, average_precision_score
-
-precision, recall, pr_thresholds = precision_recall_curve(y_test, test_prob)
-avg_precision = average_precision_score(y_test, test_prob)
-
-plt.plot(recall, precision, label=f"AP = {avg_precision:.3f}")
-plt.xlabel("recall")
-plt.ylabel("precision")
-plt.title("Precision-Recall Curve")
-plt.legend()
-```
-
-Because logistic regression estimates probabilities, probability quality is also important. Two common proper scoring rules are the Brier score and log loss:
-$$
-\text{Brier}
-=
-\frac1n\sum_{i=1}^n
-(y_i-\hat p_i)^2,
-$$
-and
-$$
-\text{LogLoss}
-=
--\frac1n
-\sum_{i=1}^n
-\left[
-y_i\log(\hat p_i)
-+
-(1-y_i)\log(1-\hat p_i)
-\right].
-$$
-
-```{python}
-from sklearn.metrics import brier_score_loss, log_loss
-
-probability_scores = {
-    "brier_score": brier_score_loss(y_test, test_prob),
-    "log_loss": log_loss(y_test, test_prob),
-}
-
-probability_scores
-```
-
-Calibration curves check whether predicted probabilities are numerically meaningful.
-
-```{python}
-from sklearn.calibration import CalibrationDisplay
-
-CalibrationDisplay.from_predictions(
-    y_test,
-    test_prob,
-    n_bins=10,
-    name="Logistic regression",
-)
-plt.title("Calibration Curve")
-```
-
-
-### Decision Boundary
-
-With two predictors, we can visualize the fitted probability surface and the $0.5$ decision boundary.
-
-```{python}
-X2 = cancer.data[["mean radius", "mean texture"]]
-y2 = 1 - cancer.target
-
-X2_train, X2_test, y2_train, y2_test = train_test_split(
-    X2,
-    y2,
-    test_size=0.3,
-    stratify=y2,
-    random_state=2,
-)
-
-boundary_model = make_pipeline(
-    StandardScaler(),
-    LogisticRegression(penalty=None, max_iter=5000),
-)
-boundary_model.fit(X2_train, y2_train)
-
-x0_min, x0_max = X2.iloc[:, 0].min() - 1, X2.iloc[:, 0].max() + 1
-x1_min, x1_max = X2.iloc[:, 1].min() - 1, X2.iloc[:, 1].max() + 1
-
-xx0, xx1 = np.meshgrid(
-    np.linspace(x0_min, x0_max, 300),
-    np.linspace(x1_min, x1_max, 300),
-)
-
-grid_points = pd.DataFrame(
-    {
-        "mean radius": xx0.ravel(),
-        "mean texture": xx1.ravel(),
-    }
-)
-
-zz = boundary_model.predict_proba(grid_points)[:, 1].reshape(xx0.shape)
-
-plt.figure(figsize=(7, 5))
-plt.contourf(xx0, xx1, zz, levels=20, alpha=0.35)
-plt.contour(xx0, xx1, zz, levels=[0.5], colors="black", linewidths=2)
-plt.scatter(X2_test.iloc[:, 0], X2_test.iloc[:, 1], c=y2_test, edgecolor="k")
-plt.xlabel("mean radius")
-plt.ylabel("mean texture")
-plt.title("Logistic Regression Probability Surface")
-plt.show()
-```
-
-The $0.5$ decision boundary is linear in the predictors because the log-odds are linear. Other thresholds produce parallel boundaries in this two-predictor model.
-
-
-### Penalized Logistic Regression
-
-Logistic regression can be regularized in the same spirit as ridge regression and lasso. The unpenalized estimator solves
-$$
-\hat\beta
-=
-\arg\min_\beta
-\{-\ell(\beta)\}.
-$$
-
-Ridge logistic regression solves
-$$
-\hat\beta_{\ridge}
-=
-\arg\min_\beta
-\left\{
--\ell(\beta)
-+
-\lambda\norm{\beta}_2^2
-\right\},
-$$
-and lasso logistic regression solves
-$$
-\hat\beta_{\lasso}
-=
-\arg\min_\beta
-\left\{
--\ell(\beta)
-+
-\lambda\norm{\beta}_1
-\right\}.
-$$
-
-As in ridge and lasso regression, the intercept is usually not penalized. Predictors should usually be standardized before penalized logistic regression because the penalty depends on coefficient scale.
-
-In `sklearn`, `C` controls inverse regularization strength. Larger `C` means weaker regularization, and smaller `C` means stronger regularization.
-
-```{python}
-from sklearn.model_selection import GridSearchCV
-
-penalized_pipe = make_pipeline(
-    StandardScaler(),
-    LogisticRegression(
-        penalty="l1",
-        solver="liblinear",
-        max_iter=5000,
-    ),
-)
-
-param_grid = {
-    "logisticregression__C": np.logspace(-3, 2, 20),
-}
-
-grid = GridSearchCV(
-    penalized_pipe,
-    param_grid=param_grid,
-    cv=5,
-    scoring="roc_auc",
-)
-
-grid.fit(X_train, y_train)
-
-grid.best_params_
-```
-
-```{python}
-grid.best_estimator_
-```
 
 ::: {.callout-note}
-## Regularization and threshold tuning
 
-Regularization changes the fitted coefficients and therefore changes the fitted probabilities. Threshold tuning changes only the final decision rule built from those probabilities.
+Notice that changing the threshold does not change the fitted model. The estimated probabilities remain the same. The threshold only changes how those probabilities are converted into class labels.
 :::
 
-<!-- 
-## Summary
 
-Logistic regression:
 
-- models binary outcomes through class probabilities;
-- uses the logit link to make log-odds linear in the predictors;
-- estimates coefficients by maximum likelihood;
-- interprets coefficients through odds ratios;
-- requires a threshold for hard classification;
-- can be evaluated using threshold-based metrics, ranking metrics, and probability-quality metrics;
-- can be regularized with ridge or lasso penalties. -->
+
+
+
+## Multiclass Extension
+
+The basic logistic regression model handles binary outcomes. For problems with more than two classes, a common extension is multinomial logistic regression.
+
+Suppose
+
+$$
+Y\in{1,2,\ldots,K}.
+$$
+
+Instead of modeling the probability of a single class, multinomial logistic regression models the probability of every class simultaneously.
+
+For each class $k$, define a linear predictor
+
+$$
+\eta_k(x)=x^\top\beta_k=\beta_{0,k}+\beta_{1,k}x_1+\ldots+\beta_{p,k}x_p.
+$$
+
+The predicted probability of class $k$ is then given by the softmax function:
+
+$$
+\Pr(Y=k\mid X=x)=
+\frac{\exp(\eta_k(x))}
+{\sum_{\ell=1}^{K}\exp(\eta_\ell(x))}.
+$$
+
+The softmax function converts the collection of scores
+
+$$
+\eta_1(x),\eta_2(x),\ldots,\eta_K(x)
+$$
+
+into probabilities that satisfy
+
+$$
+0\le \Pr(Y=k\mid X=x)\le 1
+$$
+
+and
+
+$$
+\sum_{k=1}^{K}\Pr(Y=k\mid X=x)=1.
+$$
+
+The softmax function plays the same role in multiclass classification that the sigmoid function plays in binary classification.
+
+
+::: {.callout-note}
+For K=2 classes, softmax reduces to the sigmoid model.
+:::
+
+
+For prediction, the observation is assigned to the class with the largest predicted probability:
+
+$$
+\hat y=\arg\max_k P(Y=k\mid X=x).
+$$
+
+### Cross-Entropy Loss
+
+Suppose the true class labels are represented using one-hot encoding:
+
+$$
+y_{ik}=
+\begin{cases}
+1,&\text{if observation }i\text{ belongs to class }k,\\
+0,&\text{otherwise}.
+\end{cases}
+$$
+
+Let
+
+$$
+p_{ik}=P(Y_i=k\mid X_i=x_i)
+$$
+
+denote the predicted probability from the softmax model.
+
+The multiclass cross-entropy loss is
+
+$$
+L=-\sum_{i=1}^{n}\sum_{k=1}^{K}y_{ik}\log(p_{ik}).
+$$
+
+Because exactly one value of $y_{ik}$ equals $1$ for each observation, this loss simply penalizes the model when it assigns a low probability to the true class.
+
+Minimizing the multiclass cross-entropy loss is equivalent to maximizing the likelihood of the multinomial logistic regression model, just as binary cross-entropy corresponds to maximum likelihood estimation in ordinary logistic regression.
+
+
+
+::: {.callout-note}
+## One-vs-Rest (OvR)
+
+Another approach to multiclass classification is One-vs-Rest (OvR), also called One-vs-All.
+
+Instead of fitting a single multinomial model, OvR trains one binary classifier for each class. For example, with three classes A, B, and C, three separate models are fit:
+
+- A versus not A
+- B versus not B
+- C versus not C
+
+The final prediction is usually made using the classifier with the largest predicted probability.
+
+Although OvR is simple and often works well in practice, multinomial logistic regression provides a more natural probabilistic model because all class probabilities are estimated simultaneously and automatically sum to one.
+:::
+
+
+::: {.callout-note}
+
+## `solver`
+
+There are many algorithms for fitting logistic regression models. In `scikit-learn`, these optimization algorithms are specified through the `solver` argument. Examples include `"lbfgs"`, `"newton-cg"`, `"newton-cholesky"`, `"sag"`, `"saga"`, and `"liblinear"`.
+
+Different solvers use different optimization techniques and may have different computational properties. Some are better suited for large datasets, while others are designed for smaller problems or support additional features such as regularization.
+
+Historically, some solvers handled multiclass classification using a One-vs-Rest (OvR) strategy, while others directly fit a multinomial logistic regression model using the softmax formulation. 
+
+In this course, we focus on the multinomial (softmax) approach because it provides a natural extension of binary logistic regression and is widely used in modern machine learning. The details of optimization algorithms are beyond the scope of this course.
+
+:::
+
+
+
+
+
+## Example 2: Multinomial Logistic Regression
+
+The Titanic example involved two classes. We now consider a multiclass classification problem using the wine dataset.
+
+```{python}
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
+
+wine = load_wine(as_frame=True)
+
+X = wine.data[["alcohol", "flavanoids", "color_intensity"]]
+y = wine.target
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, stratify=y, random_state=1
+)
+```
+
+
+We fit a multinomial logistic regression model.
+
+```{python}
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+wine_logit = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(max_iter=5000),
+)
+
+wine_logit.fit(X_train, y_train)
+
+test_prob = wine_logit.predict_proba(X_test)
+test_pred = wine_logit.predict(X_test)
+```
+
+### Probabilities and Softmax
+
+For multiclass problems, logistic regression uses the softmax formulation discussed earlier.
+
+
+```{python}
+test_prob[:5]
+```
+
+
+Each row contains the estimated probabilities for all classes. The probabilities always sum to one.
+
+```{python}
+test_prob[:5].sum(axis=1)
+```
+
+The predicted class is the class with the largest probability.
+
+```{python}
+test_pred[:5]
+```
+
+Unlike binary logistic regression, there is usually no threshold parameter to tune. The model simply predicts the class with the highest probability.
+
+### Confusion Matrix
+
+```{python}
+from sklearn.metrics import ConfusionMatrixDisplay
+
+ConfusionMatrixDisplay.from_predictions(y_test, test_pred)
+```
+
+We could also directly generate the classification report.
+
+```{python}
+from sklearn.metrics import classification_report
+
+print(classification_report(y_test, test_pred))
+```
+
+The report provides precision, recall, and F1 scores for each class separately.
+
+
+
+
+::: {.callout-note}
+For multiclass logistic regression, the regularization parameter `C` can be tuned in the same way as in the binary classification example.
+
+However, there is usually no single threshold parameter to tune. The standard prediction rule is to choose the class with the largest predicted probability.
+
+In this example, we skip the tuning step for `C` because the procedure is the same as before.
+:::

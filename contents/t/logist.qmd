@@ -489,3 +489,427 @@ The model is useful because it:
 Logistic regression is one of the most important bridges between classical statistics and modern machine learning.
 
 --- -->
+
+
+<!-- 
+### Softmax and Cross Entropy
+
+Multinomial logistic regression extends binary logistic regression by replacing the sigmoid function with the softmax function.
+
+The model predicts
+$$
+\frac{\exp(x^\top\beta_k)}
+{\sum_{\ell=1}^{K}
+\exp(x^\top\beta_\ell)}.
+$$
+
+Training is based on the multiclass cross-entropy loss
+$$$
+-\sum_{i=1}^{n}
+\sum_{k=1}^{K}
+y_{ik}\log(p_{ik}).
+$$
+
+This is the multiclass analogue of the binary cross-entropy loss used in ordinary logistic regression. -->
+
+
+
+<!-- 
+```{python}
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+
+cancer = load_breast_cancer(as_frame=True)
+
+X = cancer.data[["mean radius", "mean texture", "mean concavity"]]
+y = 1 - cancer.target
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, stratify=y, random_state=1
+)
+```
+
+
+```{python}
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+logit = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(max_iter=5000),
+)
+
+logit.fit(X_train, y_train)
+
+test_prob = logit.predict_proba(X_test)[:, 1]
+test_pred = logit.predict(X_test)
+```
+
+
+## Tuning hyperparameters
+
+Logistic regression itself has relatively few hyperparameters. In practice, the most important choices are the classification threshold and the strength of regularization.
+
+To choose the threshold, we follow our discussion in @sec-cla_dec.
+
+
+
+### Confusion Matrix and Metrics
+
+First we pull the helper function we write from @sec-cla_dec.
+
+Then we choose a series of thresholds and evaluate the corresponding performance and record the results in a DataFrame.
+
+``` {python}
+import numpy as np
+import pandas as pd
+
+thresholds = np.linspace(0.05, 0.95, 19)
+
+threshold_df = pd.DataFrame(
+    [
+        classification_summary(y_test, test_prob, threshold=t)
+        for t in thresholds
+    ]
+)
+```
+
+We could extract the results from the DataFrame and display them. There are many methods. Here we would like to show the precision / recall vs threshold curve.
+
+```{python}
+import matplotlib.pyplot as plt
+
+plt.plot(threshold_df["threshold"], threshold_df["precision"], marker="o", label="precision")
+plt.plot(threshold_df["threshold"], threshold_df["recall"], marker="o", label="recall")
+plt.xlabel("threshold")
+plt.ylabel("metric value")
+plt.title("Precision and Recall versus Threshold")
+plt.legend()
+```
+
+As the threshold increases, the classifier becomes more conservative in predicting the positive class. This often reduces false positives and increases precision, but it may also increase false negatives and reduce recall.
+
+
+### Selecting a Threshold
+Assume we value F1 score most in this case. We will split the training set and use validation to find the highest validation F1 score.
+
+
+```{python}
+X_model, X_valid, y_model, y_valid = train_test_split(
+    X_train, y_train, test_size=0.25, stratify=y_train, random_state=1
+)
+
+validation_model = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(max_iter=5000),
+)
+
+validation_model.fit(X_model, y_model)
+valid_prob = validation_model.predict_proba(X_valid)[:, 1]
+
+candidate_thresholds = np.linspace(0.05, 0.95, 91)
+
+validation_results = pd.DataFrame(
+    [
+        classification_summary(y_valid, valid_prob, threshold=t)
+        for t in candidate_thresholds
+    ]
+)
+
+best_f1_row = validation_results.loc[validation_results["f1"].idxmax()]
+
+best_f1_row
+```
+
+Then we use the threshold and see how it works on the test set.
+
+```{python}
+best_threshold = best_f1_row["threshold"]
+
+classification_summary(
+    y_test,
+    test_prob,
+    threshold=best_threshold,
+)
+```
+
+
+
+### Cost-Based Threshold
+
+In a medical screening setting, missing a malignant tumor may be more costly than sending a benign case for additional testing. Suppose
+$$
+C_{FN}=5,
+\qquad
+C_{FP}=1.
+$$
+Then
+$$
+c^*
+=
+\frac{C_{FP}}{C_{FP}+C_{FN}}
+=
+\frac{1}{1+5}
+\approx
+0.167.
+$$
+
+```{python}
+cost_fp = 1
+cost_fn = 5
+
+cost_threshold = cost_fp / (cost_fp + cost_fn)
+
+classification_summary(
+    y_test,
+    test_prob,
+    threshold=cost_threshold,
+)
+```
+
+
+### Ranking and Probability Quality
+
+ROC analysis evaluates ranking quality across thresholds. Let $s=\hat p(x)$ be the model score for a new observation. For a threshold $c$, define
+$$
+TPR(c)
+=
+\Pr(s>c\mid Y=1)
+=
+\frac{TP(c)}{TP(c)+FN(c)}
+$$
+and
+$$
+FPR(c)
+=
+\Pr(s>c\mid Y=0)
+=
+\frac{FP(c)}{FP(c)+TN(c)}.
+$$
+The ROC curve plots $TPR(c)$ against $FPR(c)$ as $c$ varies.
+
+ROC curves, AUC, precision-recall curves, Brier score, log loss, and calibration curves are introduced conceptually in @sec-cla_dec. The examples below show their direct implementation for logistic regression.
+
+```{python}
+from sklearn.metrics import roc_curve, roc_auc_score
+
+fpr, tpr, roc_thresholds = roc_curve(y_test, test_prob)
+auc = roc_auc_score(y_test, test_prob)
+
+plt.plot(fpr, tpr, label=f"Logistic regression AUC = {auc:.3f}")
+plt.plot([0, 1], [0, 1], "k--", label="random guessing")
+plt.xlabel("false positive rate")
+plt.ylabel("true positive rate")
+plt.title("ROC Curve")
+plt.legend()
+```
+
+AUC can be interpreted as
+$$
+AUC
+=
+\Pr\left(s^+>s^-\right),
+$$
+up to small corrections for ties, where $s^+$ is the score for a randomly selected positive observation and $s^-$ is the score for a randomly selected negative observation.
+
+Precision-recall curves are often useful when the positive class is rare or when performance on the positive class is the main concern.
+
+```{python}
+from sklearn.metrics import precision_recall_curve, average_precision_score
+
+precision, recall, pr_thresholds = precision_recall_curve(y_test, test_prob)
+avg_precision = average_precision_score(y_test, test_prob)
+
+plt.plot(recall, precision, label=f"AP = {avg_precision:.3f}")
+plt.xlabel("recall")
+plt.ylabel("precision")
+plt.title("Precision-Recall Curve")
+plt.legend()
+```
+
+Because logistic regression estimates probabilities, probability quality is also important. Two common proper scoring rules are the Brier score and log loss:
+$$
+\text{Brier}
+=
+\frac1n\sum_{i=1}^n
+(y_i-\hat p_i)^2,
+$$
+and
+$$
+\text{LogLoss}
+=
+-\frac1n
+\sum_{i=1}^n
+\left[
+y_i\log(\hat p_i)
++
+(1-y_i)\log(1-\hat p_i)
+\right].
+$$
+
+```{python}
+from sklearn.metrics import brier_score_loss, log_loss
+
+probability_scores = {
+    "brier_score": brier_score_loss(y_test, test_prob),
+    "log_loss": log_loss(y_test, test_prob),
+}
+
+probability_scores
+```
+
+Calibration curves check whether predicted probabilities are numerically meaningful.
+
+```{python}
+from sklearn.calibration import CalibrationDisplay
+
+CalibrationDisplay.from_predictions(
+    y_test,
+    test_prob,
+    n_bins=10,
+    name="Logistic regression",
+)
+plt.title("Calibration Curve")
+```
+
+
+### Decision Boundary
+
+With two predictors, we can visualize the fitted probability surface and the $0.5$ decision boundary.
+
+```{python}
+X2 = cancer.data[["mean radius", "mean texture"]]
+y2 = 1 - cancer.target
+
+X2_train, X2_test, y2_train, y2_test = train_test_split(
+    X2,
+    y2,
+    test_size=0.3,
+    stratify=y2,
+    random_state=2,
+)
+
+boundary_model = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(penalty=None, max_iter=5000),
+)
+boundary_model.fit(X2_train, y2_train)
+
+x0_min, x0_max = X2.iloc[:, 0].min() - 1, X2.iloc[:, 0].max() + 1
+x1_min, x1_max = X2.iloc[:, 1].min() - 1, X2.iloc[:, 1].max() + 1
+
+xx0, xx1 = np.meshgrid(
+    np.linspace(x0_min, x0_max, 300),
+    np.linspace(x1_min, x1_max, 300),
+)
+
+grid_points = pd.DataFrame(
+    {
+        "mean radius": xx0.ravel(),
+        "mean texture": xx1.ravel(),
+    }
+)
+
+zz = boundary_model.predict_proba(grid_points)[:, 1].reshape(xx0.shape)
+
+plt.figure(figsize=(7, 5))
+plt.contourf(xx0, xx1, zz, levels=20, alpha=0.35)
+plt.contour(xx0, xx1, zz, levels=[0.5], colors="black", linewidths=2)
+plt.scatter(X2_test.iloc[:, 0], X2_test.iloc[:, 1], c=y2_test, edgecolor="k")
+plt.xlabel("mean radius")
+plt.ylabel("mean texture")
+plt.title("Logistic Regression Probability Surface")
+plt.show()
+```
+
+The $0.5$ decision boundary is linear in the predictors because the log-odds are linear. Other thresholds produce parallel boundaries in this two-predictor model.
+
+
+### Penalized Logistic Regression
+
+Logistic regression can be regularized in the same spirit as ridge regression and lasso. The unpenalized estimator solves
+$$
+\hat\beta
+=
+\arg\min_\beta
+\{-\ell(\beta)\}.
+$$
+
+Ridge logistic regression solves
+$$
+\hat\beta_{\ridge}
+=
+\arg\min_\beta
+\left\{
+-\ell(\beta)
++
+\lambda\norm{\beta}_2^2
+\right\},
+$$
+and lasso logistic regression solves
+$$
+\hat\beta_{\lasso}
+=
+\arg\min_\beta
+\left\{
+-\ell(\beta)
++
+\lambda\norm{\beta}_1
+\right\}.
+$$
+
+As in ridge and lasso regression, the intercept is usually not penalized. Predictors should usually be standardized before penalized logistic regression because the penalty depends on coefficient scale.
+
+In `sklearn`, `C` controls inverse regularization strength. Larger `C` means weaker regularization, and smaller `C` means stronger regularization.
+
+```{python}
+from sklearn.model_selection import GridSearchCV
+
+penalized_pipe = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(
+        penalty="l1",
+        solver="liblinear",
+        max_iter=5000,
+    ),
+)
+
+param_grid = {
+    "logisticregression__C": np.logspace(-3, 2, 20),
+}
+
+grid = GridSearchCV(
+    penalized_pipe,
+    param_grid=param_grid,
+    cv=5,
+    scoring="roc_auc",
+)
+
+grid.fit(X_train, y_train)
+
+grid.best_params_
+```
+
+```{python}
+grid.best_estimator_
+```
+
+::: {.callout-note}
+## Regularization and threshold tuning
+
+Regularization changes the fitted coefficients and therefore changes the fitted probabilities. Threshold tuning changes only the final decision rule built from those probabilities.
+:::
+
+<!-- 
+## Summary
+
+Logistic regression:
+
+- models binary outcomes through class probabilities;
+- uses the logit link to make log-odds linear in the predictors;
+- estimates coefficients by maximum likelihood;
+- interprets coefficients through odds ratios;
+- requires a threshold for hard classification;
+- can be evaluated using threshold-based metrics, ranking metrics, and probability-quality metrics;
+- can be regularized with ridge or lasso penalties. --> -->
