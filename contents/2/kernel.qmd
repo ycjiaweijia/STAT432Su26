@@ -13,7 +13,8 @@ The difference is that KNN uses a hard neighbor set, while kernel methods usuall
 This chapter focuses on **kernel smoothing**, including kernel density estimation and kernel regression. It does not cover kernel machines such as support vector machines or kernel ridge regression. These methods also use kernel functions, but their modeling goals are different.
 
 :::
-Unlike many methods discussed earlier in this book, classical kernel smoothing is not fully integrated into the standard sklearn estimator framework. While some tools, such as `KernelDensity`, are available in `sklearn`, many classical smoothers are primarily studied through their underlying algorithms rather than through ready-made estimators. Therefore, in this section we will implement several methods directly using `numpy` in order to better understand how they work.
+
+Unlike many methods discussed earlier in this book, classical kernel smoothing is not fully integrated into the standard sklearn estimator framework. While some tools, such as `KernelDensity`, are available in `sklearn`, many classical smoothers are primarily studied through their underlying algorithms rather than through ready-made estimators. Therefore, in this section we will implement several methods directly using `numpy` in order to better understand how they work. We will then wrap these implementations into custom `sklearn` regressors following the official developer guidelines.
 
 
 ## From KNN to Kernel Weights
@@ -458,14 +459,14 @@ fhat_x0 = np.sum(raw_weights * y) / np.sum(raw_weights)
 
 We then use the raw weights to determine the size of each plotted point so that larger points correspond to larger kernel weights.
 ``` {python}
-
-
 point_sizes = 200 * raw_weights / raw_weights.max()
 ```
 We can now plot the data together with the fitted curve, using the assigned point sizes to represent the kernel weights.
 
 <!-- fmt: off -->
 ```{python}
+import matplotlib.pyplot as plt
+
 plt.scatter(X, y, s=point_sizes, facecolors="none", edgecolors="black")
 plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
 plt.plot(X_grid, y_kernel, color="C1", label="kernel regression")
@@ -525,6 +526,7 @@ From the plot we can see that bandwidth controls the smoothness of the estimated
 
 The same idea applies to kernel regression.
 
+<!-- fmt: off -->
 ```{python}
 #| code-fold: true
 X_grid = np.linspace(0, 2 * np.pi, 500)
@@ -541,9 +543,9 @@ for ax, bw in zip(axs, [0.15, 0.4, 1.0]):
     ax.set_xlabel("x")
 
 axs[0].set_ylabel("y")
-axs[-1].legend()
-plt.show()
+axs[-1].legend();
 ```
+<!-- fmt: on -->
 
 As the bandwidth increases, variance decreases but bias increases. Choosing an appropriate bandwidth therefore requires balancing these two sources of error.
 
@@ -581,7 +583,6 @@ sigma = np.std(X, ddof=1)
 iqr = np.subtract(*np.percentile(X, [75, 25]))
 
 silverman_h = 0.9 * min(sigma, iqr / 1.34) * len(X) ** (-1 / 5)
-
 silverman_h
 ```
 
@@ -593,29 +594,82 @@ When prediction accuracy is important, cross-validation is often preferred becau
 ### Bandwidth Selection by Cross-Validation
 Rule-of-thumb methods are fast and easy to use, but they rely on assumptions that may not hold in practice. Cross-validation provides a more data-driven approach to bandwidth selection.
 
-The following code uses `GridSearchCV` to select the bandwidth. Since `sklearn` doesn't provide the API for Nadaraya-Watson estimator, in order to keep the usual `sklearn` workflow, we write a custom estimator.
+The following code uses `GridSearchCV` to select the bandwidth. Since `sklearn` doesn't provide the API for Nadaraya-Watson estimator, in order to keep the usual `sklearn` workflow, we write a custom estimator. 
+
+::: {.callout-note collapse="true"}
+## Guidelines for Developing a Custom Scikit-learn Regressor
+
+According to the [official `sklearn` developer guide](https://scikit-learn.org/stable/developers/develop.html), a custom regression estimator should inherit from both `RegressorMixin` and `BaseEstimator` to integrate smoothly with the `sklearn` ecosystem. A minimal regressor typically implements three methods: `__init__`, `fit`, and `predict`.
+
+1. The Role of `BaseEstimator`
+
+`BaseEstimator` provides the infrastructure that allows an estimator to work with `sklearn` utilities such as pipelines, model selection tools, and cloning.
+
+- It automatically implements `.get_params()` and `.set_params()`. These methods are required by tools such as `GridSearchCV`, `RandomizedSearchCV`, and `Pipeline`.
+- The `__init__` method should only store the supplied parameters. Every constructor argument should be assigned directly to an attribute with the same name, such as `self.bandwidth = bandwidth`.
+- The constructor should not
+  - modify parameter values,
+  - perform input validation,
+  - perform data-dependent computations,
+  - store training data.
+- Data validation and data-dependent computations should be performed inside `fit()` or `predict()`.
+
+By following these rules, the estimator automatically supports:
+
+- cloning via `sklearn.base.clone`,
+- parameter inspection,
+- compatibility with pipelines and model-selection tools.
+
+2. The Role of `RegressorMixin`
+
+- `RegressorMixin` identifies the estimator as a regression model and provides a default scoring method.
+- The mixin automatically implements the `.score()` method, which returns the coefficient of determination, or $R^2$, by default.
+- A regressor should implement `.fit(X, y)` and `.predict(X)`, where `y` is usually a numerical target variable.
+- Attributes estimated from the training data should end with a trailing underscore, such as `self.coef_`, `self.intercept_`, or `self.X_train_`. This convention distinguishes learned quantities from hyperparameters.
+- The `fit()` method should always return the estimator itself. This allows method chaining such as `model.fit(X, y).predict(X_new)`.
+
+3. Recommended Practices
+
+`sklearn` provides `validate_data` and `check_is_fitted` from `sklearn.utils.validation` to perform input validation and fitted-state checks consistently with built-in estimators.
+
+Although these utilities are not required for simple educational examples, they are recommended for production-quality estimators.
+
+In addition, it is recommended to validate all arguments besides the input dataset. For example, the bandwidth in our case should be positive.
+:::
+
 
 ```{python}
 from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.utils.validation import validate_data, check_is_fitted
 
-
-
-class NadarayaWatsonRegressor(BaseEstimator, RegressorMixin):
+class NadarayaWatsonRegressor(RegressorMixin, BaseEstimator):
     def __init__(self, bandwidth=1.0):
         self.bandwidth = bandwidth
 
     def fit(self, X, y):
-        self.X_train_ = np.asarray(X).reshape(-1, 1)
-        self.y_train_ = np.asarray(y)
+        if self.bandwidth <= 0:
+            raise ValueError("bandwidth must be positive.")
+        X, y = validate_data(self, X, y, y_numeric=True)
+        self.X_train_ = X
+        self.y_train_ = y
         return self
 
-    def predict(self, X):
-        X = np.asarray(X).reshape(-1, 1)
-        distances = X - self.X_train_.T
-        weights = np.exp(-0.5 * (distances / self.bandwidth) ** 2)
+    def predict(self, X_new):
+        check_is_fitted(self, ["X_train_", "y_train_"])
+        X_new = validate_data(self, X_new, reset=False)
+
+        diff = X_new[:, None, :] - self.X_train_[None, :, :]
+        squared_distances = np.sum(diff**2, axis=2)
+
+        weights = np.exp(-0.5 * squared_distances / self.bandwidth**2)
         weights = weights / weights.sum(axis=1, keepdims=True)
+
         return weights @ self.y_train_
 ```
+
+This `predict` method is closely related to the `kernel_regression_predict` function defined earlier. The main difference, apart from the validation checks, is that this version supports multidimensional input. That is, `X` may contain more than one feature column.
+
+
 
 Then use the reguler grid search process.
 
@@ -636,19 +690,22 @@ Plot the cross-validation curve.
 
 <!-- fmt: off -->
 ```{python}
-cv_mse = -grid.cv_results_["mean_test_score"]
+cv_score = grid.cv_results_["mean_test_score"]
 bandwidth_values = bandwidth_grid["bandwidth"]
 
-plt.plot(bandwidth_values, cv_mse, marker="o")
-plt.axvline(grid.best_params_["bandwidth"], color="black", linestyle="--")
+plt.plot(bandwidth_values, cv_score, marker="o")
+plt.axvline(grid.best_params_["bandwidth"], color="black", linestyle="--", label='cv best')
+plt.axvline(silverman_h, color="red", linestyle="--", label='silverman_h')
 plt.xlabel("bandwidth")
-plt.ylabel("mean CV MSE")
-plt.title("Bandwidth Selection by Cross-Validation");
+plt.ylabel("mean CV score")
+plt.title("Bandwidth Selection")
+plt.legend();
 ```
 <!-- fmt: on -->
 
 Fit the selected model.
 
+<!-- fmt: off -->
 ```{python}
 best_kernel = grid.best_estimator_
 y_best = best_kernel.predict(X_grid.reshape(-1, 1))
@@ -659,8 +716,10 @@ plt.plot(X_grid, y_best, color="C1", linewidth=2, label="CV-selected fit")
 plt.xlabel("x")
 plt.ylabel("y")
 plt.title(f"Selected Bandwidth = {grid.best_params_['bandwidth']:.2f}")
-plt.legend()
+plt.legend();
 ```
+<!-- fmt: on -->
+
 
 ## Extensions
 
@@ -818,7 +877,7 @@ This gets slower as $p$ increases, which is another way to see the curse of dime
 
 Different software packages may define bandwidth differently. Some use a raw scale $h$ inside the kernel. Others use a span, a nearest-neighbor fraction, or an internally rescaled bandwidth. Always check the documentation before comparing bandwidth values across implementations.
 :::
-
+<!-- 
 ## Summary
 
 Kernel smoothing:
@@ -838,4 +897,4 @@ The practical workflow is:
 2. Choose a kernel, often Gaussian.
 3. Use KDE for density estimation or kernel regression for conditional means.
 4. Tune the bandwidth by validation, cross-validation, or a rule of thumb.
-5. Consider extensions such as local linear smoothing when boundary bias matters.
+5. Consider extensions such as local linear smoothing when boundary bias matters. -->
