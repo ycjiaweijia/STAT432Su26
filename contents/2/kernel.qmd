@@ -14,7 +14,12 @@ This chapter focuses on **kernel smoothing**, including kernel density estimatio
 
 :::
 
-Unlike many methods discussed earlier in this book, classical kernel smoothing is not fully integrated into the standard sklearn estimator framework. While some tools, such as `KernelDensity`, are available in `sklearn`, many classical smoothers are primarily studied through their underlying algorithms rather than through ready-made estimators. Therefore, in this section we will implement several methods directly using `numpy` in order to better understand how they work. We will then wrap these implementations into custom `sklearn` regressors following the official developer guidelines.
+Unlike many methods discussed earlier in this book, classical kernel smoothing is not fully integrated into the standard `sklearn` estimator framework. Although `sklearn` provides some related tools, such as `KernelDensity`, it does not provide a standard estimator for classical kernel regression.
+
+In this chapter, we will use `KernelReg` from `statsmodels` to fit kernel regression models. For readers interested in the implementation details, we also include an optional section on building a custom regressor using the `sklearn` API and implementing the estimator from scratch. The goal is not only to understand how kernel regression works, but also to become familiar with practical tools from `statsmodels` and the basic structure of custom `sklearn` estimators.
+
+
+
 
 
 ## From KNN to Kernel Weights
@@ -71,7 +76,7 @@ Common choices include:
 
 - Gaussian kernel: $K(u)=\frac{1}{\sqrt{2\pi}}\exp\qty(-u^2/2)$.
 - Uniform kernel: $K(u)=I(\abs{u}\le 1/2)$.
-- Epanechnikov kernel: $K(u)=\frac{3}{4}(1-u^2)I(\abs{u}\le 1)$.
+- Tricube kernel: $K(u)=(1-\abs{u}^3)^3I(\abs{u}\le 1)$.
 
 <!-- For density estimation, the exact normalization constant matters because the estimate must integrate to one. For kernel regression, the weights are normalized by their sum, so constants shared by all observations cancel out.
 
@@ -282,8 +287,9 @@ $$
 \approx
 f(x).
 $$
-
-This explains why KDE can recover the true density when the bandwidth is small enough, but not too small.
+This calculation shows that a sufficiently small bandwidth can reduce the bias of the KDE. However, making the bandwidth too small increases variance. A useful bandwidth must therefore balance bias and variance.
+<!-- 
+This explains why KDE can recover the true density when the bandwidth is small enough, but not too small. -->
 
 ## Kernel Regression
 
@@ -356,9 +362,11 @@ $$
 
 The following example compares a KNN regression curve with a Gaussian kernel regression curve on the same data.
 
-::: {#exm-knn-kernel-regression}
-
-We first generate a one-feature dataset and a grid for plotting predictions.
+We first generate a one-feature dataset and a grid for plotting predictions. The data are generated from
+$$
+y=2\sin(x)+\varepsilon, 
+$$
+so the true regression function is $f(x)=2\sin(x)$. We will use this function as a reference when evaluating the fitted models.
 
 ```{python}
 rng = np.random.default_rng(1)
@@ -378,23 +386,18 @@ knn.fit(X.reshape(-1, 1), y)
 y_knn = knn.predict(X_grid.reshape(-1, 1))
 ```
 
-Now we define Gaussian kernel regression using the formula above.
+Now we fit a Nadaraya-Watson estimator using `KernelReg` from `statsmodels`.
 
 ```{python}
-def kernel_regression_predict(X, y, X_new, bandwidth):
-    diff = X_new[:, None] - X[None, :]
-    weights = np.exp(-0.5 * (diff / bandwidth) ** 2)
-    weights = weights / weights.sum(axis=1, keepdims=True)
-    return weights @ y
+from statsmodels.nonparametric.kernel_regression import KernelReg
 
-
-h = np.std(X) * 0.25
-y_kernel = kernel_regression_predict(X, y, X_grid, bandwidth=h)
+h = 0.25
+kr = KernelReg(endog=y, exog=X, reg_type="lc", bw=[h], var_type="c")
+y_kernel, _ = kr.fit(X_grid)
 ```
 
-Here `diff = X_new[:, None] - X[None, :]` uses `numpy` broadcasting to create a matrix of pairwise differences. It was briefly discussed in @sec-common_operations. If `X_new` contains $m$ points and `X` contains $n$ points, then `diff` has shape $(m,n)$, where the $(i,j)$ entry is the difference between the $i$th prediction point and the $j$th training point.
 
-The bandwidth is chosen to be 0.25 of the standard deviation of the feature. This is only a simple starting value; bandwidth tuning is discussed later.
+The bandwidth is chosen to be 0.25. This is only a simple starting value; bandwidth tuning is discussed later.
 
 <!-- fmt: off -->
 ```{python}
@@ -408,8 +411,8 @@ axs[0].set_title("KNN Regression")
 
 axs[1].scatter(X, y, s=35, facecolors="none", edgecolors="black")
 axs[1].plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
-axs[1].plot(X_grid, y_kernel, color="C2", label="Gaussian kernel")
-axs[1].set_title("Gaussian Kernel Regression")
+axs[1].plot(X_grid, y_kernel, color="C2", label="Nadaraya-Watson")
+axs[1].set_title("Nadaraya-Watson estimator")
 
 for ax in axs:
     ax.set_xlabel("x")
@@ -421,9 +424,45 @@ axs[0].set_ylabel("y");
 
 The KNN fit is piecewise constant because the prediction is the average of a fixed set of nearest neighbors. As the target point moves, the neighbor set may suddenly change, causing abrupt jumps in the fitted curve.
 
-The Gaussian kernel fit changes smoothly because every observation contributes to the prediction. The weights vary continuously with distance, producing a smooth estimate of the regression function.
+The Nadaraya-Watson estimator fit changes smoothly because every observation contributes to the prediction. The weights vary continuously with distance, producing a smooth estimate of the regression function.
 
-:::
+
+
+#### Understanding `KernelReg`
+
+The API of `KernelReg` from `statsmodels` differs substantially from the APIs used by most `sklearn` estimators, so we briefly explain the most important arguments and methods.
+
+1. Unlike most `sklearn` estimators, `KernelReg` does not have a separate training step. The training data are supplied when the object is created, and the `fit()` method is used to evaluate the fitted regression function at new points. In other words, `y_hat, _ = kr.fit(X)` performs prediction at the input locations `X`.
+
+   * The first returned value is the estimated conditional mean.
+   * The second returned value contains estimated marginal effects.
+   * In this chapter, we only use the fitted values, so the marginal effects are discarded by assigning them to `_`.
+  
+2. The model is initialized using `endog=y` and `exog=X`.
+
+   * `endog`: endogenous variable
+   * `exog`: exogenous variable
+   * These terms come from econometrics. In a statistical learning context, you can simply think of them as `endog=y` and `exog=X`.
+
+3. `reg_type="lc"` specifies the regression estimator.
+
+   * `"lc"` stands for local constant regression, which corresponds to the Nadaraya-Watson estimator introduced earlier.
+   * `"ll"` stands for local linear regression.
+   * The default is `"ll"`.
+
+4. `bw` specifies the bandwidth.
+
+   * It can be supplied directly as a numeric value, as in this example.
+   * Alternatively, setting `bw="cv_ls"` instructs `KernelReg` to select the bandwidth automatically using least-squares cross-validation.
+
+5. `var_type` specifies the type of each predictor variable:
+     - `"c"`: continuous
+     - `"u"`: unordered discrete
+     - `"o"`: ordered discrete
+  
+   `var_type="c"` indicates that the predictor is continuous. For multiple predictors, `var_type` should contain one character for each predictor. For example, `"ccc"` indicates three continuous predictors.
+
+
 
 ### Local Averaging at One Target Point
 
@@ -447,13 +486,13 @@ $$
 =\sum_{i=1}^nw_i(x_0)y_i,\quad\text{ where }\quad w_i(x_0)=\frac{K_h(x_0,x_i)}{\sum_{j=1}^nK_h(x_0,x_j)}.
 $$
 
-We first compute the kernel weights for the target point $x_0=3$. Here, raw means that the weights have not yet been normalized. The estimate $\hat f(x_0)$ is then computed.
+We first compute the kernel weights for the target point $x_0=3$. Here, `raw_weights` contains weights proportional to the Gaussian kernel weights. They have not yet been normalized to sum to one.
 
 ```{python}
 x0 = 3.0
-h = 0.5
+h = 0.25
 
-raw_weights = np.exp(-0.5 * ((x0 - X) / h) ** 2) / h
+raw_weights = np.exp(-0.5 * ((x0 - X) / h) ** 2)
 fhat_x0 = np.sum(raw_weights * y) / np.sum(raw_weights)
 ```
 
@@ -534,7 +573,8 @@ X_grid = np.linspace(0, 2 * np.pi, 500)
 fig, axs = plt.subplots(1, 3, figsize=(14, 4), sharey=True)
 
 for ax, bw in zip(axs, [0.15, 0.4, 1.0]):
-    y_hat = kernel_regression_predict(X, y, X_grid, bandwidth=bw)
+    kr = KernelReg(endog=y, exog=X, bw=[bw], reg_type='lc', var_type='c')
+    y_hat, _ = kr.fit(X_grid)
 
     ax.scatter(X, y, s=25, facecolors="none", edgecolors="black")
     ax.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
@@ -588,165 +628,36 @@ silverman_h
 
 These formulas are computationally inexpensive and often provide reasonable starting values. However, they rely on assumptions about the underlying distribution and may not perform well for all datasets.
 
-When prediction accuracy is important, cross-validation is often preferred because it provides a more data-driven approach to bandwidth selection.
-
+Although Silverman's rule was originally developed for kernel density estimation, it is often used as a simple starting value for bandwidth selection in kernel regression.
 
 ### Bandwidth Selection by Cross-Validation
+
 Rule-of-thumb methods are fast and easy to use, but they rely on assumptions that may not hold in practice. Cross-validation provides a more data-driven approach to bandwidth selection.
 
-The following code uses `GridSearchCV` to select the bandwidth. Since `sklearn` doesn't provide the API for Nadaraya-Watson estimator, in order to keep the usual `sklearn` workflow, we write a custom estimator. 
-
-::: {.callout-note collapse="true"}
-## Guidelines for Developing a Custom Scikit-learn Regressor
-
-According to the [official `sklearn` developer guide](https://scikit-learn.org/stable/developers/develop.html), a custom regression estimator should inherit from both `RegressorMixin` and `BaseEstimator` to integrate smoothly with the `sklearn` ecosystem. A minimal regressor typically implements three methods: `__init__`, `fit`, and `predict`.
-
-1. The Role of `BaseEstimator`
-
-`BaseEstimator` provides the infrastructure that allows an estimator to work with `sklearn` utilities such as pipelines, model selection tools, and cloning.
-
-- It automatically implements `.get_params()` and `.set_params()`. These methods are required by tools such as `GridSearchCV`, `RandomizedSearchCV`, and `Pipeline`.
-- The `__init__` method should only store the supplied parameters. Every constructor argument should be assigned directly to an attribute with the same name, such as `self.bandwidth = bandwidth`.
-- The constructor should not
-  - modify parameter values,
-  - perform input validation,
-  - perform data-dependent computations,
-  - store training data.
-- Data validation and data-dependent computations should be performed inside `fit()` or `predict()`.
-
-By following these rules, the estimator automatically supports:
-
-- cloning via `sklearn.base.clone`,
-- parameter inspection,
-- compatibility with pipelines and model-selection tools.
-
-2. The Role of `RegressorMixin`
-
-- `RegressorMixin` identifies the estimator as a regression model and provides a default scoring method.
-- The mixin automatically implements the `.score()` method, which returns the coefficient of determination, or $R^2$, by default.
-- A regressor should implement `.fit(X, y)` and `.predict(X)`, where `y` is usually a numerical target variable.
-- Attributes estimated from the training data should end with a trailing underscore, such as `self.coef_`, `self.intercept_`, or `self.X_train_`. This convention distinguishes learned quantities from hyperparameters.
-- The `fit()` method should always return the estimator itself. This allows method chaining such as `model.fit(X, y).predict(X_new)`.
-
-3. Recommended Practices
-
-`sklearn` provides `validate_data` and `check_is_fitted` from `sklearn.utils.validation` to perform input validation and fitted-state checks consistently with built-in estimators.
-
-Although these utilities are not required for simple educational examples, they are recommended for production-quality estimators.
-
-In addition, it is recommended to validate all arguments besides the input dataset. For example, the bandwidth in our case should be positive.
-:::
-
-
-```{python}
-from sklearn.base import BaseEstimator, RegressorMixin
-from sklearn.utils.validation import validate_data, check_is_fitted
-
-class NadarayaWatsonRegressor(RegressorMixin, BaseEstimator):
-    def __init__(self, bandwidth=1.0):
-        self.bandwidth = bandwidth
-
-    def fit(self, X, y):
-        if self.bandwidth <= 0:
-            raise ValueError("bandwidth must be positive.")
-        X, y = validate_data(self, X, y, y_numeric=True)
-        self.X_train_ = X
-        self.y_train_ = y
-        return self
-
-    def predict(self, X_new):
-        check_is_fitted(self, ["X_train_", "y_train_"])
-        X_new = validate_data(self, X_new, reset=False)
-
-        diff = X_new[:, None, :] - self.X_train_[None, :, :]
-        squared_distances = np.sum(diff**2, axis=2)
-
-        weights = np.exp(-0.5 * squared_distances / self.bandwidth**2)
-        weights = weights / weights.sum(axis=1, keepdims=True)
-
-        return weights @ self.y_train_
-```
-
-This `predict` method is closely related to the `kernel_regression_predict` function defined earlier. The main difference, apart from the validation checks, is that this version supports multidimensional input. That is, `X` may contain more than one feature column.
-
-
-
-Then use the reguler grid search process.
-
-
-### Bandwidth Selection with `statsmodels`
-
-Rule-of-thumb methods are fast and easy to use, but they rely on assumptions that may not hold in practice. For kernel regression, `statsmodels` provides a direct implementation through `KernelReg`.
-
-`KernelReg` can fit both local constant regression and local linear regression. The local constant version is the Nadaraya-Watson estimator. In `statsmodels`, this is specified by setting `reg_type="lc"`. The option `bw="cv_ls"` selects the bandwidth by least-squares cross-validation. The default regression type is local linear, `reg_type="ll"`, so we set `reg_type="lc"` explicitly when we want the Nadaraya-Watson estimator. :contentReference[oaicite:1]{index=1}
+`KernelReg` from `statsmodels` can automatically perform cross-validation to search for the best bandwidth if the argument `bw="cv_ls"` is used. In this case, it performs leave-one-out cross-validation and selects the bandwidth that minimizes the least-squares prediction error. After the model is initialized, the cross-validation will be automatically performed, and you may directly check the best bandwidth by checking `kr.bw`.
 
 ```{python}
 from statsmodels.nonparametric.kernel_regression import KernelReg
 
-kr = KernelReg(
-    endog=y,
-    exog=X,
-    var_type="c",
-    reg_type="lc",
-    bw="cv_ls",
-)
+kr = KernelReg(endog=y, exog=X, var_type="c", reg_type="lc", bw="cv_ls")
+kr.bw
 ```
 
-
-
-
-
-
-``` {python}
-from sklearn.model_selection import GridSearchCV
-
-bandwidth_grid = {
-    "bandwidth": np.linspace(0.1, 1.2, 23),
-}
-
-grid = GridSearchCV(NadarayaWatsonRegressor(), param_grid=bandwidth_grid, cv=5)
-
-grid.fit(X.reshape(-1, 1), y)
-grid.best_params_
-```
-
-Plot the cross-validation curve.
+With the selected bandwidth, we can plot the fitted curve.
 
 <!-- fmt: off -->
 ```{python}
-cv_score = grid.cv_results_["mean_test_score"]
-bandwidth_values = bandwidth_grid["bandwidth"]
-
-plt.plot(bandwidth_values, cv_score, marker="o")
-plt.axvline(grid.best_params_["bandwidth"], color="black", linestyle="--", label='cv best')
-plt.axvline(silverman_h, color="red", linestyle="--", label='silverman_h')
-plt.xlabel("bandwidth")
-plt.ylabel("mean CV score")
-plt.title("Bandwidth Selection")
-plt.legend();
-```
-<!-- fmt: on -->
-
-Fit the selected model.
-
-<!-- fmt: off -->
-```{python}
-best_kernel = grid.best_estimator_
-y_best = best_kernel.predict(X_grid.reshape(-1, 1))
-y_best2, _ = kr.fit(X_grid)
+y_best, _ = kr.fit(X_grid)
 
 plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
 plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
 plt.plot(X_grid, y_best, color="C1", linewidth=2, label="CV-selected fit")
-plt.plot(X_grid, y_best2, color="C2", linewidth=2, label="-selected fit")
 plt.xlabel("x")
 plt.ylabel("y")
-plt.title(f"Selected Bandwidth = {grid.best_params_['bandwidth']:.2f}")
+plt.title(f"Selected Bandwidth = {kr.bw.item():.2f}")
 plt.legend();
 ```
 <!-- fmt: on -->
-
-
 
 
 
@@ -754,12 +665,10 @@ plt.legend();
 
 ## Extensions
 
-The basic Nadaraya-Watson estimator is a local constant estimator. It can be extended in several directions.
+The basic Nadaraya-Watson estimator is a local constant estimator. It can be extended in several directions. Two common extensions are local linear regression and LOWESS.
 
 ### Local Linear Regression
-
 Around each target point $x_0$, local constant regression fits a weighted constant. Local linear regression instead fits a weighted line:
-
 $$
 \min_{\beta_0,\beta_1}
 \sum_{i=1}^n
@@ -775,6 +684,53 @@ $$
 \hat f(x_0)=\hat\beta_0.
 $$
 
+
+
+The `statsmodels` implementation `KernelReg` supports both local constant and local linear kernel regression through the argument `reg_type`. Use `reg_type="lc"` for local constant regression and `reg_type="ll"` for local linear regression.
+
+
+
+```{python}
+from statsmodels.nonparametric.kernel_regression import KernelReg
+
+# Local constant regression
+kr_lc = KernelReg(
+    endog=y,
+    exog=X,
+    var_type="c",
+    reg_type="lc",
+    bw=[0.4],
+)
+
+y_lc, _ = kr_lc.fit(X_grid)
+
+# Local linear regression
+kr_ll = KernelReg(
+    endog=y,
+    exog=X,
+    var_type="c",
+    reg_type="ll",
+    bw=[0.4],
+)
+
+y_ll, _ = kr_ll.fit(X_grid)
+```
+
+Here `var_type="c"` means that the predictor is continuous. The bandwidth `bw` controls the amount of smoothing.
+
+``` {python}
+plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
+plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(X_grid, y_lc, color="C1", label="local constant")
+plt.plot(X_grid, y_ll, color="C2", label="local linear")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Local Constant versus Local Linear Smoothing")
+plt.legend()
+```
+
+
+
 Local linear regression often improves boundary behavior. Near the edge of the data, a local average can be biased because there are observations on only one side of the target point. A local line can adjust for the slope.
 
 ::: {.callout-note}
@@ -785,40 +741,10 @@ Local averaging can be biased near the boundary of the data.
 Local linear regression reduces this problem by fitting a local trend instead of a local constant.
 :::
 
-```{python}
-def local_linear_predict(X_train, y_train, X_new, bandwidth):
-    X_train = np.asarray(X_train)
-    y_train = np.asarray(y_train)
-    preds = []
-
-    for x0 in X_new:
-        z = X_train - x0
-        weights = np.exp(-0.5 * (z / bandwidth) ** 2)
-        design = np.column_stack([np.ones_like(z), z])
-        weighted_design = design * weights[:, None]
-        beta = np.linalg.pinv(weighted_design.T @ design) @ weighted_design.T @ y_train
-        preds.append(beta[0])
-
-    return np.asarray(preds)
-
-
-y_local_constant = kernel_regression_predict(X, y, X_grid, bandwidth=0.4)
-y_local_linear = local_linear_predict(X, y, X_grid, bandwidth=0.4)
-
-plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
-plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
-plt.plot(X_grid, y_local_constant, color="C1", label="local constant")
-plt.plot(X_grid, y_local_linear, color="C3", label="local linear")
-plt.xlabel("x")
-plt.ylabel("y")
-plt.title("Local Constant versus Local Linear Smoothing")
-plt.legend()
-plt.show()
-```
 
 ### Local Polynomial Regression
 
-Local linear regression can be extended to local polynomial regression. At each target point $x_0$, fit
+Local linear regression is a special case of local polynomial regression. At each target point $x_0$, local polynomial regression fits
 
 $$
 \min_{\beta_0,\ldots,\beta_d}
@@ -840,44 +766,348 @@ The degree $d$ controls the local shape:
 - $d=0$: local constant regression,
 - $d=1$: local linear regression,
 - $d=2$: local quadratic regression.
+  
+Higher-degree local polynomials can reduce bias, but they can also become unstable when the bandwidth is too small or the local sample size is limited.
 
-Higher-degree local polynomials can reduce bias, but they may also become unstable if the bandwidth is too small or the data are sparse.
 
-The following code compares local constant, local linear, and local quadratic smoothing.
+In practice, local constant and local linear smoothing are the most commonly used versions. Local quadratic or higher-degree methods are possible, but they are less commonly used in introductory applications.
+
+
+
+
+
+
+
+
+
+### LOWESS
+
+LOWESS, short for **locally weighted scatterplot smoothing**, is a local regression method that combines local linear fitting with distance-based weights.
+
+For a target point (x_0), LOWESS first selects a neighborhood around (x_0). The neighborhood size is controlled by a span parameter, usually denoted by (\alpha). If there are (n) observations, the closest
+
+[
+m=\lceil \alpha n\rceil
+]
+
+points are used in the local fit.
+
+Let
+
+[
+d(x_0)=\max_{i\in N(x_0)} |x_i-x_0|
+]
+
+be the distance from (x_0) to the farthest point in the neighborhood. LOWESS assigns distance weights using the tricube kernel:
+
+[
+w_i=
+\begin{cases}
+\left(
+1-\left|
+\frac{x_i-x_0}{d(x_0)}
+\right|^3
+\right)^3,
+&
+|x_i-x_0|<d(x_0),
+\
+0,
+&
+\text{otherwise}.
+\end{cases}
+]
+
+At (x_0), LOWESS fits a weighted local linear model:
+
+[
+\min_{\beta_0,\beta_1}
+\sum_{i=1}^n
+w_i
+\left[
+y_i-\beta_0-\beta_1(x_i-x_0)
+\right]^2.
+]
+
+The fitted value is the fitted intercept:
+
+[
+\hat f(x_0)=\hat\beta_0.
+]
+
+Thus, LOWESS can be viewed as a local linear regression method that uses a nearest-neighbor span instead of a fixed bandwidth.
+
+In Python, LOWESS is available from `statsmodels.nonparametric.smoothers_lowess`.
+
+```python
+from statsmodels.nonparametric.smoothers_lowess import lowess
+
+lowess_result = lowess(
+    endog=y,
+    exog=X,
+    frac=0.25,
+    it=0,
+    return_sorted=True
+)
+```
+
+The argument `return_sorted` controls the format of the output.
+
+* If `return_sorted=True`, the output is a two-column NumPy array. The first column contains the sorted `X` values, and the second column contains the corresponding fitted values.
+* If `return_sorted=False`, the output is a one-dimensional NumPy array of fitted values in the original order of `X`.
+* If `xvals` is provided, LOWESS evaluates the fitted smoother at those values. In this case, `return_sorted` is ignored, and the returned array is always one-dimensional.
+
+::: {.callout-note}
+
+## LOWESS is mainly for visualizing smooth curves
+
+LOWESS was originally designed as a smoothing method for exploratory data analysis and visualization. This is why the default output uses `return_sorted=True`.
+
+When `return_sorted=True`, the returned (x)-values are sorted from low to high, so the fitted curve can be plotted directly.
+
+This differs slightly from the workflow used for `KernelReg` and other prediction-style methods. For those methods, we often create a grid such as `X_grid` and then predict on that grid. With LOWESS, we can often plot the sorted values returned by the function directly.
+
+
+
+::: {.callout-note}
+
+LOWESS versus kernel regression
+
+Both LOWESS and kernel regression perform local weighted fitting.
+
+Kernel regression usually uses a fixed bandwidth h.
+LOWESS uses a fixed fraction of nearby observations.
+Nadaraya-Watson regression fits a local constant.
+LOWESS typically fits a local linear model.
+
+As a result, LOWESS often has better boundary behavior and adapts naturally to regions with varying data density.
+:::
+
+LOWESS can also perform robustification iterations. After an initial fit, observations with large residuals receive smaller robustness weights. The final fit uses both distance-based weights and robustness weights, so outliers have less influence on the fitted curve.
+
+In statsmodels, the argument it specifies the number of robustification iterations.
+
 
 ```{python}
-def local_polynomial_predict(X_train, y_train, X_new, bandwidth, degree):
-    X_train = np.asarray(X_train)
-    y_train = np.asarray(y_train)
-    preds = []
+lowess(y, X, frac=0.25, it=0)  # ordinary LOWESS
+lowess(y, X, frac=0.25, it=3)  # robust LOWESS
+```
 
-    for x0 in X_new:
-        z = X_train - x0
-        weights = np.exp(-0.5 * (z / bandwidth) ** 2)
-        design = np.column_stack([z**d for d in range(degree + 1)])
-        weighted_design = design * weights[:, None]
-        beta = np.linalg.pinv(weighted_design.T @ design) @ weighted_design.T @ y_train
-        preds.append(beta[0])
-
-    return np.asarray(preds)
+Most applications use either it=0 for ordinary LOWESS or it=3 for robust LOWESS.
 
 
-h_rule = silverman_h
-y_constant = kernel_regression_predict(X, y, X_grid, bandwidth=h_rule)
-y_linear = local_polynomial_predict(X, y, X_grid, bandwidth=h_rule, degree=1)
-y_quadratic = local_polynomial_predict(X, y, X_grid, bandwidth=h_rule, degree=2)
 
-plt.scatter(X, y, s=30, facecolors="none", edgecolors="black")
+
+```{python}
+from statsmodels.nonparametric.smoothers_lowess import lowess
+
+lowess_result = lowess(
+    endog=y,
+    exog=X,
+    frac=0.25,
+    it=0,
+    return_sorted=True
+)
+
+x_lowess = lowess_result[:, 0]
+y_lowess = lowess_result[:, 1]
+
+plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
 plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
-plt.plot(X_grid, y_constant, color="C1", label="local constant")
-plt.plot(X_grid, y_linear, color="C3", label="local linear")
-plt.plot(X_grid, y_quadratic, color="C2", label="local quadratic")
+plt.plot(x_lowess, y_lowess, color="C3", label="LOWESS")
 plt.xlabel("x")
 plt.ylabel("y")
-plt.title("Local Polynomial Regression")
-plt.legend()
-plt.show()
+plt.title("LOWESS Smoothing")
+plt.legend();
 ```
+
+
+Choosing frac
+
+The parameter frac controls the amount of smoothing.
+
+Smaller frac uses fewer nearby observations and produces a more flexible curve.
+Larger frac uses more nearby observations and produces a smoother curve.
+
+Typical values are:
+
+|  `frac` | Effect                                |
+| ------: | ------------------------------------- |
+| 0.1–0.2 | Very flexible; may overfit noise      |
+| 0.2–0.4 | Common range for many datasets        |
+| 0.5–0.8 | Strong smoothing                      |
+|   > 0.8 | Very smooth; may miss local structure |
+
+
+The span parameter frac can be selected by cross-validation when prediction accuracy is the main goal. However, LOWESS is often used as an exploratory visualization tool, so in practice frac is frequently chosen by comparing several values visually.
+
+When LOWESS is used for prediction, cross-validation plays the same role as bandwidth selection in kernel regression.
+
+There is no universally optimal value of frac.
+
+
+
+
+
+
+
+
+
+
+### LOWESS
+
+LOWESS (Locally Weighted Scatterplot Smoothing) is a local regression method that combines local linear fitting with distance-based weights.
+
+For a target point $x_0$, LOWESS first selects a neighborhood around $x_0$. The neighborhood size is determined by a span parameter, usually denoted by $\alpha$. If there are $n$ observations, the closest
+
+$$
+m = \lceil \alpha n \rceil
+$$
+
+points are used in the local fit.
+
+Let
+
+$$
+d(x_0)=\max_{i\in N(x_0)}|x_i-x_0|
+$$
+
+be the distance from $x_0$ to the furthest point in the neighborhood. LOWESS assigns weights using the tricube kernel
+
+$$
+w_i=
+\begin{cases}
+\left(
+1-\left|
+\frac{x_i-x_0}{d(x_0)}
+\right|^3
+\right)^3,
+&
+|x_i-x_0|<d(x_0),
+\\
+0,
+&
+\text{otherwise}.
+\end{cases}
+$$
+
+At $x_0$, LOWESS fits a weighted local linear model
+
+$$
+\min_{\beta_0,\beta_1}
+\sum_{i=1}^n
+w_i
+\left[
+y_i-\beta_0-\beta_1(x_i-x_0)
+\right]^2.
+$$
+
+The fitted value is
+
+$$
+\hat f(x_0)=\hat\beta_0.
+$$
+
+Thus, LOWESS can be viewed as a local linear regression method that uses a nearest-neighbor span instead of a fixed bandwidth.
+
+
+`lowess` from `statsmodels.nonparametric.smoothers_lowess` can be used. Its API is very similar to `KernelReg`. 
+
+```python
+from statsmodels.nonparametric.smoothers_lowess import lowess
+
+lowess_result = lowess(endog=y, exog=X, frac=0.25, it=0, return_sorted=True)
+```
+`return_sorted` is for the format of the output. 
+
+- If it is `True`, the output will be a 2 column `numpy.array`, that the first column is the sorted `X`, while the second column is the corresponding fitted `y`. 
+- If it is `False`, the output will be a 1 column `numpy.array` with fitted `y` according to the original order of `X`.
+- We could assign `xvals` for prediction. If `xvals` is provided, then `return_sorted` is ignored and the returned array is always one dimensional, containing the `y` values fitted at the `x` values provided by `xvals`.
+
+
+::: {.callout-note}
+## LOWESS is for visualizing smooth curves
+The original idea of LOWESS is to smooth curves and for visualization. Therefore the default output format for `lowess` is `return_sorted=True`. In this case, the output `X` is sorted from low to high, that it is easy to directly plot the curve.
+
+You may compare to `KernelReg` and other methods we mentioned earlier. In order to plot the resulting curve, we set up a grid of indepedent variables `X_grid`, and plot according to it. In the case of `lowess`, we don't need to introduce new variables, but directly use the sorted `X` from output of `lowess`.
+:::
+
+
+::: {.callout-note}
+
+## LOWESS versus Kernel Regression
+
+Both LOWESS and kernel regression perform local weighted fitting.
+
+- Kernel regression usually uses a fixed bandwidth $h$.
+- LOWESS uses a fixed fraction of nearby observations.
+- Nadaraya-Watson regression fits a local constant.
+- LOWESS typically fits a local linear model.
+
+As a result, LOWESS often exhibits better boundary behavior and adapts naturally to regions with varying data density.
+:::
+
+LOWESS can optionally perform additional robustification iterations.
+
+After an initial fit, observations with large residuals receive smaller weights. The final fit uses both distance-based weights and robustness weights. As a result, outliers have less influence on the fitted curve.
+
+In `statsmodels`, LOWESS is implemented by `statsmodels.nonparametric.smoothers_lowess.lowess`. The argument `it` specifies the number of robustification iterations.
+```{python}
+#| eval: false
+lowess(y, X, frac=0.25, it=0)  # ordinary LOWESS
+lowess(y, X, frac=0.25, it=3)  # robust LOWESS
+```
+
+The parameter `it` controls robustification iterations. Most applications use either `it=0` for ordinary LOWESS or `it=3` for robust LOWESS. 
+
+
+
+
+
+
+
+
+
+<!-- LOWESS stands for locally weighted scatterplot smoothing. It is another local regression smoother. In `statsmodels`, LOWESS is implemented by `statsmodels.nonparametric.smoothers_lowess.lowess`. The method uses local linear estimates; the argument `frac` controls the fraction of observations used in each local fit. -->
+
+<!-- fmt: off -->
+```{python}
+from statsmodels.nonparametric.smoothers_lowess import lowess
+
+lowess_result = lowess(endog=y, exog=X, frac=0.25, it=0, return_sorted=True)
+
+x_lowess = lowess_result[:, 0]
+y_lowess = lowess_result[:, 1]
+plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
+plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(x_lowess, y_lowess, color="C3", label="LOWESS")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("LOWESS Smoothing")
+plt.legend();
+```
+<!-- fmt: on -->
+
+#### Choosing `frac` 
+
+The parameter `frac` controls the amount of smoothing.
+
+- Smaller `frac` uses fewer nearby observations and produces a more flexible curve.
+- Larger `frac` uses more nearby observations and produces a smoother curve.
+
+Typical values are:
+
+| `frac` | Effect |
+|---------|---------|
+| 0.1–0.2 | Very flexible, may overfit noise |
+| 0.2–0.4 | Common choice for many datasets |
+| 0.5–0.8 | Strong smoothing |
+| >0.8 | Very smooth, may miss local structure |
+
+The span parameter frac may be selected by cross-validation when prediction accuracy is the primary goal. However, LOWESS is often used as an exploratory visualization tool, and in practice the span is frequently chosen by comparing several values and inspecting the resulting curves.
+
+When LOWESS is used for prediction, cross-validation plays the same role as bandwidth selection in kernel regression.
+
+There is no universally optimal value. In practice, several values are often tried and compared visually.
 
 ### Multiple Dimensions
 
@@ -935,10 +1165,170 @@ The practical workflow is:
 4. Tune the bandwidth by validation, cross-validation, or a rule of thumb.
 5. Consider extensions such as local linear smoothing when boundary bias matters. -->
 
+## Optional: Building a Custom `sklearn` Regressor
+
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
 
 
 
-## References {.unnumbered}
+### Nadaraya-Watson estimator
 
-::: {#refs}
-:::
+Recall the formula for the Nadaraya--Watson estimator:
+$$
+\hat f(x)
+=
+\frac{
+\sum_{i=1}^n K_h(x,x_i)y_i
+}{
+\sum_{i=1}^n K_h(x,x_i)
+}.
+$$
+We can translate this formula directly into a Python function.
+
+```{python}
+def kernel_regression_predict(X, y, X_new, bandwidth):
+    diff = X_new[:, None] - X[None, :]
+    weights = np.exp(-0.5 * (diff / bandwidth) ** 2)
+    weights = weights / weights.sum(axis=1, keepdims=True)
+    return weights @ y
+
+h = 0.25
+y_kernel = kernel_regression_predict(X, y, X_grid, bandwidth=h)
+```
+
+
+Here `diff = X_new[:, None] - X[None, :]` uses `numpy` broadcasting to create a matrix of pairwise differences. It was briefly discussed in @sec-common_operations. If `X_new` contains $m$ points and `X` contains $n$ points, then `diff` has shape $(m,n)$, where the $(i,j)$ entry is the difference between the $i$th prediction point and the $j$th training point. 
+
+This simple function is useful for understanding the algorithm. We now turn it into a custom `sklearn` regressor so that it can be used with tools such as `GridSearchCV`.
+
+
+### Guidelines for Developing a Custom Scikit-learn Regressor
+
+According to the [official `sklearn` developer guide](https://scikit-learn.org/stable/developers/develop.html), a custom regression estimator should inherit from both `RegressorMixin` and `BaseEstimator` to integrate smoothly with the `sklearn` ecosystem. A minimal regressor typically implements three methods: `__init__`, `fit`, and `predict`.
+
+1. The Role of `BaseEstimator`
+
+`BaseEstimator` provides the infrastructure that allows an estimator to work with `sklearn` utilities such as pipelines, model selection tools, and cloning.
+
+- It automatically implements `.get_params()` and `.set_params()`. These methods are required by tools such as `GridSearchCV`, `RandomizedSearchCV`, and `Pipeline`.
+- The `__init__` method should only store the supplied parameters. Every constructor argument should be assigned directly to an attribute with the same name, such as `self.bandwidth = bandwidth`.
+- The constructor should not
+  - modify parameter values,
+  - perform input validation,
+  - perform data-dependent computations,
+  - store training data.
+- Data validation and data-dependent computations should be performed inside `fit()` or `predict()`.
+
+By following these rules, the estimator automatically supports:
+
+- cloning via `sklearn.base.clone`,
+- parameter inspection,
+- compatibility with pipelines and model-selection tools.
+
+2. The Role of `RegressorMixin`
+
+- `RegressorMixin` identifies the estimator as a regression model and provides a default scoring method.
+- The mixin automatically implements the `.score()` method, which returns the coefficient of determination, or $R^2$, by default.
+- A regressor should implement `.fit(X, y)` and `.predict(X)`, where `y` is usually a numerical target variable.
+- Attributes estimated from the training data should end with a trailing underscore, such as `self.coef_`, `self.intercept_`, or `self.X_train_`. This convention distinguishes learned quantities from hyperparameters.
+- The `fit()` method should always return the estimator itself. This allows method chaining such as `model.fit(X, y).predict(X_new)`.
+
+3. Recommended Practices
+
+`sklearn` provides `validate_data` and `check_is_fitted` from `sklearn.utils.validation` to perform input validation and fitted-state checks consistently with built-in estimators.
+
+Although these utilities are not required for simple educational examples, they are recommended for production-quality estimators.
+
+In addition, it is recommended to validate all arguments besides the input dataset. For example, the bandwidth in our case should be positive.
+
+### `sklearn` regressor
+
+
+```{python}
+from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.utils.validation import validate_data, check_is_fitted
+
+class NadarayaWatsonRegressor(RegressorMixin, BaseEstimator):
+    def __init__(self, bandwidth=1.0):
+        self.bandwidth = bandwidth
+
+    def fit(self, X, y):
+        if self.bandwidth <= 0:
+            raise ValueError("bandwidth must be positive.")
+        X, y = validate_data(self, X, y, y_numeric=True)
+        self.X_train_ = X
+        self.y_train_ = y
+        return self
+
+    def predict(self, X_new):
+        check_is_fitted(self, ["X_train_", "y_train_"])
+        X_new = validate_data(self, X_new, reset=False)
+
+        diff = X_new[:, None, :] - self.X_train_[None, :, :]
+        squared_distances = np.sum(diff**2, axis=2)
+
+        weights = np.exp(-0.5 * squared_distances / self.bandwidth**2)
+        weights = weights / weights.sum(axis=1, keepdims=True)
+
+        return weights @ self.y_train_
+```
+
+
+This `predict` method is closely related to the `kernel_regression_predict` function defined earlier. The main difference, apart from the validation checks, is that this version supports multidimensional input. That is, `X` may contain more than one feature column.
+
+
+### Grid search
+
+With the custom regressor, we can seamlessly connect it to the `sklearn` ecosystem. For example, we can start to perform grid search.
+
+``` {python}
+from sklearn.model_selection import GridSearchCV
+
+bandwidth_grid = {"bandwidth": np.linspace(0.1, 1.2, 23)}
+
+grid = GridSearchCV(NadarayaWatsonRegressor(), param_grid=bandwidth_grid, cv=5)
+
+grid.fit(X.reshape(-1, 1), y)
+grid.best_params_
+```
+
+Plot the cross-validation curve.
+
+<!-- fmt: off -->
+```{python}
+cv_score = grid.cv_results_["mean_test_score"]
+bandwidth_values = bandwidth_grid["bandwidth"]
+
+plt.plot(bandwidth_values, cv_score, marker="o")
+plt.axvline(grid.best_params_["bandwidth"], color="black", linestyle="--", label='cv best')
+plt.xlabel("bandwidth")
+plt.ylabel("mean CV score")
+plt.title("Bandwidth Selection")
+plt.legend();
+```
+<!-- fmt: on -->
+
+Fit the selected model.
+
+<!-- fmt: off -->
+```{python}
+best_kernel = grid.best_estimator_
+y_best = best_kernel.predict(X_grid.reshape(-1, 1))
+
+plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
+plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(X_grid, y_best, color="C1", linewidth=2, label="CV-selected fit")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title(f"Selected Bandwidth = {grid.best_params_['bandwidth']:.2f}")
+plt.legend();
+```
+<!-- fmt: on -->
+
+
+
+
+
+</details>
