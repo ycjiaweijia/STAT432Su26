@@ -426,7 +426,9 @@ The Gaussian kernel fit changes smoothly because every observation contributes t
 
 ### Local Averaging at One Target Point
 
-At a target point $x_0$, observations closer to $x_0$ receive larger kernel weights. For example, with a Gaussian kernel and bandwidth $h=0.5$,
+The key idea of kernel regression is local weighted averaging. In this section we use the previous example to visualize this behavior.
+
+At a target point $x_0$, observations closer to $x_0$ receive larger kernel weights. Recall that with a Gaussian kernel and bandwidth $h=0.5$,
 
 $$
 K_h(x_0,x_i)
@@ -444,6 +446,18 @@ $$
 =
 \frac{\sum_i K_h(x_0,x_i)y_i}{\sum_i K_h(x_0,x_i)}.
 $$
+where the weights are 
+$$
+w_i(x)
+=
+\frac{
+K_h(x,x_i)
+}{
+\sum_{j=1}^n K_h(x,x_j)
+}.
+$$
+
+We first compute the raw weights according to $x_0=3$. Raw means that the weight is before normalization. The estimation $\hat f(x)$ is then computed.
 
 ```{python}
 x0 = 3.0
@@ -451,6 +465,11 @@ h = 0.5
 
 raw_weights = np.exp(-0.5 * ((x0 - X) / h) ** 2) / h
 fhat_x0 = np.sum(raw_weights * y) / np.sum(raw_weights)
+```
+
+The 
+``` {python}
+
 
 point_sizes = 200 * raw_weights / raw_weights.max()
 
