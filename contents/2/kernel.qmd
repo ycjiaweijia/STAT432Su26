@@ -467,23 +467,28 @@ raw_weights = np.exp(-0.5 * ((x0 - X) / h) ** 2) / h
 fhat_x0 = np.sum(raw_weights * y) / np.sum(raw_weights)
 ```
 
-The 
+We use the raw weights to generate the size of each point in order to visualize the weights of each point.
 ``` {python}
 
 
 point_sizes = 200 * raw_weights / raw_weights.max()
-
+```
+With these info we could know plot the curve and the data with the assigned point sizes.
+<!-- fmt: off -->
+```{python}
 plt.scatter(X, y, s=point_sizes, facecolors="none", edgecolors="black")
 plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
 plt.plot(X_grid, y_kernel, color="C1", label="kernel regression")
-plt.axvline(x0, color="black", linestyle="--")
-plt.scatter([x0], [fhat_x0], color="red", s=80, zorder=3, label=r"$\hat f(x_0)$")
+
+plt.scatter([x0], [fhat_x0], color="red", s=80, zorder=3, label=r"$\hat f(x_0)$") # <1>
+
 plt.xlabel("x")
 plt.ylabel("y")
 plt.title("Kernel Weights Around a Target Point")
-plt.legend()
-plt.show()
+plt.legend();
 ```
+1. We specifically plot the estimated point.
+<!-- fmt: on -->
 
 The circle sizes are proportional to the kernel weights. Points near $x_0$ have more influence on the local average.
 
