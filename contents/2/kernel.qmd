@@ -13,26 +13,12 @@ The difference is that KNN uses a hard neighbor set, while kernel methods usuall
 This chapter focuses on **kernel smoothing**, including kernel density estimation and kernel regression. It does not cover kernel machines such as support vector machines or kernel ridge regression. These methods also use kernel functions, but their modeling goals are different.
 
 :::
+Unlike many methods discussed earlier in this book, classical kernel smoothing is not fully integrated into the standard sklearn estimator framework. While some tools, such as `KernelDensity`, are available in `sklearn`, many classical smoothers are primarily studied through their underlying algorithms rather than through ready-made estimators. Therefore, in this section we will implement several methods directly using `numpy` in order to better understand how they work.
 
-We implement the main ideas directly using `numpy`. For kernel density estimation, we also use `KernelDensity` from `sklearn.neighbors`.
-
-```{python}
-import numpy as np
-import matplotlib.pyplot as plt
-```
 
 ## From KNN to Kernel Weights
 
-KNN regression predicts by averaging the $K$ nearest responses:
-
-$$
-\hat f_{\text{KNN}}(x_0)
-=
-\frac{1}{K}
-\sum_{i\in N_K(x_0)} y_i.
-$$
-
-This gives equal weight to all $K$ nearest neighbors and zero weight to every other observation. In other words, KNN is a weighted average with hard weights:
+KNN regression predicts by averaging the $K$ nearest responses. This gives equal weight to all $K$ nearest neighbors and zero weight to every other observation. In other words, KNN is a weighted average with hard weights:
 
 $$
 \hat f_{\text{KNN}}(x_0)
@@ -86,7 +72,7 @@ Common choices include:
 - Uniform kernel: $K(u)=I(\abs{u}\le 1/2)$.
 - Epanechnikov kernel: $K(u)=\frac{3}{4}(1-u^2)I(\abs{u}\le 1)$.
 
-For density estimation, the exact normalization constant matters because the estimate must integrate to one. For kernel regression, the weights are normalized by their sum, so constants shared by all observations cancel out.
+<!-- For density estimation, the exact normalization constant matters because the estimate must integrate to one. For kernel regression, the weights are normalized by their sum, so constants shared by all observations cancel out.
 
 ::: {.callout-note}
 ## Main difference
@@ -94,7 +80,7 @@ For density estimation, the exact normalization constant matters because the est
 KNN uses a fixed number of neighbors.
 
 Kernel smoothing uses a fixed distance scale, controlled by the bandwidth $h$.
-:::
+::: -->
 
 KNN fits are often discontinuous because the neighbor set can change abruptly as $x_0$ moves. Kernel smoothers, especially with smooth kernels such as the Gaussian kernel, usually produce smooth fitted curves.
 
@@ -102,7 +88,9 @@ In practice, the exact kernel shape is usually less important than the bandwidth
 
 ## Kernel Density Estimation
 
-Kernel density estimation estimates the density of a random variable from observed data $\qty{x_1,\ldots,x_n}$. The kernel density estimator is
+Suppose a random variable has an unknown density function $f(x)$. Given a sample $\qty{x_1,\ldots,x_n}$, we would like to estimate this density from the observed data.
+
+Kernel density estimation (KDE) is a nonparametric method for doing so. The kernel density estimator is
 
 $$
 \hat f(x)
@@ -122,12 +110,19 @@ $$
 K\left(\frac{x-x_i}{h}\right).
 $$
 
-The interpretation is simple: place a small smooth bump at every observation, then add the bumps together and divide by $n$.
 
-We use two normal distributions to generate a simple dataset. The dataset is `x`, and its histogram is displayed below.
+The interpretation is simple: place a small smooth bump at every observation, add the bumps together, and divide by $n$. 
+
+The kernel function determines the shape of each bump, while the bandwidth $h$ controls its width. As we will see, the bandwidth is usually the most important tuning parameter in kernel density estimation.
+
+
+We demonstrate the idea with the following example. We use two normal distributions to generate a simple dataset. The dataset is `x`, and its histogram is displayed below.
 
 <!-- fmt: off -->
 ```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
 rng = np.random.default_rng(1)
 
 n1 = rng.normal(loc=-1.0, scale=0.55, size=150)
@@ -164,7 +159,7 @@ $$
 }{nh}.
 $$
 
-This can be viewed as a moving histogram. Instead of counting observations in fixed bins, we center a window of width $h$ at the evaluation point $x$ and count the observations that fall inside the window.
+This can be viewed as a moving histogram. Instead of counting observations in fixed bins, we center a window of width $h$ at the evaluation point $x$ and count the observations that fall inside the window. The value `h=0.35` is chosen solely for illustration. In practice, selecting an appropriate bandwidth is an important problem and often requires careful study.
 
 <!-- fmt: off -->
 ```{python}
@@ -231,6 +226,8 @@ plt.legend();
 <!-- fmt: on -->
 
 ### Expectation of the KDE
+
+To better understand why kernel density estimation works, let us examine the expectation of the estimator.
 
 Assume $x_1,\ldots,x_n$ are independent samples from a density $f$. The estimator is
 
@@ -394,7 +391,7 @@ h = np.std(X) * 0.25
 y_kernel = kernel_regression_predict(X, y, X_grid, bandwidth=h)
 ```
 
-Here `diff = X_new[:, None] - X[None, :]` uses `numpy` broadcasting to create a matrix of pairwise differences. If `X_new` contains $m$ points and `X` contains $n$ points, then `diff` has shape $(m,n)$, where the $(i,j)$ entry is the difference between the $i$th prediction point and the $j$th training point.
+Here `diff = X_new[:, None] - X[None, :]` uses `numpy` broadcasting to create a matrix of pairwise differences. It was briefly discussed in @sec-common_operations. If `X_new` contains $m$ points and `X` contains $n$ points, then `diff` has shape $(m,n)$, where the $(i,j)$ entry is the difference between the $i$th prediction point and the $j$th training point.
 
 The bandwidth is chosen to be 0.25 of the standard deviation of the feature. This is only a simple starting value; bandwidth tuning is discussed later.
 
