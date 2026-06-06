@@ -551,22 +551,44 @@ In practice, bandwidth selection is itself a statistical problem. We next introd
 
 ### Rule-of-Thumb Bandwidth Selection
 
-Numerous bandwidth selection methods have been developed in the literature. The optimal choice often depends on the underlying distribution, the sample size, and the purpose of the analysis. In practice, bandwidth selection is usually treated as a tuning problem.
 
-For one-dimensional smoothing, a common rule-of-thumb bandwidth is Silverman's rule:
+Numerous bandwidth selection methods have been proposed. In practice, bandwidth selection is often treated as a tuning problem.
+
+For a Gaussian kernel, a common rule-of-thumb bandwidth is
 
 $$
 h
 =
-1.06\,\hat\sigma_x\,n^{-1/5}.
+1.06\,\hat\sigma\,n^{-1/5}.
 $$
 
-This formula is useful as a starting value, but it depends on assumptions that may not hold in practice. Cross-validation is usually safer when prediction performance matters.
+Silverman @Silverman1986 proposed the following more robust alternative:
+
+$$
+h
+=
+0.9\,\min\!\qty(
+\hat\sigma,
+\frac{\mathrm{IQR}}{1.34}
+)
+n^{-1/5}, \quad\text{ where }IQR\text{ is the Interquartile range: }Q_3-Q_1.
+$$
+
+The following Python code implements Silverman's rule.
 
 ```{python}
-silverman_h = 1.06 * np.std(X, ddof=1) * len(X) ** (-1 / 5)
+sigma = np.std(X, ddof=1)
+iqr = np.subtract(*np.percentile(X, [75, 25]))
+
+silverman_h = 0.9 * min(sigma, iqr / 1.34) * len(X) ** (-1 / 5)
+
 silverman_h
 ```
+
+These formulas are computationally inexpensive and often provide reasonable starting values. However, they rely on assumptions about the underlying distribution and may not perform well for all datasets.
+
+When prediction accuracy is important, cross-validation is often preferred because it provides a more data-driven approach to bandwidth selection.
+
 
 ### Bandwidth Selection by Cross-Validation
 Rule-of-thumb methods are fast and easy to use, but they rely on assumptions that may not hold in practice. Cross-validation provides a more data-driven approach to bandwidth selection.
