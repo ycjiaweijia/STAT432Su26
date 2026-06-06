@@ -673,6 +673,30 @@ This `predict` method is closely related to the `kernel_regression_predict` func
 
 Then use the reguler grid search process.
 
+
+### Bandwidth Selection with `statsmodels`
+
+Rule-of-thumb methods are fast and easy to use, but they rely on assumptions that may not hold in practice. For kernel regression, `statsmodels` provides a direct implementation through `KernelReg`.
+
+`KernelReg` can fit both local constant regression and local linear regression. The local constant version is the Nadaraya-Watson estimator. In `statsmodels`, this is specified by setting `reg_type="lc"`. The option `bw="cv_ls"` selects the bandwidth by least-squares cross-validation. The default regression type is local linear, `reg_type="ll"`, so we set `reg_type="lc"` explicitly when we want the Nadaraya-Watson estimator. :contentReference[oaicite:1]{index=1}
+
+```{python}
+from statsmodels.nonparametric.kernel_regression import KernelReg
+
+kr = KernelReg(
+    endog=y,
+    exog=X,
+    var_type="c",
+    reg_type="lc",
+    bw="cv_ls",
+)
+```
+
+
+
+
+
+
 ``` {python}
 from sklearn.model_selection import GridSearchCV
 
@@ -709,16 +733,23 @@ Fit the selected model.
 ```{python}
 best_kernel = grid.best_estimator_
 y_best = best_kernel.predict(X_grid.reshape(-1, 1))
+y_best2, _ = kr.fit(X_grid)
 
 plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
 plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
 plt.plot(X_grid, y_best, color="C1", linewidth=2, label="CV-selected fit")
+plt.plot(X_grid, y_best2, color="C2", linewidth=2, label="-selected fit")
 plt.xlabel("x")
 plt.ylabel("y")
 plt.title(f"Selected Bandwidth = {grid.best_params_['bandwidth']:.2f}")
 plt.legend();
 ```
 <!-- fmt: on -->
+
+
+
+
+
 
 
 ## Extensions
@@ -877,6 +908,11 @@ This gets slower as $p$ increases, which is another way to see the curse of dime
 
 Different software packages may define bandwidth differently. Some use a raw scale $h$ inside the kernel. Others use a span, a nearest-neighbor fraction, or an internally rescaled bandwidth. Always check the documentation before comparing bandwidth values across implementations.
 :::
+
+
+
+
+
 <!-- 
 ## Summary
 
@@ -898,3 +934,11 @@ The practical workflow is:
 3. Use KDE for density estimation or kernel regression for conditional means.
 4. Tune the bandwidth by validation, cross-validation, or a rule of thumb.
 5. Consider extensions such as local linear smoothing when boundary bias matters. -->
+
+
+
+
+## References {.unnumbered}
+
+::: {#refs}
+:::
