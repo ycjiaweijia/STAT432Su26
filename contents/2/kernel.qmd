@@ -484,14 +484,15 @@ The circle sizes are proportional to the kernel weights. Points near $x_0$ recei
 
 ## Bandwidth Tuning
 
+
 The bandwidth $h$ is the most important tuning parameter in kernel smoothing.
 
 - Small $h$: uses very local information and gives a flexible, variable estimate.
 - Large $h$: averages over a wider region and gives a smoother, more biased estimate.
 
-This is the same bias--variance tradeoff seen in KNN. In fact, the bandwidth plays a role similar to the parameter $K$ in KNN: both control how local the estimate is.
+This is the same bias--variance tradeoff seen in KNN. In fact, the bandwidth plays a role similar to the parameter $K$ in KNN: both control how local the estimate is. Choosing an appropriate bandwidth is therefore a model selection problem. In practice, cross-validation is often used to select a bandwidth that balances bias and variance.
 
-### Bandwidth in KDE
+### Effect of Bandwidth in KDE
 
 We can plot the KDE curve with different bandwidths to see the effect.
 
@@ -515,27 +516,19 @@ plt.legend();
 ```
 <!-- fmt: on -->
 
-<!-- 
-From the plot, we can see that bandwidth controls the smoothness of the estimated density.
+From the plot we can see that bandwidth controls the smoothness of the estimated density.
 
-- Small bandwidth: more local detail, more variability, and a greater risk of overfitting.
-- Large bandwidth: smoother estimates, less variability, and a greater risk of oversmoothing. -->
+- Small bandwidths capture local detail but may produce a noisy estimate.
+- Large bandwidths produce smoother estimates but may hide important features of the distribution.
 
-### Bandwidth in Kernel Regression
+### Effect of Bandwidth in Kernel Regression
 
 The same idea applies to kernel regression.
 
 ```{python}
-rng = np.random.default_rng(1)
-
-n = 120
-X = rng.uniform(0, 2 * np.pi, size=n)
-y = 2 * np.sin(X) + rng.normal(scale=0.6, size=n)
-
+#| code-fold: true
 X_grid = np.linspace(0, 2 * np.pi, 500)
-```
 
-```{python}
 fig, axs = plt.subplots(1, 3, figsize=(14, 4), sharey=True)
 
 for ax, bw in zip(axs, [0.15, 0.4, 1.0]):
@@ -552,9 +545,11 @@ axs[-1].legend()
 plt.show()
 ```
 
-Small bandwidths can chase noise. Large bandwidths can oversmooth the curve.
+As the bandwidth increases, variance decreases but bias increases. Choosing an appropriate bandwidth therefore requires balancing these two sources of error.
 
-### Rule of Thumb and Cross-Validation
+In practice, bandwidth selection is itself a statistical problem. We next introduce a simple rule-of-thumb that provides a reasonable starting value for the bandwidth.
+
+### Rule-of-Thumb Bandwidth Selection
 
 Numerous bandwidth selection methods have been developed in the literature. The optimal choice often depends on the underlying distribution, the sample size, and the purpose of the analysis. In practice, bandwidth selection is usually treated as a tuning problem.
 
@@ -573,11 +568,14 @@ silverman_h = 1.06 * np.std(X, ddof=1) * len(X) ** (-1 / 5)
 silverman_h
 ```
 
-For regression, one simple method is to split the data, fit the smoother on the training part, and choose the bandwidth with the smallest validation mean squared error. The following code uses `GridSearchCV` with a small custom estimator, keeping bandwidth selection in the usual `sklearn` workflow.
+### Bandwidth Selection by Cross-Validation
+Rule-of-thumb methods are fast and easy to use, but they rely on assumptions that may not hold in practice. Cross-validation provides a more data-driven approach to bandwidth selection.
+
+The following code uses `GridSearchCV` to select the bandwidth. Since `sklearn` doesn't provide the API for Nadaraya-Watson estimator, in order to keep the usual `sklearn` workflow, we write a custom estimator.
 
 ```{python}
 from sklearn.base import BaseEstimator, RegressorMixin
-from sklearn.model_selection import GridSearchCV
+
 
 
 class NadarayaWatsonRegressor(BaseEstimator, RegressorMixin):
@@ -595,41 +593,37 @@ class NadarayaWatsonRegressor(BaseEstimator, RegressorMixin):
         weights = np.exp(-0.5 * (distances / self.bandwidth) ** 2)
         weights = weights / weights.sum(axis=1, keepdims=True)
         return weights @ self.y_train_
+```
 
+Then use the reguler grid search process.
+
+``` {python}
+from sklearn.model_selection import GridSearchCV
 
 bandwidth_grid = {
     "bandwidth": np.linspace(0.1, 1.2, 23),
 }
 
-grid = GridSearchCV(
-    NadarayaWatsonRegressor(),
-    param_grid=bandwidth_grid,
-    cv=5,
-    scoring="neg_mean_squared_error",
-)
+grid = GridSearchCV(NadarayaWatsonRegressor(), param_grid=bandwidth_grid, cv=5)
 
 grid.fit(X.reshape(-1, 1), y)
-
 grid.best_params_
 ```
 
 Plot the cross-validation curve.
 
+<!-- fmt: off -->
 ```{python}
 cv_mse = -grid.cv_results_["mean_test_score"]
 bandwidth_values = bandwidth_grid["bandwidth"]
 
 plt.plot(bandwidth_values, cv_mse, marker="o")
-plt.axvline(
-    grid.best_params_["bandwidth"],
-    color="black",
-    linestyle="--",
-)
+plt.axvline(grid.best_params_["bandwidth"], color="black", linestyle="--")
 plt.xlabel("bandwidth")
 plt.ylabel("mean CV MSE")
-plt.title("Bandwidth Selection by Cross-Validation")
-plt.show()
+plt.title("Bandwidth Selection by Cross-Validation");
 ```
+<!-- fmt: on -->
 
 Fit the selected model.
 
@@ -644,7 +638,6 @@ plt.xlabel("x")
 plt.ylabel("y")
 plt.title(f"Selected Bandwidth = {grid.best_params_['bandwidth']:.2f}")
 plt.legend()
-plt.show()
 ```
 
 ## Extensions
