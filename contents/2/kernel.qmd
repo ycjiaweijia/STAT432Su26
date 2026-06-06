@@ -443,21 +443,10 @@ The Nadaraya-Watson estimate at $x_0$ is the weighted average
 
 $$
 \hat f(x_0)
-=
-\frac{\sum_i K_h(x_0,x_i)y_i}{\sum_i K_h(x_0,x_i)}.
-$$
-where the weights are 
-$$
-w_i(x)
-=
-\frac{
-K_h(x,x_i)
-}{
-\sum_{j=1}^n K_h(x,x_j)
-}.
+=\sum_{i=1}^nw_i(x_0)y_i,\quad\text{ where }\quad w_i(x_0)=\frac{K_h(x_0,x_i)}{\sum_{j=1}^nK_h(x_0,x_j)}.
 $$
 
-We first compute the raw weights according to $x_0=3$. Raw means that the weight is before normalization. The estimation $\hat f(x)$ is then computed.
+We first compute the kernel weights for the target point $x_0=3$. Here, raw means that the weights have not yet been normalized. The estimate $\hat f(x_0)$ is then computed.
 
 ```{python}
 x0 = 3.0
@@ -467,13 +456,14 @@ raw_weights = np.exp(-0.5 * ((x0 - X) / h) ** 2) / h
 fhat_x0 = np.sum(raw_weights * y) / np.sum(raw_weights)
 ```
 
-We use the raw weights to generate the size of each point in order to visualize the weights of each point.
+We then use the raw weights to determine the size of each plotted point so that larger points correspond to larger kernel weights.
 ``` {python}
 
 
 point_sizes = 200 * raw_weights / raw_weights.max()
 ```
-With these info we could know plot the curve and the data with the assigned point sizes.
+We can now plot the data together with the fitted curve, using the assigned point sizes to represent the kernel weights.
+
 <!-- fmt: off -->
 ```{python}
 plt.scatter(X, y, s=point_sizes, facecolors="none", edgecolors="black")
@@ -490,7 +480,7 @@ plt.legend();
 1. We specifically plot the estimated point.
 <!-- fmt: on -->
 
-The circle sizes are proportional to the kernel weights. Points near $x_0$ have more influence on the local average.
+The circle sizes are proportional to the kernel weights. Points near $x_0$ receive larger weights and therefore have a greater influence on the local average. Points farther away receive smaller weights and contribute less to the estimate.
 
 ## Bandwidth Tuning
 
@@ -525,10 +515,11 @@ plt.legend();
 ```
 <!-- fmt: on -->
 
+<!-- 
 From the plot, we can see that bandwidth controls the smoothness of the estimated density.
 
 - Small bandwidth: more local detail, more variability, and a greater risk of overfitting.
-- Large bandwidth: smoother estimates, less variability, and a greater risk of oversmoothing.
+- Large bandwidth: smoother estimates, less variability, and a greater risk of oversmoothing. -->
 
 ### Bandwidth in Kernel Regression
 

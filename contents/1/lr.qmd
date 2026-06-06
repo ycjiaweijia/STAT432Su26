@@ -475,13 +475,12 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-np.random.seed(1)
-
 n = 10
 
-x1 = np.random.normal(1, 0.1, size=n)
-x2 = np.random.normal(0, 1, size=n)
-y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 0.5, size=n)
+rng = np.random.default_rng(1)
+x1 = rng.normal(loc=1, scale=0.1, size=n)
+x2 = rng.normal(loc=0, scale=1, size=n)
+y = 1 + 2 * x1 + 3 * x2 + rng.normal(0, 0.5, size=n)
 
 X = pd.DataFrame({'x1': x1, 'x2': x2})
 
