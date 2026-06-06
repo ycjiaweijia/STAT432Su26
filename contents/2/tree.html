@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>8&nbsp; Tree-Based Methods – Statistical Learning</title>
+<title>9&nbsp; Tree-Based Methods – Basics of Statistical Learning</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -69,7 +69,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
 <link href="../../contents/2/rf.html" rel="next">
-<link href="../../contents/2/knn.html" rel="prev">
+<link href="../../contents/2/kernel.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -409,7 +409,7 @@ window.Quarto = {
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-          <h1 class="quarto-secondary-nav-title"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></h1>
+          <h1 class="quarto-secondary-nav-title"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></h1>
         </a>     
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
@@ -423,9 +423,9 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="../../">Statistical Learning</a> 
+      <a href="../../">Basics of Statistical Learning</a> 
         <div class="sidebar-tools-main tools-wide">
-    <a href="../../Statistical-Learning.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
+    <a href="../../Basics-of-Statistical-Learning.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
   <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -451,7 +451,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
- <span class="menu-text">Statistical learning Basics</span></a>
+ <span class="menu-text">Foundations</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -460,7 +460,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/0/basic.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Statistical Learning Basics</span></span></a>
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">What is Statistical Learning?</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -523,20 +523,26 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../../contents/2/kernel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Kernel Smoothing</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../../contents/2/tree.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/2/rf.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Bagging and Random Forests</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Bagging and Random Forests</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/2/boost.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Boosting</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Boosting</span></span></a>
   </div>
 </li>
       </ul>
@@ -586,24 +592,24 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#cart-classification-and-regression-trees" id="toc-cart-classification-and-regression-trees" class="nav-link active" data-scroll-target="#cart-classification-and-regression-trees"><span class="header-section-number">8.1</span> CART: Classification and Regression Trees</a>
+  <li><a href="#cart-classification-and-regression-trees" id="toc-cart-classification-and-regression-trees" class="nav-link active" data-scroll-target="#cart-classification-and-regression-trees"><span class="header-section-number">9.1</span> CART: Classification and Regression Trees</a>
   <ul class="collapse">
-  <li><a href="#splitting-a-dataset" id="toc-splitting-a-dataset" class="nav-link" data-scroll-target="#splitting-a-dataset"><span class="header-section-number">8.1.1</span> Splitting a Dataset</a></li>
-  <li><a href="#classification-trees-gini-impurity" id="toc-classification-trees-gini-impurity" class="nav-link" data-scroll-target="#classification-trees-gini-impurity"><span class="header-section-number">8.1.2</span> Classification Trees: Gini Impurity</a></li>
-  <li><a href="#regression-trees-rss" id="toc-regression-trees-rss" class="nav-link" data-scroll-target="#regression-trees-rss"><span class="header-section-number">8.1.3</span> Regression Trees: RSS</a></li>
-  <li><a href="#trees-are-local" id="toc-trees-are-local" class="nav-link" data-scroll-target="#trees-are-local"><span class="header-section-number">8.1.4</span> Trees are local</a></li>
-  <li><a href="#trees-are-nonlinear" id="toc-trees-are-nonlinear" class="nav-link" data-scroll-target="#trees-are-nonlinear"><span class="header-section-number">8.1.5</span> Trees are nonlinear</a></li>
-  <li><a href="#automatic-interaction-effects" id="toc-automatic-interaction-effects" class="nav-link" data-scroll-target="#automatic-interaction-effects"><span class="header-section-number">8.1.6</span> Automatic interaction effects</a></li>
+  <li><a href="#splitting-a-dataset" id="toc-splitting-a-dataset" class="nav-link" data-scroll-target="#splitting-a-dataset"><span class="header-section-number">9.1.1</span> Splitting a Dataset</a></li>
+  <li><a href="#classification-trees-gini-impurity" id="toc-classification-trees-gini-impurity" class="nav-link" data-scroll-target="#classification-trees-gini-impurity"><span class="header-section-number">9.1.2</span> Classification Trees: Gini Impurity</a></li>
+  <li><a href="#regression-trees-rss" id="toc-regression-trees-rss" class="nav-link" data-scroll-target="#regression-trees-rss"><span class="header-section-number">9.1.3</span> Regression Trees: RSS</a></li>
+  <li><a href="#trees-are-local" id="toc-trees-are-local" class="nav-link" data-scroll-target="#trees-are-local"><span class="header-section-number">9.1.4</span> Trees are local</a></li>
+  <li><a href="#trees-are-nonlinear" id="toc-trees-are-nonlinear" class="nav-link" data-scroll-target="#trees-are-nonlinear"><span class="header-section-number">9.1.5</span> Trees are nonlinear</a></li>
+  <li><a href="#automatic-interaction-effects" id="toc-automatic-interaction-effects" class="nav-link" data-scroll-target="#automatic-interaction-effects"><span class="header-section-number">9.1.6</span> Automatic interaction effects</a></li>
   </ul></li>
-  <li><a href="#tuning-hyperparameters" id="toc-tuning-hyperparameters" class="nav-link" data-scroll-target="#tuning-hyperparameters"><span class="header-section-number">8.2</span> Tuning hyperparameters</a>
+  <li><a href="#tuning-hyperparameters" id="toc-tuning-hyperparameters" class="nav-link" data-scroll-target="#tuning-hyperparameters"><span class="header-section-number">9.2</span> Tuning hyperparameters</a>
   <ul class="collapse">
-  <li><a href="#pruning" id="toc-pruning" class="nav-link" data-scroll-target="#pruning"><span class="header-section-number">8.2.1</span> Pruning</a></li>
-  <li><a href="#pre-pruning" id="toc-pre-pruning" class="nav-link" data-scroll-target="#pre-pruning"><span class="header-section-number">8.2.2</span> Pre-pruning</a></li>
+  <li><a href="#pruning" id="toc-pruning" class="nav-link" data-scroll-target="#pruning"><span class="header-section-number">9.2.1</span> Pruning</a></li>
+  <li><a href="#pre-pruning" id="toc-pre-pruning" class="nav-link" data-scroll-target="#pre-pruning"><span class="header-section-number">9.2.2</span> Pre-pruning</a></li>
   </ul></li>
-  <li><a href="#trees-in-python" id="toc-trees-in-python" class="nav-link" data-scroll-target="#trees-in-python"><span class="header-section-number">8.3</span> Trees in Python</a>
+  <li><a href="#trees-in-python" id="toc-trees-in-python" class="nav-link" data-scroll-target="#trees-in-python"><span class="header-section-number">9.3</span> Trees in Python</a>
   <ul class="collapse">
-  <li><a href="#example-1-classify-iris-dataset" id="toc-example-1-classify-iris-dataset" class="nav-link" data-scroll-target="#example-1-classify-iris-dataset"><span class="header-section-number">8.3.1</span> Example 1: Classify <code>iris</code> dataset</a></li>
-  <li><a href="#example-2-regression-with-the-diabetes-dataset" id="toc-example-2-regression-with-the-diabetes-dataset" class="nav-link" data-scroll-target="#example-2-regression-with-the-diabetes-dataset"><span class="header-section-number">8.3.2</span> Example 2: Regression with the <code>diabetes</code> dataset</a></li>
+  <li><a href="#example-1-classify-iris-dataset" id="toc-example-1-classify-iris-dataset" class="nav-link" data-scroll-target="#example-1-classify-iris-dataset"><span class="header-section-number">9.3.1</span> Example 1: Classify <code>iris</code> dataset</a></li>
+  <li><a href="#example-2-regression-with-the-diabetes-dataset" id="toc-example-2-regression-with-the-diabetes-dataset" class="nav-link" data-scroll-target="#example-2-regression-with-the-diabetes-dataset"><span class="header-section-number">9.3.2</span> Example 2: Regression with the <code>diabetes</code> dataset</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -614,7 +620,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></h1>
+<h1 class="title d-none d-lg-block"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></h1>
 </div>
 
 
@@ -640,7 +646,7 @@ window.Quarto = {
 <li>Use the observations inside each final region to make predictions.</li>
 </ol>
 <div id="exm-" class="theorem example">
-<p><span class="theorem-title"><strong>Example 8.1 (Example: A Classification Tree)</strong></span> &nbsp;</p>
+<p><span class="theorem-title"><strong>Example 9.1 (Example: A Classification Tree)</strong></span> &nbsp;</p>
 <!-- fmt: off -->
 <div id="a67d0290" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display">
@@ -681,8 +687,8 @@ window.Quarto = {
 <li>sensitive to feature construction or feature combinations: A tree can only split on the features that are provided. If the useful signal is hidden in a combination such as <span class="math inline">\(x_1+x_2\)</span> or <span class="math inline">\(x_1x_2\)</span>, a tree may need many splits to approximate that relationship.</li>
 <li>not sensitive to monotone transformations of a feature: For example, replacing <span class="math inline">\(x\)</span> by <span class="math inline">\(\log(x)\)</span> or <span class="math inline">\(2x+5\)</span> does not change the ordering of the observations. Since tree splits mainly depend on ordering, the tree can usually produce an equivalent split after the transformation.</li>
 </ul>
-<section id="cart-classification-and-regression-trees" class="level2" data-number="8.1">
-<h2 data-number="8.1" class="anchored" data-anchor-id="cart-classification-and-regression-trees"><span class="header-section-number">8.1</span> CART: Classification and Regression Trees</h2>
+<section id="cart-classification-and-regression-trees" class="level2" data-number="9.1">
+<h2 data-number="9.1" class="anchored" data-anchor-id="cart-classification-and-regression-trees"><span class="header-section-number">9.1</span> CART: Classification and Regression Trees</h2>
 <p>There are many algorithms for constructing decision trees. The most common one is called CART (Classification and Regression Trees).</p>
 <p>CART has the following properties:</p>
 <ul>
@@ -693,8 +699,8 @@ window.Quarto = {
 <li>For regression, common splitting criteria include residual sum of squares (RSS) and mean squared error (MSE).</li>
 </ul></li>
 </ul>
-<section id="splitting-a-dataset" class="level3" data-number="8.1.1">
-<h3 data-number="8.1.1" class="anchored" data-anchor-id="splitting-a-dataset"><span class="header-section-number">8.1.1</span> Splitting a Dataset</h3>
+<section id="splitting-a-dataset" class="level3" data-number="9.1.1">
+<h3 data-number="9.1.1" class="anchored" data-anchor-id="splitting-a-dataset"><span class="header-section-number">9.1.1</span> Splitting a Dataset</h3>
 <p>At each step, CART searches over possible splits and chooses the split that produces the largest reduction in impurity (or prediction error).</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -754,8 +760,8 @@ window.Quarto = {
 </div>
 <p>When making predictions, a classification tree uses the most common class label in a region as the predicted value, while a regression tree uses the mean of the response values in the region as the predicted value.</p>
 </section>
-<section id="classification-trees-gini-impurity" class="level3" data-number="8.1.2">
-<h3 data-number="8.1.2" class="anchored" data-anchor-id="classification-trees-gini-impurity"><span class="header-section-number">8.1.2</span> Classification Trees: Gini Impurity</h3>
+<section id="classification-trees-gini-impurity" class="level3" data-number="9.1.2">
+<h3 data-number="9.1.2" class="anchored" data-anchor-id="classification-trees-gini-impurity"><span class="header-section-number">9.1.2</span> Classification Trees: Gini Impurity</h3>
 <p>Classification trees are used when the response variable is categorical. A classification tree partitions the feature space into piecewise constant regions, where each region predicts either a class label or class probabilities.</p>
 <p>In these notes, we use Gini impurity to measure the quality of a split.</p>
 <p>Assume that a node contains <span class="math inline">\(n\)</span> observations divided into <span class="math inline">\(K\)</span> classes. Let <span class="math inline">\(p_i=\frac{n_i}{n}\)</span> be the proportion of class <span class="math inline">\(i\)</span>. If we classify observations according to the class proportions:</p>
@@ -782,7 +788,7 @@ p_i(1-p_i).
 =1-\sum_{i=1}^K p_i^2.
 \]</span></p>
 <div id="def-gini" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 8.1 (Gini Impurity)</strong></span> The <strong>Gini impurity</strong> of a node is</p>
+<p><span class="theorem-title"><strong>Definition 9.1 (Gini Impurity)</strong></span> The <strong>Gini impurity</strong> of a node is</p>
 <p><span class="math display">\[
 \gini
 =1-\sum_{i=1}^K p_i^2,
@@ -790,7 +796,7 @@ p_i(1-p_i).
 <p>where <span class="math inline">\(p_i\)</span> is the proportion of class <span class="math inline">\(i\)</span> inside the node.</p>
 </div>
 <div id="exm-" class="theorem example">
-<p><span class="theorem-title"><strong>Example 8.2 (Pure node)</strong></span> Suppose a node contains observations from only one class.</p>
+<p><span class="theorem-title"><strong>Example 9.2 (Pure node)</strong></span> Suppose a node contains observations from only one class.</p>
 <p>Then one of the probabilities equals 1 and all others equal 0.</p>
 <p>Therefore</p>
 <p><span class="math display">\[
@@ -800,7 +806,7 @@ p_i(1-p_i).
 <p>A node with Gini impurity 0 is called a pure node.</p>
 </div>
 <div id="exm-" class="theorem example">
-<p><span class="theorem-title"><strong>Example 8.3 (Two-Class Example)</strong></span> Suppose we have two classes.</p>
+<p><span class="theorem-title"><strong>Example 9.3 (Two-Class Example)</strong></span> Suppose we have two classes.</p>
 <p>Let</p>
 <p><span class="math display">\[
 p_2=1-p_1.
@@ -846,8 +852,8 @@ J
 </div>
 </div>
 </section>
-<section id="regression-trees-rss" class="level3" data-number="8.1.3">
-<h3 data-number="8.1.3" class="anchored" data-anchor-id="regression-trees-rss"><span class="header-section-number">8.1.3</span> Regression Trees: RSS</h3>
+<section id="regression-trees-rss" class="level3" data-number="9.1.3">
+<h3 data-number="9.1.3" class="anchored" data-anchor-id="regression-trees-rss"><span class="header-section-number">9.1.3</span> Regression Trees: RSS</h3>
 <p>Regression trees are used when the response variable is quantitative. Instead of predicting a class label, they predict numerical values.</p>
 <p>Suppose a terminal node contains responses <span class="math inline">\(y_1\)</span>, <span class="math inline">\(y_2\)</span>, <span class="math inline">\(\ldots\)</span>, <span class="math inline">\(y_n\)</span>. The prediction for that region is usually the sample mean: <span class="math display">\[
 \hat y
@@ -866,8 +872,8 @@ J
 <p>where <span class="math inline">\(\bar y_l\)</span> and <span class="math inline">\(\bar y_r\)</span> are the mean responses within the two regions. The best split is the one that minimizes this quantity.</p>
 <!-- ## Important Properties of Trees -->
 </section>
-<section id="trees-are-local" class="level3" data-number="8.1.4">
-<h3 data-number="8.1.4" class="anchored" data-anchor-id="trees-are-local"><span class="header-section-number">8.1.4</span> Trees are local</h3>
+<section id="trees-are-local" class="level3" data-number="9.1.4">
+<h3 data-number="9.1.4" class="anchored" data-anchor-id="trees-are-local"><span class="header-section-number">9.1.4</span> Trees are local</h3>
 <p>A tree makes predictions using only observations inside a small region of the feature space. Suppose a tree partitions the feature space into regions. The prediction at a point <span class="math inline">\(x\)</span> depends only on the region containing <span class="math inline">\(x\)</span>. As a result, tree predictions are local:</p>
 <ul>
 <li>nearby regions may have very different predictions</li>
@@ -876,8 +882,8 @@ J
 </ul>
 <p>This is similar in spirit to KNN, where prediction also depends primarily on nearby observations.</p>
 </section>
-<section id="trees-are-nonlinear" class="level3" data-number="8.1.5">
-<h3 data-number="8.1.5" class="anchored" data-anchor-id="trees-are-nonlinear"><span class="header-section-number">8.1.5</span> Trees are nonlinear</h3>
+<section id="trees-are-nonlinear" class="level3" data-number="9.1.5">
+<h3 data-number="9.1.5" class="anchored" data-anchor-id="trees-are-nonlinear"><span class="header-section-number">9.1.5</span> Trees are nonlinear</h3>
 <p>A tree creates many if-then rules. Because of these recursive splits:</p>
 <ul>
 <li>the prediction function can change abruptly</li>
@@ -886,8 +892,8 @@ J
 </ul>
 <p>The prediction surface is therefore discontinuous and piecewise constant. Therefore, trees are nonlinear models.</p>
 </section>
-<section id="automatic-interaction-effects" class="level3" data-number="8.1.6">
-<h3 data-number="8.1.6" class="anchored" data-anchor-id="automatic-interaction-effects"><span class="header-section-number">8.1.6</span> Automatic interaction effects</h3>
+<section id="automatic-interaction-effects" class="level3" data-number="9.1.6">
+<h3 data-number="9.1.6" class="anchored" data-anchor-id="automatic-interaction-effects"><span class="header-section-number">9.1.6</span> Automatic interaction effects</h3>
 <p>One important property of trees is that they automatically create interaction effects.</p>
 <p>For example, consider a tree with depth 3. One path through the tree may look like:</p>
 <ul>
@@ -939,11 +945,11 @@ For example:
 Thus a regression tree approximates a complicated nonlinear function using many simple local averages. -->
 </section>
 </section>
-<section id="tuning-hyperparameters" class="level2" data-number="8.2">
-<h2 data-number="8.2" class="anchored" data-anchor-id="tuning-hyperparameters"><span class="header-section-number">8.2</span> Tuning hyperparameters</h2>
+<section id="tuning-hyperparameters" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="tuning-hyperparameters"><span class="header-section-number">9.2</span> Tuning hyperparameters</h2>
 <p>Building a decision tree is the same as splitting the training dataset. If we are alllowed to keep splitting it, it is possible to get to a case that each end node is pure: the Gini impurity is 0, or every element has the same response variable locally.</p>
 <div id="exm-" class="theorem example">
-<p><span class="theorem-title"><strong>Example 8.4 (ALMOST all end nodes are pure)</strong></span> &nbsp;</p>
+<p><span class="theorem-title"><strong>Example 9.4 (ALMOST all end nodes are pure)</strong></span> &nbsp;</p>
 <details>
 <summary>
 <strong>Click to expand.</strong>
@@ -1009,8 +1015,8 @@ Thus a regression tree approximates a complicated nonlinear function using many 
 <li>Pruning: first grow a large tree, then remove unnecessary branches afterward.</li>
 <li>Pre-pruning: stop the tree early by imposing restrictions during training.</li>
 </ol>
-<section id="pruning" class="level3" data-number="8.2.1">
-<h3 data-number="8.2.1" class="anchored" data-anchor-id="pruning"><span class="header-section-number">8.2.1</span> Pruning</h3>
+<section id="pruning" class="level3" data-number="9.2.1">
+<h3 data-number="9.2.1" class="anchored" data-anchor-id="pruning"><span class="header-section-number">9.2.1</span> Pruning</h3>
 <p>Pruning means removing branches from a tree. The pruning method introduced in CART is called Minimal Cost-Complexity Pruning (MCCP).</p>
 <p>The idea is very similar to regularization in ridge or lasso regression: we balance goodness of fit against model complexity by adding a penalty term. In MCCP, the penalty is proportional to the number of terminal nodes (leaves) in the tree.</p>
 <p>More specifically, the cost function is modified by adding a complexity penalty controlled by the parameter <code>ccp_alpha</code>. The parameter <code>ccp_alpha</code> is called the complexity parameter and is always <span class="math inline">\(\geq0\)</span>. Let <span class="math inline">\(T\)</span> be a subtree, and let <span class="math inline">\(|T|\)</span> denote the number of terminal nodes. The cost-complexity criterion is <span class="math display">\[
@@ -1026,8 +1032,8 @@ C_\alpha(T)=J(T)+\alpha |T|,
 <p>When applying MCCP, we typically begin with a large tree and then compute the <code>ccp_alpha</code> path, which contains the critical values where the tree structure changes. Each critical value corresponds to a different subtree produced by pruning. We then use validation or cross-validation to compare these candidate subtrees and choose the best value of <code>ccp_alpha</code>.</p>
 <p>If several values of <code>ccp_alpha</code> achieve similar validation performance, we usually prefer the simpler tree. Therefore, among models with similar test or validation scores, a larger <code>ccp_alpha</code> is often preferred because it produces a smaller and more stable tree.</p>
 </section>
-<section id="pre-pruning" class="level3" data-number="8.2.2">
-<h3 data-number="8.2.2" class="anchored" data-anchor-id="pre-pruning"><span class="header-section-number">8.2.2</span> Pre-pruning</h3>
+<section id="pre-pruning" class="level3" data-number="9.2.2">
+<h3 data-number="9.2.2" class="anchored" data-anchor-id="pre-pruning"><span class="header-section-number">9.2.2</span> Pre-pruning</h3>
 <p>We often impose some early stopping conditions to limit the growth of a tree. This strategy is called pre-pruning. Some common early stopping conditions are:</p>
 <ul>
 <li><code>max_depth</code>: maximum tree depth</li>
@@ -1055,8 +1061,8 @@ C_\alpha(T)=J(T)+\alpha |T|,
 </div>
 </section>
 </section>
-<section id="trees-in-python" class="level2" data-number="8.3">
-<h2 data-number="8.3" class="anchored" data-anchor-id="trees-in-python"><span class="header-section-number">8.3</span> Trees in Python</h2>
+<section id="trees-in-python" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="trees-in-python"><span class="header-section-number">9.3</span> Trees in Python</h2>
 <p>We use <code>DecisionTreeClassifier</code> and <code>DecisionTreeRegressor</code> from <code>sklearn.tree</code> to implement decision tree models. The API is almost identical to other <code>sklearn</code> models: <code>.fit()</code>, <code>.predict()</code>, <code>.score()</code>, and other familiar methods are used in the same way.</p>
 <ol type="1">
 <li>We could set <code>max_depth</code>, <code>min_samples_leaf</code>, <code>ccp_alpha</code>, etc. for the tree model where their meaning is straightforward.</li>
@@ -1077,8 +1083,8 @@ Note
 <p>However, one-hot encoding for the target variable is not necessary because <code>sklearn</code> classifiers can directly work with class labels.</p>
 </div>
 </div>
-<section id="example-1-classify-iris-dataset" class="level3" data-number="8.3.1">
-<h3 data-number="8.3.1" class="anchored" data-anchor-id="example-1-classify-iris-dataset"><span class="header-section-number">8.3.1</span> Example 1: Classify <code>iris</code> dataset</h3>
+<section id="example-1-classify-iris-dataset" class="level3" data-number="9.3.1">
+<h3 data-number="9.3.1" class="anchored" data-anchor-id="example-1-classify-iris-dataset"><span class="header-section-number">9.3.1</span> Example 1: Classify <code>iris</code> dataset</h3>
 <p>The <code>iris</code> dataset is a classic classification dataset. The goal is to use four numeric flower measurements to classify the species of iris. The dataset contains 150 observations and 3 classes. More information can be found in the <code>sklearn</code> <a href="(https://scikit-learn.org/stable/datasets/toy_dataset.html#iris-dataset)">documentation</a> for datasets.</p>
 <div id="a4d20f20" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_iris</span>
@@ -1218,8 +1224,8 @@ Note
 </div>
 </div>
 </section>
-<section id="example-2-regression-with-the-diabetes-dataset" class="level3" data-number="8.3.2">
-<h3 data-number="8.3.2" class="anchored" data-anchor-id="example-2-regression-with-the-diabetes-dataset"><span class="header-section-number">8.3.2</span> Example 2: Regression with the <code>diabetes</code> dataset</h3>
+<section id="example-2-regression-with-the-diabetes-dataset" class="level3" data-number="9.3.2">
+<h3 data-number="9.3.2" class="anchored" data-anchor-id="example-2-regression-with-the-diabetes-dataset"><span class="header-section-number">9.3.2</span> Example 2: Regression with the <code>diabetes</code> dataset</h3>
 <p>We now look at a regression example. The <code>diabetes</code> dataset uses 10 baseline variables to predict a quantitative measure of disease progression one year after baseline. More information can be found in the <code>sklearn</code> <a href="(https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset)">documentation</a> and the original diabetes dataset <a href="(https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html)">description</a>.</p>
 <div id="50af95ac" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_diabetes</span>
@@ -1837,13 +1843,13 @@ For more reliable importance measures, ensembles and permutation importance are 
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../contents/2/knn.html" class="pagination-link" aria-label="K-Nearest Neighbors">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">K-Nearest Neighbors</span></span>
+      <a href="../../contents/2/kernel.html" class="pagination-link" aria-label="Kernel Smoothing">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Kernel Smoothing</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
       <a href="../../contents/2/rf.html" class="pagination-link" aria-label="Bagging and Random Forests">
-        <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Bagging and Random Forests</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Bagging and Random Forests</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
