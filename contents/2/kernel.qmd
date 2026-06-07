@@ -782,196 +782,17 @@ In practice, local constant and local linear smoothing are the most commonly use
 
 ### LOWESS
 
-LOWESS, short for **locally weighted scatterplot smoothing**, is a local regression method that combines local linear fitting with distance-based weights.
+LOWESS, short for locally weighted scatterplot smoothing, is a local regression method that combines local linear fitting with distance-based weights.
 
-For a target point (x_0), LOWESS first selects a neighborhood around (x_0). The neighborhood size is controlled by a span parameter, usually denoted by (\alpha). If there are (n) observations, the closest
-
-[
-m=\lceil \alpha n\rceil
-]
-
-points are used in the local fit.
+For a target point $x_0$, LOWESS first selects a neighborhood around $x_0$. The neighborhood size is controlled by a span parameter, usually denoted by $\alpha$. If the dataset contains $n$ observations, the closest $m=\lceil \alpha n\rceil$ points are used in the local fit and form the local set $N(x_0)$.
 
 Let
 
-[
+$$
 d(x_0)=\max_{i\in N(x_0)} |x_i-x_0|
-]
-
-be the distance from (x_0) to the farthest point in the neighborhood. LOWESS assigns distance weights using the tricube kernel:
-
-[
-w_i=
-\begin{cases}
-\left(
-1-\left|
-\frac{x_i-x_0}{d(x_0)}
-\right|^3
-\right)^3,
-&
-|x_i-x_0|<d(x_0),
-\
-0,
-&
-\text{otherwise}.
-\end{cases}
-]
-
-At (x_0), LOWESS fits a weighted local linear model:
-
-[
-\min_{\beta_0,\beta_1}
-\sum_{i=1}^n
-w_i
-\left[
-y_i-\beta_0-\beta_1(x_i-x_0)
-\right]^2.
-]
-
-The fitted value is the fitted intercept:
-
-[
-\hat f(x_0)=\hat\beta_0.
-]
-
-Thus, LOWESS can be viewed as a local linear regression method that uses a nearest-neighbor span instead of a fixed bandwidth.
-
-In Python, LOWESS is available from `statsmodels.nonparametric.smoothers_lowess`.
-
-```python
-from statsmodels.nonparametric.smoothers_lowess import lowess
-
-lowess_result = lowess(
-    endog=y,
-    exog=X,
-    frac=0.25,
-    it=0,
-    return_sorted=True
-)
-```
-
-The argument `return_sorted` controls the format of the output.
-
-* If `return_sorted=True`, the output is a two-column NumPy array. The first column contains the sorted `X` values, and the second column contains the corresponding fitted values.
-* If `return_sorted=False`, the output is a one-dimensional NumPy array of fitted values in the original order of `X`.
-* If `xvals` is provided, LOWESS evaluates the fitted smoother at those values. In this case, `return_sorted` is ignored, and the returned array is always one-dimensional.
-
-::: {.callout-note}
-
-## LOWESS is mainly for visualizing smooth curves
-
-LOWESS was originally designed as a smoothing method for exploratory data analysis and visualization. This is why the default output uses `return_sorted=True`.
-
-When `return_sorted=True`, the returned (x)-values are sorted from low to high, so the fitted curve can be plotted directly.
-
-This differs slightly from the workflow used for `KernelReg` and other prediction-style methods. For those methods, we often create a grid such as `X_grid` and then predict on that grid. With LOWESS, we can often plot the sorted values returned by the function directly.
-
-
-
-::: {.callout-note}
-
-LOWESS versus kernel regression
-
-Both LOWESS and kernel regression perform local weighted fitting.
-
-Kernel regression usually uses a fixed bandwidth h.
-LOWESS uses a fixed fraction of nearby observations.
-Nadaraya-Watson regression fits a local constant.
-LOWESS typically fits a local linear model.
-
-As a result, LOWESS often has better boundary behavior and adapts naturally to regions with varying data density.
-:::
-
-LOWESS can also perform robustification iterations. After an initial fit, observations with large residuals receive smaller robustness weights. The final fit uses both distance-based weights and robustness weights, so outliers have less influence on the fitted curve.
-
-In statsmodels, the argument it specifies the number of robustification iterations.
-
-
-```{python}
-lowess(y, X, frac=0.25, it=0)  # ordinary LOWESS
-lowess(y, X, frac=0.25, it=3)  # robust LOWESS
-```
-
-Most applications use either it=0 for ordinary LOWESS or it=3 for robust LOWESS.
-
-
-
-
-```{python}
-from statsmodels.nonparametric.smoothers_lowess import lowess
-
-lowess_result = lowess(
-    endog=y,
-    exog=X,
-    frac=0.25,
-    it=0,
-    return_sorted=True
-)
-
-x_lowess = lowess_result[:, 0]
-y_lowess = lowess_result[:, 1]
-
-plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
-plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
-plt.plot(x_lowess, y_lowess, color="C3", label="LOWESS")
-plt.xlabel("x")
-plt.ylabel("y")
-plt.title("LOWESS Smoothing")
-plt.legend();
-```
-
-
-Choosing frac
-
-The parameter frac controls the amount of smoothing.
-
-Smaller frac uses fewer nearby observations and produces a more flexible curve.
-Larger frac uses more nearby observations and produces a smoother curve.
-
-Typical values are:
-
-|  `frac` | Effect                                |
-| ------: | ------------------------------------- |
-| 0.1–0.2 | Very flexible; may overfit noise      |
-| 0.2–0.4 | Common range for many datasets        |
-| 0.5–0.8 | Strong smoothing                      |
-|   > 0.8 | Very smooth; may miss local structure |
-
-
-The span parameter frac can be selected by cross-validation when prediction accuracy is the main goal. However, LOWESS is often used as an exploratory visualization tool, so in practice frac is frequently chosen by comparing several values visually.
-
-When LOWESS is used for prediction, cross-validation plays the same role as bandwidth selection in kernel regression.
-
-There is no universally optimal value of frac.
-
-
-
-
-
-
-
-
-
-
-### LOWESS
-
-LOWESS (Locally Weighted Scatterplot Smoothing) is a local regression method that combines local linear fitting with distance-based weights.
-
-For a target point $x_0$, LOWESS first selects a neighborhood around $x_0$. The neighborhood size is determined by a span parameter, usually denoted by $\alpha$. If there are $n$ observations, the closest
-
-$$
-m = \lceil \alpha n \rceil
 $$
 
-points are used in the local fit.
-
-Let
-
-$$
-d(x_0)=\max_{i\in N(x_0)}|x_i-x_0|
-$$
-
-be the distance from $x_0$ to the furthest point in the neighborhood. LOWESS assigns weights using the tricube kernel
+be the distance from $x_0$ to the farthest point in the neighborhood. LOWESS assigns distance weights using the tricube kernel:
 
 $$
 w_i=
@@ -990,7 +811,7 @@ w_i=
 \end{cases}
 $$
 
-At $x_0$, LOWESS fits a weighted local linear model
+At $x_0$, LOWESS fits a weighted local linear model:
 
 $$
 \min_{\beta_0,\beta_1}
@@ -1001,7 +822,7 @@ y_i-\beta_0-\beta_1(x_i-x_0)
 \right]^2.
 $$
 
-The fitted value is
+The fitted value is the fitted intercept:
 
 $$
 \hat f(x_0)=\hat\beta_0.
@@ -1009,67 +830,60 @@ $$
 
 Thus, LOWESS can be viewed as a local linear regression method that uses a nearest-neighbor span instead of a fixed bandwidth.
 
+::: {.callout-note}
 
-`lowess` from `statsmodels.nonparametric.smoothers_lowess` can be used. Its API is very similar to `KernelReg`. 
+## LOWESS vs. kernel regression
+
+Both LOWESS and kernel regression perform local weighted fitting.
+
+- Kernel regression usually uses a fixed bandwidth h.
+- LOWESS uses a fixed fraction of nearby observations.
+- Nadaraya-Watson regression fits a local constant.
+- LOWESS typically fits a local linear model.
+
+As a result, LOWESS often has better boundary behavior and adapts naturally to regions with varying data density.
+:::
+
+
+In Python, LOWESS is available from `statsmodels.nonparametric.smoothers_lowess`.
 
 ```python
 from statsmodels.nonparametric.smoothers_lowess import lowess
 
 lowess_result = lowess(endog=y, exog=X, frac=0.25, it=0, return_sorted=True)
 ```
-`return_sorted` is for the format of the output. 
+Similar to `KernelReg`, `lowess` will automatically fit the data and compute the predicted value. The argument `return_sorted` controls the format of the output.
 
-- If it is `True`, the output will be a 2 column `numpy.array`, that the first column is the sorted `X`, while the second column is the corresponding fitted `y`. 
-- If it is `False`, the output will be a 1 column `numpy.array` with fitted `y` according to the original order of `X`.
-- We could assign `xvals` for prediction. If `xvals` is provided, then `return_sorted` is ignored and the returned array is always one dimensional, containing the `y` values fitted at the `x` values provided by `xvals`.
-
-
-::: {.callout-note}
-## LOWESS is for visualizing smooth curves
-The original idea of LOWESS is to smooth curves and for visualization. Therefore the default output format for `lowess` is `return_sorted=True`. In this case, the output `X` is sorted from low to high, that it is easy to directly plot the curve.
-
-You may compare to `KernelReg` and other methods we mentioned earlier. In order to plot the resulting curve, we set up a grid of indepedent variables `X_grid`, and plot according to it. In the case of `lowess`, we don't need to introduce new variables, but directly use the sorted `X` from output of `lowess`.
-:::
-
+- If `return_sorted=True`, the output is a two-column NumPy array. The first column contains the sorted `X` values, and the second column contains the corresponding fitted values.
+- If `return_sorted=False`, the output is a one-dimensional NumPy array of fitted values in the original order of `X`.
+- If `xvals` is provided, LOWESS evaluates the fitted smoother at those values. In this case, `return_sorted` is ignored, and the returned array is always one-dimensional.
+- `frac` is the span parameter $\alpha$. This is the most important hyperparameter. 
 
 ::: {.callout-note}
 
-## LOWESS versus Kernel Regression
+## LOWESS is mainly for visualizing smooth curves
 
-Both LOWESS and kernel regression perform local weighted fitting.
+LOWESS was originally designed as a smoothing method for exploratory data analysis and visualization. This is why the default output uses `return_sorted=True`.
 
-- Kernel regression usually uses a fixed bandwidth $h$.
-- LOWESS uses a fixed fraction of nearby observations.
-- Nadaraya-Watson regression fits a local constant.
-- LOWESS typically fits a local linear model.
+When `return_sorted=True`, the returned $x$-values are sorted from low to high, so the fitted curve can be plotted directly.
 
-As a result, LOWESS often exhibits better boundary behavior and adapts naturally to regions with varying data density.
+Like kernel regression, LOWESS can also be used for prediction by evaluating the fitted smoother at new values through the `xvals` argument. However, in practice LOWESS is most commonly used for visualizing trends and exploring nonlinear relationships rather than for building predictive models.
+
 :::
 
-LOWESS can optionally perform additional robustification iterations.
-
-After an initial fit, observations with large residuals receive smaller weights. The final fit uses both distance-based weights and robustness weights. As a result, outliers have less influence on the fitted curve.
-
-In `statsmodels`, LOWESS is implemented by `statsmodels.nonparametric.smoothers_lowess.lowess`. The argument `it` specifies the number of robustification iterations.
-```{python}
-#| eval: false
-lowess(y, X, frac=0.25, it=0)  # ordinary LOWESS
-lowess(y, X, frac=0.25, it=3)  # robust LOWESS
-```
-
-The parameter `it` controls robustification iterations. Most applications use either `it=0` for ordinary LOWESS or `it=3` for robust LOWESS. 
 
 
+LOWESS can also perform robustification iterations. After an initial fit, observations with large residuals receive smaller robustness weights. The final fit uses both distance-based weights and robustness weights, so outliers have less influence on the fitted curve.
+
+In `statsmodels`, the argument `it` specifies the number of robustification iterations. 
+
+Although the number can be any integers and seems needed for tuning, in practice, most applications use either `it=0` for ordinary LOWESS or `it=3` for robust LOWESS. 
+
+So usually we start from setting `it=0`, and then try `it=3` to see whether it is better.
 
 
+Here is an example that we extract `x_lowess` and `y_lowess` from sorted results.
 
-
-
-
-
-<!-- LOWESS stands for locally weighted scatterplot smoothing. It is another local regression smoother. In `statsmodels`, LOWESS is implemented by `statsmodels.nonparametric.smoothers_lowess.lowess`. The method uses local linear estimates; the argument `frac` controls the fraction of observations used in each local fit. -->
-
-<!-- fmt: off -->
 ```{python}
 from statsmodels.nonparametric.smoothers_lowess import lowess
 
@@ -1077,6 +891,14 @@ lowess_result = lowess(endog=y, exog=X, frac=0.25, it=0, return_sorted=True)
 
 x_lowess = lowess_result[:, 0]
 y_lowess = lowess_result[:, 1]
+
+```
+
+We then plot the fitted curve.
+
+```{python}
+import matplotlib.pyplot as plt
+
 plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
 plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
 plt.plot(x_lowess, y_lowess, color="C3", label="LOWESS")
@@ -1085,9 +907,10 @@ plt.ylabel("y")
 plt.title("LOWESS Smoothing")
 plt.legend();
 ```
-<!-- fmt: on -->
 
-#### Choosing `frac` 
+
+
+#### Choosing `frac`
 
 The parameter `frac` controls the amount of smoothing.
 
@@ -1096,18 +919,67 @@ The parameter `frac` controls the amount of smoothing.
 
 Typical values are:
 
-| `frac` | Effect |
-|---------|---------|
-| 0.1–0.2 | Very flexible, may overfit noise |
-| 0.2–0.4 | Common choice for many datasets |
-| 0.5–0.8 | Strong smoothing |
-| >0.8 | Very smooth, may miss local structure |
+|  `frac` | Effect                                |
+| ------: | ------------------------------------- |
+| 0.1–0.2 | Very flexible; may overfit noise      |
+| 0.2–0.4 | Common range for many datasets        |
+| 0.5–0.8 | Strong smoothing                      |
+|   > 0.8 | Very smooth; may miss local structure |
 
-The span parameter frac may be selected by cross-validation when prediction accuracy is the primary goal. However, LOWESS is often used as an exploratory visualization tool, and in practice the span is frequently chosen by comparing several values and inspecting the resulting curves.
+
+The span parameter `frac` can be selected by cross-validation when prediction accuracy is the main goal. However, LOWESS is often used as an exploratory visualization tool, so in practice `frac` is frequently chosen by comparing several values visually.
+
+
+```{python}
+from statsmodels.nonparametric.smoothers_lowess import lowess
+
+fracs = [0.1, 0.25, 0.5, 0.75]
+
+plt.scatter(X, y, s=25, facecolors="none", edgecolors="black", alpha=0.6)
+
+for frac in fracs:
+    result = lowess(endog=y, exog=X, frac=frac, it=0, return_sorted=True)
+    plt.plot(result[:, 0], result[:, 1], linewidth=2, label=f"frac={frac}")
+
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Choosing frac by Visual Inspection")
+plt.legend()
+```
+
+Smaller values of `frac` produce more flexible curves that may follow noise, while larger values produce smoother curves that may miss local structure. The goal is to find a value that captures the overall pattern without introducing excessive variability.
+
+The curve with `frac=0.1` follows many small fluctuations and appears to be fitting noise. The curve with `frac=0.75` is heavily smoothed and begins to miss local features of the data. Values between 0.25 and 0.5 provide a reasonable compromise, preserving the overall trend while avoiding excessive variability.
+
+The figure suggests that values between 0.25 and 0.5 provide an appropriate level of smoothing.
+
+::: {.callout-note}
+
+## Visual bandwidth selection
+
+Kernel smoothing methods involve a smoothing parameter:
+
+bandwidth h in kernel density estimation and kernel regression;
+span frac in LOWESS.
+
+Smaller values produce more flexible estimates with lower bias but higher variance. Larger values produce smoother estimates with higher bias but lower variance.
+
+When visualization is the primary goal, a common strategy is to compare several values and choose the smallest amount of smoothing that removes obvious noise while preserving the main structure of the data.
+
+:::
+
 
 When LOWESS is used for prediction, cross-validation plays the same role as bandwidth selection in kernel regression.
 
-There is no universally optimal value. In practice, several values are often tried and compared visually.
+There is no universally optimal value of frac.
+
+
+
+
+
+
+
+
 
 ### Multiple Dimensions
 
