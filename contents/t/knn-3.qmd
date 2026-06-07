@@ -1072,3 +1072,56 @@ The span parameter frac may be selected by cross-validation when prediction accu
 When LOWESS is used for prediction, cross-validation plays the same role as bandwidth selection in kernel regression.
 
 There is no universally optimal value. In practice, several values are often tried and compared visually.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Bandwidth Tuning
+
+
+The bandwidth $h$ is the most important tuning parameter in kernel smoothing.
+
+- Small $h$: uses very local information and gives a flexible, variable estimate.
+- Large $h$: averages over a wider region and gives a smoother, more biased estimate.
+
+This is the same bias--variance tradeoff seen in KNN. In fact, the bandwidth plays a role similar to the parameter $K$ in KNN: both control how local the estimate is. Choosing an appropriate bandwidth is therefore a model selection problem. In practice, cross-validation is often used to select a bandwidth that balances bias and variance.
+
+### Effect of Bandwidth in KDE
+
+We can plot the KDE curve with different bandwidths to see the effect.
+
+<!-- fmt: off -->
+```{python}
+#| code-fold: true
+bandwidths = [0.1, 0.25, 0.6]
+
+plt.hist(x, bins=20, density=True, alpha=0.25, edgecolor="black")
+
+for bw in bandwidths:
+    kde = KernelDensity(kernel="gaussian", bandwidth=bw)
+    kde.fit(x.reshape(-1, 1))
+    density = np.exp(kde.score_samples(x_grid.reshape(-1, 1)))
+    plt.plot(x_grid, density, linewidth=2, label=f"h = {bw}")
+
+plt.xlabel("x")
+plt.ylabel("density")
+plt.title("Bandwidth Controls Smoothness")
+plt.legend();
+```
+<!-- fmt: on -->
+
+From the plot we can see that bandwidth controls the smoothness of the estimated density.
+
+- Small bandwidths capture local detail but may produce a noisy estimate.
+- Large bandwidths produce smoother estimates but may hide important features of the distribution.

@@ -145,6 +145,8 @@ plt.ylabel("density");
 
 A histogram estimates density by counting observations inside fixed bins. Kernel density estimation generalizes this idea by replacing fixed bins with a moving window.
 
+The uniform kernel estimator is itself a valid kernel density estimator. Histograms and uniform KDE are closely related: histograms use fixed bins, while uniform KDE centers a window at each evaluation point and moves that window continuously across the domain.
+
 Using the uniform kernel
 
 $$
@@ -280,6 +282,17 @@ $$
 K(u)f(x-hu)\,du.
 $$
 
+The expectation of KDE is a convolution of the true density and the kernel. Therefore KDE estimates a smoothed version of the underlying density. 
+
+Since 
+$$
+f(x-hu)=f(x)-huf'(x)+\frac12h^2u^2f''(x)+O(h^3),
+$$
+after plugged in, we have
+$$
+\mathrm{bias}=\Exp[\hat f(x)]-f(x)=O(h^2).
+$$
+
 If $h$ is small and $f$ is smooth, then $f(x-hu)$ is close to $f(x)$. Since $\int K(u)\,du=1$,
 
 $$
@@ -287,9 +300,164 @@ $$
 \approx
 f(x).
 $$
+
+More general,
+More generally,
+
+$$
+\Exp[\hat f(x)]
+=
+\int
+K(u)f(x-hu)\,du,
+$$
+which is a convolution of the true density and the kernel. Therefore the expected KDE is a smoothed version of the underlying density.
+
 This calculation shows that a sufficiently small bandwidth can reduce the bias of the KDE. However, making the bandwidth too small increases variance. A useful bandwidth must therefore balance bias and variance.
 <!-- 
 This explains why KDE can recover the true density when the bandwidth is small enough, but not too small. -->
+
+### Bias and Variance of KDE
+
+The expectation calculation above suggests that KDE becomes more accurate when the bandwidth is small. However, reducing the bandwidth also increases variability.
+
+Under suitable smoothness assumptions, it can be shown that
+
+$$
+\text{Bias}[\hat f(x)]
+=
+O(h^2),
+$$
+
+while
+
+$$
+\Var[\hat f(x)]
+=
+O\!\left(
+\frac1{nh}
+\right).
+$$
+
+Therefore the mean squared error satisfies
+
+$$
+\text{MSE}
+=
+O(h^4)
++
+O\!\left(
+\frac1{nh}
+\right).
+$$
+
+The first term decreases as the bandwidth becomes smaller, while the second term increases. Bandwidth selection therefore involves a bias-variance tradeoff.
+
+### Why does bandwidth matter?
+
+The bias-variance tradeoff described above is reflected directly in the shape of the estimated density.
+
+- A small bandwidth produces a highly flexible density estimate that may contain many spurious peaks caused by random sampling noise.
+- A large bandwidth produces a smoother density estimate but may hide important features such as multiple modes or skewness.
+
+As a result, different bandwidth values can lead to substantially different density estimates, even when the same kernel function is used.
+
+In practice, the choice of bandwidth is usually much more important than the choice of kernel. Therefore, bandwidth selection is the central tuning problem in kernel density estimation.
+
+
+### Rule-of-Thumb Bandwidth Selection for KDE
+
+Numerous bandwidth selection methods have been proposed.
+
+The asymptotic bias-variance analysis above implies that an optimal bandwidth should decrease roughly at the rate
+
+$$
+h
+=
+O(n^{-1/5}).
+$$
+
+This explains why many rule-of-thumb bandwidth formulas contain the factor $n^{-1/5}$.
+
+For a Gaussian kernel, a common rule-of-thumb bandwidth is
+
+$$
+h
+=
+1.06\,\hat\sigma\,n^{-1/5}.
+$$
+
+Silverman @Silverman1986 proposed the following more robust alternative:
+
+$$
+h
+=
+0.9\,\min\!\qty(
+\hat\sigma,
+\frac{\mathrm{IQR}}{1.34}
+)
+n^{-1/5}, \quad\text{ where }IQR\text{ is the Interquartile range: }Q_3-Q_1.
+$$
+
+The following Python code implements Silverman's rule.
+
+```{python}
+sigma = np.std(x, ddof=1)
+iqr = np.subtract(*np.percentile(x, [75, 25]))
+
+silverman_h = 0.9 * min(sigma, iqr / 1.34) * len(x) ** (-1 / 5)
+silverman_h
+```
+
+These formulas are computationally inexpensive and often provide reasonable starting values. However, they are derived under idealized assumptions and may not perform well when the underlying density deviates substantially from those assumptions.
+
+Although Silverman's rule was originally developed for kernel density estimation, it is sometimes used as a simple starting value for kernel regression as well.
+
+However, bandwidth selection is generally more challenging in regression because the optimal bandwidth depends not only on the distribution of the predictors but also on the shape of the regression function and the amount of noise in the response. For this reason, cross-validation is usually preferred for kernel regression.
+
+
+
+::: {.callout-note}
+
+Bandwidth selection for KDE can be performed using cross-validation, plug-in methods, or other data-driven procedures.
+
+However, KDE is often used for exploratory visualization. In such settings, practitioners frequently inspect several nearby bandwidth values visually to assess the stability of the estimated density.
+
+
+:::
+
+<!-- fmt: off -->
+```{python}
+bandwidths = [0.1, 0.3, 0.6]
+
+plt.hist(x, bins=20, density=True, alpha=0.25, edgecolor="black")
+
+for bw in bandwidths:
+    kde = KernelDensity(kernel="gaussian", bandwidth=bw)
+    kde.fit(x.reshape(-1, 1))
+    density = np.exp(kde.score_samples(x_grid.reshape(-1, 1)))
+    plt.plot(x_grid, density, linewidth=2, label=f"h={bw}")
+
+plt.xlabel("x")
+plt.ylabel("density")
+plt.title("Choosing Bandwidth by Visual Inspection")
+plt.legend();
+```
+<!-- fmt: on -->
+
+
+The figure compares KDE estimates with several bandwidth values.
+
+- With `h=0.1`, the density estimate contains many small peaks and valleys. These fluctuations are likely caused by sampling noise rather than genuine features of the underlying distribution.
+- With `h=0.6`, the estimate is much smoother, but some local features have disappeared.
+- With `h=0.3`, the estimate preserves the main shape of the distribution while avoiding excessive noise.
+
+A common visual strategy is to choose the smallest bandwidth that removes obvious noise while preserving important features such as peaks, valleys, skewness, or multiple modes.
+
+Interestingly, the visually selected bandwidth is close to the value suggested by Silverman's rule.
+
+
+
+
 
 ## Kernel Regression
 
@@ -468,7 +636,7 @@ The API of `KernelReg` from `statsmodels` differs substantially from the APIs us
 
 The key idea of kernel regression is local weighted averaging. In this section we use the previous example to visualize this behavior.
 
-At a target point $x_0$, observations closer to $x_0$ receive larger kernel weights. Recall that with a Gaussian kernel and bandwidth $h=0.5$,
+At a target point $x_0$, observations closer to $x_0$ receive larger kernel weights. Recall that with a Gaussian kernel and bandwidth $h=0.25$,
 
 $$
 K_h(x_0,x_i)
@@ -522,44 +690,6 @@ plt.legend();
 
 The circle sizes are proportional to the kernel weights. Points near $x_0$ receive larger weights and therefore have a greater influence on the local average. Points farther away receive smaller weights and contribute less to the estimate.
 
-## Bandwidth Tuning
-
-
-The bandwidth $h$ is the most important tuning parameter in kernel smoothing.
-
-- Small $h$: uses very local information and gives a flexible, variable estimate.
-- Large $h$: averages over a wider region and gives a smoother, more biased estimate.
-
-This is the same bias--variance tradeoff seen in KNN. In fact, the bandwidth plays a role similar to the parameter $K$ in KNN: both control how local the estimate is. Choosing an appropriate bandwidth is therefore a model selection problem. In practice, cross-validation is often used to select a bandwidth that balances bias and variance.
-
-### Effect of Bandwidth in KDE
-
-We can plot the KDE curve with different bandwidths to see the effect.
-
-<!-- fmt: off -->
-```{python}
-#| code-fold: true
-bandwidths = [0.1, 0.25, 0.6]
-
-plt.hist(x, bins=20, density=True, alpha=0.25, edgecolor="black")
-
-for bw in bandwidths:
-    kde = KernelDensity(kernel="gaussian", bandwidth=bw)
-    kde.fit(x.reshape(-1, 1))
-    density = np.exp(kde.score_samples(x_grid.reshape(-1, 1)))
-    plt.plot(x_grid, density, linewidth=2, label=f"h = {bw}")
-
-plt.xlabel("x")
-plt.ylabel("density")
-plt.title("Bandwidth Controls Smoothness")
-plt.legend();
-```
-<!-- fmt: on -->
-
-From the plot we can see that bandwidth controls the smoothness of the estimated density.
-
-- Small bandwidths capture local detail but may produce a noisy estimate.
-- Large bandwidths produce smoother estimates but may hide important features of the distribution.
 
 ### Effect of Bandwidth in Kernel Regression
 
@@ -591,44 +721,6 @@ As the bandwidth increases, variance decreases but bias increases. Choosing an a
 
 In practice, bandwidth selection is itself a statistical problem. We next introduce a simple rule-of-thumb that provides a reasonable starting value for the bandwidth.
 
-### Rule-of-Thumb Bandwidth Selection
-
-
-Numerous bandwidth selection methods have been proposed. In practice, bandwidth selection is often treated as a tuning problem.
-
-For a Gaussian kernel, a common rule-of-thumb bandwidth is
-
-$$
-h
-=
-1.06\,\hat\sigma\,n^{-1/5}.
-$$
-
-Silverman @Silverman1986 proposed the following more robust alternative:
-
-$$
-h
-=
-0.9\,\min\!\qty(
-\hat\sigma,
-\frac{\mathrm{IQR}}{1.34}
-)
-n^{-1/5}, \quad\text{ where }IQR\text{ is the Interquartile range: }Q_3-Q_1.
-$$
-
-The following Python code implements Silverman's rule.
-
-```{python}
-sigma = np.std(X, ddof=1)
-iqr = np.subtract(*np.percentile(X, [75, 25]))
-
-silverman_h = 0.9 * min(sigma, iqr / 1.34) * len(X) ** (-1 / 5)
-silverman_h
-```
-
-These formulas are computationally inexpensive and often provide reasonable starting values. However, they rely on assumptions about the underlying distribution and may not perform well for all datasets.
-
-Although Silverman's rule was originally developed for kernel density estimation, it is often used as a simple starting value for bandwidth selection in kernel regression.
 
 ### Bandwidth Selection by Cross-Validation
 
@@ -689,32 +781,21 @@ $$
 The `statsmodels` implementation `KernelReg` supports both local constant and local linear kernel regression through the argument `reg_type`. Use `reg_type="lc"` for local constant regression and `reg_type="ll"` for local linear regression.
 
 
-
+<!-- fmt: off -->
 ```{python}
 from statsmodels.nonparametric.kernel_regression import KernelReg
 
 # Local constant regression
-kr_lc = KernelReg(
-    endog=y,
-    exog=X,
-    var_type="c",
-    reg_type="lc",
-    bw=[0.4],
-)
+kr_lc = KernelReg(endog=y, exog=X, var_type="c", reg_type="lc", bw=[0.4])
 
 y_lc, _ = kr_lc.fit(X_grid)
 
 # Local linear regression
-kr_ll = KernelReg(
-    endog=y,
-    exog=X,
-    var_type="c",
-    reg_type="ll",
-    bw=[0.4],
-)
+kr_ll = KernelReg(endog=y, exog=X, var_type="c", reg_type="ll", bw=[0.4])
 
 y_ll, _ = kr_ll.fit(X_grid)
 ```
+<!-- fmt: on -->
 
 Here `var_type="c"` means that the predictor is continuous. The bandwidth `bw` controls the amount of smoothing.
 
@@ -828,7 +909,7 @@ $$
 \hat f(x_0)=\hat\beta_0.
 $$
 
-Thus, LOWESS can be viewed as a local linear regression method that uses a nearest-neighbor span instead of a fixed bandwidth.
+Thus, LOWESS can be viewed as a local linear regression method that uses a nearest-neighbor span instead of a fixed bandwidth. The LOWESS span can therefore be interpreted as an adaptive bandwidth: it fixes the number of nearby observations, so the corresponding distance scale changes with the local data density.
 
 ::: {.callout-note}
 
@@ -836,8 +917,8 @@ Thus, LOWESS can be viewed as a local linear regression method that uses a neare
 
 Both LOWESS and kernel regression perform local weighted fitting.
 
-- Kernel regression usually uses a fixed bandwidth h.
-- LOWESS uses a fixed fraction of nearby observations.
+- Kernel regression uses a fixed distance scale controlled by bandwidth $h$.
+- LOWESS fixes a fraction of nearby observations, producing an adaptive local bandwidth.
 - Nadaraya-Watson regression fits a local constant.
 - LOWESS typically fits a local linear model.
 
@@ -852,7 +933,7 @@ from statsmodels.nonparametric.smoothers_lowess import lowess
 
 lowess_result = lowess(endog=y, exog=X, frac=0.25, it=0, return_sorted=True)
 ```
-Similar to `KernelReg`, `lowess` will automatically fit the data and compute the predicted value. The argument `return_sorted` controls the format of the output.
+Similar to `KernelReg`, unlike an estimator object, `lowess` directly computes and returns the smoothed values in a single function call. The argument `return_sorted` controls the format of the output.
 
 - If `return_sorted=True`, the output is a two-column NumPy array. The first column contains the sorted `X` values, and the second column contains the corresponding fitted values.
 - If `return_sorted=False`, the output is a one-dimensional NumPy array of fitted values in the original order of `X`.
@@ -917,14 +998,7 @@ The parameter `frac` controls the amount of smoothing.
 - Smaller `frac` uses fewer nearby observations and produces a more flexible curve.
 - Larger `frac` uses more nearby observations and produces a smoother curve.
 
-Typical values are:
 
-|  `frac` | Effect                                |
-| ------: | ------------------------------------- |
-| 0.1–0.2 | Very flexible; may overfit noise      |
-| 0.2–0.4 | Common range for many datasets        |
-| 0.5–0.8 | Strong smoothing                      |
-|   > 0.8 | Very smooth; may miss local structure |
 
 
 The span parameter `frac` can be selected by cross-validation when prediction accuracy is the main goal. However, LOWESS is often used as an exploratory visualization tool, so in practice `frac` is frequently chosen by comparing several values visually.
@@ -959,8 +1033,8 @@ The figure suggests that values between 0.25 and 0.5 provide an appropriate leve
 
 Kernel smoothing methods involve a smoothing parameter:
 
-bandwidth h in kernel density estimation and kernel regression;
-span frac in LOWESS.
+- bandwidth $h$ in kernel density estimation and kernel regression;
+- span `frac` in LOWESS.
 
 Smaller values produce more flexible estimates with lower bias but higher variance. Larger values produce smoother estimates with higher bias but lower variance.
 
@@ -974,6 +1048,11 @@ When LOWESS is used for prediction, cross-validation plays the same role as band
 There is no universally optimal value of frac.
 
 
+| Method            | auto tune                          | in practice |
+| ----------------- | ----------------------------- | ---- |
+| KDE               | Silverman, Scott, CV, Plug-in | read plots |
+| Kernel Regression | CV                            | cv |
+| LOWESS            | CV                            | read plots |
 
 
 

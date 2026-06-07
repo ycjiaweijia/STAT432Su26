@@ -586,17 +586,24 @@ results = {
 df_res = pd.DataFrame(results)
 df_res
 ```
-A single column is a `Series`.
+
+A single column is returned as a `Series`.
 
 ```{python}
 df_res['score']
 ```
-Note that similar to the `numpy.array` case, if we select the column as a set (even if the set contains only 1 element), we will get a 2D object, which is a `DataFrame` in this case.
+Notice that this is similar to `numpy` indexing. Selecting a single column by name returns a 1D object. If we instead pass a list of column names, even if the list contains only one column (e.g. `['score']` below), the result is a 2D `DataFrame`.
+<!-- Note that similar to the `numpy.array` case, if we select the column as a list (even if the list contains only 1 element, e.g. `['score']` below comparing to `score` above), we will get a 2D object, which is a `DataFrame` in this case. -->
 
 ```{python}
 df_res[['score']]
 ```
+This behavior is analogous to the difference between `X[:, 0]` and `X[:, [0]]` for a `numpy` array:
 
+- `df_res["score"]` returns a `Series` (1D)
+- `df_res[["score"]]` returns a `DataFrame` (2D)
+- `X[:, 0]` returns a 1D array
+- `X[:, [0]]` returns a 2D array
 
 ### Read and write files
 
@@ -853,7 +860,7 @@ Another common mistake is confusing an `sklearn` class with an object created fr
 
 For example, `DecisionTreeClassifier` is the class itself.
 
-| Bad | Good |
+| Wrong | Right |
 |------|------|
 | `model = DecisionTreeClassifier`<br>`model.fit(X_train, y_train)` | `model = DecisionTreeClassifier()`<br>`model.fit(X_train, y_train)` |
 
