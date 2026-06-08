@@ -282,12 +282,40 @@ $$
 K(u)f(x-hu)\,du.
 $$
 
+
+
 The expectation of KDE is a convolution of the true density and the kernel. Therefore KDE estimates a smoothed version of the underlying density. 
 
-Since 
+Consider the Taylor series expansion
 $$
-f(x-hu)=f(x)-huf'(x)+\frac12h^2u^2f''(x)+O(h^3),
+f(x-hu)=f(x)-huf'(x)+\frac12h^2u^2f''(x)+O(h^3).
 $$
+
+We have 
+$$
+\begin{split}
+\Exp[\hat f(x)]&=\int K(u)\qty[f(x)-huf'(x)+\frac12h^2u^2f''(x)+O(h^3)]\dl3u\\
+=\int K(u)f(x)\dl3u-\int K(u)huf'(x)\dl3u+\int\frac12h^2u^2f''(x)+O(h^3)]\dl3u
+\end{split}
+$$
+
+Because a symmetric kernel satisfies
+
+$$
+\int uK(u)\,du = 0,
+$$
+
+the first-order term vanishes after integration.
+Therefore
+
+$$
+\Exp[\hat f(x)]-f(x)
+=
+O(h^2).
+$$
+
+
+
 after plugged in, we have
 $$
 \mathrm{bias}=\Exp[\hat f(x)]-f(x)=O(h^2).
@@ -300,8 +328,7 @@ $$
 \approx
 f(x).
 $$
-
-More general,
+<!-- 
 More generally,
 
 $$
@@ -310,7 +337,7 @@ $$
 \int
 K(u)f(x-hu)\,du,
 $$
-which is a convolution of the true density and the kernel. Therefore the expected KDE is a smoothed version of the underlying density.
+which is a convolution of the true density and the kernel. Therefore the expected KDE is a smoothed version of the underlying density. -->
 
 This calculation shows that a sufficiently small bandwidth can reduce the bias of the KDE. However, making the bandwidth too small increases variance. A useful bandwidth must therefore balance bias and variance.
 <!-- 
@@ -352,16 +379,20 @@ $$
 
 The first term decreases as the bandwidth becomes smaller, while the second term increases. Bandwidth selection therefore involves a bias-variance tradeoff.
 
-### Why does bandwidth matter?
 
-The bias-variance tradeoff described above is reflected directly in the shape of the estimated density.
+::: {.callout-note}
 
-- A small bandwidth produces a highly flexible density estimate that may contain many spurious peaks caused by random sampling noise.
-- A large bandwidth produces a smoother density estimate but may hide important features such as multiple modes or skewness.
+## The Practical Impact of Bandwidth
+
+The bias-variance tradeoff directly dictates the visual fidelity of the density estimate:
+
+- Small Bandwidth (High Variance/Low Bias): The estimate is highly flexible and captures local fluctuations, but it often produces spurious "noise" peaks that are artifacts of the specific sample rather than the true underlying distribution.
+- Large Bandwidth (Low Variance/High Bias): The estimate is overly smooth. While it effectively reduces noise, it often masks essential structural features such as skewness or multiple modes.
 
 As a result, different bandwidth values can lead to substantially different density estimates, even when the same kernel function is used.
 
 In practice, the choice of bandwidth is usually much more important than the choice of kernel. Therefore, bandwidth selection is the central tuning problem in kernel density estimation.
+:::
 
 
 ### Rule-of-Thumb Bandwidth Selection for KDE
@@ -376,9 +407,9 @@ h
 O(n^{-1/5}).
 $$
 
-This explains why many rule-of-thumb bandwidth formulas contain the factor $n^{-1/5}$.
+This explains why many rule-of-thumb bandwidth formulas contain the factor $n^{-1/5}$. 
 
-For a Gaussian kernel, a common rule-of-thumb bandwidth is
+For a Gaussian kernel, a common normal-reference rule-of-thumb bandwidth is
 
 $$
 h
@@ -386,47 +417,35 @@ h
 1.06\,\hat\sigma\,n^{-1/5}.
 $$
 
-Silverman @Silverman1986 proposed the following more robust alternative:
+This formula is derived under the assumption that the underlying density is approximately Gaussian. It is sometimes called Scott's normal-reference rule.
 
-$$
-h
-=
-0.9\,\min\!\qty(
-\hat\sigma,
-\frac{\mathrm{IQR}}{1.34}
-)
-n^{-1/5}, \quad\text{ where }IQR\text{ is the Interquartile range: }Q_3-Q_1.
-$$
-
-The following Python code implements Silverman's rule.
+The following Python code implements this rule.
 
 ```{python}
-sigma = np.std(x, ddof=1)
-iqr = np.subtract(*np.percentile(x, [75, 25]))
-
-silverman_h = 0.9 * min(sigma, iqr / 1.34) * len(x) ** (-1 / 5)
-silverman_h
+h = 1.06 * np.std(x, ddof=1) * len(x) ** (-1 / 5)
+h
 ```
 
 These formulas are computationally inexpensive and often provide reasonable starting values. However, they are derived under idealized assumptions and may not perform well when the underlying density deviates substantially from those assumptions.
 
+::: {.callout-note}
+## Generalize to Kernel regression
 Although Silverman's rule was originally developed for kernel density estimation, it is sometimes used as a simple starting value for kernel regression as well.
 
 However, bandwidth selection is generally more challenging in regression because the optimal bandwidth depends not only on the distribution of the predictors but also on the shape of the regression function and the amount of noise in the response. For this reason, cross-validation is usually preferred for kernel regression.
+:::
 
+### Bandwidth Selection by Visual Inspection
 
-
-::: {.callout-note}
 
 Bandwidth selection for KDE can be performed using cross-validation, plug-in methods, or other data-driven procedures.
 
 However, KDE is often used for exploratory visualization. In such settings, practitioners frequently inspect several nearby bandwidth values visually to assess the stability of the estimated density.
 
 
-:::
-
 <!-- fmt: off -->
 ```{python}
+#| code-fold: true
 bandwidths = [0.1, 0.3, 0.6]
 
 plt.hist(x, bins=20, density=True, alpha=0.25, edgecolor="black")
@@ -453,7 +472,7 @@ The figure compares KDE estimates with several bandwidth values.
 
 A common visual strategy is to choose the smallest bandwidth that removes obvious noise while preserving important features such as peaks, valleys, skewness, or multiple modes.
 
-Interestingly, the visually selected bandwidth is close to the value suggested by Silverman's rule.
+<!-- Interestingly, the visually selected bandwidth is close to the value suggested by Silverman's rule. -->
 
 
 
@@ -787,18 +806,17 @@ from statsmodels.nonparametric.kernel_regression import KernelReg
 
 # Local constant regression
 kr_lc = KernelReg(endog=y, exog=X, var_type="c", reg_type="lc", bw=[0.4])
-
 y_lc, _ = kr_lc.fit(X_grid)
 
 # Local linear regression
 kr_ll = KernelReg(endog=y, exog=X, var_type="c", reg_type="ll", bw=[0.4])
-
 y_ll, _ = kr_ll.fit(X_grid)
 ```
 <!-- fmt: on -->
 
 Here `var_type="c"` means that the predictor is continuous. The bandwidth `bw` controls the amount of smoothing.
 
+<!-- fmt: off -->
 ``` {python}
 plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
 plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
@@ -807,9 +825,9 @@ plt.plot(X_grid, y_ll, color="C2", label="local linear")
 plt.xlabel("x")
 plt.ylabel("y")
 plt.title("Local Constant versus Local Linear Smoothing")
-plt.legend()
+plt.legend();
 ```
-
+<!-- fmt: on -->
 
 
 Local linear regression often improves boundary behavior. Near the edge of the data, a local average can be biased because there are observations on only one side of the target point. A local line can adjust for the slope.

@@ -156,13 +156,13 @@ To demonstrate the code, we generate a dataset with 2 predictors and 1 response 
 import numpy as np
 import pandas as pd
 
-np.random.seed(1)
-
 n = 100
 
-x1 = np.random.normal(1, 0.1, size=n)
-x2 = np.random.normal(0, 1, size=n)
-y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 0.5, size=n)
+rng = np.random.default_rng(1)
+
+x1 = rng.normal(1, 0.1, size=n)
+x2 = rng.normal(0, 1, size=n)
+y = 1 + 2 * x1 + 3 * x2 + rng.normal(0, 0.5, size=n)
 
 X = pd.DataFrame({'x1': x1, 'x2': x2})
 ```
@@ -225,6 +225,20 @@ Each model also provides a built-in scoring method. For a specific model, you ca
 model.score(X, y)
 ```
 
+::: {.callout-note}
+## Different Definitions Across Software
+
+Some evaluation metrics may be defined slightly differently across software packages and textbooks.
+
+For example, mean squared error (MSE) in statistics is defined as $\frac{\mathrm{RSS}}{n-(p+1)}$ where $(p+1)$ is the number of estimated parameters. This adjustment accounts for the degrees of freedom used in fitting the model.
+
+In contrast, MSE in machine learning (and `sklearn`) are commonly defined as $\frac{\mathrm{RSS}}{n}$ which is simply the average squared prediction error over the observations.
+
+These differences are usually small when the sample size is large, but they can affect numerical comparisons between software packages or published benchmarks. Therefore, it is important to verify the exact definition of any metric before making comparisons.
+
+For example, according to the `sklearn` [documentation](https://scikit-learn.org/stable/modules/model_evaluation.html#mean-squared-error), `mean_squared_error` is computed by averaging over the number of samples $n$.
+
+:::
 
 ### Model Diagnostics
 
@@ -913,9 +927,9 @@ Standardization is especially useful when predictors are measured on very differ
 import numpy as np
 import pandas as pd
 
-np.random.seed(1)
+rng = np.random.default_rng(1)
 
-X = pd.DataFrame({"x1": np.random.normal(10, 2, size=8), "x2": np.random.normal(100, 20, size=8)})
+X = pd.DataFrame({"x1": rng.normal(10, 2, size=8), "x2": rng.normal(100, 20, size=8)})
 X
 ```
 
@@ -983,7 +997,7 @@ You may use the id to get into each transformer.
 
 
 ```{python}
-prep.transformers_
+prep.named_transformers_
 ```
 
 ```{python}
@@ -1059,7 +1073,7 @@ This `pipe` object behaves like a `model` object. You may use the step names to 
 
 
 ```{python}
-pipe.steps
+pipe.named_steps
 ```
 
 ```{python}
@@ -1075,7 +1089,8 @@ from sklearn.pipeline import make_pipeline
 
 pipe_easy = make_pipeline(
     StandardScaler(),
-    LinearRegression()
+    StandardScaler(),
+    LinearRegression(),
 )
 ```
 It will automatically name each step by its class name.
@@ -1083,7 +1098,7 @@ It will automatically name each step by its class name.
 ```{python}
 pipe_easy.named_steps
 ```
-
+Note that in most cases we won't stack two `StandardScaler()` together. Here is just an example to show how the steps are automatically named.
 
 
 
@@ -1119,24 +1134,27 @@ model = TransformedTargetRegressor(
 
 In this example we build a more complicated pipeline.
 
+<!-- fmt: off -->
 ```{python}
+#| code-fold: true
 import numpy as np
 import pandas as pd
 
-np.random.seed(1)
-
 n = 100
 
+rng = np.random.default_rng(1)
 X = pd.DataFrame(
     {
-        "x1": np.random.normal(0, 1, n),
-        "x2": np.random.normal(5, 2, n),
-        "group": np.random.choice(["A", "B", "C"], size=n),
+        "x1": rng.normal(0, 1, n),
+        "x2": rng.normal(5, 2, n),
+        "group": rng.choice(["A", "B", "C"], size=n),
     }
 )
 
-y = 1 + 2 * X["x1"] - 1.5 * X["x2"] + 3 * (X["group"] == "B") - 2 * (X["group"] == "C") + np.random.normal(0, 1, n)
+y = 1 + 2 * X["x1"] - 1.5 * X["x2"] + 3 * (X["group"] == "B") - 2 * (X["group"] == "C") + rng.normal(0, 1, n)
 ```
+<!-- fmt: on -->
+
 The pipeline is illustrated as follows.
 
 1. `ColumnTransformer` separates numeric and categorical features.
@@ -1203,16 +1221,31 @@ from sklearn.linear_model import LinearRegression
 numeric_features = ["x1", "x2"]
 categorical_features = ["group"]
 
-numeric_pipe = Pipeline([("scaler", StandardScaler()), ("poly", PolynomialFeatures(degree=2, include_bias=False))])
-
-preprocessor = ColumnTransformer(
-    [("num", numeric_pipe, numeric_features), ("cat", OneHotEncoder(drop="first"), categorical_features)]
+numeric_pipe = Pipeline(
+    [
+        ("scaler", StandardScaler()),
+        ("poly", PolynomialFeatures(degree=2, include_bias=False)),
+    ]
 )
 
-pipe = Pipeline([("preprocess", preprocessor), ("model", LinearRegression())])
-model = TransformedTargetRegressor(regressor=pipe, transformer=StandardScaler(with_std=False))
-```
+preprocessor = ColumnTransformer(
+    [
+        ("num", numeric_pipe, numeric_features),
+        ("cat", OneHotEncoder(drop="first"), categorical_features),
+    ]
+)
 
+pipe = Pipeline(
+    [
+        ("preprocess", preprocessor),
+        ("model", LinearRegression()),
+    ]
+)
+model = TransformedTargetRegressor(
+    regressor=pipe,
+    transformer=StandardScaler(with_std=False),
+)
+```
 
 The entire `pipeline` is trained on the training set and then evaluated on the validation set, where the training and validation sets are determined by cross-validation.
 
@@ -1221,7 +1254,11 @@ The entire `pipeline` is trained on the training set and then evaluated on the v
 from sklearn.model_selection import cross_validate
 
 cv_result = cross_validate(
-    model, X, y, cv=KFold(5, shuffle=True, random_state=1), scoring=["r2", "neg_mean_squared_error"]
+    model,
+    X,
+    y,
+    cv=KFold(5, shuffle=True, random_state=1),
+    scoring=["r2", "neg_mean_squared_error"],
 )
 
 print(f"test R2: {cv_result['test_r2'].mean()}")
