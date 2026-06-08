@@ -743,13 +743,6 @@ K_h(x,x_i)
 \right\}.
 $$
 
-Because the Nadaraya-Watson estimator normalizes the weights, the constant $1/(h\sqrt{2\pi})$ cancels out. Therefore, for regression weights, it is enough to use
-
-$$
-\exp\left\{
--\frac{(x-x_i)^2}{2h^2}
-\right\}.
-$$
 
 ### Comparing KNN and Kernel Regression
 
@@ -821,47 +814,66 @@ The Nadaraya-Watson estimator fit changes smoothly because every observation con
 
 
 
-#### Understanding `KernelReg`
+### Understanding `KernelReg`
 
-The API of `KernelReg` from `statsmodels` differs substantially from the APIs used by most `sklearn` estimators, so we briefly explain the most important arguments and methods.
+The API of `KernelReg` from `statsmodels` differs substantially from the APIs used by most `sklearn` estimators, so we briefly explain the most important arguments and methods. More details can be found in the [official document](https://www.statsmodels.org/devel/generated/statsmodels.nonparametric.kernel_regression.KernelReg.html).
 
-1. Unlike most `sklearn` estimators, `KernelReg` does not have a separate training step. The training data are supplied when the object is created, and the `fit()` method is used to evaluate the fitted regression function at new points. In other words, `y_hat, _ = kr.fit(X)` performs prediction at the input locations `X`.
+#### Different `fit`
 
-   - The first returned value is the estimated conditional mean.
-   - The second returned value contains estimated marginal effects.
-   - In this chapter, we only use the fitted values, so the marginal effects are discarded by assigning them to `_`.
+Unlike most `sklearn` estimators, `KernelReg` does not have a separate training step. The training data are supplied when the object is created, and the `fit()` method is used to evaluate the fitted regression function at new points. In other words, `y_hat, _ = kr.fit(X)` performs prediction at the input locations `X`.
+
+- The first returned value is the estimated conditional mean.
+- The second returned value contains estimated marginal effects.
+- In this chapter, we only use the fitted values, so the marginal effects are discarded by assigning them to `_`.
   
-2. The model is initialized using `endog=y` and `exog=X`.
+#### `endog` and `exog`
+The model is initialized using `endog=y` and `exog=X`.
 
-   - `endog`: endogenous variable
-   - `exog`: exogenous variable
-   - These terms come from econometrics. In a statistical learning context, you can simply think of them as `endog=y` and `exog=X`.
+- `endog`: endogenous variable
+- `exog`: exogenous variable
+- These terms come from econometrics. In a statistical learning context, you can simply think of them as `endog=y` and `exog=X`.
 
-3. `reg_type="lc"` specifies the regression estimator.
+#### Regressor type
+`reg_type="lc"` specifies the regression estimator.
 
-   - `"lc"` stands for local constant regression, which corresponds to the Nadaraya-Watson estimator introduced earlier.
-   - `"ll"` stands for local linear regression.
-   - The default is `"ll"`.
+- `"lc"` stands for local constant regression, which corresponds to the Nadaraya-Watson estimator introduced earlier.
+- `"ll"` stands for local linear regression.
+- The default is `"ll"`.
 
-4. `bw` specifies the bandwidth.
+#### Bandwidth
 
-   - It can be supplied directly as a numeric value, as in this example.
-   - Alternatively, setting `bw="cv_ls"` instructs `KernelReg` to select the bandwidth automatically using least-squares cross-validation.
+`bw` specifies the bandwidth.
 
-5. `var_type` specifies the type of each predictor variable:
-     - `"c"`: continuous
-     - `"u"`: unordered discrete
-     - `"o"`: ordered discrete
+- It can be supplied directly as a numeric value, as in this example.
+- Explicit bandwidth values should be provided as a list. This design allows a separate bandwidth for each predictor. For one-dimensional regression, the list contains only one element.
+- Alternatively, setting `bw="cv_ls"` instructs `KernelReg` to select the bandwidth automatically using least-squares cross-validation. This will be discussed later.
+
+
+#### Variable type
+`var_type` specifies the type of each predictor variable:
+
+- `"c"`: continuous
+- `"u"`: unordered discrete
+- `"o"`: ordered discrete
   
-   `var_type="c"` indicates that the predictor is continuous. For multiple predictors, `var_type` should contain one character for each predictor. For example, `"ccc"` indicates three continuous predictors.
+`var_type="c"` indicates that the predictor is continuous. For multiple predictors, `var_type` should contain one character for each predictor. For example, `"ccc"` indicates three continuous predictors.
 
 
 
 ### Local Averaging at One Target Point
 
-The key idea of kernel regression is local weighted averaging. In this section we use the previous example to visualize this behavior.
+The key idea of kernel regression is local weighted averaging. In this section we use the previous example to visualize this behavior: at a target point $x_0$, observations closer to $x_0$ receive larger kernel weights. 
 
-At a target point $x_0$, observations closer to $x_0$ receive larger kernel weights. Recall that with a Gaussian kernel and bandwidth $h=0.25$,
+If we just want to predict the value at $x_0$ we can directly apply `KernelReg`. However it doesn't return all the weights. Therefore here we manually implement the algorithm in this section. Note that `y_kernel` is the one fitted with `KernelReg` from previous codes.
+
+Recall that the Nadaraya-Watson estimate at $x_0$ is the weighted average
+
+$$
+\hat f(x_0)
+=\sum_{i=1}^nw_i(x_0)y_i,\quad\text{ where }\quad w_i(x_0)=\frac{K_h(x_0,x_i)}{\sum_{j=1}^nK_h(x_0,x_j)}.
+$$
+
+with a Gaussian kernel,
 
 $$
 K_h(x_0,x_i)
@@ -872,14 +884,16 @@ K_h(x_0,x_i)
 \right\}.
 $$
 
-The Nadaraya-Watson estimate at $x_0$ is the weighted average
+Because the Nadaraya-Watson estimator normalizes the weights, the constant $1/(h\sqrt{2\pi})$ cancels out. Therefore, for regression weights, it is enough to use
 
 $$
-\hat f(x_0)
-=\sum_{i=1}^nw_i(x_0)y_i,\quad\text{ where }\quad w_i(x_0)=\frac{K_h(x_0,x_i)}{\sum_{j=1}^nK_h(x_0,x_j)}.
+\mathrm{raw_weights}=\exp\left\{
+-\frac{(x_0-x_i)^2}{2h^2}
+\right\}.
 $$
 
-We first compute the kernel weights for the target point $x_0=3$. Here, `raw_weights` contains weights proportional to the Gaussian kernel weights. They have not yet been normalized to sum to one.
+
+We first compute the kernel weights for the target point $x_0=3$ with $h=0.25$. 
 
 ```{python}
 x0 = 3.0
@@ -888,8 +902,9 @@ h = 0.25
 raw_weights = np.exp(-0.5 * ((x0 - X) / h) ** 2)
 fhat_x0 = np.sum(raw_weights * y) / np.sum(raw_weights)
 ```
+We then use the weights to determine the size of each plotted point, so that larger circles correspond to larger kernel weights. The factor 200 is chosen only for visualization.
 
-We then use the raw weights to determine the size of each plotted point so that larger points correspond to larger kernel weights.
+<!-- We then use the weights to determine the size of each plotted point so that larger points correspond to larger kernel weights. 200 is chosen for better visualization. -->
 ``` {python}
 point_sizes = 200 * raw_weights / raw_weights.max()
 ```
@@ -904,6 +919,7 @@ plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
 plt.plot(X_grid, y_kernel, color="C1", label="kernel regression")
 
 plt.scatter([x0], [fhat_x0], color="red", s=80, zorder=3, label=r"$\hat f(x_0)$") # <1>
+plt.axvline(x0, color="black", linestyle="--", alpha=0.5)
 
 plt.xlabel("x")
 plt.ylabel("y")
@@ -915,10 +931,48 @@ plt.legend();
 
 The circle sizes are proportional to the kernel weights. Points near $x_0$ receive larger weights and therefore have a greater influence on the local average. Points farther away receive smaller weights and contribute less to the estimate.
 
+We may apply the same code to different target points to show the effects of different weights.
+
+<!-- fmt: off -->
+```{python}
+#| code-fold: true
+import matplotlib.pyplot as plt
+
+x0_values = [1.0, 2.5, 4.0, 5.5]
+h = 0.25
+
+fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+axes = axes.ravel() # <1>
+
+for ax, x0 in zip(axes, x0_values):
+    raw_weights = np.exp(-0.5 * ((x0 - X) / h) ** 2)
+    point_sizes = 200 * raw_weights / raw_weights.max()
+    fhat_x0 = np.sum(raw_weights * y) / np.sum(raw_weights)
+
+    ax.scatter(X, y, s=point_sizes, facecolors="none", edgecolors="black")
+
+    ax.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+    ax.plot(X_grid, y_kernel, color="C1", label="kernel regression")
+
+    ax.scatter([x0], [fhat_x0], color="red", s=80, zorder=3, label=r"$\hat f(x_0)$")
+    ax.axvline(x0, color="black", linestyle="--", alpha=0.5)
+
+    ax.set_title(f"$x_0={x0}$")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+
+axes[0].legend()
+plt.tight_layout();
+```
+1. The original `axes` object is a 2-by-2 array, so we would need to use `axes[0, 0]` to access the upper-left plot. After flattening it with `ravel()`, we can use `axes[0]`, `axes[1]`, and so on. This makes the loop simpler because we do not need to track the row and column indices explicitly.
+<!-- fmt: on -->
+
 
 ### Effect of Bandwidth in Kernel Regression
 
-The same idea applies to kernel regression.
+Bandwidth plays the same role in kernel regression as it does in kernel density estimation. A small bandwidth gives more weight to nearby observations and produces a more flexible fit, while a large bandwidth averages over a wider neighborhood and produces a smoother fit.
+
+Under suitable regularity conditions, it can be shown that kernel regression exhibits the same bias-variance tradeoff as KDE: decreasing the bandwidth reduces bias but increases variance, while increasing the bandwidth has the opposite effect. The exact formulas are more complicated than in KDE, so we focus on the visual behavior here.
 
 <!-- fmt: off -->
 ```{python}
@@ -942,16 +996,29 @@ axs[-1].legend();
 ```
 <!-- fmt: on -->
 
+The figure illustrates the effect of bandwidth on the fitted curve.
+
+- When the bandwidth is small ($h=0.15$), the fit follows local fluctuations closely. This reduces smoothing bias but increases variability.
+- With a moderate bandwidth ($h=0.4$), the fit captures the overall trend while remaining reasonably smooth.
+- When the bandwidth is large ($h=1.0$), the fit becomes overly smooth and may miss important features of the underlying function.
+
 As the bandwidth increases, variance decreases but bias increases. Choosing an appropriate bandwidth therefore requires balancing these two sources of error.
 
-In practice, bandwidth selection is itself a statistical problem. We next introduce a simple rule-of-thumb that provides a reasonable starting value for the bandwidth.
+::: {.callout-note collapse="true"}
+## Kernel Regression MSE
 
+For one-dimensional kernel regression, the asymptotic bias is typically of order $O(h^2)$, while the variance is of order $O\qty(\frac{1}{nh})$. Consequently, the mean squared error behaves roughly as $O(h^4)+O\qty(\frac{1}{nh})$, which mirrors the KDE case.
+
+Therefore, although the exact formulas differ from those in KDE, the same bias-variance tradeoff leads to bandwidth selection rules of a similar form.
+:::
 
 ### Bandwidth Selection by Cross-Validation
 
-Rule-of-thumb methods are fast and easy to use, but they rely on assumptions that may not hold in practice. Cross-validation provides a more data-driven approach to bandwidth selection.
+Rule-of-thumb methods are fast and easy to use, but they rely on assumptions that may not hold in practice. Since kernel regression is typically used for prediction, cross-validation is often preferred as a more data-driven approach to bandwidth selection.
 
-`KernelReg` from `statsmodels` can automatically perform cross-validation to search for the best bandwidth if the argument `bw="cv_ls"` is used. In this case, it performs leave-one-out cross-validation and selects the bandwidth that minimizes the least-squares prediction error. After the model is initialized, the cross-validation will be automatically performed, and you may directly check the best bandwidth by checking `kr.bw`.
+`KernelReg` from `statsmodels` can automatically select the bandwidth by cross-validation when `bw="cv_ls"` is specified. In this case, leave-one-out cross-validation is used to search for the bandwidth that minimizes the prediction error.
+
+The cross-validation procedure is performed automatically when the model is initialized. The selected bandwidth can then be inspected through the `bw` attribute.
 
 ```{python}
 from statsmodels.nonparametric.kernel_regression import KernelReg
@@ -982,7 +1049,7 @@ plt.legend();
 
 ## Extensions
 
-The basic Nadaraya-Watson estimator is a local constant estimator. It can be extended in several directions. Two common extensions are local linear regression and LOWESS.
+The basic Nadaraya-Watson estimator is a local constant estimator. It can be extended in several directions. Two common extensions are local linear/polynomial regression and LOWESS.
 
 ### Local Linear Regression
 Around each target point $x_0$, local constant regression fits a weighted constant. Local linear regression instead fits a weighted line:
@@ -995,15 +1062,14 @@ y_i-\beta_0-\beta_1(x_i-x_0)
 \right]^2.
 $$
 
-The fitted value at $x_0$ is the fitted intercept:
+<!-- The fitted value at $x_0$ is the fitted intercept: -->
+The predictors are centered at the target point $x_0$. As a result, the fitted intercept directly estimates the regression function at that location.
 
 $$
 \hat f(x_0)=\hat\beta_0.
 $$
 
-
-
-The `statsmodels` implementation `KernelReg` supports both local constant and local linear kernel regression through the argument `reg_type`. Use `reg_type="lc"` for local constant regression and `reg_type="ll"` for local linear regression.
+The `statsmodels` implementation `KernelReg` supports both local constant (Nadaraya-Watson) and local linear kernel regression through the `reg_type` parameter. Use `reg_type="lc"` for local constant regression and `reg_type="ll"` for local linear regression.
 
 
 <!-- fmt: off -->
@@ -1020,7 +1086,6 @@ y_ll, _ = kr_ll.fit(X_grid)
 ```
 <!-- fmt: on -->
 
-Here `var_type="c"` means that the predictor is continuous. The bandwidth `bw` controls the amount of smoothing.
 
 <!-- fmt: off -->
 ``` {python}
@@ -1035,16 +1100,7 @@ plt.legend();
 ```
 <!-- fmt: on -->
 
-
-Local linear regression often improves boundary behavior. Near the edge of the data, a local average can be biased because there are observations on only one side of the target point. A local line can adjust for the slope.
-
-::: {.callout-note}
-## Boundary bias
-
-Local averaging can be biased near the boundary of the data.
-
-Local linear regression reduces this problem by fitting a local trend instead of a local constant.
-:::
+Local linear regression often improves boundary behavior. Near the boundary of the data, a local average can be biased because observations are available on only one side of the target point. A local line can extrapolate slightly toward the boundary, reducing this additional bias.
 
 
 ### Local Polynomial Regression
@@ -1060,7 +1116,8 @@ y_i-\beta_0-\sum_{r=1}^d \beta_r(x_i-x_0)^r
 \right]^2.
 $$
 
-Then
+
+As in local linear regression, centering the predictors at $x_0$ ensures that the fitted intercept corresponds to the estimated function value at the target point.
 
 $$
 \hat f(x_0)=\hat\beta_0.
@@ -1068,16 +1125,15 @@ $$
 
 The degree $d$ controls the local shape:
 
-- $d=0$: local constant regression,
+- $d=0$: local constant regression (Nadaraya-Watson),
 - $d=1$: local linear regression,
 - $d=2$: local quadratic regression.
   
-Higher-degree local polynomials can reduce bias, but they can also become unstable when the bandwidth is too small or the local sample size is limited.
 
 
-In practice, local constant and local linear smoothing are the most commonly used versions. Local quadratic or higher-degree methods are possible, but they are less commonly used in introductory applications.
+Higher-degree local polynomials can reduce bias because they capture more local curvature. However, they also have higher variance and may become unstable when the bandwidth is small or when only a few observations receive substantial kernel weight.
 
-
+Although local polynomial regression can be formulated for any degree $d$, the `KernelReg` implementation in `statsmodels` provides only local constant and local linear smoothing. The `scikit-learn` library does not currently include local polynomial regression, although custom implementations can be built using the standard estimator API. We provide an example of such a custom implementation at the end of this chapter.
 
 
 
@@ -1086,8 +1142,9 @@ In practice, local constant and local linear smoothing are the most commonly use
 
 
 ### LOWESS
+LOWESS, short for locally weighted scatterplot smoothing, is a local linear regression method that combines nearest-neighbor neighborhoods with distance-based weights.
 
-LOWESS, short for locally weighted scatterplot smoothing, is a local regression method that combines local linear fitting with distance-based weights.
+<!-- LOWESS, short for locally weighted scatterplot smoothing, is a local regression method that combines local linear fitting with distance-based weights. -->
 
 For a target point $x_0$, LOWESS first selects a neighborhood around $x_0$. The neighborhood size is controlled by a span parameter, usually denoted by $\alpha$. If the dataset contains $n$ observations, the closest $m=\lceil \alpha n\rceil$ points are used in the local fit and form the local set $N(x_0)$.
 
@@ -1139,16 +1196,14 @@ Thus, LOWESS can be viewed as a local linear regression method that uses a neare
 
 ## LOWESS vs. kernel regression
 
-Both LOWESS and kernel regression perform local weighted fitting.
+LOWESS can be viewed as a variant of local linear kernel smoothing. Both methods fit a weighted local line around each target point.
 
-- Kernel regression uses a fixed distance scale controlled by bandwidth $h$.
-- LOWESS fixes a fraction of nearby observations, producing an adaptive local bandwidth.
-- Nadaraya-Watson regression fits a local constant.
-- LOWESS typically fits a local linear model.
+The main difference is how the neighborhood is defined: local linear kernel regression uses a fixed bandwidth, whereas LOWESS uses a fixed fraction of nearby observations,
+leading to an adaptive bandwidth. Therefore, LOWESS can be viewed as a local linear smoother with an adaptive neighborhood size.
 
-As a result, LOWESS often has better boundary behavior and adapts naturally to regions with varying data density.
 :::
 
+#### LOWESS in Python
 
 In Python, LOWESS is available from `statsmodels.nonparametric.smoothers_lowess`.
 
@@ -1157,6 +1212,7 @@ from statsmodels.nonparametric.smoothers_lowess import lowess
 
 lowess_result = lowess(endog=y, exog=X, frac=0.25, it=0, return_sorted=True)
 ```
+
 Similar to `KernelReg`, unlike an estimator object, `lowess` directly computes and returns the smoothed values in a single function call. The argument `return_sorted` controls the format of the output.
 
 - If `return_sorted=True`, the output is a two-column NumPy array. The first column contains the sorted `X` values, and the second column contains the corresponding fitted values.
@@ -1166,9 +1222,8 @@ Similar to `KernelReg`, unlike an estimator object, `lowess` directly computes a
 
 ::: {.callout-note}
 
-## LOWESS is mainly for visualizing smooth curves
-
-LOWESS was originally designed as a smoothing method for exploratory data analysis and visualization. This is why the default output uses `return_sorted=True`.
+## LOWESS is often used for visualization
+LOWESS was originally developed as a smoothing method for exploratory data analysis and visualization. Consequently, many software implementations emphasize plotting and curve estimation rather than predictive modeling. This is why the default output uses `return_sorted=True`.
 
 When `return_sorted=True`, the returned $x$-values are sorted from low to high, so the fitted curve can be plotted directly.
 
@@ -1176,13 +1231,13 @@ Like kernel regression, LOWESS can also be used for prediction by evaluating the
 
 :::
 
-
+#### Robust LOWESS
 
 LOWESS can also perform robustification iterations. After an initial fit, observations with large residuals receive smaller robustness weights. The final fit uses both distance-based weights and robustness weights, so outliers have less influence on the fitted curve.
 
 In `statsmodels`, the argument `it` specifies the number of robustification iterations. 
 
-Although the number can be any integers and seems needed for tuning, in practice, most applications use either `it=0` for ordinary LOWESS or `it=3` for robust LOWESS. 
+Although `it` can take any nonnegative integer value, most applications use either `it=0` for ordinary LOWESS or `it=3` for robust LOWESS. Note that the original LOWESS paper recommended three robustness iterations, which is why `it=3` became the common default in many software packages.
 
 So usually we start from setting `it=0`, and then try `it=3` to see whether it is better.
 
@@ -1249,7 +1304,6 @@ Smaller values of `frac` produce more flexible curves that may follow noise, whi
 
 The curve with `frac=0.1` follows many small fluctuations and appears to be fitting noise. The curve with `frac=0.75` is heavily smoothed and begins to miss local features of the data. Values between 0.25 and 0.5 provide a reasonable compromise, preserving the overall trend while avoiding excessive variability.
 
-The figure suggests that values between 0.25 and 0.5 provide an appropriate level of smoothing.
 
 ::: {.callout-note}
 
@@ -1266,7 +1320,7 @@ When visualization is the primary goal, a common strategy is to compare several 
 
 :::
 
-
+<!-- 
 When LOWESS is used for prediction, cross-validation plays the same role as bandwidth selection in kernel regression.
 
 There is no universally optimal value of frac.
@@ -1277,7 +1331,7 @@ There is no universally optimal value of frac.
 | KDE               | Silverman, Scott, CV, Plug-in | read plots |
 | Kernel Regression | CV                            | cv |
 | LOWESS            | CV                            | read plots |
-
+ -->
 
 
 
