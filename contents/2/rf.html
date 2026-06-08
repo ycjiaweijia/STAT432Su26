@@ -189,7 +189,6 @@ window.MathJax = {
       ]
     },
     macros: {
-      dl: ["{\\hspace{#1mu}\\mathrm d}", 1],
       me: "{\\mathrm e}",
       rss: "\\mathrm{RSS}",
       ols: "\\mathrm{OLS}",
@@ -1140,7 +1139,7 @@ Note
 <li>Use <code>RandomForestRegressor</code> or <code>RandomForestClassifier</code> when the base estimator is a decision tree and we also want random feature selection.</li>
 </ol>
 <p>In the intial demo, we will only talk about Classifier since it is very similar to Regressor. We will use the following generated dataset as the demo example.</p>
-<div id="4f0513e3" class="cell" data-execution_count="1">
+<div id="4ca2d013" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> make_classification</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1161,7 +1160,7 @@ Note
 <section id="basic-bagging-classifier" class="level3" data-number="10.5.1">
 <h3 data-number="10.5.1" class="anchored" data-anchor-id="basic-bagging-classifier"><span class="header-section-number">10.5.1</span> Basic Bagging classifier</h3>
 <p>The following code creates a bagged ensemble of regression trees.</p>
-<div id="d1e9850c" class="cell" data-execution_count="2">
+<div id="5f093fd0" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> BaggingClassifier</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1183,7 +1182,7 @@ Note
 <li><code>oob_score</code>: whether to compute out-of-bag performance.</li>
 </ul>
 <p>After creating the model, we use the same <code>.fit()</code> and <code>.predict()</code> and <code>.score()</code> workflow as before.</p>
-<div id="925bf685" class="cell" data-execution_count="3">
+<div id="1efdab7b" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>bag.fit(X_train, y_train)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>bag.score(X_test, y_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
@@ -1194,7 +1193,7 @@ Note
 <section id="random-forest-classifier" class="level3" data-number="10.5.2">
 <h3 data-number="10.5.2" class="anchored" data-anchor-id="random-forest-classifier"><span class="header-section-number">10.5.2</span> Random Forest Classifier</h3>
 <p>A random forest classifier is similar, but the random feature selection is built in.</p>
-<div id="637fa92a" class="cell" data-execution_count="4">
+<div id="f9084c8b" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>rf <span class="op">=</span> RandomForestClassifier(</span>
@@ -1213,7 +1212,7 @@ Note
 </div>
 <p>The most important additional argument is <code>max_features</code>.</p>
 <p>For example:</p>
-<div id="cd59a432" class="cell" data-execution_count="5">
+<div id="083e0d4b" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>RandomForestClassifier(max_features<span class="op">=</span><span class="fl">1.0</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>RandomForestClassifier(max_features<span class="op">=</span><span class="st">"sqrt"</span>)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>RandomForestClassifier(max_features<span class="op">=</span><span class="fl">0.5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1231,7 +1230,7 @@ Note
 <ul>
 <li><code>.estimators_</code> stores the fitted trees, and we could indicate which tree we want to use by calling the index.</li>
 </ul>
-<div id="f46d69df" class="cell" data-execution_count="6">
+<div id="e0856630" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>rf.estimators_[<span class="dv">0</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <style>#sk-container-id-1 {
@@ -2122,7 +2121,7 @@ forceTheme('sk-container-id-1');</script>
 <ul>
 <li><code>.oob_score_</code> gives the OOB score if <code>oob_score=True</code>. For classification, <code>bag.oob_score_</code> is the OOB accuracy. For regression, it is the OOB <span class="math inline">\(R^2\)</span> score.</li>
 </ul>
-<div id="3474d2b2" class="cell" data-execution_count="7">
+<div id="7f9cde28" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>rf.oob_score_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>0.888095238095238</code></pre>
@@ -2131,7 +2130,7 @@ forceTheme('sk-container-id-1');</script>
 <section id="feature-importance-1" class="level4" data-number="10.5.3.1">
 <h4 data-number="10.5.3.1" class="anchored" data-anchor-id="feature-importance-1"><span class="header-section-number">10.5.3.1</span> Feature importance</h4>
 <p>MDI can be directly computated using <code>.feature_importances_</code> after the model is fitted.</p>
-<div id="2841c3e8" class="cell" data-execution_count="8">
+<div id="f3d87c0d" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>rf.feature_importances_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>array([0.02767912, 0.05947287, 0.11152095, 0.02443874, 0.02509798,
@@ -2139,7 +2138,7 @@ forceTheme('sk-container-id-1');</script>
 </div>
 </div>
 <p>For permutation importance, we use <code>permutation_importance</code> from <code>sklearn.inspection</code>.</p>
-<div id="8ace3614" class="cell" data-execution_count="9">
+<div id="e5874b97" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.inspection <span class="im">import</span> permutation_importance</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>pi <span class="op">=</span> permutation_importance(rf, X_test, y_test, n_repeats<span class="op">=</span><span class="dv">30</span>, random_state<span class="op">=</span><span class="dv">1</span>)</span>
@@ -2152,7 +2151,7 @@ forceTheme('sk-container-id-1');</script>
 </div>
 </div>
 <p>In this example you may see that the two are very similar to each other.</p>
-<div id="f3914621" class="cell" data-execution_count="10">
+<div id="078f91cb" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -2279,7 +2278,7 @@ Note
 <div id="callout-10" class="callout-10-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>We could use oob score to tune hyperparameters. However we have to manually write the tuning code.</p>
-<div id="a72ca4ba" class="cell" data-execution_count="11">
+<div id="d07df86b" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>max_features_list <span class="op">=</span> [<span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.8</span>, <span class="fl">1.0</span>]</span>
@@ -2316,7 +2315,7 @@ Note
 <div id="callout-11" class="callout-11-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>We could still use cross-validation to tune a random forest classifier.</p>
-<div id="0956f5de" class="cell" data-execution_count="12">
+<div id="17e00bfc" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2354,7 +2353,7 @@ Note
 <div id="callout-12" class="callout-12-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>If the dataset is large, a full grid can be slow. In that case, <code>RandomizedSearchCV</code> is often a better choice. In this case, only a few random combinations will be searched. In the following example, we only search 30 combinations.</p>
-<div id="04b4a5aa" class="cell" data-execution_count="13">
+<div id="1b22f447" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> RandomizedSearchCV</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> randint, uniform</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2398,7 +2397,7 @@ Note
 <p>For example, <code>GridSearchCV(RandomForestClassifier(n_jobs=1), n_jobs=-1)</code> is generally preferred over <code>GridSearchCV(RandomForestClassifier(n_jobs=-1), n_jobs=-1)</code> because allowing both levels to parallelize simultaneously may create too many worker processes or threads, leading to excessive overhead and sometimes even slower performance.</p>
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 10.1 (time it)</strong></span> We first write a helper function to compute the runtime.</p>
-<div id="b14e12dd" class="cell" data-execution_count="14">
+<div id="80bf9f71" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> time <span class="im">import</span> perf_counter</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> contextlib <span class="im">import</span> contextmanager</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2411,7 +2410,7 @@ Note
 <span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>end <span class="op">-</span> start<span class="sc">:.4f}</span><span class="ss"> seconds"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Then use it to test the time for different <code>n_jobs</code>.</p>
-<div id="3f04ff00" class="cell" data-execution_count="15">
+<div id="88644ed1" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>param_grid <span class="op">=</span> {</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"max_features"</span>: [<span class="fl">0.3</span>, <span class="fl">0.6</span>, <span class="fl">1.0</span>],</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"min_samples_leaf"</span>: [<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">5</span>],</span>
@@ -2428,8 +2427,8 @@ Note
 <span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> timer(<span class="st">"n_jobs=1"</span>):</span>
 <span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>    grid.fit(X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>n_jobs=-1: 20.4248 seconds
-n_jobs=1: 82.0562 seconds</code></pre>
+<pre><code>n_jobs=-1: 21.0860 seconds
+n_jobs=1: 87.1920 seconds</code></pre>
 </div>
 </div>
 </div>
@@ -2438,7 +2437,7 @@ n_jobs=1: 82.0562 seconds</code></pre>
 <section id="example-diabetes-dataset" class="level2" data-number="10.7">
 <h2 data-number="10.7" class="anchored" data-anchor-id="example-diabetes-dataset"><span class="header-section-number">10.7</span> Example: Diabetes dataset</h2>
 <p>We now use the diabetes regression dataset from <code>sklearn</code>. In order to compare results using trees, we use the same split with <code>random_state=1</code>.</p>
-<div id="76f6dcaa" class="cell" data-execution_count="16">
+<div id="1711fd6e" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -2457,7 +2456,7 @@ n_jobs=1: 82.0562 seconds</code></pre>
 <li>bagging with regression trees,</li>
 <li>a random forest.</li>
 </ol>
-<div id="b3dcfe24" class="cell" data-execution_count="17">
+<div id="604999e4" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeRegressor</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> BaggingRegressor, RandomForestRegressor</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2477,21 +2476,21 @@ n_jobs=1: 82.0562 seconds</code></pre>
 <span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">1</span>,</span>
 <span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="39c74ee3" class="cell" data-execution_count="18">
+<div id="6b606b38" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>tree.fit(X_train, y_train)</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>tree.score(X_test, y_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="17">
 <pre><code>0.1922738375305083</code></pre>
 </div>
 </div>
-<div id="a4756bbb" class="cell" data-execution_count="19">
+<div id="2790917b" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>bag.fit(X_train, y_train)</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>bag.score(X_test, y_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="18">
 <pre><code>0.2951908085625511</code></pre>
 </div>
 </div>
-<div id="cdad2711" class="cell" data-execution_count="20">
+<div id="52ba19a3" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>rf.fit(X_train, y_train)</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>rf.score(X_test, y_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="19">
@@ -2500,13 +2499,13 @@ n_jobs=1: 82.0562 seconds</code></pre>
 </div>
 <p>The single tree is expected to be unstable. Bagging and random forests usually improve test performance by averaging many trees.</p>
 <p>For the bagging and random forest models, we can also check OOB performance.</p>
-<div id="230f3f29" class="cell" data-execution_count="21">
+<div id="c1e25f70" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>bag.oob_score_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="20">
 <pre><code>0.4567923788468702</code></pre>
 </div>
 </div>
-<div id="83228bd7" class="cell" data-execution_count="22">
+<div id="bbbb4195" class="cell" data-execution_count="22">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>rf.oob_score_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="21">
 <pre><code>0.47245609860472904</code></pre>
@@ -2516,7 +2515,7 @@ n_jobs=1: 82.0562 seconds</code></pre>
 <section id="tuning-the-random-forest" class="level3" data-number="10.7.1">
 <h3 data-number="10.7.1" class="anchored" data-anchor-id="tuning-the-random-forest"><span class="header-section-number">10.7.1</span> Tuning the Random Forest</h3>
 <p>We showed <code>Bagging</code> in the previous section. Since it overlaps with <code>RandomForest</code>, we will only focus on the Random Forest model in this section. We first tune <code>max_features</code>, <code>min_samples_leaf</code>, and <code>max_samples</code> by cross-validation, with a relative small number of estimators.</p>
-<div id="4304e11d" class="cell" data-execution_count="23">
+<div id="be8ae1f0" class="cell" data-execution_count="23">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>rf_base <span class="op">=</span> RandomForestRegressor(n_estimators<span class="op">=</span><span class="dv">300</span>, random_state<span class="op">=</span><span class="dv">1</span>)</span>
@@ -2539,7 +2538,7 @@ Best CV R^2: 0.45220837115313606</code></pre>
 </div>
 </div>
 <p>Now evaluate the tuned model on the test set.</p>
-<div id="9819b4b4" class="cell" data-execution_count="24">
+<div id="6549080c" class="cell" data-execution_count="24">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>grid.best_estimator_.score(X_test, y_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="23">
 <pre><code>0.3777186499485139</code></pre>
@@ -2549,7 +2548,7 @@ Best CV R^2: 0.45220837115313606</code></pre>
 <section id="find-the-number-of-trees" class="level3" data-number="10.7.2">
 <h3 data-number="10.7.2" class="anchored" data-anchor-id="find-the-number-of-trees"><span class="header-section-number">10.7.2</span> Find the Number of Trees</h3>
 <p>The number of trees controls how stable the ensemble average is. The following code fits forests with different numbers of trees and records OOB performance.</p>
-<div id="35189d48" class="cell" data-execution_count="25">
+<div id="9643cec6" class="cell" data-execution_count="25">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>tree_counts <span class="op">=</span> [<span class="dv">10</span>, <span class="dv">25</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">200</span>, <span class="dv">300</span>, <span class="dv">400</span>, <span class="dv">800</span>]</span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>oob_scores <span class="op">=</span> []</span>
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>test_r2 <span class="op">=</span> []</span>
@@ -2589,7 +2588,7 @@ Best CV R^2: 0.45220837115313606</code></pre>
 </div>
 <p>As mentioned previously, when reading these two plots, it is important not to focus on the single highest point. Instead, we look for the point where the curve becomes stable and nearly flat. In this example, around 200 trees appears to be a reasonable choice.</p>
 <p>Therefore our best model so far is</p>
-<div id="344bf99d" class="cell" data-execution_count="26">
+<div id="158b8644" class="cell" data-execution_count="26">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>best_rf <span class="op">=</span> RandomForestRegressor(</span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span><span class="dv">200</span>,</span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    max_features<span class="op">=</span><span class="st">"sqrt"</span>,</span>
@@ -3542,7 +3541,7 @@ forceTheme('sk-container-id-2');</script>
 <section id="variable-importance" class="level4" data-number="10.7.2.1">
 <h4 data-number="10.7.2.1" class="anchored" data-anchor-id="variable-importance"><span class="header-section-number">10.7.2.1</span> Variable Importance</h4>
 <p>We first examine impurity-based feature importance.</p>
-<div id="860572c8" class="cell" data-execution_count="27">
+<div id="4dba48bb" class="cell" data-execution_count="27">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>importance <span class="op">=</span> pd.Series(best_rf.feature_importances_).sort_values(ascending<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>importance.plot(kind<span class="op">=</span><span class="st">"barh"</span>)</span>
@@ -3561,7 +3560,7 @@ forceTheme('sk-container-id-2');</script>
 </div>
 <p>These values measure how much each variable reduces prediction error inside the trees. They are useful for a quick summary, but they should not be treated as causal effects.</p>
 <p>Permutation importance gives a more direct performance-based measure.</p>
-<div id="7d1def8d" class="cell" data-execution_count="28">
+<div id="c5f84f1e" class="cell" data-execution_count="28">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.inspection <span class="im">import</span> permutation_importance</span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>perm <span class="op">=</span> permutation_importance(</span>

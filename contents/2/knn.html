@@ -165,7 +165,6 @@ window.MathJax = {
       ]
     },
     macros: {
-      dl: ["{\\hspace{#1mu}\\mathrm d}", 1],
       me: "{\\mathrm e}",
       rss: "\\mathrm{RSS}",
       ols: "\\mathrm{OLS}",
@@ -847,7 +846,7 @@ The practical `sklearn` workflow is:
 <section id="example-1-one-dimensional-regression" class="level2" data-number="7.3">
 <h2 data-number="7.3" class="anchored" data-anchor-id="example-1-one-dimensional-regression"><span class="header-section-number">7.3</span> Example 1: One-Dimensional Regression</h2>
 <p>We first simulate a one-dimensional regression problem based on a noisy sine curve.</p>
-<div id="62dd384f" class="cell" data-execution_count="1">
+<div id="40737793" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -860,11 +859,11 @@ The practical `sklearn` workflow is:
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span><span class="fl">0.2</span>, random_state<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We then generate a grid of values and apply the fitted model to the grid in order to estimate the underlying regression function.</p>
-<div id="6c38e5a6" class="cell" data-execution_count="2">
+<div id="10d60bef" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>X_grid <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">2</span> <span class="op">*</span> np.pi, <span class="dv">1001</span>).reshape(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Fit a KNN regressor with <span class="math inline">\(K=3\)</span>.</p>
-<div id="8a26e4ec" class="cell" data-execution_count="3">
+<div id="ea57bc0e" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.neighbors <span class="im">import</span> KNeighborsRegressor</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>knn <span class="op">=</span> KNeighborsRegressor(n_neighbors<span class="op">=</span><span class="dv">3</span>)</span>
@@ -873,7 +872,7 @@ The practical `sklearn` workflow is:
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>y_grid <span class="op">=</span> knn.predict(X_grid)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Plot the fitted curve. <!-- fmt: off --></p>
-<div id="c0648bb5" class="cell" data-execution_count="4">
+<div id="94061c75" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(X_train.ravel(), y_train, s<span class="op">=</span><span class="dv">40</span>, label<span class="op">=</span><span class="st">"train"</span>)</span>
@@ -909,7 +908,7 @@ The practical `sklearn` workflow is:
 <section id="comparing-different-values-of-k" class="level3" data-number="7.3.1">
 <h3 data-number="7.3.1" class="anchored" data-anchor-id="comparing-different-values-of-k"><span class="header-section-number">7.3.1</span> Comparing Different Values of <span class="math inline">\(K\)</span></h3>
 <p>The following plot compares several choices of <span class="math inline">\(K\)</span>. <!-- fmt: off --></p>
-<div id="a8cf99ad" class="cell" data-execution_count="5">
+<div id="3700aa3e" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">8</span>), sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, k, color <span class="kw">in</span> <span class="bu">zip</span>(</span>
@@ -940,7 +939,7 @@ The practical `sklearn` workflow is:
 <h3 data-number="7.3.2" class="anchored" data-anchor-id="choosing-k-by-cross-validation"><span class="header-section-number">7.3.2</span> Choosing <span class="math inline">\(K\)</span> by Cross-Validation</h3>
 <p>We now use cross-validation on the training set to select the value of <span class="math inline">\(K\)</span>.</p>
 <p>Since the training set contains 80 observations and we use <code>cv=5</code>, each training fold contains only 64 observations. Therefore we restrict the search range to values of <span class="math inline">\(K\)</span> that are safely below this size.</p>
-<div id="5cb5f7e6" class="cell" data-execution_count="6">
+<div id="188e569e" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>k_values <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">61</span>))</span>
@@ -954,7 +953,7 @@ The practical `sklearn` workflow is:
 </div>
 </div>
 <p>Plot the cross-validation score. <!-- fmt: off --></p>
-<div id="17bdc463" class="cell" data-execution_count="7">
+<div id="f06cb80a" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>plt.plot(k_values, grid.cv_results_[<span class="st">"mean_test_score"</span>])</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>plt.axvline(</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>grid.best_params_[<span class="st">"n_neighbors"</span>],</span>
@@ -973,7 +972,7 @@ The practical `sklearn` workflow is:
 </div>
 </div>
 <p>Now plot the fitted curve using the selected value of <span class="math inline">\(K\)</span>.</p>
-<div id="e5d6599c" class="cell" data-execution_count="8">
+<div id="a3e73b60" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>y_grid_best <span class="op">=</span> grid.predict(X_grid)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(X_train.ravel(), y_train, s<span class="op">=</span><span class="dv">40</span>, label<span class="op">=</span><span class="st">"train"</span>)</span>
@@ -991,7 +990,7 @@ The practical `sklearn` workflow is:
 </div>
 <!-- fmt: on -->
 <p>Finally, evaluate the selected model on the test set.</p>
-<div id="9eabd0c0" class="cell" data-execution_count="9">
+<div id="dbc464e3" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>grid.score(X_test, y_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <pre><code>0.5552931849752354</code></pre>
@@ -1002,7 +1001,7 @@ The practical `sklearn` workflow is:
 <section id="example-iris-classification" class="level2" data-number="7.4">
 <h2 data-number="7.4" class="anchored" data-anchor-id="example-iris-classification"><span class="header-section-number">7.4</span> Example: Iris Classification</h2>
 <p>We use the iris data from <code>sklearn.datasets</code>. To make visualization easy, we use only the first two features: sepal length and sepal width.</p>
-<div id="7cf69c34" class="cell" data-execution_count="10">
+<div id="6c7ddb41" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> datasets</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1016,7 +1015,7 @@ The practical `sklearn` workflow is:
 <span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Plot the training data.</p>
-<div id="c9308775" class="cell" data-execution_count="11">
+<div id="fd60feb3" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>scatter <span class="op">=</span> ax.scatter(</span>
@@ -1050,7 +1049,7 @@ The practical `sklearn` workflow is:
 <section id="pipeline" class="level3" data-number="7.4.1">
 <h3 data-number="7.4.1" class="anchored" data-anchor-id="pipeline"><span class="header-section-number">7.4.1</span> Pipeline</h3>
 <p>The usual KNN workflow includes scaling followed by the KNN model. A <code>Pipeline</code> keeps these steps together.</p>
-<div id="14219703" class="cell" data-execution_count="12">
+<div id="179458e7" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.neighbors <span class="im">import</span> KNeighborsClassifier</span>
@@ -1068,7 +1067,7 @@ The practical `sklearn` workflow is:
 <section id="choosing-k-for-classification" class="level3" data-number="7.4.2">
 <h3 data-number="7.4.2" class="anchored" data-anchor-id="choosing-k-for-classification"><span class="header-section-number">7.4.2</span> Choosing <span class="math inline">\(K\)</span> for Classification</h3>
 <p>To choose <span class="math inline">\(K\)</span>, we tune <code>kneighborsclassifier__n_neighbors</code> inside the pipeline.</p>
-<div id="e30fa3ca" class="cell" data-execution_count="13">
+<div id="f1c7976a" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>n_values <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">91</span>))</span>
@@ -1084,14 +1083,14 @@ The practical `sklearn` workflow is:
 </div>
 </div>
 <p>The best cross-validation score is:</p>
-<div id="66385698" class="cell" data-execution_count="14">
+<div id="2c2c2530" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>grid.best_score_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="14">
 <pre><code>np.float64(0.8583333333333332)</code></pre>
 </div>
 </div>
 <p>Plot the validation curve over different values of <span class="math inline">\(K\)</span>.</p>
-<div id="12ba83d4" class="cell" data-execution_count="15">
+<div id="21d6b7bb" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>plt.plot(n_values, grid.cv_results_[<span class="st">"mean_test_score"</span>])</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>plt.axvline(</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>grid.best_params_[<span class="st">"kneighborsclassifier__n_neighbors"</span>],</span>
@@ -1117,7 +1116,7 @@ The practical `sklearn` workflow is:
 <h3 data-number="7.4.3" class="anchored" data-anchor-id="decision-boundary"><span class="header-section-number">7.4.3</span> Decision Boundary</h3>
 <p>We can visualize the decision boundary using <code>DecisionBoundaryDisplay</code>.</p>
 <!-- fmt: off -->
-<div id="e90cad98" class="cell" data-execution_count="16">
+<div id="7efbc502" class="cell" data-execution_count="16">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.inspection <span class="im">import</span> DecisionBoundaryDisplay</span>
