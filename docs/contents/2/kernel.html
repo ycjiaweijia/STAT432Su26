@@ -738,7 +738,7 @@ K\left(\frac{x-x_i}{h}\right).
 <p>The kernel function determines the shape of each bump, while the bandwidth <span class="math inline">\(h\)</span> controls its width. As we will see, the bandwidth is usually the most important tuning parameter in kernel density estimation.</p>
 <p>We demonstrate the idea with the following example. We use two normal distributions to generate a simple dataset. The dataset is <code>x</code>, and its histogram is displayed below.</p>
 <!-- fmt: off -->
-<div id="945225ed" class="cell" data-execution_count="1">
+<div id="0a917c85" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -782,7 +782,7 @@ K(u)=
 \]</span></p>
 <p>This can be viewed as a moving histogram. Instead of counting observations in fixed bins, we center a window of width <span class="math inline">\(h\)</span> at the evaluation point <span class="math inline">\(x\)</span> and count the observations that fall inside the window. The value <code>h=0.35</code> is chosen solely for illustration. In practice, selecting an appropriate bandwidth is an important problem and often requires careful study.</p>
 <!-- fmt: off -->
-<div id="d16336ef" class="cell" data-execution_count="2">
+<div id="adcf1a89" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>x_grid <span class="op">=</span> np.linspace(x.<span class="bu">min</span>() <span class="op">-</span> <span class="dv">1</span>, x.<span class="bu">max</span>() <span class="op">+</span> <span class="dv">1</span>, <span class="dv">500</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> <span class="fl">0.35</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -820,7 +820,7 @@ e^{-u^2/2}.
 \]</span></p>
 <p>This estimator can be interpreted as placing a small Gaussian density centered at each observation and then summing the contributions from all observations. The bandwidth <span class="math inline">\(h\)</span> controls the width of these Gaussian curves.</p>
 <p>In practice, kernel density estimation is usually performed using software rather than by evaluating the formula directly. <code>KernelDensity</code> from <code>sklearn.neighbors</code> provides an implementation of KDE with several kernel choices, including the Gaussian kernel.</p>
-<div id="95eea78d" class="cell" data-execution_count="3">
+<div id="0f15c865" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-3"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-3-1"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.neighbors <span class="im">import</span> KernelDensity</span>
 <span id="annotated-cell-3-2"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="annotated-cell-3-3"><a href="#annotated-cell-3-3" aria-hidden="true" tabindex="-1"></a>kde <span class="op">=</span> KernelDensity(kernel<span class="op">=</span><span class="st">"gaussian"</span>, bandwidth<span class="op">=</span><span class="fl">0.25</span> <span class="op">*</span> x.std())</span>
@@ -839,7 +839,7 @@ e^{-u^2/2}.
 </div>
 <p>The method <code>.score_samples()</code> returns the logarithm of the estimated density rather than the density itself. This is done for numerical stability. Applying <code>np.exp()</code> converts the values back to the density scale.</p>
 <!-- fmt: off -->
-<div id="436f3829" class="cell" data-execution_count="4">
+<div id="37808cf0" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>plt.hist(x, bins<span class="op">=</span><span class="dv">20</span>, density<span class="op">=</span><span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.35</span>, edgecolor<span class="op">=</span><span class="st">"black"</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>plt.plot(x_grid, density, color<span class="op">=</span><span class="st">"C1"</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"Gaussian KDE"</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"x"</span>)</span>
@@ -1079,7 +1079,7 @@ f(x)+O(h^2),
 </div>
 <p>Therefore the pointwise mean squared error of KDE estimator satisfies</p>
 <p><span class="math display">\[
-\operatorname{MSE}\qty[\hat f(x)]=\operatorname{Bias}^2\qty[\hat f(x)]+\Var\qty[\hat f(x)]
+\operatorname{MSE}\qty[\hat f(x)]=\qty(\operatorname{Bias}\qty[\hat f(x)])^2+\Var\qty[\hat f(x)]
 =
 O(h^4)
 +
@@ -1131,7 +1131,7 @@ h=1.06\,\hat\sigma\, n^{-1/5}.
 \]</span></p>
 <p>This formula is derived under the assumption that the underlying density is approximately Gaussian and is commonly known as Silverman’s rule of thumb.</p>
 <p>The following Python code implements this rule.</p>
-<div id="6b3fd863" class="cell" data-execution_count="5">
+<div id="e9d74534" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> <span class="fl">1.06</span> <span class="op">*</span> np.std(x, ddof<span class="op">=</span><span class="dv">1</span>) <span class="op">*</span> <span class="bu">len</span>(x) <span class="op">**</span> (<span class="op">-</span><span class="dv">1</span> <span class="op">/</span> <span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Rule-of-thumb formulas are computationally inexpensive and often provide reasonable starting values. However, they rely on simplifying assumptions and may perform poorly when the underlying density differs substantially from those assumptions.</p>
@@ -1174,13 +1174,13 @@ This formula is derived under the assumption that the underlying density is appr
 
 The following Python code implements this rule.
 
-::: {#273703c5 .cell execution_count=6}
+::: {#2721e04a .cell execution_count=6}
 ``` {.python .cell-code}
 h = 1.06 * np.std(x, ddof=1) * len(x) ** (-1 / 5)
 h
 ```
 
-::: {.cell-output .cell-output-display execution_count=6}
+::: {.cell-output .cell-output-display execution_count=33}
 ```
 np.float64(0.40897130738005494)
 ```
@@ -1202,7 +1202,7 @@ However, bandwidth selection is generally more challenging in regression because
 <p>Bandwidth selection for KDE can be performed using cross-validation, plug-in methods, or other data-driven procedures.</p>
 <p>However, KDE is often used for exploratory visualization. In such settings, practitioners frequently inspect several nearby bandwidth values visually to assess the stability of the estimated density.</p>
 <!-- fmt: off -->
-<div id="15db2f6b" class="cell" data-execution_count="7">
+<div id="09f028fb" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bandwidths <span class="op">=</span> [<span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.6</span>]</span>
@@ -1297,7 +1297,7 @@ K_h(x,x_i)
 <p>We first generate a one-feature dataset and a grid for plotting predictions. The data are generated from <span class="math display">\[
 y=2\sin(x)+\varepsilon,
 \]</span> so the true regression function is <span class="math inline">\(f(x)=2\sin(x)\)</span>. We will use this function as a reference when evaluating the fitted models.</p>
-<div id="1026af58" class="cell" data-execution_count="8">
+<div id="deaf8f80" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">1</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> rng.uniform(<span class="dv">0</span>, <span class="dv">2</span> <span class="op">*</span> np.pi, size<span class="op">=</span><span class="dv">40</span>)</span>
@@ -1305,7 +1305,7 @@ y=2\sin(x)+\varepsilon,
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>X_grid <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">2</span> <span class="op">*</span> np.pi, <span class="dv">500</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>For comparison we fit a KNN regressor with <code>n_neighbors=10</code>. Since the purpose is to show the idea, for simplicity we do not split train-test or tune <span class="math inline">\(K\)</span>.</p>
-<div id="286e1028" class="cell" data-execution_count="9">
+<div id="7dedc8da" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.neighbors <span class="im">import</span> KNeighborsRegressor</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>knn <span class="op">=</span> KNeighborsRegressor(n_neighbors<span class="op">=</span><span class="dv">10</span>)</span>
@@ -1313,7 +1313,7 @@ y=2\sin(x)+\varepsilon,
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>y_knn <span class="op">=</span> knn.predict(X_grid.reshape(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now we fit a Nadaraya-Watson estimator using <code>KernelReg</code> from <code>statsmodels</code>.</p>
-<div id="586c3f1c" class="cell" data-execution_count="10">
+<div id="9368f7ad" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.nonparametric.kernel_regression <span class="im">import</span> KernelReg</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> <span class="fl">0.25</span></span>
@@ -1322,7 +1322,7 @@ y=2\sin(x)+\varepsilon,
 </div>
 <p>The bandwidth is chosen to be 0.25. This is only a simple starting value; bandwidth tuning is discussed later.</p>
 <!-- fmt: off -->
-<div id="f85997b6" class="cell" data-execution_count="11">
+<div id="2ef02994" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>), sharey<span class="op">=</span><span class="va">True</span>)</span>
@@ -1409,7 +1409,7 @@ K_h(x_0,x_i)
 =\sum_{i=1}^nw_i(x_0)y_i,\quad\text{ where }\quad w_i(x_0)=\frac{K_h(x_0,x_i)}{\sum_{j=1}^nK_h(x_0,x_j)}.
 \]</span></p>
 <p>We first compute the kernel weights for the target point <span class="math inline">\(x_0=3\)</span>. Here, <code>raw_weights</code> contains weights proportional to the Gaussian kernel weights. They have not yet been normalized to sum to one.</p>
-<div id="2f5895af" class="cell" data-execution_count="12">
+<div id="3e6b02fe" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>x0 <span class="op">=</span> <span class="fl">3.0</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> <span class="fl">0.25</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1417,12 +1417,12 @@ K_h(x_0,x_i)
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>fhat_x0 <span class="op">=</span> np.<span class="bu">sum</span>(raw_weights <span class="op">*</span> y) <span class="op">/</span> np.<span class="bu">sum</span>(raw_weights)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We then use the raw weights to determine the size of each plotted point so that larger points correspond to larger kernel weights.</p>
-<div id="bf327218" class="cell" data-execution_count="13">
+<div id="104f161d" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>point_sizes <span class="op">=</span> <span class="dv">200</span> <span class="op">*</span> raw_weights <span class="op">/</span> raw_weights.<span class="bu">max</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can now plot the data together with the fitted curve, using the assigned point sizes to represent the kernel weights.</p>
 <!-- fmt: off -->
-<div id="58f2ded8" class="cell" data-execution_count="14">
+<div id="3a1c9780" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-13"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-13-1"><a href="#annotated-cell-13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="annotated-cell-13-2"><a href="#annotated-cell-13-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="annotated-cell-13-3"><a href="#annotated-cell-13-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(X, y, s<span class="op">=</span>point_sizes, facecolors<span class="op">=</span><span class="st">"none"</span>, edgecolors<span class="op">=</span><span class="st">"black"</span>)</span>
@@ -1457,7 +1457,7 @@ K_h(x_0,x_i)
 <h3 data-number="8.3.3" class="anchored" data-anchor-id="effect-of-bandwidth-in-kernel-regression"><span class="header-section-number">8.3.3</span> Effect of Bandwidth in Kernel Regression</h3>
 <p>The same idea applies to kernel regression.</p>
 <!-- fmt: off -->
-<div id="e0369bfa" class="cell" data-execution_count="15">
+<div id="c465bb8b" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>X_grid <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">2</span> <span class="op">*</span> np.pi, <span class="dv">500</span>)</span>
@@ -1493,18 +1493,18 @@ K_h(x_0,x_i)
 <h3 data-number="8.3.4" class="anchored" data-anchor-id="bandwidth-selection-by-cross-validation"><span class="header-section-number">8.3.4</span> Bandwidth Selection by Cross-Validation</h3>
 <p>Rule-of-thumb methods are fast and easy to use, but they rely on assumptions that may not hold in practice. Cross-validation provides a more data-driven approach to bandwidth selection.</p>
 <p><code>KernelReg</code> from <code>statsmodels</code> can automatically perform cross-validation to search for the best bandwidth if the argument <code>bw="cv_ls"</code> is used. In this case, it performs leave-one-out cross-validation and selects the bandwidth that minimizes the least-squares prediction error. After the model is initialized, the cross-validation will be automatically performed, and you may directly check the best bandwidth by checking <code>kr.bw</code>.</p>
-<div id="dbcd3936" class="cell" data-execution_count="16">
+<div id="ca78c0a8" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.nonparametric.kernel_regression <span class="im">import</span> KernelReg</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>kr <span class="op">=</span> KernelReg(endog<span class="op">=</span>y, exog<span class="op">=</span>X, var_type<span class="op">=</span><span class="st">"c"</span>, reg_type<span class="op">=</span><span class="st">"lc"</span>, bw<span class="op">=</span><span class="st">"cv_ls"</span>)</span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>kr.bw</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
+<div class="cell-output cell-output-display" data-execution_count="43">
 <pre><code>array([0.53263357])</code></pre>
 </div>
 </div>
 <p>With the selected bandwidth, we can plot the fitted curve.</p>
 <!-- fmt: off -->
-<div id="a4dd32de" class="cell" data-execution_count="17">
+<div id="99448d51" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>y_best, _ <span class="op">=</span> kr.fit(X_grid)</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(X, y, s<span class="op">=</span><span class="dv">35</span>, facecolors<span class="op">=</span><span class="st">"none"</span>, edgecolors<span class="op">=</span><span class="st">"black"</span>)</span>
@@ -1544,7 +1544,7 @@ y_i-\beta_0-\beta_1(x_i-x_0)
 \]</span></p>
 <p>The <code>statsmodels</code> implementation <code>KernelReg</code> supports both local constant and local linear kernel regression through the argument <code>reg_type</code>. Use <code>reg_type="lc"</code> for local constant regression and <code>reg_type="ll"</code> for local linear regression.</p>
 <!-- fmt: off -->
-<div id="0f3d8639" class="cell" data-execution_count="18">
+<div id="89e0c266" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.nonparametric.kernel_regression <span class="im">import</span> KernelReg</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Local constant regression</span></span>
@@ -1558,7 +1558,7 @@ y_i-\beta_0-\beta_1(x_i-x_0)
 <!-- fmt: on -->
 <p>Here <code>var_type="c"</code> means that the predictor is continuous. The bandwidth <code>bw</code> controls the amount of smoothing.</p>
 <!-- fmt: off -->
-<div id="55a513b5" class="cell" data-execution_count="19">
+<div id="48296ae3" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(X, y, s<span class="op">=</span><span class="dv">35</span>, facecolors<span class="op">=</span><span class="st">"none"</span>, edgecolors<span class="op">=</span><span class="st">"black"</span>)</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>plt.plot(X_grid, <span class="dv">2</span> <span class="op">*</span> np.sin(X_grid), color<span class="op">=</span><span class="st">"C0"</span>, label<span class="op">=</span><span class="st">"true function"</span>)</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>plt.plot(X_grid, y_lc, color<span class="op">=</span><span class="st">"C1"</span>, label<span class="op">=</span><span class="st">"local constant"</span>)</span>
@@ -1706,7 +1706,7 @@ y_i-\beta_0-\beta_1(x_i-x_0)
 <p>Although the number can be any integers and seems needed for tuning, in practice, most applications use either <code>it=0</code> for ordinary LOWESS or <code>it=3</code> for robust LOWESS.</p>
 <p>So usually we start from setting <code>it=0</code>, and then try <code>it=3</code> to see whether it is better.</p>
 <p>Here is an example that we extract <code>x_lowess</code> and <code>y_lowess</code> from sorted results.</p>
-<div id="4b1b4c76" class="cell" data-execution_count="20">
+<div id="fd93a547" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.nonparametric.smoothers_lowess <span class="im">import</span> lowess</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>lowess_result <span class="op">=</span> lowess(endog<span class="op">=</span>y, exog<span class="op">=</span>X, frac<span class="op">=</span><span class="fl">0.25</span>, it<span class="op">=</span><span class="dv">0</span>, return_sorted<span class="op">=</span><span class="va">True</span>)</span>
@@ -1715,7 +1715,7 @@ y_i-\beta_0-\beta_1(x_i-x_0)
 <span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>y_lowess <span class="op">=</span> lowess_result[:, <span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We then plot the fitted curve.</p>
-<div id="d88080c4" class="cell" data-execution_count="21">
+<div id="ba67d7ab" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(X, y, s<span class="op">=</span><span class="dv">35</span>, facecolors<span class="op">=</span><span class="st">"none"</span>, edgecolors<span class="op">=</span><span class="st">"black"</span>)</span>
@@ -1741,7 +1741,7 @@ y_i-\beta_0-\beta_1(x_i-x_0)
 <li>Larger <code>frac</code> uses more nearby observations and produces a smoother curve.</li>
 </ul>
 <p>The span parameter <code>frac</code> can be selected by cross-validation when prediction accuracy is the main goal. However, LOWESS is often used as an exploratory visualization tool, so in practice <code>frac</code> is frequently chosen by comparing several values visually.</p>
-<div id="608860f4" class="cell" data-execution_count="22">
+<div id="af8cc9f9" class="cell" data-execution_count="22">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.nonparametric.smoothers_lowess <span class="im">import</span> lowess</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>fracs <span class="op">=</span> [<span class="fl">0.1</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>]</span>
@@ -1886,7 +1886,7 @@ The practical workflow is:
 \sum_{i=1}^n K_h(x,x_i)
 }.
 \]</span> We can translate this formula directly into a Python function.</p>
-<div id="14aa122b" class="cell" data-execution_count="23">
+<div id="c9af88a2" class="cell" data-execution_count="23">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> kernel_regression_predict(X, y, X_new, bandwidth):</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    diff <span class="op">=</span> X_new[:, <span class="va">None</span>] <span class="op">-</span> X[<span class="va">None</span>, :]</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    weights <span class="op">=</span> np.exp(<span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> (diff <span class="op">/</span> bandwidth) <span class="op">**</span> <span class="dv">2</span>)</span>
@@ -1943,7 +1943,7 @@ The practical workflow is:
 </section>
 <section id="sklearn-regressor" class="level3" data-number="8.5.3">
 <h3 data-number="8.5.3" class="anchored" data-anchor-id="sklearn-regressor"><span class="header-section-number">8.5.3</span> <code>sklearn</code> regressor</h3>
-<div id="02bb81be" class="cell" data-execution_count="24">
+<div id="ffead398" class="cell" data-execution_count="24">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.base <span class="im">import</span> BaseEstimator, RegressorMixin</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.utils.validation <span class="im">import</span> validate_data, check_is_fitted</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1976,7 +1976,7 @@ The practical workflow is:
 <section id="grid-search" class="level3" data-number="8.5.4">
 <h3 data-number="8.5.4" class="anchored" data-anchor-id="grid-search"><span class="header-section-number">8.5.4</span> Grid search</h3>
 <p>With the custom regressor, we can seamlessly connect it to the <code>sklearn</code> ecosystem. For example, we can start to perform grid search.</p>
-<div id="b083c378" class="cell" data-execution_count="25">
+<div id="8c07d673" class="cell" data-execution_count="25">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>bandwidth_grid <span class="op">=</span> {<span class="st">"bandwidth"</span>: np.linspace(<span class="fl">0.1</span>, <span class="fl">1.2</span>, <span class="dv">23</span>)}</span>
@@ -1985,13 +1985,13 @@ The practical workflow is:
 <span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>grid.fit(X.reshape(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>), y)</span>
 <span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>grid.best_params_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
+<div class="cell-output cell-output-display" data-execution_count="52">
 <pre><code>{'bandwidth': np.float64(0.5499999999999999)}</code></pre>
 </div>
 </div>
 <p>Plot the cross-validation curve.</p>
 <!-- fmt: off -->
-<div id="f3fce5f3" class="cell" data-execution_count="26">
+<div id="da731084" class="cell" data-execution_count="26">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>cv_score <span class="op">=</span> grid.cv_results_[<span class="st">"mean_test_score"</span>]</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>bandwidth_values <span class="op">=</span> bandwidth_grid[<span class="st">"bandwidth"</span>]</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2012,7 +2012,7 @@ The practical workflow is:
 <!-- fmt: on -->
 <p>Fit the selected model.</p>
 <!-- fmt: off -->
-<div id="49a838d2" class="cell" data-execution_count="27">
+<div id="5bc7ed68" class="cell" data-execution_count="27">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>best_kernel <span class="op">=</span> grid.best_estimator_</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>y_best <span class="op">=</span> best_kernel.predict(X_grid.reshape(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>))</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>

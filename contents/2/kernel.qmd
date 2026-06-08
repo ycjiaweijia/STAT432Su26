@@ -530,7 +530,7 @@ $$
 Therefore the pointwise mean squared error of KDE estimator satisfies
 
 $$
-\operatorname{MSE}\qty[\hat f(x)]=\operatorname{Bias}^2\qty[\hat f(x)]+\Var\qty[\hat f(x)]
+\operatorname{MSE}\qty[\hat f(x)]=\qty(\operatorname{Bias}\qty[\hat f(x)])^2+\Var\qty[\hat f(x)]
 =
 O(h^4)
 +
@@ -827,26 +827,26 @@ The API of `KernelReg` from `statsmodels` differs substantially from the APIs us
 
 1. Unlike most `sklearn` estimators, `KernelReg` does not have a separate training step. The training data are supplied when the object is created, and the `fit()` method is used to evaluate the fitted regression function at new points. In other words, `y_hat, _ = kr.fit(X)` performs prediction at the input locations `X`.
 
-   * The first returned value is the estimated conditional mean.
-   * The second returned value contains estimated marginal effects.
-   * In this chapter, we only use the fitted values, so the marginal effects are discarded by assigning them to `_`.
+   - The first returned value is the estimated conditional mean.
+   - The second returned value contains estimated marginal effects.
+   - In this chapter, we only use the fitted values, so the marginal effects are discarded by assigning them to `_`.
   
 2. The model is initialized using `endog=y` and `exog=X`.
 
-   * `endog`: endogenous variable
-   * `exog`: exogenous variable
-   * These terms come from econometrics. In a statistical learning context, you can simply think of them as `endog=y` and `exog=X`.
+   - `endog`: endogenous variable
+   - `exog`: exogenous variable
+   - These terms come from econometrics. In a statistical learning context, you can simply think of them as `endog=y` and `exog=X`.
 
 3. `reg_type="lc"` specifies the regression estimator.
 
-   * `"lc"` stands for local constant regression, which corresponds to the Nadaraya-Watson estimator introduced earlier.
-   * `"ll"` stands for local linear regression.
-   * The default is `"ll"`.
+   - `"lc"` stands for local constant regression, which corresponds to the Nadaraya-Watson estimator introduced earlier.
+   - `"ll"` stands for local linear regression.
+   - The default is `"ll"`.
 
 4. `bw` specifies the bandwidth.
 
-   * It can be supplied directly as a numeric value, as in this example.
-   * Alternatively, setting `bw="cv_ls"` instructs `KernelReg` to select the bandwidth automatically using least-squares cross-validation.
+   - It can be supplied directly as a numeric value, as in this example.
+   - Alternatively, setting `bw="cv_ls"` instructs `KernelReg` to select the bandwidth automatically using least-squares cross-validation.
 
 5. `var_type` specifies the type of each predictor variable:
      - `"c"`: continuous
