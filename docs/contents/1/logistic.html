@@ -1,0 +1,1972 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.7">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>6&nbsp; Logistic Regression – Basics of Statistical Learning</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../contents/2/knn.html" rel="next">
+<link href="../../contents/1/dr.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-226f3a294423716b85111ea720904b8c.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-83a0d0d852988bb3da68002cde3e50d8.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-226f3a294423716b85111ea720904b8c.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7e342b42b1d8244df6d5a8d63372ab02.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-34c91892f896ce4854c4dcc1026a7fe2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script><!-- mathjax-header.html -->
+
+
+
+<script>
+
+window.MathJax = {
+
+  loader: {
+
+    load: [
+
+      '[tex]/physics',
+
+      '[tex]/mathtools'
+
+    ]
+
+  },
+
+  tex: {
+
+    packages: {
+
+      '[+]': [
+
+        'physics',
+
+        'mathtools'
+
+      ]
+
+    }
+
+  }
+
+};
+
+</script>
+<script>
+window.MathJax = {
+  loader: {
+    load: [
+      '[tex]/physics',
+      '[tex]/mathtools'
+    ]
+  },
+  tex: {
+    packages: {
+      '[+]': [
+        'physics',
+        'mathtools'
+      ]
+    },
+    macros: {
+      me: "{\\mathrm e}",
+      rss: "\\mathrm{RSS}",
+      ols: "\\mathrm{OLS}",
+      ridge: "\\mathrm{ridge}",
+      lasso: "\\mathrm{lasso}",
+      mle: "\\mathrm{MLE}",
+      constant: "\\mathrm{constant}",
+      resid: "\\mathrm{residual}",
+      gini: "\\mathrm{Gini}",
+      logit: "\\operatorname{logit}",
+      Exp: "\\operatorname{E}",
+      Var: "\\operatorname{Var}",
+      Cov: "\\operatorname{Cov}",
+      Mode: "\\operatorname{mode}",
+      cor: "\\operatorname{Corr}",
+      nll: "\\operatorname{nll}",
+      pdfbinom: "{\\ttfamily binom}",
+      pdfbeta: "{\\ttfamily beta}",
+      pdfpois: "{\\ttfamily poisson}",
+      pdfgamma: "{\\ttfamily gamma}",
+      pdfnormal: "{\\ttfamily norm}",
+      pdfexp: "{\\ttfamily expon}",
+      distbinom: "\\operatorname{B}",
+      distbeta: "\\operatorname{Beta}",
+      distgamma: "\\operatorname{Gamma}",
+      distexp: "\\operatorname{Exp}",
+      distpois: "\\operatorname{Poisson}",
+      distnormal: "\\mathcal{N}"    }
+  }
+};
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles/fonts.css">
+<link rel="stylesheet" href="../../styles/blocks.css">
+</head>
+
+<body class="nav-sidebar docked quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+          <h1 class="quarto-secondary-nav-title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Logistic Regression</span></h1>
+        </a>     
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">Basics of Statistical Learning</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="../../Basics-of-Statistical-Learning.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/0/basic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">What is Statistical Learning?</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/0/decisioneval.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Classification Decisions and Evaluation</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Parametric Supervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/lr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Linear Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/shrinkage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Regularization</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/dr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Dimension reduction</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/1/logistic.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Logistic Regression</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Nonparametric Supervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/knn.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">K-Nearest Neighbors</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/kernel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Kernel Smoothing</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/tree.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Tree-Based Methods</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/rf.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Bagging and Random Forests</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/2/boost.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Boosting</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/app/ide.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Python IDE Setup</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/app/md.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Jupyter Notebook and Markdown</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/app/python.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Python Basics for <code>sklearn</code></span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../contents/app/concept.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Some Python concepts</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#binary-response" id="toc-binary-response" class="nav-link active" data-scroll-target="#binary-response"><span class="header-section-number">6.1</span> Binary Response</a>
+  <ul class="collapse">
+  <li><a href="#probability" id="toc-probability" class="nav-link" data-scroll-target="#probability"><span class="header-section-number">6.1.1</span> Probability</a></li>
+  <li><a href="#odds" id="toc-odds" class="nav-link" data-scroll-target="#odds"><span class="header-section-number">6.1.2</span> Odds</a></li>
+  <li><a href="#logit-and-log-odds" id="toc-logit-and-log-odds" class="nav-link" data-scroll-target="#logit-and-log-odds"><span class="header-section-number">6.1.3</span> Logit and Log-Odds</a></li>
+  </ul></li>
+  <li><a href="#the-logistic-regression-model" id="toc-the-logistic-regression-model" class="nav-link" data-scroll-target="#the-logistic-regression-model"><span class="header-section-number">6.2</span> The Logistic Regression Model</a>
+  <ul class="collapse">
+  <li><a href="#from-log-odds-back-to-probability" id="toc-from-log-odds-back-to-probability" class="nav-link" data-scroll-target="#from-log-odds-back-to-probability"><span class="header-section-number">6.2.1</span> From Log-Odds Back to Probability</a></li>
+  <li><a href="#logistic-regression-as-a-linear-classifier" id="toc-logistic-regression-as-a-linear-classifier" class="nav-link" data-scroll-target="#logistic-regression-as-a-linear-classifier"><span class="header-section-number">6.2.2</span> Logistic Regression as a Linear Classifier</a></li>
+  <li><a href="#interpreting-the-coefficients" id="toc-interpreting-the-coefficients" class="nav-link" data-scroll-target="#interpreting-the-coefficients"><span class="header-section-number">6.2.3</span> Interpreting the Coefficients</a></li>
+  </ul></li>
+  <li><a href="#maximum-likelihood-estimation" id="toc-maximum-likelihood-estimation" class="nav-link" data-scroll-target="#maximum-likelihood-estimation"><span class="header-section-number">6.3</span> Maximum Likelihood Estimation</a>
+  <ul class="collapse">
+  <li><a href="#binary-cross-entropy-and-a-single-neuron" id="toc-binary-cross-entropy-and-a-single-neuron" class="nav-link" data-scroll-target="#binary-cross-entropy-and-a-single-neuron"><span class="header-section-number">6.3.1</span> Binary Cross-Entropy and a Single Neuron</a></li>
+  </ul></li>
+  <li><a href="#regularized-logistic-regression" id="toc-regularized-logistic-regression" class="nav-link" data-scroll-target="#regularized-logistic-regression"><span class="header-section-number">6.4</span> Regularized Logistic Regression</a></li>
+  <li><a href="#logistic-regression-in-sklearn" id="toc-logistic-regression-in-sklearn" class="nav-link" data-scroll-target="#logistic-regression-in-sklearn"><span class="header-section-number">6.5</span> Logistic Regression in <code>sklearn</code></a>
+  <ul class="collapse">
+  <li><a href="#regularization" id="toc-regularization" class="nav-link" data-scroll-target="#regularization"><span class="header-section-number">6.5.1</span> Regularization</a></li>
+  </ul></li>
+  <li><a href="#example-1-binary-classification" id="toc-example-1-binary-classification" class="nav-link" data-scroll-target="#example-1-binary-classification"><span class="header-section-number">6.6</span> Example 1: Binary classification</a>
+  <ul class="collapse">
+  <li><a href="#tuning-c" id="toc-tuning-c" class="nav-link" data-scroll-target="#tuning-c"><span class="header-section-number">6.6.1</span> Tuning <code>C</code></a></li>
+  <li><a href="#tuning-the-threshold" id="toc-tuning-the-threshold" class="nav-link" data-scroll-target="#tuning-the-threshold"><span class="header-section-number">6.6.2</span> Tuning the threshold</a></li>
+  </ul></li>
+  <li><a href="#multiclass-extension" id="toc-multiclass-extension" class="nav-link" data-scroll-target="#multiclass-extension"><span class="header-section-number">6.7</span> Multiclass Extension</a>
+  <ul class="collapse">
+  <li><a href="#cross-entropy-loss" id="toc-cross-entropy-loss" class="nav-link" data-scroll-target="#cross-entropy-loss"><span class="header-section-number">6.7.1</span> Cross-Entropy Loss</a></li>
+  </ul></li>
+  <li><a href="#example-2-multinomial-logistic-regression" id="toc-example-2-multinomial-logistic-regression" class="nav-link" data-scroll-target="#example-2-multinomial-logistic-regression"><span class="header-section-number">6.8</span> Example 2: Multinomial Logistic Regression</a>
+  <ul class="collapse">
+  <li><a href="#probabilities-and-softmax" id="toc-probabilities-and-softmax" class="nav-link" data-scroll-target="#probabilities-and-softmax"><span class="header-section-number">6.8.1</span> Probabilities and Softmax</a></li>
+  <li><a href="#confusion-matrix" id="toc-confusion-matrix" class="nav-link" data-scroll-target="#confusion-matrix"><span class="header-section-number">6.8.2</span> Confusion Matrix</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Logistic Regression</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Logistic regression is a classification method for binary outcomes. It estimates the conditional probability of the positive class and then converts that probability into a class decision only after a threshold is chosen. Many of the materials were already covered in <a href="../0/decisioneval.html" class="quarto-xref"><span>Chapter 2</span></a>. We provide more details in this section.</p>
+<section id="binary-response" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="binary-response"><span class="header-section-number">6.1</span> Binary Response</h2>
+<section id="probability" class="level3" data-number="6.1.1">
+<h3 data-number="6.1.1" class="anchored" data-anchor-id="probability"><span class="header-section-number">6.1.1</span> Probability</h3>
+<p>Suppose <span class="math inline">\(Y \in \qty{0,1}\)</span>. We usually call <span class="math inline">\(Y=1\)</span> the positive class, success class, or class <span class="math inline">\(1\)</span>, and <span class="math inline">\(Y=0\)</span> the negative class, failure class, or class <span class="math inline">\(0\)</span>.</p>
+<p>For a given predictor vector <span class="math inline">\(x\)</span>, define <span class="math display">\[
+p(x)=\Pr(Y=1\mid X=x).
+\]</span> Then <span class="math display">\[
+\Pr(Y=0\mid X=x)=1-p(x).
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Any probability is within <span class="math inline">\([0,1]\)</span>. Therefore it is bounded.</p>
+</div>
+</div>
+</section>
+<section id="odds" class="level3" data-number="6.1.2">
+<h3 data-number="6.1.2" class="anchored" data-anchor-id="odds"><span class="header-section-number">6.1.2</span> Odds</h3>
+<p>If an event occurs with probability <span class="math inline">\(p\)</span>, its odds are <span class="math inline">\(\frac{p}{1-p}\)</span>. Odds compare the probability that the event occurs with the probability that it does not occur.</p>
+<p>For binary classification,</p>
+<p><span class="math display">\[
+\text{odds of class }1
+=
+\frac{P(Y=1\mid X=x)}
+     {P(Y=0\mid X=x)}
+=
+\frac{p(x)}
+     {1-p(x)}.
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Odds take values in <span class="math inline">\((0,\infty)\)</span>. Comparing to probability, odds remove the upper bound of probability, but they are still restricted to be positive.</p>
+</div>
+</div>
+</section>
+<section id="logit-and-log-odds" class="level3" data-number="6.1.3">
+<h3 data-number="6.1.3" class="anchored" data-anchor-id="logit-and-log-odds"><span class="header-section-number">6.1.3</span> Logit and Log-Odds</h3>
+<p>To remove the positivity restriction of odds, we take a logarithm.</p>
+<div id="def-logit" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 6.1 (Logit)</strong></span> The <strong>logit</strong> of a probability <span class="math inline">\(p\)</span> is</p>
+<p><span class="math display">\[
+\logit(p)=\log\qty(\frac{p}{1-p}).
+\]</span></p>
+<p>It is also called the <strong>log-odds</strong>.</p>
+</div>
+<p>The inverse of the logit function is the logistic (sigmoid) function. It will be discussed next.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The logit transformation maps probabilities from <span class="math inline">\((0,1)\)</span> to the entire real line <span class="math inline">\((-\infty,\infty)\)</span>.</p>
+</div>
+</div>
+<div id="exm-" class="theorem example">
+<p><span class="theorem-title"><strong>Example 6.1</strong></span> &nbsp;</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 10%">
+<col style="width: 22%">
+<col style="width: 60%">
+</colgroup>
+<thead>
+<tr class="header">
+<th><span class="math inline">\(p\)</span></th>
+<th>Odds</th>
+<th>Logit</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(0.10\)</span></td>
+<td><span class="math inline">\(1/9\)</span></td>
+<td><span class="math inline">\(\log(1/9)\approx -2.197\)</span></td>
+<td>Failure is much more likely than success</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(0.50\)</span></td>
+<td><span class="math inline">\(1\)</span></td>
+<td><span class="math inline">\(0\)</span></td>
+<td>Success and failure are equally likely</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(0.75\)</span></td>
+<td><span class="math inline">\(3\)</span></td>
+<td><span class="math inline">\(\log(3)\approx 1.099\)</span></td>
+<td>Success is three times as likely as failure</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(0.90\)</span></td>
+<td><span class="math inline">\(9\)</span></td>
+<td><span class="math inline">\(\log(9)\approx 2.197\)</span></td>
+<td>Success is nine times as likely as failure</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="the-logistic-regression-model" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="the-logistic-regression-model"><span class="header-section-number">6.2</span> The Logistic Regression Model</h2>
+<!-- The logit gives us a quantity that can reasonably be modeled by a linear function. Let
+
+$$
+\eta(x)
+=
+\beta_0+\beta_1x_1+\cdots+\beta_p x_p
+=
+x^\top\beta.
+$$
+
+Here $\eta(x)$ is called the linear predictor. -->
+<p>Logistic regression assumes that the log-odds are linear in the predictors:</p>
+<p><span class="math display">\[
+\logit(p(x))=\beta_0+\beta_1x_1+\cdots+\beta_p x_p.
+\]</span></p>
+<p>Equivalently,</p>
+<p><span class="math display">\[
+\log\qty(\frac{p(x)}{1-p(x)})=\beta_0+\beta_1x_1+\cdots+\beta_p x_p.
+\]</span></p>
+<p>This is the main equation of logistic regression.</p>
+<section id="from-log-odds-back-to-probability" class="level3" data-number="6.2.1">
+<h3 data-number="6.2.1" class="anchored" data-anchor-id="from-log-odds-back-to-probability"><span class="header-section-number">6.2.1</span> From Log-Odds Back to Probability</h3>
+<p>Starting from</p>
+<p><span class="math display">\[
+\log\qty(\frac{p(x)}{1-p(x)})=\beta_0+\beta_1x_1+\cdots+\beta_p x_p=x^\top\beta,
+\]</span></p>
+<p>exponentiating both sides gives</p>
+<p><span class="math display">\[
+\frac{p(x)}{1-p(x)}= \exp(x^\top\beta).
+\]</span></p>
+<p>Solving for <span class="math inline">\(p(x)\)</span> gives</p>
+<p><span class="math display">\[
+p(x)= \frac{\exp(x^\top\beta)}{1+\exp(x^\top\beta)}=\frac{1}{1+\exp(-x^\top\beta)}.
+\]</span></p>
+<div id="def-" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 6.2 (The Sigmoid function)</strong></span> Define <span class="math display">\[
+\sigma(z)=\frac{1}{1+\exp(-z)}.
+\]</span> This is the Sigmoid function, also called the logistic function.</p>
+</div>
+<p>With this definition, the logistic regression can be written as</p>
+<p><span class="math display">\[
+p(x)=\sigma(x^\top\beta)=\sigma(\beta_0+\beta_1x_1+\cdots+\beta_p x_p=x^\top\beta).
+\]</span></p>
+<p>The logistic function has several important properties.</p>
+<ol type="1">
+<li><span class="math inline">\(0&lt;\sigma(z)&lt;1\)</span>. So it always produces a valid probability for every real number <span class="math inline">\(z\)</span>.</li>
+<li>It is increasing: <span class="math inline">\(z_1&lt;z_2\quad\Rightarrow\quad\sigma(z_1)&lt;\sigma(z_2)\)</span>.</li>
+<li><span class="math inline">\(p(x)\)</span> is <span class="math display">\[
+\begin{cases}
+\text{close to }0,&amp;\text{ if }x^\top\beta&lt;&lt;0,\\
+0.5,&amp;\text{ if }x^\top\beta=0,\\
+\text{close to }1,&amp;\text{ if }x^\top\beta&gt;&gt;0.
+\end{cases}
+\]</span></li>
+</ol>
+<p>The curve is displayed as follows.</p>
+<div id="4141e76e" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logistic_files/figure-html/cell-2-output-1.png" width="571" height="411" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Historical Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The logistic curve was introduced by Pierre-François Verhulst in 1838 <span class="citation" data-cites="verhulst1838">[<a href="../../index.html#ref-verhulst1838" role="doc-biblioref">1</a>]</span> while studying population growth.</p>
+<p>The term <strong>logit</strong> was introduced by Joseph Berkson in 1944 <span class="citation" data-cites="Berkson1944">[<a href="../../index.html#ref-Berkson1944" role="doc-biblioref">2</a>]</span>. Berkson used the word logit for the logarithm of the odds and advocated the logistic function in bioassay problems.</p>
+<p>Logistic regression later became a central example of generalized linear models. In GLM terminology, logistic regression uses:</p>
+<ul>
+<li>Bernoulli response distribution;</li>
+<li>logit link function;</li>
+<li>linear predictor <span class="math inline">\(x^\top\beta\)</span>.</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="logistic-regression-as-a-linear-classifier" class="level3" data-number="6.2.2">
+<h3 data-number="6.2.2" class="anchored" data-anchor-id="logistic-regression-as-a-linear-classifier"><span class="header-section-number">6.2.2</span> Logistic Regression as a Linear Classifier</h3>
+<p>Logistic regression produces probabilities, therefore it can also be used for classification.</p>
+<p>Using the common threshold <span class="math inline">\(t=0.5\)</span>, we predict</p>
+<p><span class="math display">\[
+\hat y
+=
+\begin{cases}
+1,&amp; p(x)\ge 0.5,\\
+0,&amp; p(x)&lt;0.5.
+\end{cases}
+\]</span></p>
+<p>Since</p>
+<p><span class="math display">\[
+p(x)\ge 0.5
+\iff
+x^\top\beta\ge 0,
+\]</span></p>
+<p>the classification rule becomes</p>
+<p><span class="math display">\[
+\hat y
+=
+\begin{cases}
+1,&amp; x^\top\beta\ge 0,\\
+0,&amp; x^\top\beta&lt;0.
+\end{cases}
+\]</span></p>
+<p>Therefore, the decision boundary is</p>
+<p><span class="math display">\[
+x^\top\beta=0.
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Geometric Interpretation
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The decision boundary <span class="math inline">\(x^\top\beta=0\)</span> is a line in two dimensions, a plane in three dimensions, and a hyperplane in higher dimensions.</p>
+<p>Thus logistic regression is a linear classifier: Even though the probability curve is nonlinear, the decision boundary is linear in the original predictor space.</p>
+</div>
+</div>
+</section>
+<section id="interpreting-the-coefficients" class="level3" data-number="6.2.3">
+<h3 data-number="6.2.3" class="anchored" data-anchor-id="interpreting-the-coefficients"><span class="header-section-number">6.2.3</span> Interpreting the Coefficients</h3>
+<p>Consider the model <span class="math display">\[
+p(x)=\sigma(\beta_0+\beta_1x_1+\ldots+\beta_px_p),
+\]</span> where <span class="math inline">\(\beta_0+\beta_1x_1+\ldots+\beta_px_p=x^\top \beta\)</span> is the linear predictor.</p>
+<p>Suppose all other predictors are held fixed. Increasing <span class="math inline">\(x_j\)</span> by one unit changes the linear predictor by <span class="math inline">\(\beta_j\)</span>. Because the linear predictor represents the log-odds, increasing <span class="math inline">\(x_j\)</span> by one unit changes the log-odds by <span class="math inline">\(\beta_j\)</span>.</p>
+<p>Thus:</p>
+<ul>
+<li>if <span class="math inline">\(\beta_j&gt;0\)</span>, increasing <span class="math inline">\(x_j\)</span> increases the log-odds of class <span class="math inline">\(1\)</span>;</li>
+<li>if <span class="math inline">\(\beta_j&lt;0\)</span>, increasing <span class="math inline">\(x_j\)</span> decreases the log-odds of class <span class="math inline">\(1\)</span>;</li>
+<li>if <span class="math inline">\(\beta_j=0\)</span>, increasing <span class="math inline">\(x_j\)</span> does not change the log-odds.</li>
+</ul>
+<p>For a one-unit increase in <span class="math inline">\(x_j\)</span>, holding all other predictors fixed, the linear predictor increases by <span class="math inline">\(\beta_j\)</span>. Since <span class="math inline">\(\beta_j\)</span> is a change in log-odds, exponentiating gives a multiplicative change in odds, then the odds are expected to be multiplied by <span class="math inline">\(\exp(\beta_j)\)</span>:</p>
+<p>Consider <span class="math display">\[
+\log(\text{odds}_1)-\log(\text{odds}_2)=\beta_j.
+\]</span> Then <span class="math display">\[
+\frac{\text{odds}_1}{\text{odds}_2}=\me^{\beta_j}.
+\]</span></p>
+<div id="def-odds-ratio" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 6.3 (Odds Ratio)</strong></span> The quantity <span class="math inline">\(\exp(\beta_j)\)</span> is called the <strong>odds ratio</strong>.</p>
+</div>
+<div id="exm-" class="theorem example">
+<p><span class="theorem-title"><strong>Example 6.2 (Example)</strong></span> Suppose <span class="math inline">\(\beta_j=0.08\)</span>. Since</p>
+<p><span class="math display">\[
+\exp(0.08)\approx 1.083,
+\]</span> Then a one-unit increase in <span class="math inline">\(x_j\)</span> multiplies the odds by approximately <span class="math inline">\(1.083\)</span>. Equivalently, the odds increase by approximately <span class="math inline">\(8.3\%\)</span>.</p>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The coefficient <span class="math inline">\(\beta_j\)</span> is not a direct change in probability since the relation between the logit and the probability is a sigmoid function (which is non-linear). So the probability change depends on the current value of <span class="math inline">\(x^\top\beta\)</span>. For the same value of <span class="math inline">\(\beta_j\)</span>, the probability change can be small when <span class="math inline">\(p(x)\)</span> is already close to <span class="math inline">\(0\)</span> or close to <span class="math inline">\(1\)</span>, and larger when <span class="math inline">\(p(x)\)</span> is near <span class="math inline">\(0.5\)</span>.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="maximum-likelihood-estimation" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="maximum-likelihood-estimation"><span class="header-section-number">6.3</span> Maximum Likelihood Estimation</h2>
+<p>Logistic regression is usually fit using maximum likelihood estimation.</p>
+<p>Assume we are given a dataset <span class="math inline">\(\qty{(x_i,y_i)}_{i=1}^n\)</span>, where <span class="math inline">\(y_i\in\qty{0,1}\)</span>. In logistic regression, we model the conditional probability that the response belongs to class <span class="math inline">\(1\)</span>: <span class="math display">\[
+p_i=\Pr(Y_i=1\mid X_i=x_i)=\sigma(x_i^\top\beta).
+\]</span></p>
+<p>Since <span class="math inline">\(Y_i\)</span> only takes the values <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span>, it is natural to model its conditional distribution using a Bernoulli distribution. <span class="math display">\[
+Y_i\mid X_i=x_i\sim\operatorname{Bernoulli}(p_i).
+\]</span></p>
+<p>The probability mass function of a Bernoulli random variable is</p>
+<p><span class="math display">\[
+\Pr(Y_i=y_i)
+=
+p_i^{y_i}(1-p_i)^{1-y_i}.
+\]</span></p>
+<p>Assuming the observations are independent and conditional on the predictors, the likelihood function is</p>
+<p><span class="math display">\[
+L(\beta)
+=
+\prod_{i=1}^{n}
+p_i^{y_i}(1-p_i)^{1-y_i}.
+\]</span></p>
+<p>Taking the logarithm, the log-likelihood is</p>
+<p><span class="math display">\[
+\ell(\beta)=\sum_{i=1}^{n}\qty[y_i\log(p_i)+(1-y_i)\log(1-p_i)].
+\]</span></p>
+<p>The maximum likelihood estimate is</p>
+<p><span class="math display">\[
+\hat\beta
+=
+\arg\max_{\beta}\ell(\beta).
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Gradient descent
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Unlike ordinary least squares, logistic regression does not have a simple closed-form solution for <span class="math inline">\(\hat\beta\)</span>. In practice, numerical optimization methods are used.</p>
+<p>Gradient descent is one of the most widely used optimization methods in machine learning. Although linear regression and logistic regression use different models and different loss functions, their gradient expressions have a similar matrix form. As a result, their gradient descent update formulas also look very similar.</p>
+<p>Gradient descent is beyond the scope of this course, although it plays an important role in modern machine learning.</p>
+</div>
+</div>
+<section id="binary-cross-entropy-and-a-single-neuron" class="level3" data-number="6.3.1">
+<h3 data-number="6.3.1" class="anchored" data-anchor-id="binary-cross-entropy-and-a-single-neuron"><span class="header-section-number">6.3.1</span> Binary Cross-Entropy and a Single Neuron</h3>
+<p>The negative log-likelihood is</p>
+<p><span class="math display">\[
+-\ell(\beta)
+=
+-\sum_{i=1}^{n}
+\left[
+y_i\log(p_i)
++
+(1-y_i)\log(1-p_i)
+\right].
+\]</span></p>
+<p>In machine learning, this is called binary cross-entropy loss or log loss. It is simply the negative of the log-likelihood mentioned in the previous section. The reason of this negative is that in machine learning it is usually preferred to lower the loss function.</p>
+<p>Therefore logistic regression is not just a classification model. It is also a probabilistic model trained by minimizing a loss function that rewards accurate probability estimates.</p>
+<p>What is more, a logistic regression model can be viewed as a single sigmoid neuron, since the model has the form</p>
+<p><span class="math display">\[
+x
+\longmapsto
+x^\top\beta
+\longmapsto
+\sigma(x^\top\beta)
+\longmapsto
+p(x).
+\]</span></p>
+<p>This is essentially a neural network with no hidden layers and one output unit, with sigmoid activation and binary cross-entropy loss.</p>
+<p>This connects logistic regression to modern machine learning methods, including neural networks, which often use cross-entropy loss for classification.</p>
+</section>
+</section>
+<section id="regularized-logistic-regression" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="regularized-logistic-regression"><span class="header-section-number">6.4</span> Regularized Logistic Regression</h2>
+<p>When there are many predictors, logistic regression can overfit. A common solution is to add regularization, like ridge and lasso for linear regression.</p>
+<ol type="1">
+<li>Ridge logistic regression penalizes large coefficients using an <span class="math inline">\(L^2\)</span> penalty:</li>
+</ol>
+<p><span class="math display">\[
+-\ell(\beta)
++
+\lambda\sum_{j=1}^{p}\beta_j^2.
+\]</span> This shrinks coefficients toward zero but usually does not set them exactly to zero.</p>
+<ol start="2" type="1">
+<li>Lasso logistic regression uses an <span class="math inline">\(L^1\)</span> penalty:</li>
+</ol>
+<p><span class="math display">\[
+-\ell(\beta)
++
+\lambda\sum_{j=1}^{p}|\beta_j|.
+\]</span> This can shrink some coefficients exactly to zero, producing a simpler model.</p>
+</section>
+<section id="logistic-regression-in-sklearn" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="logistic-regression-in-sklearn"><span class="header-section-number">6.5</span> Logistic Regression in <code>sklearn</code></h2>
+<p>We usually use <code>LogisticRegression</code> from <code>sklearn.linear_model</code> to implement logistic regression. The most commonly used solver in modern versions of scikit-learn is <code>lbfgs</code>, which is the default choice for <code>LogisticRegression()</code>. It is a quasi-Newton optimization method that usually converges much faster than simple gradient descent. In addition it is automatically extended to multiclass cases.</p>
+<p>The basic code is as usual:</p>
+<div id="8ef92412" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>logit <span class="op">=</span> make_pipeline(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    StandardScaler(),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    LogisticRegression(max_iter<span class="op">=</span><span class="dv">5000</span>),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>logit.fit(X_train, y_train)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>test_prob <span class="op">=</span> logit.predict_proba(X_test)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>test_pred <span class="op">=</span> logit.predict(X_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Logistic regression is very similar to linear regression, that the scales of features matters. Therefore we need to set up a pipeline to standarize al features first.</p>
+<p>The model actually has two types of outputs:</p>
+<ul>
+<li><code>predict_proba()</code> returns estimated class probabilities. The second column is the estimated probability of the positive class.</li>
+<li><code>predict()</code> returns class labels using the default threshold <span class="math inline">\(0.5\)</span>.</li>
+</ul>
+<section id="regularization" class="level3" data-number="6.5.1">
+<h3 data-number="6.5.1" class="anchored" data-anchor-id="regularization"><span class="header-section-number">6.5.1</span> Regularization</h3>
+<p>The general idea of regularization in <code>LogisticRegression()</code> is based on the elastic-net style penalty, which is controlled by two arguments <code>l1_ratio</code> and <code>C</code>. Conceptually, the penalty behaves like <span class="math display">\[
+-\ell+\frac1C(\verb|l1_ratio|\norm{\beta}_1+(1-\verb|l1_ratio|)\norm{\beta}_2^2).
+\]</span></p>
+<ul>
+<li><code>l1_ratio</code> is to control the type of regularization:
+<ul>
+<li><code>l1_ratio = 0</code>: pure L2 regularization;</li>
+<li><code>l1_ratio = 1</code>: pure L1 regularization;</li>
+<li><code>0 &lt; l1_ratio &lt; 1</code>: elastic-net regularization.</li>
+</ul></li>
+<li><code>C</code>, which is <span class="math inline">\(1/\lambda\)</span>, is to control the regularization strength:
+<ul>
+<li><code>C=np.inf</code> means no penalty.</li>
+</ul></li>
+</ul>
+<p>The exact formula used inside <code>sklearn</code> is more complicated which incorprates other aspects such as number of observations.</p>
+<p>Note that some combinations of regularization and solvers are not compatible. For example,</p>
+<ul>
+<li>elastic-net regularization requires the <code>saga</code> solver;</li>
+<li>the default solve <code>lbfgs</code> requires <code>l2</code> so <code>l1_ratio</code> has to be 0.</li>
+</ul>
+<p>The default setting for <code>LogisticRegression()</code> is that <code>l1_ratio=0</code>, <code>C=1</code> and <code>solver="lbfgs"</code>.</p>
+</section>
+</section>
+<section id="example-1-binary-classification" class="level2" data-number="6.6">
+<h2 data-number="6.6" class="anchored" data-anchor-id="example-1-binary-classification"><span class="header-section-number">6.6</span> Example 1: Binary classification</h2>
+<p>We first consider a binary classification problem.</p>
+<p>The Titanic dataset records information about passengers aboard the Titanic. Our goal is to predict whether a passenger survived. We load the dataset from the database from <code>seaborn</code>.</p>
+<div id="d706c6b7" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>titanic <span class="op">=</span> sns.load_dataset(<span class="st">"titanic"</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> titanic[[<span class="st">"survived"</span>, <span class="st">"age"</span>, <span class="st">"fare"</span>, <span class="st">"pclass"</span>]].dropna()</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> data[[<span class="st">"age"</span>, <span class="st">"fare"</span>, <span class="st">"pclass"</span>]]</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> data[<span class="st">"survived"</span>]</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    X, y, test_size<span class="op">=</span><span class="fl">0.3</span>, stratify<span class="op">=</span>y, random_state<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Here we only use 3 features <code>age</code>, <code>fare</code> and <code>pclass</code> to predict <code>survived</code>.</p>
+<p>We quickly fit the model with default setting.</p>
+<div id="9265b0ca" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-3"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-3-1"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
+<span id="annotated-cell-3-2"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="annotated-cell-3-3"><a href="#annotated-cell-3-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="annotated-cell-3-4"><a href="#annotated-cell-3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-3-5"><a href="#annotated-cell-3-5" aria-hidden="true" tabindex="-1"></a>logit <span class="op">=</span> make_pipeline(StandardScaler(), LogisticRegression(max_iter<span class="op">=</span><span class="dv">5000</span>))</span>
+<span id="annotated-cell-3-6"><a href="#annotated-cell-3-6" aria-hidden="true" tabindex="-1"></a>logit.fit(X_train, y_train)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="1">1</button><span id="annotated-cell-3-7" class="code-annotation-target"><a href="#annotated-cell-3-7" aria-hidden="true" tabindex="-1"></a>test_prob <span class="op">=</span> logit.predict_proba(X_test)[:, <span class="dv">1</span>]</span>
+<span id="annotated-cell-3-8"><a href="#annotated-cell-3-8" aria-hidden="true" tabindex="-1"></a>test_pred <span class="op">=</span> logit.predict(X_test)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-3" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-3" data-code-lines="7" data-code-annotation="1">For binary classification, the output of <code>.predict_proba()</code> contains two columns, each for a class. We want to test 1, so we choose column 1.</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>We focus on tuning <code>C</code> and the threshold. Note that the two hyperparameters take effects in different stage. <code>C</code> is about the training of the model, while the threshold is about prediction. Therefore for logistic regression we usually tune <code>C</code> first and then find the best threshold afterwards.</p>
+<section id="tuning-c" class="level3" data-number="6.6.1">
+<h3 data-number="6.6.1" class="anchored" data-anchor-id="tuning-c"><span class="header-section-number">6.6.1</span> Tuning <code>C</code></h3>
+<p>We use cross-validation with the F1 score as the evaluation metric. Since the F1 score combines precision and recall, it is useful when we want to balance false positives and false negatives. In this example, we use it to select a model that balances the two types of classification errors when predicting passenger survival.</p>
+<div id="1d07165b" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>param_grid <span class="op">=</span> {<span class="st">"logisticregression__C"</span>: np.logspace(<span class="op">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">20</span>)}</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> GridSearchCV(logit, param_grid<span class="op">=</span>param_grid, cv<span class="op">=</span><span class="dv">5</span>, scoring<span class="op">=</span><span class="st">"f1"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>grid.fit(X_train, y_train)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>grid.best_params_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>{'logisticregression__C': np.float64(2.976351441631316)}</code></pre>
+</div>
+</div>
+</section>
+<section id="tuning-the-threshold" class="level3" data-number="6.6.2">
+<h3 data-number="6.6.2" class="anchored" data-anchor-id="tuning-the-threshold"><span class="header-section-number">6.6.2</span> Tuning the threshold</h3>
+<p>To tune the threshold, we use the helper function defined in <a href="../0/decisioneval.html" class="quarto-xref"><span>Chapter 2</span></a>.</p>
+<div id="d3e9d540" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> accuracy_score, precision_score, recall_score, f1_score</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> classification_summary(y_true, prob, threshold<span class="op">=</span><span class="fl">0.5</span>):</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    pred <span class="op">=</span> (prob <span class="op">&gt;=</span> threshold).astype(<span class="bu">int</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    TN, FP, FN, TP <span class="op">=</span> confusion_matrix(y_true, pred).ravel()</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"threshold"</span>: threshold,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"TP"</span>: TP,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">"FP"</span>: FP,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">"FN"</span>: FN,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">"TN"</span>: TN,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">"accuracy"</span>: accuracy_score(y_true, pred),</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">"precision"</span>: precision_score(y_true, pred, zero_division<span class="op">=</span><span class="dv">0</span>),</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        <span class="st">"recall"</span>: recall_score(y_true, pred, zero_division<span class="op">=</span><span class="dv">0</span>),</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">"f1"</span>: f1_score(y_true, pred, zero_division<span class="op">=</span><span class="dv">0</span>),</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We may use the regular split-validation method. The model use the best <code>C</code> from the cross-validation from the previous section.</p>
+<div id="05295d48" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-6"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-6-1"><a href="#annotated-cell-6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="annotated-cell-6-2"><a href="#annotated-cell-6-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="annotated-cell-6-3"><a href="#annotated-cell-6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-6-4"><a href="#annotated-cell-6-4" aria-hidden="true" tabindex="-1"></a>X_model, X_valid, y_model, y_valid <span class="op">=</span> train_test_split(</span>
+<span id="annotated-cell-6-5"><a href="#annotated-cell-6-5" aria-hidden="true" tabindex="-1"></a>    X_train, y_train, test_size<span class="op">=</span><span class="fl">0.25</span>, stratify<span class="op">=</span>y_train, random_state<span class="op">=</span><span class="dv">1</span></span>
+<span id="annotated-cell-6-6"><a href="#annotated-cell-6-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="annotated-cell-6-7"><a href="#annotated-cell-6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-6-8"><a href="#annotated-cell-6-8" aria-hidden="true" tabindex="-1"></a>best_C <span class="op">=</span> grid.best_params_[<span class="st">'logisticregression__C'</span>]</span>
+<span id="annotated-cell-6-9"><a href="#annotated-cell-6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-6-10"><a href="#annotated-cell-6-10" aria-hidden="true" tabindex="-1"></a>candidate_thresholds <span class="op">=</span> np.linspace(<span class="fl">0.05</span>, <span class="fl">0.95</span>, <span class="dv">91</span>)</span>
+<span id="annotated-cell-6-11"><a href="#annotated-cell-6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-6-12"><a href="#annotated-cell-6-12" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> []</span>
+<span id="annotated-cell-6-13"><a href="#annotated-cell-6-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t <span class="kw">in</span> candidate_thresholds:</span>
+<span id="annotated-cell-6-14"><a href="#annotated-cell-6-14" aria-hidden="true" tabindex="-1"></a>    best_logit <span class="op">=</span> make_pipeline(</span>
+<span id="annotated-cell-6-15"><a href="#annotated-cell-6-15" aria-hidden="true" tabindex="-1"></a>        StandardScaler(),</span>
+<span id="annotated-cell-6-16"><a href="#annotated-cell-6-16" aria-hidden="true" tabindex="-1"></a>        LogisticRegression(C<span class="op">=</span>best_C, max_iter<span class="op">=</span><span class="dv">5000</span>),</span>
+<span id="annotated-cell-6-17"><a href="#annotated-cell-6-17" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="annotated-cell-6-18"><a href="#annotated-cell-6-18" aria-hidden="true" tabindex="-1"></a>    best_logit.fit(X_model, y_model)</span>
+<span id="annotated-cell-6-19"><a href="#annotated-cell-6-19" aria-hidden="true" tabindex="-1"></a>    valid_prob <span class="op">=</span> best_logit.predict_proba(X_valid)[:, <span class="dv">1</span>]</span>
+<span id="annotated-cell-6-20"><a href="#annotated-cell-6-20" aria-hidden="true" tabindex="-1"></a>    results.append(classification_summary(y_valid, valid_prob, threshold<span class="op">=</span>t))</span>
+<span id="annotated-cell-6-21"><a href="#annotated-cell-6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-6-22"><a href="#annotated-cell-6-22" aria-hidden="true" tabindex="-1"></a>threshold_df <span class="op">=</span> pd.DataFrame(results)</span>
+<span id="annotated-cell-6-23"><a href="#annotated-cell-6-23" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="1">1</button><span id="annotated-cell-6-24" class="code-annotation-target"><a href="#annotated-cell-6-24" aria-hidden="true" tabindex="-1"></a>best_row <span class="op">=</span> threshold_df.loc[threshold_df[<span class="st">"f1"</span>].idxmax()]</span>
+<span id="annotated-cell-6-25"><a href="#annotated-cell-6-25" aria-hidden="true" tabindex="-1"></a>best_row</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-6" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="24" data-code-annotation="1"><code>best_row</code> is a Series object. Therefore although it is a row, it is displayed as a column.</span>
+</dd>
+</dl>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>threshold     0.360000
+TP           39.000000
+FP           17.000000
+FN           12.000000
+TN           57.000000
+accuracy      0.768000
+precision     0.696429
+recall        0.764706
+f1            0.728972
+Name: 31, dtype: float64</code></pre>
+</div>
+</div>
+<p>We can fix the threshold and treat it as part of the prediction rule.</p>
+<div id="edd5aa71" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> FixedThresholdClassifier</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>final_logit <span class="op">=</span> make_pipeline(</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    StandardScaler(), LogisticRegression(C<span class="op">=</span>best_C, max_iter<span class="op">=</span><span class="dv">5000</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>model_with_threshold <span class="op">=</span> FixedThresholdClassifier(</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    final_logit, threshold<span class="op">=</span>best_row[<span class="st">"threshold"</span>]</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>model_with_threshold.fit(X_train, y_train)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>model_with_threshold.score(X_test, y_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>0.6465116279069767</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Notice that changing the threshold does not change the fitted model. The estimated probabilities remain the same. The threshold only changes how those probabilities are converted into class labels.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="multiclass-extension" class="level2" data-number="6.7">
+<h2 data-number="6.7" class="anchored" data-anchor-id="multiclass-extension"><span class="header-section-number">6.7</span> Multiclass Extension</h2>
+<p>The basic logistic regression model handles binary outcomes. For problems with more than two classes, a common extension is multinomial logistic regression.</p>
+<p>Suppose</p>
+<p><span class="math display">\[
+Y\in{1,2,\ldots,K}.
+\]</span></p>
+<p>Instead of modeling the probability of a single class, multinomial logistic regression models the probability of every class simultaneously.</p>
+<p>For each class <span class="math inline">\(k\)</span>, define a linear predictor</p>
+<p><span class="math display">\[
+\eta_k(x)=x^\top\beta_k=\beta_{0,k}+\beta_{1,k}x_1+\ldots+\beta_{p,k}x_p.
+\]</span></p>
+<p>The predicted probability of class <span class="math inline">\(k\)</span> is then given by the softmax function:</p>
+<p><span class="math display">\[
+\Pr(Y=k\mid X=x)=
+\frac{\exp(\eta_k(x))}
+{\sum_{\ell=1}^{K}\exp(\eta_\ell(x))}.
+\]</span></p>
+<p>The softmax function converts the collection of scores</p>
+<p><span class="math display">\[
+\eta_1(x),\eta_2(x),\ldots,\eta_K(x)
+\]</span></p>
+<p>into probabilities that satisfy</p>
+<p><span class="math display">\[
+0\le \Pr(Y=k\mid X=x)\le 1
+\]</span></p>
+<p>and</p>
+<p><span class="math display">\[
+\sum_{k=1}^{K}\Pr(Y=k\mid X=x)=1.
+\]</span></p>
+<p>The softmax function plays the same role in multiclass classification that the sigmoid function plays in binary classification.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For K=2 classes, softmax reduces to the sigmoid model.</p>
+</div>
+</div>
+<p>For prediction, the observation is assigned to the class with the largest predicted probability:</p>
+<p><span class="math display">\[
+\hat y=\arg\max_k P(Y=k\mid X=x).
+\]</span></p>
+<section id="cross-entropy-loss" class="level3" data-number="6.7.1">
+<h3 data-number="6.7.1" class="anchored" data-anchor-id="cross-entropy-loss"><span class="header-section-number">6.7.1</span> Cross-Entropy Loss</h3>
+<p>Suppose the true class labels are represented using one-hot encoding:</p>
+<p><span class="math display">\[
+y_{ik}=
+\begin{cases}
+1,&amp;\text{if observation }i\text{ belongs to class }k,\\
+0,&amp;\text{otherwise}.
+\end{cases}
+\]</span></p>
+<p>Let</p>
+<p><span class="math display">\[
+p_{ik}=P(Y_i=k\mid X_i=x_i)
+\]</span></p>
+<p>denote the predicted probability from the softmax model.</p>
+<p>The multiclass cross-entropy loss is</p>
+<p><span class="math display">\[
+L=-\sum_{i=1}^{n}\sum_{k=1}^{K}y_{ik}\log(p_{ik}).
+\]</span></p>
+<p>Because exactly one value of <span class="math inline">\(y_{ik}\)</span> equals <span class="math inline">\(1\)</span> for each observation, this loss simply penalizes the model when it assigns a low probability to the true class.</p>
+<p>Minimizing the multiclass cross-entropy loss is equivalent to maximizing the likelihood of the multinomial logistic regression model, just as binary cross-entropy corresponds to maximum likelihood estimation in ordinary logistic regression.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>One-vs-Rest (OvR)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Another approach to multiclass classification is One-vs-Rest (OvR), also called One-vs-All.</p>
+<p>Instead of fitting a single multinomial model, OvR trains one binary classifier for each class. For example, with three classes A, B, and C, three separate models are fit:</p>
+<ul>
+<li>A versus not A</li>
+<li>B versus not B</li>
+<li>C versus not C</li>
+</ul>
+<p>The final prediction is usually made using the classifier with the largest predicted probability.</p>
+<p>Although OvR is simple and often works well in practice, multinomial logistic regression provides a more natural probabilistic model because all class probabilities are estimated simultaneously and automatically sum to one.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span><code>solver</code>
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>There are many algorithms for fitting logistic regression models. In <code>scikit-learn</code>, these optimization algorithms are specified through the <code>solver</code> argument. Examples include <code>"lbfgs"</code>, <code>"newton-cg"</code>, <code>"newton-cholesky"</code>, <code>"sag"</code>, <code>"saga"</code>, and <code>"liblinear"</code>.</p>
+<p>Different solvers use different optimization techniques and may have different computational properties. Some are better suited for large datasets, while others are designed for smaller problems or support additional features such as regularization.</p>
+<p>Historically, some solvers handled multiclass classification using a One-vs-Rest (OvR) strategy, while others directly fit a multinomial logistic regression model using the softmax formulation.</p>
+<p>In this course, we focus on the multinomial (softmax) approach because it provides a natural extension of binary logistic regression and is widely used in modern machine learning. The details of optimization algorithms are beyond the scope of this course.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="example-2-multinomial-logistic-regression" class="level2" data-number="6.8">
+<h2 data-number="6.8" class="anchored" data-anchor-id="example-2-multinomial-logistic-regression"><span class="header-section-number">6.8</span> Example 2: Multinomial Logistic Regression</h2>
+<p>The Titanic example involved two classes. We now consider a multiclass classification problem using the wine dataset.</p>
+<div id="19b5c593" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_wine</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>wine <span class="op">=</span> load_wine(as_frame<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> wine.data[[<span class="st">"alcohol"</span>, <span class="st">"flavanoids"</span>, <span class="st">"color_intensity"</span>]]</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> wine.target</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    X, y, test_size<span class="op">=</span><span class="fl">0.3</span>, stratify<span class="op">=</span>y, random_state<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We fit a multinomial logistic regression model.</p>
+<div id="9afab909" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>wine_logit <span class="op">=</span> make_pipeline(</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    StandardScaler(),</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    LogisticRegression(max_iter<span class="op">=</span><span class="dv">5000</span>),</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>wine_logit.fit(X_train, y_train)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>test_prob <span class="op">=</span> wine_logit.predict_proba(X_test)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>test_pred <span class="op">=</span> wine_logit.predict(X_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="probabilities-and-softmax" class="level3" data-number="6.8.1">
+<h3 data-number="6.8.1" class="anchored" data-anchor-id="probabilities-and-softmax"><span class="header-section-number">6.8.1</span> Probabilities and Softmax</h3>
+<p>For multiclass problems, logistic regression uses the softmax formulation discussed earlier.</p>
+<div id="0382bd38" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>test_prob[:<span class="dv">5</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>array([[3.32849861e-02, 4.58338942e-02, 9.20881120e-01],
+       [7.81045388e-02, 3.03513972e-02, 8.91544064e-01],
+       [1.29661355e-02, 5.23981366e-05, 9.86981466e-01],
+       [7.03100543e-03, 9.90470483e-01, 2.49851168e-03],
+       [3.96520174e-02, 9.59921408e-01, 4.26574383e-04]])</code></pre>
+</div>
+</div>
+<p>Each row contains the estimated probabilities for all classes. The probabilities always sum to one.</p>
+<div id="88ea502a" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>test_prob[:<span class="dv">5</span>].<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>array([1., 1., 1., 1., 1.])</code></pre>
+</div>
+</div>
+<p>The predicted class is the class with the largest probability.</p>
+<div id="ed795e7c" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>test_pred[:<span class="dv">5</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>array([2, 2, 2, 1, 1])</code></pre>
+</div>
+</div>
+<p>Unlike binary logistic regression, there is usually no threshold parameter to tune. The model simply predicts the class with the highest probability.</p>
+</section>
+<section id="confusion-matrix" class="level3" data-number="6.8.2">
+<h3 data-number="6.8.2" class="anchored" data-anchor-id="confusion-matrix"><span class="header-section-number">6.8.2</span> Confusion Matrix</h3>
+<div id="c08af17a" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> ConfusionMatrixDisplay</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>ConfusionMatrixDisplay.from_predictions(y_test, test_pred)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logistic_files/figure-html/cell-15-output-1.png" width="509" height="429" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We could also directly generate the classification report.</p>
+<div id="a8453b2a" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> classification_report</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(classification_report(y_test, test_pred))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              precision    recall  f1-score   support
+
+           0       0.89      0.94      0.92        18
+           1       0.90      0.90      0.90        21
+           2       1.00      0.93      0.97        15
+
+    accuracy                           0.93        54
+   macro avg       0.93      0.93      0.93        54
+weighted avg       0.93      0.93      0.93        54
+</code></pre>
+</div>
+</div>
+<p>The report provides precision, recall, and F1 scores for each class separately.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For multiclass logistic regression, the regularization parameter <code>C</code> can be tuned in the same way as in the binary classification example.</p>
+<p>However, there is usually no single threshold parameter to tune. The standard prediction rule is to choose the class with the largest predicted probability.</p>
+<p>In this example, we skip the tuning step for <code>C</code> because the procedure is the same as before.</p>
+</div>
+</div>
+
+
+<div id="refs" class="references csl-bib-body" role="list" style="display: none">
+<div id="ref-verhulst1838" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Verhulst</span>, P.-F. (1838). Notice sur la loi que la population poursuit dans son accroissement. <em>Correspondance Mathématique et Physique</em> <strong>10</strong> 113–21.</div>
+</div>
+<div id="ref-Berkson1944" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Berkson</span>, J. (1944). <a href="https://doi.org/10.1080/01621459.1944.10500699">Application of the logistic function to bio-assay</a>. <em>Journal of the American Statistical Association</em> <strong>39</strong> 357–65.</div>
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
+        for (let i=0; i<annoteTargets.length; i++) {
+          const annoteTarget = annoteTargets[i];
+          const targetCell = annoteTarget.getAttribute("data-target-cell");
+          const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
+          const contentFn = () => {
+            const content = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+            if (content) {
+              const tipContent = content.cloneNode(true);
+              tipContent.classList.add("code-annotation-tip-content");
+              return tipContent.outerHTML;
+            }
+          }
+          const config = {
+            allowHTML: true,
+            content: contentFn,
+            onShow: (instance) => {
+              selectCodeLines(instance.reference);
+              instance.reference.classList.add('code-annotation-active');
+              window.tippy.hideAll();
+            },
+            onHide: (instance) => {
+              unselectCodeLines();
+              instance.reference.classList.remove('code-annotation-active');
+            },
+            maxWidth: 300,
+            delay: [50, 0],
+            duration: [200, 0],
+            offset: [5, 10],
+            arrow: true,
+            trigger: 'click',
+            appendTo: function(el) {
+              return el.parentElement.parentElement.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'quarto',
+            placement: 'right',
+            positionFixed: true,
+            popperOptions: {
+              modifiers: [
+              {
+                name: 'flip',
+                options: {
+                  flipVariations: false, // true by default
+                  allowedAutoPlacements: ['right'],
+                  fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
+                },
+              },
+              {
+                name: 'preventOverflow',
+                options: {
+                  mainAxis: false,
+                  altAxis: false
+                }
+              }
+              ]        
+            }      
+          };
+          window.tippy(annoteTarget, config); 
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../contents/1/dr.html" class="pagination-link" aria-label="Dimension reduction">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Dimension reduction</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../contents/2/knn.html" class="pagination-link" aria-label="K-Nearest Neighbors">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">K-Nearest Neighbors</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -233,9 +233,9 @@ plt.legend();
 ```
 <!-- fmt: on -->
 
-### Expectation of the KDE
+### Bias and Variance of KDE
 
-To better understand why kernel density estimation works, let us examine the expectation of the estimator.
+To better understand why kernel density estimation works, let us examine the bias and variance of the estimator.
 
 Assume $x_1,\ldots,x_n$ are independent samples from a density $f$. The estimator is
 
@@ -248,20 +248,42 @@ $$
 K\left(\frac{x-x_i}{h}\right).
 $$
 
-Its expectation is
+
+::: {#thm-}
+## Bias of KDE
+
+Assume K is a symmetric kernel with finite second moment and f is twice continuously differentiable.
+$$
+\operatorname{Bias}\qty[\hat f(x)]=O(h^2).
+$$
+
+
+
+<details>
+<summary><strong>Click for proof.</strong></summary>
+
+
+
+
+Since the observations are i.i.d., each term in the sum has the same expectation. Therefore
 
 $$
 \begin{aligned}
 \Exp[\hat f(x)]
-&=
-\Exp\left[
+&=\frac1n
+\sum_{i=1}^n
+\Exp\!\left[
+\frac1h
+K\!\left(\frac{x-x_i}{h}\right)
+\right]\\
+&=\Exp\left[
 \frac{1}{h}K\left(\frac{x-X}{h}\right)
 \right] \\
 &=
 \int
 \frac{1}{h}
 K\left(\frac{x-t}{h}\right)
-f(t)\,dt.
+f(t)\dd t.
 \end{aligned}
 $$
 
@@ -273,91 +295,86 @@ u=\frac{x-t}{h},
 t=x-hu.
 $$
 
-Then
+Then $\dd t=-h\dd u$. Therefore
 
 $$
+\begin{split}
 \Exp[\hat f(x)]
-=
-\int
-K(u)f(x-hu)\,du.
+=&\int\frac1h K\qty(\frac{x-t}{h})f(t)\dd t\\
+=&\int\frac1h K\qty(u)f(x-hu)(-h\dd u)\\
+=&\int K(u)f(x-hu)\dd u.
+\end{split}
 $$
 
-
-
-The expectation of KDE is a convolution of the true density and the kernel. Therefore KDE estimates a smoothed version of the underlying density. 
 
 Consider the Taylor series expansion
 $$
-f(x-hu)=f(x)-huf'(x)+\frac12h^2u^2f''(x)+O(h^3).
+f(x-hu)=f(x)-huf'(x)+\frac12h^2u^2f''(x)+O(h^3u^3).
 $$
 
 We have 
 $$
 \begin{split}
-\Exp[\hat f(x)]&=\int K(u)\qty[f(x)-huf'(x)+\frac12h^2u^2f''(x)+O(h^3)]\dl3u\\
-&=\int K(u)f(x)\dl3u-\int K(u)huf'(x)\dl3u+\int\frac12K(u) h^2u^2f''(x)\dl3u+\int K(u)O(h^3)\dl3u\\
-&=f(x)\int K(u)\dl3u-f'(x)h\int uK(u)\dl3u+O(h^2).
+\Exp[\hat f(x)]&=\int K(u)\qty[f(x)-huf'(x)+\frac12h^2u^2f''(x)+O(h^3u^3)]\dd u\\
+&=\int K(u)f(x)\dd u-\int K(u)huf'(x)\dd u+\int\frac12K(u) h^2u^2f''(x)\dd u+\int K(u)O(h^3\abs{u}^3)\dd u\\
+&=f(x)\int K(u)\dd u-f'(x)h\int uK(u)\dd u+\frac12h^2f''(x)\int u^2K(u)\dd u+O(h^3)\int \abs{u}^3K(u)\dd u.
 \end{split}
 $$
 
-Because a symmetric kernel satisfies
+Because a kernel function satisfies
+$$
+\int K(u)\dd u=1,
+$$
+and a symmetric kernel satisfies
+$$
+\int uK(u)\dd u = 0,
+$$
+and 
+$$
+\int \abs{u}^3K(u)\dd u<\infty,
+$$
+
+we have
 
 $$
-\int uK(u)\,du = 0,
-$$
-
-
-Therefore
-
-$$
+\begin{split}
 \Exp[\hat f(x)]-f(x)
-=
-O(h^2).
+&=\frac12h^2f''(x)\int u^2K(u)\dd u+O(h^3)\\
+&=O(h^2).
+\end{split}
+$$
+
+Then after plugged in, we have
+$$
+\mathrm{Bias}=\Exp[\hat f(x)]-f(x)=O(h^2).
 $$
 
 
+</details>
 
-after plugged in, we have
-$$
-\mathrm{bias}=\Exp[\hat f(x)]-f(x)=O(h^2).
-$$
 
-If $h$ is small and $f$ is smooth, then $f(x-hu)$ is close to $f(x)$. Since $\int K(u)\,du=1$,
+:::
 
-$$
-\Exp[\hat f(x)]
-\approx
-f(x).
-$$
-<!-- 
-More generally,
 
-$$
-\Exp[\hat f(x)]
-=
-\int
-K(u)f(x-hu)\,du,
-$$
-which is a convolution of the true density and the kernel. Therefore the expected KDE is a smoothed version of the underlying density. -->
 
-This calculation shows that a sufficiently small bandwidth can reduce the bias of the KDE. However, making the bandwidth too small increases variance. A useful bandwidth must therefore balance bias and variance.
-<!-- 
-This explains why KDE can recover the true density when the bandwidth is small enough, but not too small. -->
 
-### Bias and Variance of KDE
 
-The expectation calculation above suggests that KDE becomes more accurate when the bandwidth is small. However, reducing the bandwidth also increases variability.
 
-Under suitable smoothness assumptions, it can be shown that
+::: {.callout-note}
 
-$$
-\text{Bias}[\hat f(x)]
-=
-O(h^2),
-$$
 
-while
+The expectation of the KDE is a weighted average of nearby values of the true density. Therefore KDE estimates a smoothed version of the underlying density. In fact, the expectation can be viewed as a convolution of the density and a rescaled kernel.
+:::
 
+
+
+
+
+
+
+::: {#thm-}
+## Variance of KDE
+Assume $f$ is continuous at $x$, and $K$ satisfies $\int K^2(u)\,du<\infty$.
 $$
 \Var[\hat f(x)]
 =
@@ -366,10 +383,154 @@ O\!\left(
 \right).
 $$
 
-Therefore the mean squared error satisfies
+<details>
+<summary><strong>Click for proof.</strong></summary>
+
+Since the observations are independent,
 
 $$
-\text{MSE}
+\Var[\hat f(x)]
+=
+\frac1{n^2}
+\sum_{i=1}^n
+\Var\left[
+\frac1h K\left(\frac{x-x_i}{h}\right)
+\right].
+$$
+
+All terms have the same variance, so
+
+$$
+\Var[\hat f(x)]
+=
+\frac1n
+\Var\left[
+\frac1h K\left(\frac{x-X}{h}\right)
+\right].
+$$
+
+Using the definition of variance,
+
+$$
+\Var\left[
+\frac1h K\left(\frac{x-X}{h}\right)
+\right]
+=
+\Exp\left[
+\frac1{h^2}K^2\left(\frac{x-X}{h}\right)
+\right]
+-
+\left\{
+\Exp\left[
+\frac1h K\left(\frac{x-X}{h}\right)
+\right]
+\right\}^2.
+$$
+
+For the first term,
+
+$$
+\begin{aligned}
+\Exp\left[
+\frac1{h^2}K^2\left(\frac{x-X}{h}\right)
+\right]
+&=
+\int
+\frac1{h^2}
+K^2\left(\frac{x-t}{h}\right)
+f(t)\dd t \\
+&=
+\frac1h
+\int
+K^2(u)f(x-hu)\dd u.
+\end{aligned}
+$$
+
+When $h$ is small and $f$ is assumed smooth near $x$,
+
+$$
+f(x-hu)=f(x)+O(h\abs{u}).
+$$
+
+Therefore
+
+$$
+\Exp\left[
+\frac1{h^2}K^2\left(\frac{x-X}{h}\right)
+\right]
+=
+\frac{f(x)}{h}
+\int K^2(u)\dd u
++\frac{O(h)}h\int \abs{u}K^2(u)\dd u.
+$$
+
+Since $f(x)$ and $\int K^2(u)\dd u$ are constants, then
+$$
+\Exp\left[
+\frac1{h^2}K^2\left(\frac{x-X}{h}\right)
+\right]
+=
+O\left(\frac1h\right).
+$$
+
+
+The second term is
+
+$$
+\left\{
+\Exp\left[
+\frac1h K\left(\frac{x-X}{h}\right)
+\right]
+\right\}^2=\qty{\Exp\qty[\hat f(x)]}^2.
+$$
+
+From the bias calculation,
+
+$$
+\Exp[\hat f(x)]
+=
+f(x)+O(h^2),
+$$
+
+so this squared term is
+
+$$
+\begin{split}
+\left(f(x)+O(h^2)\right)^2
+=&f(x)^2+2f(x)O(h^2)+O(h^4)\\
+=&f(x)^2+O(h^2)\\
+=O(1).
+\end{split}
+$$
+
+Hence
+
+$$
+\Var\left[
+\frac1h K\left(\frac{x-X}{h}\right)
+\right]
+=O\qty(\frac1h)-O(1)=O\qty(\frac1h).
+$$
+
+
+Finally,
+
+$$
+\Var[\hat f(x)]
+=
+\frac1nO\qty(\frac1h)=O(\frac1{nh}).
+$$
+
+
+</details>
+:::
+
+
+
+Therefore the pointwise mean squared error of KDE estimator satisfies
+
+$$
+\operatorname{MSE}\qty[\hat f(x)]=\operatorname{Bias}^2\qty[\hat f(x)]+\Var\qty[\hat f(x)]
 =
 O(h^4)
 +
@@ -378,24 +539,68 @@ O\!\left(
 \right).
 $$
 
-The first term decreases as the bandwidth becomes smaller, while the second term increases. Bandwidth selection therefore involves a bias-variance tradeoff.
+Reducing the bandwidth decreases the magnitude of the bias but increases the variance. Bandwidth selection therefore involves a bias-variance tradeoff.
 
+::: {.callout-note}
+
+Balancing the two dominant terms, $h^4 \asymp \frac1{nh}$, which implies $h \asymp n^{-1/5}$. This explains why many rule-of-thumb bandwidth formulas involve the factor
+$ n^{-1/5} $.
+:::
 
 ::: {.callout-note}
 
 ## The Practical Impact of Bandwidth
 
-The bias-variance tradeoff directly dictates the visual fidelity of the density estimate:
+The bandwidth controls the smoothness of the density estimate and has a much larger effect on the result than the choice of kernel.
 
-- Small Bandwidth (High Variance/Low Bias): The estimate is highly flexible and captures local fluctuations, but it often produces spurious "noise" peaks that are artifacts of the specific sample rather than the true underlying distribution.
-- Large Bandwidth (Low Variance/High Bias): The estimate is overly smooth. While it effectively reduces noise, it often masks essential structural features such as skewness or multiple modes.
+- Small Bandwidth (Low Bias / High Variance): The estimate follows the observed data very closely and can capture fine-scale features. However, it is often sensitive to random sampling variation and may produce spurious peaks that do not correspond to genuine structure in the underlying distribution.
+- Large Bandwidth (High Bias / Low Variance): The estimate is smoother and less sensitive to random fluctuations. However, excessive smoothing can obscure important characteristics of the distribution, such as skewness, heavy tails, or multiple modes.
 
-As a result, different bandwidth values can lead to substantially different density estimates, even when the same kernel function is used.
+As a result, the same dataset can produce substantially different density estimates when different bandwidth values are used.
 
-In practice, the choice of bandwidth is usually much more important than the choice of kernel. Therefore, bandwidth selection is the central tuning problem in kernel density estimation.
+For most practical applications, selecting an appropriate bandwidth is far more important than selecting a particular kernel function. Consequently, bandwidth selection is the central tuning problem in kernel density estimation.
+
 :::
 
 
+
+### Rule-of-Thumb Bandwidth Selection for KDE
+
+Numerous bandwidth selection methods have been proposed. 
+
+The asymptotic bias-variance analysis above implies that an optimal bandwidth should decrease roughly at the rate $h = O(n^{-1/5})$.
+
+For a Gaussian kernel, a widely used rule-of-thumb bandwidth is
+
+$$
+h=1.06\,\hat\sigma\, n^{-1/5}.
+$$
+
+This formula is derived under the assumption that the underlying density is approximately Gaussian and is commonly known as Silverman's rule of thumb.
+
+The following Python code implements this rule.
+
+```{python}
+h = 1.06 * np.std(x, ddof=1) * len(x) ** (-1 / 5)
+```
+
+Rule-of-thumb formulas are computationally inexpensive and often provide reasonable starting values. However, they rely on simplifying assumptions and may perform poorly when the underlying density differs substantially from those assumptions.
+
+<!-- ::: {.callout-note}
+
+## Bandwidth Selection in Kernel Regression
+
+Although bandwidth plays a similarly important role in kernel regression, bandwidth selection is generally more difficult than in density estimation.
+
+For density estimation, the bandwidth depends primarily on the shape of the underlying distribution. In kernel regression (which will be discussed next), however, the optimal bandwidth also depends on the complexity of the regression function and the amount of noise in the response variable.
+
+As a result, rule-of-thumb formulas are less commonly used in kernel regression. In practice, cross-validation is often preferred because it provides a more data-driven approach to bandwidth selection.
+
+
+::: -->
+
+
+<!-- 
 ### Rule-of-Thumb Bandwidth Selection for KDE
 
 Numerous bandwidth selection methods have been proposed.
@@ -434,7 +639,7 @@ These formulas are computationally inexpensive and often provide reasonable star
 Although Silverman's rule was originally developed for kernel density estimation, it is sometimes used as a simple starting value for kernel regression as well.
 
 However, bandwidth selection is generally more challenging in regression because the optimal bandwidth depends not only on the distribution of the predictors but also on the shape of the regression function and the amount of noise in the response. For this reason, cross-validation is usually preferred for kernel regression.
-:::
+::: -->
 
 ### Bandwidth Selection by Visual Inspection
 
