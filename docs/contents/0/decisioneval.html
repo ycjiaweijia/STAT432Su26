@@ -150,10 +150,7 @@ window.MathJax = {
 
 </script><script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
-
-
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
-
 <script>
 window.MathJax = {
   loader: {
@@ -607,7 +604,7 @@ window.Quarto = {
   <li><a href="#auc" id="toc-auc" class="nav-link" data-scroll-target="#auc"><span class="header-section-number">2.2.3</span> AUC</a></li>
   <li><a href="#precision-recall-curve" id="toc-precision-recall-curve" class="nav-link" data-scroll-target="#precision-recall-curve"><span class="header-section-number">2.2.4</span> Precision-Recall Curve</a></li>
   </ul></li>
-  <li><a href="#optional-probability-quality" id="toc-optional-probability-quality" class="nav-link" data-scroll-target="#optional-probability-quality"><span class="header-section-number">2.3</span> Optional: Probability Quality</a>
+  <li><a href="#probability-quality" id="toc-probability-quality" class="nav-link" data-scroll-target="#probability-quality"><span class="header-section-number">2.3</span> Probability Quality</a>
   <ul class="collapse">
   <li><a href="#calibration-curve" id="toc-calibration-curve" class="nav-link" data-scroll-target="#calibration-curve"><span class="header-section-number">2.3.1</span> Calibration Curve</a></li>
   </ul></li>
@@ -1301,12 +1298,8 @@ P\left(s(X^+)&gt;s(X^-)\right),
 <p>Average precision summarizes the precision-recall curve as a single number. Like AUC, it evaluates ranking behavior across thresholds, but it focuses more directly on performance for the positive class.</p>
 </section>
 </section>
-<section id="optional-probability-quality" class="level2" data-number="2.3">
-<h2 data-number="2.3" class="anchored" data-anchor-id="optional-probability-quality"><span class="header-section-number">2.3</span> Optional: Probability Quality</h2>
-<details>
-<summary>
-<strong>Click to expand.</strong>
-</summary>
+<section id="probability-quality" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="probability-quality"><span class="header-section-number">2.3</span> Probability Quality</h2>
 <p>Probability quality asks whether predicted probabilities can be interpreted as actual probabilities.</p>
 <p>For example, suppose a model predicts <span class="math inline">\(\hat p(x)=0.8\)</span>. If the model is well calibrated, then among many observations with predicted probability near <span class="math inline">\(0.8\)</span>, roughly <span class="math inline">\(80\%\)</span> should truly belong to the positive class.</p>
 <p>Thus probability quality concerns whether predicted probabilities are numerically trustworthy.</p>
@@ -1339,9 +1332,8 @@ Note
 <li>If the curve lies below the diagonal, the model is overconfident.</li>
 <li>If the curve lies above the diagonal, the model is underconfident.</li>
 </ul>
-</section></details>
 </section>
-
+</section>
 <section id="model-tuning-versus-threshold-tuning" class="level2" data-number="2.4">
 <h2 data-number="2.4" class="anchored" data-anchor-id="model-tuning-versus-threshold-tuning"><span class="header-section-number">2.4</span> Model Tuning versus Threshold Tuning</h2>
 <p>In classification, model fitting and decision making should be viewed as separate problems.</p>
@@ -1367,7 +1359,7 @@ Note
 <section id="load-the-dataset" class="level3" data-number="2.5.1">
 <h3 data-number="2.5.1" class="anchored" data-anchor-id="load-the-dataset"><span class="header-section-number">2.5.1</span> Load the dataset</h3>
 <p>First load the data and split it into training and test sets. By default, the dataset uses <code>0</code> for malignant and <code>1</code> for benign. Since many classification metrics interpret label <code>1</code> as the positive class, we redefine malignant as <code>1</code>. Therefore we need to modify the <code>y</code> value.</p>
-<div id="07e31a9a" class="cell" data-execution_count="1">
+<div id="e0b4601f" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_breast_cancer</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1382,7 +1374,7 @@ Note
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We may want to see the distribution of the test set.</p>
-<div id="b0671bdb" class="cell" data-execution_count="2">
+<div id="99897cf6" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>pd.Series(y_test).value_counts().sort_index()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
@@ -1396,7 +1388,7 @@ Name: count, dtype: int64</code></pre>
 <section id="fit-models" class="level3" data-number="2.5.2">
 <h3 data-number="2.5.2" class="anchored" data-anchor-id="fit-models"><span class="header-section-number">2.5.2</span> Fit models</h3>
 <p>We fit logistic regression model as an example, which is a typical strong baseline model.</p>
-<div id="ec1ab711" class="cell" data-execution_count="3">
+<div id="e7d39167" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
@@ -1422,7 +1414,7 @@ At the end we get the output probability. Many of the metrics in this section de
 <h3 data-number="2.5.3" class="anchored" data-anchor-id="confusion-matrix-and-basic-metrics"><span class="header-section-number">2.5.3</span> Confusion Matrix and Basic Metrics</h3>
 <p>All decision quality metrics can be computed using functions from <code>sklearn.metrics</code>. They are used to compare two list-like objects, while the true labels are passed first and the predicted labels second.</p>
 <p>By default, <code>predict()</code> in <code>sklearn</code> uses threshold <span class="math inline">\(0.5\)</span> for binary classification.</p>
-<div id="fba28397" class="cell" data-execution_count="4">
+<div id="b2b0ed4b" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> accuracy_score, precision_score, recall_score, f1_score</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>y_pred <span class="op">=</span> logit.predict(X_test)</span>
@@ -1433,7 +1425,7 @@ At the end we get the output probability. Many of the metrics in this section de
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>f1 <span class="op">=</span> f1_score(y_test, y_pred)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can also compute the confusion matrix and extract the values of TP, TN, FP, and FN from it.</p>
-<div id="b903ec11" class="cell" data-execution_count="5">
+<div id="a8184214" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>confusion_matrix(y_test, y_pred)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1442,7 +1434,7 @@ At the end we get the output probability. Many of the metrics in this section de
        [  6,  58]])</code></pre>
 </div>
 </div>
-<div id="fa2541ca" class="cell" data-execution_count="6">
+<div id="0e378c3f" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>TN, FP, FN, TP <span class="op">=</span> confusion_matrix(y_test, y_pred).ravel()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>They are listed in this particular order since 0 stands for negative and 1 stands for positive in this example.</p>
@@ -1450,13 +1442,13 @@ At the end we get the output probability. Many of the metrics in this section de
 <section id="modifying-thresholds" class="level3" data-number="2.5.4">
 <h3 data-number="2.5.4" class="anchored" data-anchor-id="modifying-thresholds"><span class="header-section-number">2.5.4</span> Modifying Thresholds</h3>
 <p>The default model use 0.5 as the threshold in <code>sklearn</code>. If you want to change the threshold, you may manually write the code.</p>
-<div id="499495f9" class="cell" data-execution_count="7">
+<div id="a80897b9" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>threshold <span class="op">=</span> <span class="fl">0.3</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>logit_prob <span class="op">=</span> logit.predict_proba(X_test)[:, <span class="dv">1</span>] </span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>y_pred <span class="op">=</span> (logit_prob <span class="op">&gt;=</span> threshold).astype(<span class="bu">int</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>You may also use <code>FixedThresholdClassifier</code> from <code>sklearn.model_selection</code> when you want the threshold to be part of the estimator workflow.</p>
-<div id="202e7e4a" class="cell" data-execution_count="8">
+<div id="8dd98b4b" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> FixedThresholdClassifier</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>threshold <span class="op">=</span> <span class="fl">0.3</span></span>
@@ -1489,7 +1481,7 @@ Note
 <section id="tuning-thresholds" class="level3" data-number="2.5.5">
 <h3 data-number="2.5.5" class="anchored" data-anchor-id="tuning-thresholds"><span class="header-section-number">2.5.5</span> Tuning Thresholds</h3>
 <p>In order to make the tuning process easier, we build an interface to quickly display the results.</p>
-<div id="9780905a" class="cell" data-execution_count="9">
+<div id="b1d68d5a" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-9"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-9-1"><a href="#annotated-cell-9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> classification_summary(y_true, prob, threshold<span class="op">=</span><span class="fl">0.5</span>):</span>
 <span id="annotated-cell-9-2"><a href="#annotated-cell-9-2" aria-hidden="true" tabindex="-1"></a>    pred <span class="op">=</span> (prob <span class="op">&gt;=</span> threshold).astype(<span class="bu">int</span>)</span>
 <span id="annotated-cell-9-3"><a href="#annotated-cell-9-3" aria-hidden="true" tabindex="-1"></a>    TN, FP, FN, TP <span class="op">=</span> confusion_matrix(y_true, pred).ravel()</span>
@@ -1515,7 +1507,7 @@ Note
 </div>
 </div>
 <p>Now examine how metrics change as the threshold changes. To save space I only show the first few rows of the table.</p>
-<div id="80f7ef6d" class="cell" data-execution_count="10">
+<div id="62dc7313" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1616,7 +1608,7 @@ Note
 </div>
 </div>
 <p>Plot precision and recall as functions of the threshold.</p>
-<div id="cf1ec775" class="cell" data-execution_count="11">
+<div id="0f99f345" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>plt.plot(threshold_df[<span class="st">"threshold"</span>], threshold_df[<span class="st">"precision"</span>], marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"precision"</span>)</span>
@@ -1654,7 +1646,7 @@ c^*
 0.167.
 \]</span></p>
 <p>Then the corresponding result is</p>
-<div id="36f50193" class="cell" data-execution_count="12">
+<div id="aa25f08f" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cost_fp <span class="op">=</span> <span class="dv">1</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>cost_fn <span class="op">=</span> <span class="dv">5</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1684,7 +1676,7 @@ c^*
 <p>Unlike accuracy or precision, ROC analysis does not depend on a single fixed threshold. Instead, it studies model performance across all possible thresholds using the predicted probabilities or scores.</p>
 <p>ROC curve and AUC can be computed using <code>roc_curve</code> and <code>roc_auc_score</code> from <code>sklearn.metrics</code>.</p>
 <!-- AUC may also be interpreted as the probability that a randomly chosen positive observation receives a higher score than a randomly chosen negative observation. -->
-<div id="72aa9a3a" class="cell" data-execution_count="13">
+<div id="59f91f6e" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_curve, roc_auc_score</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>logit_fpr, logit_tpr, _ <span class="op">=</span> roc_curve(y_test, logit_prob)</span>
@@ -1705,7 +1697,7 @@ c^*
 </div>
 </div>
 <p>We may fit another model and draw their ROC curve and AUC together in one plot to compare them.</p>
-<div id="0b9b0dfb" class="cell" data-execution_count="14">
+<div id="2610ee63" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>rf <span class="op">=</span> RandomForestClassifier(</span>
@@ -1738,7 +1730,7 @@ c^*
 <section id="precision-recall-curve-1" class="level3" data-number="2.5.8">
 <h3 data-number="2.5.8" class="anchored" data-anchor-id="precision-recall-curve-1"><span class="header-section-number">2.5.8</span> Precision-Recall Curve</h3>
 <p>The precision-recall curve can be produced in a similar way.</p>
-<div id="4ac47997" class="cell" data-execution_count="15">
+<div id="028c9364" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> precision_recall_curve, average_precision_score</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>logit_precision, logit_recall, _ <span class="op">=</span> precision_recall_curve(y_test, logit_prob)</span>
@@ -1771,7 +1763,7 @@ c^*
 </summary>
 <p>Calibration focuses on probability quality rather than threshold-based decision quality or ranking quality. Calibration curves can be produced using <code>CalibrationDisplay</code> from <code>sklearn.calibration</code>.</p>
 <!-- fmt: off -->
-<div id="a319c5f3" class="cell" data-execution_count="16">
+<div id="0246f08a" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.calibration <span class="im">import</span> CalibrationDisplay</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>CalibrationDisplay.from_predictions(y_test, logit_prob, n_bins<span class="op">=</span><span class="dv">10</span>)</span>
@@ -1786,7 +1778,7 @@ c^*
 </div>
 <!-- fmt: on -->
 <p>This is a packaged function provided by <code>sklearn</code>. If we want to plot multiple curves together in one plot, we can put the axis in the argument of this function.</p>
-<div id="e3221e6c" class="cell" data-execution_count="17">
+<div id="cc9821ab" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots()</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>CalibrationDisplay.from_predictions(</span>
