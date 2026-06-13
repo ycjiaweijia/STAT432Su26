@@ -586,24 +586,24 @@ This gives the validation MSE for each fold, together with their average.
 ## `cross_validate`
 Using `KFold` directly is somewhat manual. We may use `cross_validate()` to automate the cross-validation process. Depending on the arguments supplied, `cross_validate()` may internally use `KFold`.
 
-You may specify which scoreing methods useing `scoring=[]` argument. The default choice will be the default choice from the model. In `LinearRegression` case, the default one is `r2_score`.
+You may specify which scoreing methods useing `scoring` argument. The default choice will be the default choice from the model. In `LinearRegression` case, the default one is `r2`. Note that this `scoring` can accept a list of scoring methods, or a single scoring method. 
 
 ```{python}
 from sklearn.model_selection import cross_validate
 
 model = LinearRegression()
-cv_result = cross_validate(model, X, y, cv=5)
+cv_result = cross_validate(model, X, y, cv=5, scoring=["r2", "neg_mean_squared_error"])
 
 cv_result
 ```
-If you are only interested in the validation scores, you may extract them directly.
+If you are only interested in a certain validation scores, you may extract them directly.
 
 ```{python}
-cv_result['test_score']
+cv_result['test_r2']
 ```
 
 
-- You may choose different scoring methods. More info can be found in [the document](https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter).
+- More info on different scoring methods can be found in [the document](https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter). You can also print it from `sklearn.metrics.get_scorer_names()`.
 - Here the MSE values are negative because `sklearn` follows the convention that larger scores are better.
 - If `cv=5`, then `KFold(5, shuffle=False)` is used by default. If you want randomized folds, you may pass a `KFold` object explicitly.
 
@@ -614,7 +614,7 @@ cv_result = cross_validate(
 
 cv_result["test_score"]
 ```
-You may compare these scores with the ones obtained in the `KFold` section. Usually, the overall cross-validation score is taken to be the mean of the fold scores.
+You may compare these scores with the ones obtained in the `KFold` section. Usually, the overall cross-validation score is taken to be the mean of the fold scores. Note that in this case the `scoring` is not given. So it will use the default $R^2$.
 
 ```{python}
 cv_result['test_score'].mean()
@@ -625,7 +625,7 @@ cv_result['test_score'].mean()
 
 ::: {.callout-note collapse="true"}
 ## `cross_val_score`
-`cross_val_score()` is a shorter way to obtain `cv_result["test_score"]` from the `cross_validate()` section. The arguments `cv` and `scoring` work in the same way.
+`cross_val_score()` is a shorter way to obtain `cv_result["test_score"]` from the `cross_validate()` section. The arguments `cv` and `scoring` work in almost the same way, except that `scoring` only accept a single scorer instead of a list in this case.
 
 ```{python}
 from sklearn.model_selection import cross_val_score
