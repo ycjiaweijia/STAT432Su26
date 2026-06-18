@@ -1582,6 +1582,8 @@ In `scikit-learn`, `Lasso` and `LassoCV` from `linear_model` are used in a way v
 
 A key computational difference from ridge is that lasso does not have a closed-form estimator. Likewise, unlike ridge regression, there is no closed-form LOOCV formula available for selecting the tuning parameter. Therefore, `LassoCV` uses ordinary $K$-fold cross-validation to choose the best value of `alpha`.
 
+Note that `LassoCV` is very tricky here and you should be very careful when you use it. We will come back to it later.
+
 
 ### A simulated example
 
@@ -1757,19 +1759,26 @@ The choice of `alpha` strongly affects the fitted model. Therefore in practice w
 We first use `LassoCV` to select the best value of alpha.
 
 ```{python}
-from sklearn.linear_model import LassoCV
+#| warning: false
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import GridSearchCV
 
-lasso_cv_pipe = Pipeline(
+lasso_pipe = Pipeline(
     [
         ("scaler", StandardScaler()),
-        ("model", LassoCV(cv=5, max_iter=10000, random_state=0)),
+        ("model", Lasso(max_iter=10000, random_state=0)),
     ]
+)
+
+lasso_cv_pipe = GridSearchCV(
+    lasso_pipe,
+    param_grid={"model__alpha": alphas}
 )
 
 lasso_cv_pipe.fit(X_train, y_train)
 y_pred_lasso_cv = lasso_cv_pipe.predict(X_test)
 
-best_alpha_lasso = lasso_cv_pipe.named_steps["model"].alpha_
+best_alpha_lasso = lasso_cv_pipe.best_params_["model__alpha"]
 
 print("Best lasso alpha:", best_alpha_lasso)
 print("LassoCV Test RMSE:", mean_squared_error(y_test, y_pred_lasso_cv))
@@ -1794,9 +1803,9 @@ y_pred_ridge_cv = ridge_cv_pipe.predict(X_test)
 
 best_alpha_ridge = ridge_cv_pipe.named_steps["model"].alpha_
 
-print("Best lasso alpha:", best_alpha_ridge)
-print("LassoCV Test RMSE:", mean_squared_error(y_test, y_pred_ridge_cv))
-print("LassoCV Test R^2 :", r2_score(y_test, y_pred_ridge_cv))
+print("Best ridge alpha:", best_alpha_ridge)
+print("RidgeCV Test RMSE:", mean_squared_error(y_test, y_pred_ridge_cv))
+print("RidgeCV Test R^2 :", r2_score(y_test, y_pred_ridge_cv))
 ```
 
 After obtaining the best regularization parameters, we mark them on the coefficient path plots. This helps connect the selected model to the whole regularization path.
@@ -1848,6 +1857,34 @@ for ax in axs:
 
 plt.tight_layout()
 ```
+
+
+
+::: {.callout-caution}
+## Data leaks in `LassoCV`
+
+When using a pipeline such as `StandardScaler->LassoCV`, the `StandardScaler` is fitted once using the entire training set before `LassoCV` performs its internal cross-validation. As a result, the validation folds inside `LassoCV` are evaluated on data that were standardized using information from all training observations, including observations outside the current fold.
+
+This introduces a small amount of data leakage and may make the cross-validation estimate slightly optimistic.
+
+A safer approach is to place the entire pipeline inside `GridSearchCV` using `Lasso` instead of `LassoCV`. In this setup, the scaler is refit separately within each training fold, preventing leakage.
+
+`LassoCV` is still useful when no preprocessing pipeline is involved, and it is often faster than `GridSearchCV` because of its specialized implementation.
+
+Similarly, `RidgeCV` may suffer from the same issue when placed after preprocessing steps in a pipeline. However, when `cv=None`, `RidgeCV` uses formulas to estimate the LOOCV. In practice, the resulting bias is often small, so many users accept this shortcut for convenience and speed.
+
+:::
+
+
+
+
+
+
+
+
+
+
+
 
 ### Validation curves
 
@@ -1942,8 +1979,8 @@ results = []
 
 models = {
     "OLS": ols_pipe,
-    "RidgeCV": ridge_cv_pipe,
-    "LassoCV": lasso_cv_pipe,
+    "Ridge": ridge_cv_pipe,
+    "Lasso": lasso_cv_pipe,
 }
 
 for name, model in models.items():
@@ -1951,8 +1988,10 @@ for name, model in models.items():
     rmse = mean_squared_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
 
-    n_nonzero = np.sum(model.named_steps["model"].coef_ != 0)    
-    alpha = model.named_steps["model"].alpha_ if name != "OLS" else None
+    fitted_pipe = model.best_estimator_ if name == "LassoCV" else model
+    n_nonzero = np.sum(fitted_pipe.named_steps["model"].coef_ != 0)
+    alpha = (model.best_params_["model__alpha"] if name == "LassoCV"
+             else fitted_pipe.named_steps["model"].alpha_ if name != "OLS" else None)
 
     results.append({
         'Model': name,
