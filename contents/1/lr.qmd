@@ -570,15 +570,15 @@ for train_idx, val_idx in kf.split(X):
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_val)
-    mse = r2_score(y_val, y_pred)
+    score = r2_score(y_val, y_pred)
 
-    cv_scores.append(mse)
+    cv_scores.append(score)
 
 print(cv_scores)
 print(sum(cv_scores) / len(cv_scores))
 ```
 
-This gives the validation MSE for each fold, together with their average.
+This gives the validation score for each fold, together with their average.
 :::
 
 
@@ -586,7 +586,7 @@ This gives the validation MSE for each fold, together with their average.
 ## `cross_validate`
 Using `KFold` directly is somewhat manual. We may use `cross_validate()` to automate the cross-validation process. Depending on the arguments supplied, `cross_validate()` may internally use `KFold`.
 
-You may specify which scoreing methods useing `scoring` argument. The default choice will be the default choice from the model. In `LinearRegression` case, the default one is `r2`. Note that this `scoring` can accept a list of scoring methods, or a single scoring method. 
+You may specify which scoreing methods useing `scoring` argument. The default choice for `scoring` depends on the model. In `LinearRegression` case, the default choice is `r2`. Note that this `scoring` can accept a list of scoring methods, or a single scoring method. 
 
 ```{python}
 from sklearn.model_selection import cross_validate
@@ -604,7 +604,7 @@ cv_result['test_r2']
 
 
 - More info on different scoring methods can be found in [the document](https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter). You can also print it from `sklearn.metrics.get_scorer_names()`.
-- Here the MSE values are negative because `sklearn` follows the convention that larger scores are better.
+- Here the negative MSE values are negative because `sklearn` follows the convention that larger scores are better.
 - If `cv=5`, then `KFold(5, shuffle=False)` is used by default. If you want randomized folds, you may pass a `KFold` object explicitly.
 
 ```{python}
