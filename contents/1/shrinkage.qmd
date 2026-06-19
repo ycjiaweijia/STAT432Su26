@@ -17,7 +17,7 @@ Two of the most important regularization methods are ridge regression and lasso.
 
 ## Ridge Regression
 
-### OLS esimator review
+### OLS estimator review
 Consider a linear model
 $$
 y=X\beta+\varepsilon.
@@ -159,7 +159,7 @@ $$
 
 :::
 
-In this formulation, the term $\lambda I$ (where $I$ is the identity matrix) is added to the cross-product matrix $X^\top X$ before inversion. This ensures that the matrix is non-singular and well-conditioned, even in the presence of multicollinearity or when $p > n$.
+In this formulation, the term $\lambda I$ (where $I$ is the identity matrix) is added to the cross-product matrix $X^\top X$ before inversion. When $\lambda>0$, this ensures that the matrix is non-singular and improves its conditioning, even in the presence of multicollinearity or when $p > n$.
 
 
 
@@ -271,7 +271,7 @@ This formulation highlights that ridge regression limits the magnitude of the co
 ::: {.callout-note collapse="true"}
 ## The Constrained Optimization Problem
 
-Ridge regression can be formulated as a constrained optimization problem, where we minimize RSS subject to a constriant $s$ on the squared $L_2$ norm of the coefficients:
+Ridge regression can be formulated as a constrained optimization problem, where we minimize RSS subject to a constraint $s$ on the squared $L_2$ norm of the coefficients:
 $$
 \min_{\beta} \norm{y - X\beta}_2^2 \quad \text{subject to} \quad \norm{\beta}_2^2 \le s.
 $$
@@ -980,28 +980,20 @@ ridge_pipe = Pipeline(
     ]
 )
 train_scores, test_scores = validation_curve(
-    ridge_pipe,
-    X,
-    y,
-    param_name="model__alpha",
-    param_range=alphas,
-    cv=5,
-    scoring="neg_mean_squared_error",
+    ridge_pipe, X, y, param_name="model__alpha", param_range=alphas
 )  # <1>
 
 plt.plot(alphas, train_scores.mean(axis=1), label="train")
 plt.plot(alphas, test_scores.mean(axis=1), label="test")
-plt.axvline(
-    best_alpha_ridge, color="black", linestyle="--", label="RidgeCV alpha"
-)
+plt.axvline(best_alpha_ridge, color="black", linestyle="--", label="LOOCV alpha") # <2>
 plt.xscale("log")
 plt.xlabel("alpha")
 plt.ylabel("score")
 plt.title("Validation curve for ridge regression")
 plt.legend()
 ```
-1. The validatiaon curve can also be drawn by `GridSearchCV.cv_results_`. There are no major difference between the two methods.
-
+1. The validation curve can also be drawn using `GridSearchCV.cv_results_`. There is no major difference between the two methods.
+2. This best `alpha` here is based on the LOOCV formula. So it is slightly different from the best `alpha` under 5-fold cross-validation.
 
 
 Similarly, if we want to examine how the coefficients change with `alpha`, we fit ordinary `Ridge` repeatedly over a grid of `alpha` values and record the fitted coefficients. In this case, cross-validation is not needed, since the goal is only to visualize the coefficient path rather than to compare models.
@@ -1450,7 +1442,7 @@ $\rss(\beta)=a\beta^2-2c\beta+\lambda\beta+\constant$. Let $\dv{\rss(\beta)}{\be
 
 In this case since $\beta\geq 0$, 
 
-- if $\hat\beta_\ols+\frac\lambda {2a}>0$, then the minimizer is $\hat\beta_\ols+\frac\lambda {2a}$. 
+- if $\hat\beta_\ols-\frac\lambda {2a}>0$, then the minimizer is $\hat\beta_\ols-\frac\lambda {2a}$.
 - Otherwise, the minimum over the region $\beta\geq 0$ is attained at $0$.
 
 Therefore
@@ -1590,7 +1582,7 @@ Note that `LassoCV` is very tricky here and you should be very careful when you 
 To illustrate lasso and ridge in code, we start with a simulated dataset. The data are constructed so that:
 
 - there are 100 predictors and 150 observations,
-- many predictors are almost collinear (that they are obtained from a rank 12 latent structure),
+- many predictors are almost collinear because they are obtained from a rank 12 latent structure,
 - but only 10 predictors truly contribute to the response.
 
 
@@ -1645,7 +1637,7 @@ ols_pipe.fit(X_train, y_train)
 y_pred_ols = ols_pipe.predict(X_test)
 
 print("OLS")
-print(f"Test RMSE: {mean_squared_error(y_test, y_pred_ols)}")
+print(f"Test MSE: {mean_squared_error(y_test, y_pred_ols)}")
 print(f"Test R^2 : {r2_score(y_test, y_pred_ols)}")
 ```
 
@@ -1664,7 +1656,7 @@ ridge_pipe.fit(X_train, y_train)
 y_pred_ridge = ridge_pipe.predict(X_test)
 
 print("Ridge")
-print(f"Test RMSE: {mean_squared_error(y_test, y_pred_ridge)}")
+print(f"Test MSE: {mean_squared_error(y_test, y_pred_ridge)}")
 print(f"Test R^2 : {r2_score(y_test, y_pred_ridge)}")
 ```
 
@@ -1683,7 +1675,7 @@ lasso_pipe.fit(X_train, y_train)
 y_pred_lasso = lasso_pipe.predict(X_test)
 
 print("\nLasso")
-print(f"Test RMSE: {mean_squared_error(y_test, y_pred_lasso)}")
+print(f"Test MSE: {mean_squared_error(y_test, y_pred_lasso)}")
 print(f"Test R^2 : {r2_score(y_test, y_pred_lasso)}")
 ```
 
@@ -1756,24 +1748,23 @@ plt.tight_layout()
 
 The choice of `alpha` strongly affects the fitted model. Therefore in practice we usually tune it by cross-validation.
 
-We first use `LassoCV` to select the best value of alpha.
+We first use `GridSearchCV` to select the best value of alpha.
 
 ```{python}
 #| warning: false
 from sklearn.linear_model import Lasso
 from sklearn.model_selection import GridSearchCV
 
+alphas = np.logspace(-2, 4, 100)
+
 lasso_pipe = Pipeline(
     [
         ("scaler", StandardScaler()),
-        ("model", Lasso(max_iter=10000, random_state=0)),
+        ("model", Lasso(max_iter=100000, tol=1e-3, random_state=0)),
     ]
 )
 
-lasso_cv_pipe = GridSearchCV(
-    lasso_pipe,
-    param_grid={"model__alpha": alphas}
-)
+lasso_cv_pipe = GridSearchCV(lasso_pipe, param_grid={"model__alpha": alphas})
 
 lasso_cv_pipe.fit(X_train, y_train)
 y_pred_lasso_cv = lasso_cv_pipe.predict(X_test)
@@ -1781,31 +1772,31 @@ y_pred_lasso_cv = lasso_cv_pipe.predict(X_test)
 best_alpha_lasso = lasso_cv_pipe.best_params_["model__alpha"]
 
 print("Best lasso alpha:", best_alpha_lasso)
-print("LassoCV Test RMSE:", mean_squared_error(y_test, y_pred_lasso_cv))
-print("LassoCV Test R^2 :", r2_score(y_test, y_pred_lasso_cv))
+print("Lasso Test MSE:", mean_squared_error(y_test, y_pred_lasso_cv))
+print("Lasso Test R^2:", r2_score(y_test, y_pred_lasso_cv))
 ```
 
-For comparison, we also fit ridge regression with `RidgeCV`.
+For comparison, we tune ridge regression using the same cross-validation procedure and `alpha` grid.
 
 ```{python}
 #| code-fold: true
-from sklearn.linear_model import RidgeCV
-
 ridge_cv_pipe = Pipeline(
     [
         ("scaler", StandardScaler()),
-        ("model", RidgeCV()),
+        ("model", Ridge()),
     ]
 )
+
+ridge_cv_pipe = GridSearchCV(ridge_cv_pipe, param_grid={"model__alpha": alphas})
 
 ridge_cv_pipe.fit(X_train, y_train)
 y_pred_ridge_cv = ridge_cv_pipe.predict(X_test)
 
-best_alpha_ridge = ridge_cv_pipe.named_steps["model"].alpha_
+best_alpha_ridge = ridge_cv_pipe.best_params_["model__alpha"]
 
 print("Best ridge alpha:", best_alpha_ridge)
-print("RidgeCV Test RMSE:", mean_squared_error(y_test, y_pred_ridge_cv))
-print("RidgeCV Test R^2 :", r2_score(y_test, y_pred_ridge_cv))
+print("Ridge Test MSE:", mean_squared_error(y_test, y_pred_ridge_cv))
+print("Ridge Test R^2:", r2_score(y_test, y_pred_ridge_cv))
 ```
 
 After obtaining the best regularization parameters, we mark them on the coefficient path plots. This helps connect the selected model to the whole regularization path.
@@ -1827,7 +1818,7 @@ alphas_lasso, coefs_lasso, _ = lasso_path(X_train_scaled, y_train)
 
 axs[0].plot(alphas_lasso, coefs_lasso.T)
 axs[0].axvline(
-    best_alpha_lasso, linestyle="--", color="black", label="LassoCV alpha"
+    best_alpha_lasso, linestyle="--", color="black", label="selected alpha"
 )
 axs[0].set_title("Lasso coefficient paths")
 
@@ -1843,7 +1834,7 @@ coefs_ridge = np.array(coefs_ridge)
 
 axs[1].plot(alphas_ridge, coefs_ridge)
 axs[1].axvline(
-    best_alpha_ridge, linestyle="--", color="black", label="RidgeCV alpha"
+    best_alpha_ridge, linestyle="--", color="black", label="selected alpha"
 )
 axs[1].set_title("Ridge coefficient paths")
 
@@ -1860,7 +1851,7 @@ plt.tight_layout()
 
 
 
-::: {.callout-caution}
+::: {#caution-cv-preprocessing-leakage .callout-caution}
 ## Data leaks in `LassoCV`
 
 When using a pipeline such as `StandardScaler->LassoCV`, the `StandardScaler` is fitted once using the entire training set before `LassoCV` performs its internal cross-validation. As a result, the validation folds inside `LassoCV` are evaluated on data that were standardized using information from all training observations, including observations outside the current fold.
@@ -1888,7 +1879,7 @@ Similarly, `RidgeCV` may suffer from the same issue when placed after preprocess
 
 ### Validation curves
 
-Another way to visualize tuning is through the validation curve. Here we plot the mean training and validation scores across a grid of `alpha` values. Note that the score is nagative MSE. Therefore the higher the better.
+Another way to visualize tuning is through the validation curve. Here we plot the mean training and validation scores across the same grid of `alpha` values used above. The score is negative MSE, so higher values are better.
 
 - When `alpha` is too small, the model may overfit.
 - When `alpha` is too large, the model may underfit.
@@ -1904,32 +1895,22 @@ from sklearn.linear_model import Ridge, Lasso
 import numpy as np
 import matplotlib.pyplot as plt
 
-alphas = np.logspace(-4, 4, 100)
-
 fig, axs = plt.subplots(1, 2, figsize=(10, 4.5))
 
 lasso_pipe = Pipeline(
     [
         ("scaler", StandardScaler()),
-        ("model", Lasso(max_iter=20000)),
+        ("model", Lasso(max_iter=100000, tol=1e-3, random_state=0)),
     ]
 )
 
 train_scores_lasso, test_scores_lasso = validation_curve(
-    lasso_pipe,
-    X,
-    y,
-    param_name="model__alpha",
-    param_range=alphas,
-    cv=5,
-    scoring="neg_mean_squared_error",
+    lasso_pipe, X_train, y_train, param_name="model__alpha", param_range=alphas
 )
 
 axs[0].plot(alphas, train_scores_lasso.mean(axis=1), label="train")
 axs[0].plot(alphas, test_scores_lasso.mean(axis=1), label="test")
-axs[0].axvline(
-    best_alpha_lasso, color="black", linestyle="--", label="best alpha"
-)
+axs[0].axvline(best_alpha_lasso, color="black", linestyle="--", label="best alpha")
 axs[0].set_title("Validation curve for lasso")
 
 
@@ -1941,77 +1922,23 @@ ridge_pipe = Pipeline(
 )
 
 train_scores_ridge, test_scores_ridge = validation_curve(
-    ridge_pipe,
-    X,
-    y,
-    param_name="model__alpha",
-    param_range=alphas,
-    cv=5,
-    scoring="neg_mean_squared_error",
+    ridge_pipe, X_train, y_train, param_name="model__alpha", param_range=alphas
 )
 
 axs[1].plot(alphas, train_scores_ridge.mean(axis=1), label="train")
 axs[1].plot(alphas, test_scores_ridge.mean(axis=1), label="test")
-axs[1].axvline(
-    best_alpha_ridge, color="black", linestyle="--", label="best alpha"
-)
+axs[1].axvline(best_alpha_ridge, color="black", linestyle="--", label="best alpha")
 axs[1].set_title("Validation curve for ridge")
 
 
 for ax in axs:
     ax.set_xscale("log")
     ax.set_xlabel("alpha")
-    ax.set_ylabel("score: Nagative MSE")
+    ax.set_ylabel(r"score: $R^2$")
     ax.legend()
 
 plt.tight_layout()
 ```
-
-### Summary 
-
-Finally, we summarize the test performance and the number of nonzero coefficients for each model.
-
-```{python}
-#| code-fold: true
-import pandas as pd
-
-results = []
-
-models = {
-    "OLS": ols_pipe,
-    "Ridge": ridge_cv_pipe,
-    "Lasso": lasso_cv_pipe,
-}
-
-for name, model in models.items():
-    y_pred = model.predict(X_test)
-    rmse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
-
-    fitted_pipe = model.best_estimator_ if name == "LassoCV" else model
-    n_nonzero = np.sum(fitted_pipe.named_steps["model"].coef_ != 0)
-    alpha = (model.best_params_["model__alpha"] if name == "LassoCV"
-             else fitted_pipe.named_steps["model"].alpha_ if name != "OLS" else None)
-
-    results.append({
-        'Model': name,
-        'Best alpha': alpha,
-        'Test RMSE': rmse,
-        'Test R^2': r2,
-        'Nonzero coefs': n_nonzero
-    })
-
-pd.DataFrame(results)
-```
-
-This example shows the main practical difference between ridge and lasso:
-
-- Ridge shrinks coefficients continuously and is especially useful when predictors are strongly correlated.
-- Lasso also shrinks coefficients, but can force some of them to be exactly zero, producing a sparse model.
-
-In high-dimensional settings with collinearity and only a subset of truly relevant predictors, lasso often provides a more interpretable model, while ridge often gives more stable coefficient estimates.
-
-
 
 
 
@@ -2201,8 +2128,189 @@ for ax in axs:
         spine.set_linewidth(0.8)
 
 plt.tight_layout()
-plt.show()
 ```
 
 
 
+
+## Elastic net
+
+Elastic net combines the $L_1$ penalty of lasso and the $L_2$ penalty of ridge regression. It is useful when we want a sparse model, but the predictors are strongly correlated.
+
+::: {#def-elastic-net}
+## Elastic net
+
+The elastic net estimator is defined by
+
+$$
+\hat{\beta}_{\text{EN}}
+=
+\arg\min_{\beta}
+\qty{
+\norm{y-X\beta}_2^2
++
+\lambda\qty[
+\alpha\norm{\beta}_1
++
+(1-\alpha)\norm{\beta}_2^2
+]
+},
+$$
+
+where $\lambda \ge 0$ controls the overall regularization strength and $0 \le \alpha \le 1$ controls the mixture of the two penalties.
+
+:::
+
+- When $\alpha=1$, elastic net reduces to lasso.
+- When $\alpha=0$, elastic net reduces to ridge regression.
+- The $L_1$ penalty can set coefficients exactly to zero, while the $L_2$ penalty improves stability when predictors are strongly correlated.
+
+In `scikit-learn`, `alpha` represents the overall regularization strength $\lambda$, while `l1_ratio` represents the mixing parameter $\alpha$ in the definition above.
+
+
+::: {.callout-note}
+## Grouping effect
+
+An important feature of elastic net is the **grouping effect**. When several predictors are strongly correlated, lasso may select only one of them, and the selected predictor may change substantially across different samples. In contrast, the $L_2$ component of elastic net encourages correlated predictors to have similar coefficients, so they tend to enter or leave the model together.
+
+Elastic net therefore combines variable selection with more stable coefficient estimates when predictors are strongly correlated.
+:::
+
+### Elastic net in Python
+
+In `scikit-learn`, elastic net is implemented by `ElasticNet`. The parameter names are slightly confusing:
+
+- `alpha` corresponds to $\lambda$, the overall regularization strength.
+- `l1_ratio` corresponds to $\alpha$, the mixture of the $L_1$ and $L_2$ penalties.
+
+Thus, `l1_ratio=1` gives lasso, while values closer to $0$ behave more like ridge regression.
+
+```{python}
+#| warning: false
+from sklearn.linear_model import ElasticNet
+
+en = ElasticNet(alpha=0.1, l1_ratio=0.5, max_iter=10000)
+en.fit(X_train, y_train)
+y_pred_en = en.predict(X_test)
+```
+
+### Choosing $\alpha$ and $\lambda$
+
+Both parameters can be selected using `ElasticNetCV`.
+
+```python
+from sklearn.linear_model import ElasticNetCV
+
+en_cv = ElasticNetCV(
+    l1_ratio=[0.1, 0.5, 0.9, 1.0],
+    alphas=np.logspace(-4, 4, 100),
+    cv=5,
+    max_iter=10000,
+).fit(X_train, y_train)
+```
+
+As noted in the [earlier caution](#caution-cv-preprocessing-leakage), preprocessing should be performed separately within each fold. Therefore, we use `GridSearchCV` with `ElasticNet` instead of a `StandardScaler`–`ElasticNetCV` pipeline.
+
+```{python}
+#| warning: false
+import numpy as np
+from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
+en_pipe = make_pipeline(
+    StandardScaler(),
+    ElasticNet(max_iter=100000, tol=1e-3),
+)
+
+alphas = np.logspace(-2, 4, 100)
+
+en_grid = GridSearchCV(
+    en_pipe,
+    {
+        "elasticnet__alpha": alphas,
+        "elasticnet__l1_ratio": [0.1, 0.5, 0.9, 1.0],
+    },
+)
+en_grid.fit(X_train, y_train)
+
+y_pred_en = en_grid.predict(X_test)
+
+print("Best lambda:", en_grid.best_params_["elasticnet__alpha"])
+print("Best alpha :", en_grid.best_params_["elasticnet__l1_ratio"])
+print("Test MSE   :", mean_squared_error(y_test, y_pred_en))
+print("Test R^2   :", r2_score(y_test, y_pred_en))
+```
+
+
+
+### Summary
+
+Finally, we summarize the test performance and the number of nonzero coefficients for each model.
+
+```{python}
+#| code-fold: true
+import pandas as pd
+
+results = []
+
+models = {
+    "OLS": ols_pipe,
+    "Ridge": ridge_cv_pipe,
+    "Lasso": lasso_cv_pipe,
+    "Elastic Net": en_grid,
+}
+
+for name, model in models.items():
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    fitted_pipe = (
+        model.best_estimator_
+        if name in ["Ridge", "Lasso", "Elastic Net"]
+        else model
+    )
+    model_step = "elasticnet" if name == "Elastic Net" else "model"
+    fitted_model = fitted_pipe.named_steps[model_step]
+    n_nonzero = np.sum(fitted_model.coef_ != 0)
+
+    if name == "Lasso":
+        alpha = model.best_params_["model__alpha"]
+        l1_ratio = 1.0
+    elif name == "Elastic Net":
+        alpha = model.best_params_["elasticnet__alpha"]
+        l1_ratio = model.best_params_["elasticnet__l1_ratio"]
+    elif name == "Ridge":
+        alpha = model.best_params_["model__alpha"]
+        l1_ratio = 0.0
+    else:
+        alpha = None
+        l1_ratio = None
+
+    results.append({
+        'Model': name,
+        'Best alpha': alpha,
+        'L1 ratio': l1_ratio,
+        'Test MSE': mse,
+        'Test R^2': r2,
+        'Nonzero coefs': n_nonzero
+    })
+
+pd.DataFrame(results)
+```
+
+This example shows the main practical differences among ridge, lasso, and elastic net:
+
+- Ridge shrinks coefficients continuously and is especially useful when predictors are strongly correlated.
+- Lasso also shrinks coefficients, but can force some of them to be exactly zero, producing a sparse model.
+- Elastic net combines both penalties, balancing sparsity with greater stability among correlated predictors. In this example, however, cross-validation selects `l1_ratio=1`, so the fitted elastic net model reduces to lasso.
+
+In high-dimensional settings with collinearity and only a subset of truly relevant predictors, lasso can provide a more interpretable sparse model, ridge can produce more stable coefficient estimates, and elastic net offers a data-driven compromise between the two.
+
+
+::: {.callout-note}
+
+In this example, the best `l1_ratio` is 1. This is likely because the true model is sparse: only a small number of predictors contribute directly to the response, making variable selection especially useful. Thus, although the predictors are strongly correlated, the additional ridge penalty does not improve cross-validation performance for this particular dataset.
+
+:::
