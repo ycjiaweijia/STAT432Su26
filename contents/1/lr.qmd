@@ -1115,8 +1115,7 @@ Pipelines are particularly useful when combined with cross-validation and hyperp
 
 Here is a simple example of a `TransformedTargetRegressor`. The transformation of $y$ is centralizer, which is essentially standardizer without rescaling.
 
-```{python}
-#| eval: false
+```python
 from sklearn.compose import TransformedTargetRegressor
 
 model = TransformedTargetRegressor(
@@ -1124,7 +1123,15 @@ model = TransformedTargetRegressor(
     transformer=StandardScaler(with_std=False)
 )
 ```
+`TransformedTargetRegressor` must know how to reverse the transformation applied to the response variable. If the transformer has an `.inverse_transform()` method (e.g., `StandardScaler()`), the inverse transformation is handled automatically. Otherwise, you must specify both the transformation and its inverse using the `func=` and `inverse_func=` arguments.
 
+```python
+model = TransformedTargetRegressor(
+    regressor=LinearRegression(),
+    func=np.log,
+    inverse_func=np.exp
+)
+```
 
 
 ### Full Example
