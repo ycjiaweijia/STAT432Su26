@@ -2,59 +2,84 @@
 jupyter: stats
 ---
 
-{{< include ../math.qmd >}} 
+<!-- {{< include ../t/math.qmd >}} -->
 
-# Graph and Manifold Embedding
+# Graph and Manifold Embedding {#sec-embedding}
 
-PCA is a linear embedding method. K-means and hierarchical clustering are direct clustering methods. This chapter discusses methods that use neighborhood or graph structure to represent data in a lower-dimensional space.
+PCA represents data with a linear subspace. This is effective when the
+important geometry is approximately linear, but it may miss curved or
+connectivity-based structure.
 
-The main methods are:
+Graph and manifold methods begin from a different idea: nearby observations
+should remain nearby after embedding. A common workflow is
 
-- spectral clustering,
-- self-organizing maps,
-- UMAP.
+$$
+\text{features}
+\longrightarrow
+\text{neighborhood graph}
+\longrightarrow
+\text{low-dimensional coordinates}
+\longrightarrow
+\text{visualization or clustering}.
+$$
 
-These methods are useful when the structure is nonlinear or when ordinary Euclidean clusters are not adequate.
+This chapter studies spectral methods, self-organizing maps, and UMAP. These
+methods have different algorithms, but all replace the original coordinates
+with a representation designed to preserve selected neighborhood structure.
 
-## Spectral Clustering
 
-Spectral clustering is useful when clusters are not well separated by simple Euclidean centroids. It uses a graph representation of the data.
+## From Data to a Graph
 
-The main steps are:
+Treat each observation as a vertex. An edge between observations $i$ and
+$j$ records that they are similar. The weighted adjacency matrix is
 
-1. Build an adjacency matrix $W$ that measures similarity between observations.
-2. Construct a graph Laplacian from $W$.
-3. Use eigenvectors of the Laplacian to embed the data into a lower-dimensional space.
-4. Run k-means on the embedded features.
+$$
+W=\mqty[W_{ij}],
+\qquad
+W_{ij}\ge 0.
+$$
 
-::: {.callout-note}
-## Main idea
+Two common constructions are:
 
-Spectral clustering turns a clustering problem into a graph partitioning problem.
-:::
-
-### Adjacency Matrix
-
-One common similarity is the Gaussian similarity:
+- a $K$-nearest-neighbor graph;
+- a kernel graph, such as
 
 $$
 W_{ij}
 =
-\exp\left(
--\frac{\|x_i-x_j\|^2}{2\sigma^2}
-\right).
+\exp\qty(
+-\frac{\norm{x_i-x_j}^2}{2\sigma^2}
+).
 $$
 
-Another option is a nearest-neighbor graph, where two observations are connected if one is among the other's nearest neighbors.
+The graph determines the geometry that the method sees. A small
+neighborhood emphasizes local structure; a large neighborhood moves toward
+global Euclidean structure.
 
-The adjacency matrix describes which observations are close in the graph.
+::: {.callout-caution}
+## Preprocessing still matters
+
+Neighborhoods are computed from a distance or similarity. Scaling,
+irrelevant features, missing-value handling, and the metric can change the
+graph before the embedding algorithm begins.
+:::
+
+
+## Spectral Clustering
+
+K-means partitions observations by proximity to centers. Spectral clustering
+instead partitions a graph by connectivity. It is useful for non-convex
+groups such as rings, curves, and linked regions.
+
 
 ### Graph Laplacian
 
-Let $D$ be the diagonal degree matrix:
+Define the degree matrix
 
 $$
-D_{ii}=\sum_j W_{ij}.
+D=\diag(d_1,\ldots,d_n),
+\qquad
+d_i=\sum_{j=1}^nW_{ij}.
 $$
 
 The unnormalized graph Laplacian is
@@ -63,19 +88,47 @@ $$
 L=D-W.
 $$
 
-A normalized version is
+For any vector $f\in\mathbb R^n$,
 
 $$
-L_{\text{sym}}
+f^\top Lf
+=
+\frac12\sum_{i=1}^n\sum_{j=1}^n
+W_{ij}(f_i-f_j)^2.
+$$
+
+This identity explains the method. If two vertices have a large edge weight,
+the quadratic form penalizes assigning them very different values. Smooth
+eigenvectors of $L$ therefore provide coordinates that respect graph
+connectivity.
+
+A common normalized Laplacian is
+
+$$
+L_{\mathrm{sym}}
 =
 I-D^{-1/2}WD^{-1/2}.
 $$
 
-Eigenvectors of these matrices give an embedding that reflects graph connectivity.
+Normalization reduces the influence of vertices that have unusually large
+degrees.
 
-### Concentric Circles Example
 
-K-means struggles with concentric circles because the clusters are not separated by centers.
+### Spectral Clustering Algorithm
+
+For $K$ clusters:
+
+1. construct an adjacency matrix $W$;
+2. compute a graph Laplacian;
+3. take eigenvectors associated with the $K$ smallest eigenvalues;
+4. use their rows as an embedded representation of the observations;
+5. apply K-means to the embedded rows.
+
+The final step is ordinary K-means, but it operates in graph-derived
+coordinates rather than the original feature space.
+
+
+### Concentric Circles
 
 ```{python}
 import numpy as np
@@ -83,8 +136,9 @@ import matplotlib.pyplot as plt
 
 from sklearn.datasets import make_circles
 from sklearn.cluster import KMeans, SpectralClustering
+from sklearn.preprocessing import StandardScaler
 
-X_circles, y_circles = make_circles(
+X_circle, y_circle = make_circles(
     n_samples=600,
     factor=0.45,
     noise=0.05,
@@ -92,7 +146,7 @@ X_circles, y_circles = make_circles(
 )
 
 kmeans = KMeans(n_clusters=2, n_init=20, random_state=1)
-kmeans_labels = kmeans.fit_predict(X_circles)
+kmeans_group = kmeans.fit_predict(X_circle)
 
 spectral = SpectralClustering(
     n_clusters=2,
@@ -101,199 +155,347 @@ spectral = SpectralClustering(
     assign_labels="kmeans",
     random_state=1,
 )
-spectral_labels = spectral.fit_predict(X_circles)
+spectral_group = spectral.fit_predict(X_circle)
 
 fig, axs = plt.subplots(1, 3, figsize=(13, 4), sharex=True, sharey=True)
 
-axs[0].scatter(X_circles[:, 0], X_circles[:, 1], c=y_circles, s=15)
-axs[0].set_title("True Structure")
-
-axs[1].scatter(X_circles[:, 0], X_circles[:, 1], c=kmeans_labels, s=15)
-axs[1].set_title("K-Means")
-
-axs[2].scatter(X_circles[:, 0], X_circles[:, 1], c=spectral_labels, s=15)
-axs[2].set_title("Spectral Clustering")
-
-for ax in axs:
+for ax, labels, title in zip(
+    axs,
+    [y_circle, kmeans_group, spectral_group],
+    ["Underlying Structure", "K-Means", "Spectral Clustering"],
+):
+    ax.scatter(X_circle[:, 0], X_circle[:, 1], c=labels, s=16)
+    ax.set_title(title)
     ax.set_xlabel("x1")
     ax.set_ylabel("x2")
 
-plt.show()
+plt.tight_layout();
 ```
 
-Spectral clustering can recover clusters based on connectivity rather than center separation.
+The Euclidean centers do not separate the rings, but the nearest-neighbor
+graph records that points are connected around each ring.
 
-::: {.callout-caution}
-## Spectral clustering tuning
+::: {.callout-note}
+## What must be tuned
 
-The graph construction matters. Results can change with `n_neighbors`, kernel bandwidth, or affinity type.
+Spectral clustering depends on the number of clusters and the graph
+construction. Important choices include `n_neighbors`, the affinity kernel,
+its bandwidth, and whether the Laplacian is normalized.
 :::
+
+
+### Inspecting the Spectral Embedding
+
+The embedding itself can be computed without immediately assigning clusters.
+
+```{python}
+from sklearn.manifold import SpectralEmbedding
+
+spectral_embedding = SpectralEmbedding(
+    n_components=2,
+    affinity="nearest_neighbors",
+    n_neighbors=10,
+    random_state=1,
+)
+
+X_spectral = spectral_embedding.fit_transform(X_circle)
+
+fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+axs[0].scatter(X_circle[:, 0], X_circle[:, 1], c=y_circle, s=16)
+axs[0].set_title("Original Coordinates")
+axs[1].scatter(X_spectral[:, 0], X_spectral[:, 1], c=y_circle, s=16)
+axs[1].set_title("Spectral Coordinates")
+
+for ax in axs:
+    ax.set_xlabel("coordinate 1")
+    ax.set_ylabel("coordinate 2");
+```
+
+Spectral coordinates need not preserve ordinary distances or orientation.
+They are constructed to expose graph connectivity.
+
 
 ## Self-Organizing Maps
 
-A self-organizing map (SOM) is an unsupervised neural network method for representing high-dimensional data on a low-dimensional grid.
+A self-organizing map (SOM) represents observations with prototypes arranged
+on a low-dimensional grid. Each grid location $r$ has a prototype vector
+$m_r\in\mathbb R^p$.
 
-The usual SOM grid is two-dimensional. Each grid cell has a prototype vector. During training:
+For an observation $x$, the **best matching unit** is
 
-1. Pick an observation.
-2. Find the closest prototype, called the best matching unit.
-3. Move that prototype and its grid neighbors toward the observation.
-4. Repeat many times.
+$$
+c(x)=\argmin_r\norm{x-m_r}.
+$$
 
-The result is a grid where nearby cells tend to represent similar observations.
+During training, the winning prototype and its grid neighbors move toward
+the observation:
 
-SOMs are often used for:
+$$
+m_r(t+1)
+=
+m_r(t)
++
+\alpha_t h_{c,r}(t)\qty[x-m_r(t)],
+$$
 
-- visualization,
-- exploratory clustering,
-- topology-preserving maps,
-- summarizing high-dimensional observations.
+where $\alpha_t$ is a learning rate and $h_{c,r}(t)$ decreases with grid
+distance from the winning unit.
 
-Python does not include SOM in `sklearn`. A common lightweight package is `MiniSom`. Install it only if needed:
+The neighborhood width is usually large early in training and shrinks over
+time. Early updates organize the global map; later updates refine local
+prototypes.
+
+
+### What a SOM Produces
+
+A fitted SOM gives:
+
+- a grid of prototype vectors;
+- the best matching grid cell for each observation;
+- a two-dimensional summary in which nearby cells tend to represent similar
+  observations.
+
+It combines aspects of vector quantization and topology-preserving
+visualization. Unlike PCA or UMAP, the output locations are restricted to a
+regular grid.
+
+Python does not include SOM in core `sklearn`. One lightweight
+implementation is `MiniSom`.
 
 ```{.bash}
 uv add minisom
 ```
 
-Example code:
-
 ```{python}
 #| eval: false
 from minisom import MiniSom
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_wine
 from sklearn.preprocessing import StandardScaler
 
-iris = load_iris(as_frame=True)
-X_iris = iris.data
-y_iris = iris.target
+rng = np.random.default_rng(1)
 
-X_scaled = StandardScaler().fit_transform(X_iris)
+wine = load_wine()
+X_wine = StandardScaler().fit_transform(wine.data)
+y_wine = wine.target
 
 som = MiniSom(
-    x=8,
-    y=8,
-    input_len=X_scaled.shape[1],
-    sigma=1.0,
+    x=10,
+    y=10,
+    input_len=X_wine.shape[1],
+    sigma=1.5,
     learning_rate=0.5,
     random_seed=1,
 )
 
-som.random_weights_init(X_scaled)
-som.train_random(X_scaled, num_iteration=1000)
+som.random_weights_init(X_wine)
+som.train_random(X_wine, num_iteration=3000)
 
-locations = np.array([som.winner(x) for x in X_scaled])
+winner = np.array([som.winner(x) for x in X_wine])
 
-plt.figure(figsize=(6, 6))
-plt.scatter(locations[:, 0], locations[:, 1], c=y_iris, edgecolor="k")
+plt.scatter(
+    winner[:, 0] + rng.uniform(-0.2, 0.2, len(winner)),
+    winner[:, 1] + rng.uniform(-0.2, 0.2, len(winner)),
+    c=y_wine,
+    edgecolor="black",
+)
 plt.xlabel("SOM grid x")
 plt.ylabel("SOM grid y")
-plt.title("Self-Organizing Map")
-plt.show()
+plt.title("Wine Data on a Self-Organizing Map");
 ```
 
-::: {.callout-note}
-## SOM interpretation
+Jitter is added only to show observations assigned to the same grid cell.
 
-SOM is mainly exploratory. The grid is useful for visualization, but the result depends on grid size, learning rate, neighborhood width, and training length.
+::: {.callout-caution}
+## SOM output is exploratory
+
+The map depends on grid dimensions, initialization, learning rate,
+neighborhood width, and training length. Grid adjacency is meaningful, but
+the precise Euclidean distance between two grid cells should not be treated
+as an exact original-space distance.
 :::
+
 
 ## UMAP
 
-UMAP stands for Uniform Manifold Approximation and Projection. It is a nonlinear dimension reduction method often used for visualization.
+Uniform Manifold Approximation and Projection (UMAP) is a nonlinear
+dimension-reduction method designed to preserve local neighborhood
+structure.
 
-UMAP is graph-based. It builds a local-neighborhood graph in the original space and then finds a low-dimensional embedding that preserves much of that neighborhood structure.
+At a high level, UMAP:
 
-It is related in spirit to spectral embedding and t-SNE:
+1. finds nearest neighbors in the original space;
+2. converts local distances into weighted graph connections;
+3. constructs a corresponding graph in the low-dimensional space;
+4. optimizes the low-dimensional coordinates so the two graphs agree.
 
-- PCA is linear and variance-based.
-- Spectral embedding is graph/eigenvector-based.
-- t-SNE and UMAP are nonlinear graph-based visualization methods.
+The method adapts connection strengths to local density rather than using one
+global distance bandwidth for all observations.
 
-UMAP is not part of core `sklearn`. The common package is `umap-learn`.
+
+### UMAP in Python
+
+The standard Python implementation is provided by `umap-learn`.
 
 ```{.bash}
 uv add umap-learn
 ```
 
-Example:
-
 ```{python}
 #| eval: false
 import umap
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_digits
 from sklearn.preprocessing import StandardScaler
 
-iris = load_iris(as_frame=True)
-X_iris = iris.data
-y_iris = iris.target
-
-X_scaled = StandardScaler().fit_transform(X_iris)
+digits = load_digits()
+X_digits = StandardScaler().fit_transform(digits.data)
+y_digits = digits.target
 
 reducer = umap.UMAP(
     n_neighbors=15,
     min_dist=0.1,
     n_components=2,
+    metric="euclidean",
     random_state=1,
 )
 
-X_umap = reducer.fit_transform(X_scaled)
+X_umap = reducer.fit_transform(X_digits)
 
-plt.figure(figsize=(6, 5))
-plt.scatter(X_umap[:, 0], X_umap[:, 1], c=y_iris, edgecolor="k")
+plt.scatter(
+    X_umap[:, 0],
+    X_umap[:, 1],
+    c=y_digits,
+    cmap="tab10",
+    s=10,
+)
 plt.xlabel("UMAP1")
 plt.ylabel("UMAP2")
-plt.title("Iris UMAP")
-plt.show()
+plt.title("Digits UMAP");
 ```
 
-### UMAP Tuning
+The labels are used for coloring only and are not supplied to the unsupervised
+embedding.
 
-Important tuning parameters include:
 
-| Parameter | Meaning |
-|---|---|
-| `n_neighbors` | Size of local neighborhood used to build the graph. |
-| `min_dist` | How tightly points can be packed in the embedding. |
-| `n_components` | Dimension of the embedding. Usually 2 or 3 for visualization. |
-| `metric` | Distance metric in the original space. |
+### Main Tuning Parameters
 
-Small `n_neighbors` emphasizes local structure. Large `n_neighbors` emphasizes more global structure.
+| Parameter | Role | Typical effect |
+|---|---|---|
+| `n_neighbors` | size of the local neighborhood graph | smaller emphasizes local detail; larger uses broader structure |
+| `min_dist` | minimum spacing encouraged in the embedding | smaller permits tighter groups |
+| `n_components` | output dimension | usually 2 or 3 for visualization |
+| `metric` | original-space dissimilarity | changes which observations are neighbors |
 
-Small `min_dist` allows tighter clusters in the embedding. Larger `min_dist` spreads points out.
+The two most visible parameters are `n_neighbors` and `min_dist`.
+
+- Small `n_neighbors` may separate fine local patterns but can fragment a
+  continuous population.
+- Large `n_neighbors` smooths over local detail and gives more weight to
+  broader structure.
+- Small `min_dist` produces compact visual groups.
+- Large `min_dist` produces a more even spread.
+
+
+### Sensitivity Analysis
+
+A UMAP plot should be checked under several reasonable settings.
+
+```{python}
+#| eval: false
+settings = [
+    (5, 0.05),
+    (15, 0.10),
+    (50, 0.10),
+    (50, 0.50),
+]
+
+fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+
+for ax, (n_neighbors, min_dist) in zip(axs.ravel(), settings):
+    reducer = umap.UMAP(
+        n_neighbors=n_neighbors,
+        min_dist=min_dist,
+        random_state=1,
+    )
+    embedding = reducer.fit_transform(X_digits)
+    ax.scatter(
+        embedding[:, 0],
+        embedding[:, 1],
+        c=y_digits,
+        cmap="tab10",
+        s=6,
+    )
+    ax.set_title(
+        f"n_neighbors={n_neighbors}, min_dist={min_dist}"
+    )
+
+plt.tight_layout();
+```
+
+Structures that persist across preprocessing choices, random seeds, and
+reasonable tuning settings are more credible than features visible in one
+plot only.
+
+
+## What an Embedding Plot Does Not Show
+
+Low-dimensional embeddings are useful but easy to overinterpret.
 
 ::: {.callout-caution}
-## UMAP plots
+## Apparent clusters are not proof of clusters
 
-UMAP is a visualization method, not proof of true clusters. Apparent gaps in a UMAP plot can be affected by tuning choices.
+UMAP and spectral embeddings distort some distances to preserve selected
+graph relationships. A visible gap may be affected by graph construction,
+optimization, initialization, or tuning. If clustering is the goal, fit and
+evaluate a clustering procedure rather than treating separated colors or
+islands as self-validating evidence.
 :::
 
-## Comparing Methods
+In particular:
 
-| Method | Main purpose | Strength | Limitation |
+- axis directions usually have no direct feature interpretation;
+- distances between far-apart groups may be unreliable;
+- group sizes and densities in the plot need not match original-space
+  densities;
+- different runs may rotate, reflect, or rearrange the embedding;
+- an embedding fitted to all observations can leak test-set information in a
+  predictive workflow.
+
+For supervised modeling, fit preprocessing and embedding steps using the
+training data only whenever the method supports transforming new
+observations.
+
+
+## Comparing the Methods
+
+| Method | Representation | Main strength | Main limitation |
 |---|---|---|---|
-| PCA | Linear dimension reduction | Interpretable directions and variance explained | Only linear structure |
-| Spectral clustering | Graph-based clustering | Handles non-convex clusters | Graph tuning matters |
-| SOM | Grid-based exploratory map | Topology-preserving visualization | Extra package and tuning |
-| UMAP | Nonlinear visualization | Strong visual embeddings | Tuning-sensitive and not a formal clustering model |
+| PCA | linear scores | interpretable loadings and optimal low-rank reconstruction | only linear structure |
+| Spectral embedding | Laplacian eigenvectors | exposes graph connectivity and non-convex groups | graph construction and eigen-decomposition can be costly |
+| SOM | prototypes on a regular grid | discrete topology-preserving exploratory map | training and grid choices affect the result |
+| UMAP | optimized neighborhood graph | flexible nonlinear visualization and transform support | tuning-sensitive; global geometry is not guaranteed |
+
+PCA is usually the first method to try because it is fast, deterministic up
+to signs, and interpretable. Graph methods are appropriate when local
+connectivity is central or linear projections fail to reveal useful
+structure.
+
+
+## Practical Workflow
+
+1. Choose and preprocess features based on the scientific question.
+2. Start with PCA as a transparent baseline.
+3. Build graph embeddings only after deciding what distance and neighborhood
+   should mean.
+4. repeat the analysis across plausible tuning choices and random seeds;
+5. evaluate clusters in the original feature space and check stability;
+6. treat the embedding as a representation, not as ground truth.
+
 
 ## Summary
 
-Spectral clustering:
-
-- clusters using graph connectivity,
-- can handle non-convex clusters,
-- depends strongly on graph construction.
-
-SOM:
-
-- maps high-dimensional observations to a low-dimensional grid,
-- is mainly exploratory,
-- depends on grid and training parameters.
-
-UMAP:
-
-- creates nonlinear low-dimensional embeddings,
-- is useful for visualization,
-- depends strongly on tuning choices.
-
-Graph and manifold methods can reveal structure that linear methods and ordinary clustering may miss, but the resulting plots should be interpreted carefully.
+Spectral methods use Laplacian eigenvectors to turn graph connectivity into
+features, after which ordinary clustering can be applied. SOM organizes
+prototype vectors on a grid. UMAP optimizes a low-dimensional graph to
+preserve local neighborhoods. All three methods can reveal nonlinear
+structure, but their output inherits every choice made while constructing
+the neighborhood geometry.

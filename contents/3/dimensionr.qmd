@@ -1,0 +1,497 @@
+---
+jupyter: stats
+---
+
+<!-- {{< include ../t/math.qmd >}} -->
+
+# Principal Component Analysis {#sec-unsupervised-pca}
+
+Principal component analysis (PCA) represents high-dimensional observations
+with a smaller number of linear coordinates. It is useful for visualization,
+compression, denoising, and preprocessing before clustering.
+
+PCA also appeared in the
+[supervised dimension-reduction chapter](../1/dr.qmd), where the resulting
+components were used in principal component regression (PCR). The matrix
+decomposition is the same, but the goal is different:
+
+| Setting | PCA uses $y$? | How is the dimension chosen? | Main goal |
+|---|---:|---|---|
+| Unsupervised PCA | No | variance, reconstruction, or visualization | represent $X$ |
+| PCR | No when constructing components | cross-validation using prediction error | predict $y$ |
+| PLS | Yes | cross-validation using prediction error | predict $y$ |
+
+This chapter studies PCA as an unsupervised representation of $X$.
+
+
+## Row and Column Views of the Data Matrix
+
+Let $X\in\mathbb R^{n\times p}$ contain $n$ observations and $p$ features.
+After centering the columns:
+
+- row $x_i^\top\in\mathbb R^p$ represents observation $i$ in feature space;
+- column $X_j\in\mathbb R^n$ represents feature $j$ across observations.
+
+Clustering and nearest-neighbor methods compare rows. PCA constructs new
+directions in the feature space and gives every row a coordinate along those
+directions.
+
+::: {.callout-note}
+## Terminology from `dr.qmd`
+
+The **loadings** are directions in feature space. The **scores** are the
+coordinates of observations after projection. The same terminology applies
+here and in PCR.
+:::
+
+
+## Principal Directions
+
+Assume that $X$ is centered. The first principal direction is
+
+$$
+v_1
+=
+\argmax_{\norm{v}=1}\Var(Xv).
+$$
+
+The score vector $Xv_1$ contains the coordinates of all observations along
+that direction. The second direction maximizes the remaining projected
+variance subject to orthogonality:
+
+$$
+v_2
+=
+\argmax_{\norm{v}=1,\;v^\top v_1=0}\Var(Xv).
+$$
+
+Later components are defined in the same way.
+
+::: {#def-pca}
+## Principal components
+
+If $v_1,\ldots,v_r$ are the principal directions, then
+
+$$
+Z_j=Xv_j
+$$
+
+is the $j$-th principal component score vector. The loading $v_j$ describes
+the direction; the entries of $Z_j$ describe where observations lie along
+that direction.
+:::
+
+
+## A Two-Dimensional Example
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.decomposition import PCA
+
+rng = np.random.default_rng(1)
+
+Sigma = np.array(
+    [
+        [0.5, -0.65],
+        [-0.65, 1.0],
+    ]
+)
+
+X_original = rng.multivariate_normal(
+    mean=[1, 2],
+    cov=Sigma,
+    size=100,
+)
+X_centered = X_original - X_original.mean(axis=0)
+
+pca_2d = PCA(n_components=2)
+scores_2d = pca_2d.fit_transform(X_centered)
+
+pca_2d.components_
+```
+
+The rows of `components_` are $v_1^\top$ and $v_2^\top$.
+
+```{python}
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.scatter(X_centered[:, 0], X_centered[:, 1], alpha=0.7)
+ax.axhline(0, color="grey", linewidth=1)
+ax.axvline(0, color="grey", linewidth=1)
+
+for direction, variance, color, label in zip(
+    pca_2d.components_,
+    pca_2d.explained_variance_,
+    ["C1", "C3"],
+    ["PC1", "PC2"],
+):
+    endpoint = 2 * np.sqrt(variance) * direction
+    ax.arrow(
+        0,
+        0,
+        endpoint[0],
+        endpoint[1],
+        width=0.015,
+        length_includes_head=True,
+        color=color,
+        label=label,
+    )
+
+ax.set_xlabel("x1")
+ax.set_ylabel("x2")
+ax.set_title("Principal Directions")
+ax.axis("equal")
+ax.legend();
+```
+
+The first direction follows the largest spread of the data. The second is
+orthogonal and captures the remaining variation.
+
+
+## SVD View
+
+The same singular value decomposition used in `dr.qmd` provides the cleanest
+matrix description. If centered $X$ has rank $r$, then
+
+$$
+X=UDV^\top,
+$$
+
+where
+
+$$
+U^\top U=I,\qquad
+V^\top V=I,\qquad
+D=\diag(d_1,\ldots,d_r),
+$$
+
+with $d_1\ge\cdots\ge d_r>0$.
+
+The columns of $V$ are the loadings. The score matrix is
+
+$$
+Z=XV=UD.
+$$
+
+Therefore:
+
+| Quantity | Matrix | Interpretation |
+|---|---|---|
+| Loadings | $V$ | principal directions in feature space |
+| Scores | $Z=UD$ | coordinates of observations |
+| Singular values | $D$ | spread along each component |
+| Component variances | $D^2/(n-1)$ | variance explained by each component |
+
+Because
+
+$$
+\frac{1}{n-1}X^\top X
+=
+V\frac{D^2}{n-1}V^\top,
+$$
+
+PCA is also the eigen-decomposition of the sample covariance matrix.
+
+
+## PCA as Matrix Approximation
+
+Keeping the first $m$ components gives
+
+$$
+X_m=U_mD_mV_m^\top=Z_mV_m^\top.
+$$
+
+This is not merely a convenient approximation. Among all matrices $A$ of
+rank at most $m$, truncated PCA solves
+
+$$
+X_m
+=
+\argmin_{\rank(A)\le m}
+\norm{X-A}_F^2.
+$$
+
+The reconstruction error is
+
+$$
+\norm{X-X_m}_F^2
+=
+\sum_{j=m+1}^r d_j^2.
+$$
+
+Thus PCA can be understood in three equivalent ways:
+
+- find directions of maximum projected variance;
+- diagonalize the covariance matrix;
+- find the best low-rank reconstruction under squared error.
+
+
+### Visualizing Reconstruction
+
+```{python}
+pca_1d = PCA(n_components=1)
+score_1d = pca_1d.fit_transform(X_centered)
+X_reconstructed = pca_1d.inverse_transform(score_1d)
+
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.scatter(
+    X_centered[:, 0],
+    X_centered[:, 1],
+    alpha=0.5,
+    label="observations",
+)
+ax.scatter(
+    X_reconstructed[:, 0],
+    X_reconstructed[:, 1],
+    s=18,
+    color="C1",
+    label="rank-1 reconstruction",
+)
+
+for x, x_hat in zip(X_centered[::5], X_reconstructed[::5]):
+    ax.plot(
+        [x[0], x_hat[0]],
+        [x[1], x_hat[1]],
+        color="grey",
+        linewidth=0.8,
+    )
+
+ax.set_xlabel("x1")
+ax.set_ylabel("x2")
+ax.set_title("Projection and Rank-1 Reconstruction")
+ax.axis("equal")
+ax.legend();
+```
+
+The reconstructed points lie on the first principal direction. Their
+residual distances are the information discarded by the one-dimensional
+representation.
+
+
+## Centering and Scaling
+
+Centering is essential. Without centering, the leading singular direction
+can reflect the location of the data cloud relative to the origin rather
+than variation around the sample mean.
+
+`sklearn.decomposition.PCA` centers features automatically, but it does not
+scale them to unit variance.
+
+Whether to scale depends on the meaning of the variables:
+
+- scale when units or numerical spreads are not comparable;
+- retain the original scale when magnitude and variance are meaningful;
+- state the choice because it changes the principal directions.
+
+```{python}
+from sklearn.preprocessing import StandardScaler
+
+X_scaled = StandardScaler().fit_transform(X_original)
+
+pca_centered = PCA(n_components=2).fit(X_original)
+pca_scaled = PCA(n_components=2).fit(X_scaled)
+
+pd.DataFrame(
+    {
+        "centered only": pca_centered.explained_variance_ratio_,
+        "centered and scaled": pca_scaled.explained_variance_ratio_,
+    },
+    index=["PC1", "PC2"],
+)
+```
+
+::: {.callout-caution}
+## PCA is sensitive to preprocessing
+
+Changing units, applying a transformation, or adding many noisy features
+changes the covariance matrix and therefore changes the PCA representation.
+:::
+
+
+## Explained Variance and Choosing a Dimension
+
+The variance explained by component $j$ is
+
+$$
+\lambda_j=\frac{d_j^2}{n-1}.
+$$
+
+Its explained variance ratio is
+
+$$
+\frac{\lambda_j}{\sum_{\ell=1}^r\lambda_\ell},
+$$
+
+and the cumulative ratio for the first $m$ components is
+
+$$
+\frac{\sum_{j=1}^m d_j^2}
+{\sum_{j=1}^r d_j^2}.
+$$
+
+For unsupervised PCA, $m$ may be chosen using:
+
+- a scree plot or visible elbow;
+- a target cumulative explained variance;
+- reconstruction error;
+- downstream clustering stability;
+- the dimension needed for a particular visualization.
+
+This differs from PCR in `dr.qmd`. For prediction, the number of components
+should be chosen by cross-validation against the response, not merely by
+variance explained.
+
+
+## PCA on the Digits Data
+
+The handwritten digits dataset has 64 features, one for each pixel in an
+$8\times8$ image.
+
+```{python}
+from sklearn.datasets import load_digits
+
+digits = load_digits()
+X_digits = digits.data
+y_digits = digits.target
+
+X_digits.shape
+```
+
+Fit PCA and inspect cumulative explained variance.
+
+```{python}
+digits_pca = PCA().fit(X_digits)
+cum_ratio = np.cumsum(digits_pca.explained_variance_ratio_)
+
+plt.plot(np.arange(1, len(cum_ratio) + 1), cum_ratio)
+plt.axhline(0.90, color="C1", linestyle="--", label="90%")
+plt.xlabel("number of components")
+plt.ylabel("cumulative explained variance")
+plt.title("Digits: Cumulative Explained Variance")
+plt.legend();
+```
+
+The number of components needed to explain at least 90% of the sample
+variance is:
+
+```{python}
+np.searchsorted(cum_ratio, 0.90) + 1
+```
+
+For visualization, retain two components.
+
+```{python}
+digits_2d = PCA(n_components=2).fit_transform(X_digits)
+
+fig, ax = plt.subplots(figsize=(8, 6))
+scatter = ax.scatter(
+    digits_2d[:, 0],
+    digits_2d[:, 1],
+    c=y_digits,
+    cmap="tab10",
+    s=10,
+    alpha=0.7,
+)
+ax.set_xlabel("PC1 score")
+ax.set_ylabel("PC2 score")
+ax.set_title("Digits Projected onto Two Principal Components")
+ax.legend(*scatter.legend_elements(), title="digit", ncol=2);
+```
+
+The labels are used only to interpret the plot. PCA itself receives only
+`X_digits`.
+
+
+## Loadings
+
+Loadings describe how the original features form each component. For image
+data, a loading vector can be reshaped back to the image dimensions.
+
+```{python}
+digits_pca_10 = PCA(n_components=10).fit(X_digits)
+
+fig, axs = plt.subplots(2, 5, figsize=(10, 4))
+
+for j, ax in enumerate(axs.ravel()):
+    ax.imshow(
+        digits_pca_10.components_[j].reshape(8, 8),
+        cmap="coolwarm",
+    )
+    ax.set_title(f"PC{j + 1}")
+    ax.axis("off")
+
+plt.tight_layout();
+```
+
+Positive and negative loading regions describe contrasting pixel patterns.
+The sign of a loading is arbitrary: multiplying both a loading and its scores
+by $-1$ represents the same component.
+
+
+## PCA Before Clustering
+
+PCA is not a clustering method, but it is often used before clustering:
+
+1. standardize or otherwise preprocess the features;
+2. fit PCA;
+3. retain a chosen number of components;
+4. cluster the score vectors.
+
+This can remove low-variance noise and reduce computation. It can also make
+distance-based clustering more stable when many original variables are
+highly correlated.
+
+However, PCA preserves high-variance directions, not necessarily cluster
+separation.
+
+```{python}
+rng = np.random.default_rng(2)
+n = 300
+
+low_variance_signal = np.repeat([-0.35, 0.35], n // 2)
+high_variance_noise = rng.normal(scale=4, size=n)
+
+X_hidden = np.column_stack(
+    [
+        high_variance_noise,
+        low_variance_signal + rng.normal(scale=0.08, size=n),
+    ]
+)
+y_hidden = np.repeat([0, 1], n // 2)
+
+hidden_scores = PCA(n_components=2).fit_transform(X_hidden)
+
+fig, axs = plt.subplots(1, 2, figsize=(11, 4))
+axs[0].scatter(X_hidden[:, 0], X_hidden[:, 1], c=y_hidden, s=18)
+axs[0].set_xlabel("high-variance noise")
+axs[0].set_ylabel("low-variance cluster signal")
+axs[0].set_title("Original Features")
+
+axs[1].scatter(hidden_scores[:, 0], hidden_scores[:, 1], c=y_hidden, s=18)
+axs[1].set_xlabel("PC1")
+axs[1].set_ylabel("PC2")
+axs[1].set_title("PCA Scores");
+```
+
+If only PC1 were retained, the cluster information would be discarded.
+
+::: {.callout-caution}
+## Variance is not relevance
+
+The leading PCs are optimal for reconstructing $X$ under squared error. They
+are not guaranteed to be optimal for prediction, clustering, or preserving
+rare subgroups. This is the same limitation that motivates PLS after PCR in
+`dr.qmd`.
+:::
+
+
+## Summary
+
+PCA rotates centered data into orthogonal directions ordered by variance.
+The loadings $V$ are directions, the scores $Z=XV=UD$ are transformed
+observations, and truncated PCA is the best low-rank squared-error
+approximation of $X$. In unsupervised learning, the retained dimension should
+match the representation, visualization, or clustering goal. It need not be
+the dimension that would be selected for supervised prediction.
