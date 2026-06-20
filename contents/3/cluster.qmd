@@ -19,9 +19,7 @@ x_n^\top
 \in\mathbb R^{n\times p},
 $$
 
-and try to divide the observations into groups whose members are similar.
-Unlike classification, there are no training labels that define the correct
-groups.
+and try to divide the observations into groups whose members are similar. Unlike classification, there are no training labels that define the correct groups.
 
 Clustering is commonly used to:
 
@@ -33,17 +31,13 @@ Clustering is commonly used to:
 ::: {.callout-caution}
 ## A cluster is not automatically a real class
 
-A clustering algorithm always returns a partition when asked to do so. The
-result may reflect scientific structure, but it may also reflect scaling,
-outliers, an unsuitable distance, or a forced choice of the number of
-clusters. Interpretation is part of the analysis.
+A clustering algorithm always returns a partition when asked to do so. The result may reflect scientific structure, but it may also reflect scaling, outliers, an unsuitable distance, or a forced choice of the number of clusters. Interpretation is part of the analysis.
 :::
 
 
-## Similarity, Distance, and Scaling
+<!-- ## Similarity, Distance, and Scaling -->
 
-Most clustering methods begin with a notion of dissimilarity. For numerical
-features, the default is often Euclidean distance:
+Most clustering methods begin with a notion of dissimilarity. For numerical features, the default is often Euclidean distance:
 
 $$
 d(x_i,x_j)
@@ -53,58 +47,24 @@ d(x_i,x_j)
 \sqrt{\sum_{\ell=1}^p(x_{i\ell}-x_{j\ell})^2}.
 $$
 
-The distance defines what the algorithm means by *similar*. Changing the
-features, their scales, or the distance metric changes the clustering
-problem.
+The distance defines what the algorithm means by *similar*. Changing the features, their scales, or the distance metric itself effectively changes the clustering problem. In particular, features with larger numerical ranges can dominate the Euclidean distance calculation.
 
-For example, suppose one feature is measured in dollars and another in
-years. The feature with the larger numerical variation can dominate
-Euclidean distance. Standardization replaces each feature by
+Therefore, as with KNN and other distance-based algorithms, it is often necessary to standardize or normalize the features so that they are on a comparable scale before performing clustering.
 
-$$
-z_{ij}=\frac{x_{ij}-\bar x_j}{s_j},
-$$
 
-so that the features are compared on approximately the same scale.
-
-```{python}
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-
-from sklearn.preprocessing import StandardScaler
-
-X_scale = np.array(
-    [
-        [20, 30_000],
-        [25, 40_000],
-        [60, 120_000],
-        [65, 130_000],
-    ]
-)
-
-StandardScaler().fit_transform(X_scale)
-```
 
 ::: {.callout-note}
 ## Scaling is a modeling decision
 
-Standardize when numerical scales are arbitrary or incomparable. Do not
-standardize automatically when the original magnitude is scientifically
-meaningful, such as comparable pixel intensities or measurements already
-expressed on a common scale.
+Standardize when numerical scales are arbitrary or incomparable. Do not standardize automatically when the original magnitude is scientifically meaningful, such as comparable pixel intensities or measurements already expressed on a common scale.
 :::
 
-Euclidean distance is not the only choice. Manhattan distance can be more
-robust to a few large coordinate differences, cosine distance focuses on
-direction rather than magnitude, and domain-specific data may require a
-custom dissimilarity. The distance must match the question being asked.
+Euclidean distance is not the only choice. Manhattan distance can be more robust to a few large coordinate differences, cosine distance focuses on direction rather than magnitude, and domain-specific data may require a custom dissimilarity. The distance must match the question being asked.
 
 
 ## K-Means Clustering
 
-K-means represents every cluster by its center. Let
-$C_1,\ldots,C_K$ be a partition of the observations, and let
+K-means represents every cluster by its center. Let $C_1,\ldots,C_K$ be a partition of the observations, and let 
 
 $$
 \mu_k=\frac{1}{|C_k|}\sum_{i\in C_k}x_i
@@ -141,6 +101,7 @@ initializations.
 ```{python}
 from sklearn.datasets import make_blobs
 from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
 
 X, true_group = make_blobs(
     n_samples=500,
@@ -447,6 +408,8 @@ An embedding plot is useful, but clusters should ultimately be described
 using the original variables.
 
 ```{python}
+import pandas as pd
+
 cluster_summary = (
     pd.DataFrame(X, columns=["x1", "x2"])
     .assign(cluster=cluster)

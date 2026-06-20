@@ -23,9 +23,10 @@ $$
 \text{visualization or clustering}.
 $$
 
-This chapter studies spectral methods, self-organizing maps, and UMAP. These
-methods have different algorithms, but all replace the original coordinates
-with a representation designed to preserve selected neighborhood structure.
+This chapter studies spectral methods, Isomap, self-organizing maps, t-SNE,
+and UMAP. These methods have different algorithms, but all replace the
+original coordinates with a representation designed to preserve selected
+geometric or neighborhood structure.
 
 
 ## From Data to a Graph
@@ -215,6 +216,109 @@ Spectral coordinates need not preserve ordinary distances or orientation.
 They are constructed to expose graph connectivity.
 
 
+## Isomap
+
+Isomap is a nonlinear extension of multidimensional scaling (MDS). Its main
+idea is that Euclidean distance can be misleading when observations lie near
+a curved manifold.
+
+For example, two points on different layers of a rolled surface may be close
+in ambient Euclidean distance even though traveling along the surface between
+them requires a much longer path. Isomap estimates this **geodesic distance**
+with shortest-path distance on a neighborhood graph.
+
+
+### Isomap Algorithm
+
+Isomap consists of three main steps:
+
+1. construct a $K$-nearest-neighbor or radius-neighbor graph;
+2. compute shortest-path distances between every pair of observations on the
+   graph;
+3. apply classical MDS to the shortest-path distance matrix.
+
+Let $G_{ij}$ denote the graph shortest-path distance between observations
+$i$ and $j$. Classical MDS finds low-dimensional coordinates
+$z_1,\ldots,z_n$ whose Euclidean distances approximate these graph
+distances:
+
+$$
+\norm{z_i-z_j}\approx G_{ij}.
+$$
+
+Thus Isomap tries to preserve global distances measured *along* the
+manifold, rather than direct Euclidean distances through the ambient space.
+
+
+### Swiss Roll Example
+
+```{python}
+from sklearn.datasets import make_swiss_roll
+from sklearn.manifold import Isomap
+
+X_roll, roll_position = make_swiss_roll(
+    n_samples=1000,
+    noise=0.05,
+    random_state=1,
+)
+
+isomap = Isomap(
+    n_neighbors=12,
+    n_components=2,
+)
+X_isomap = isomap.fit_transform(X_roll)
+
+fig = plt.figure(figsize=(12, 5))
+
+ax1 = fig.add_subplot(1, 2, 1, projection="3d")
+ax1.scatter(
+    X_roll[:, 0],
+    X_roll[:, 1],
+    X_roll[:, 2],
+    c=roll_position,
+    cmap="viridis",
+    s=8,
+)
+ax1.set_title("Swiss Roll")
+
+ax2 = fig.add_subplot(1, 2, 2)
+ax2.scatter(
+    X_isomap[:, 0],
+    X_isomap[:, 1],
+    c=roll_position,
+    cmap="viridis",
+    s=8,
+)
+ax2.set_xlabel("Isomap1")
+ax2.set_ylabel("Isomap2")
+ax2.set_title("Isomap Embedding")
+
+plt.tight_layout();
+```
+
+The color shows position along the roll and is used only to interpret the
+result. Isomap approximately unfolds the curved surface into two dimensions.
+
+
+### Choosing the Neighborhood
+
+`n_neighbors` controls the graph used to approximate geodesic distances.
+
+- If it is too small, the graph may become disconnected and shortest paths
+  may be unstable.
+- If it is too large, edges can create shortcuts across the manifold and
+  Isomap approaches ordinary Euclidean MDS.
+
+::: {.callout-caution}
+## When Isomap is unsuitable
+
+Isomap assumes that meaningful global geometry can be recovered from
+shortest paths on a well-sampled manifold. It can be sensitive to noise,
+outliers, disconnected graphs, sparse sampling, and shortcuts between nearby
+folds.
+:::
+
+
 ## Self-Organizing Maps
 
 A self-organizing map (SOM) represents observations with prototypes arranged
@@ -312,6 +416,139 @@ The map depends on grid dimensions, initialization, learning rate,
 neighborhood width, and training length. Grid adjacency is meaningful, but
 the precise Euclidean distance between two grid cells should not be treated
 as an exact original-space distance.
+:::
+
+
+## t-SNE
+
+t-distributed stochastic neighbor embedding (t-SNE) is a nonlinear
+embedding method designed primarily for visualization. It converts
+high-dimensional distances into neighborhood probabilities and seeks
+low-dimensional coordinates with similar neighborhood probabilities.
+
+Unlike Isomap, t-SNE does not try to preserve global pairwise distances. Its
+main goal is to place observations with similar local neighborhoods near one
+another.
+
+
+### Neighborhood Probabilities
+
+For each observation $i$, t-SNE defines a conditional probability that
+observation $i$ would select observation $j$ as a neighbor:
+
+$$
+p_{j\mid i}
+=
+\frac{
+\exp\qty(-\norm{x_i-x_j}^2/(2\sigma_i^2))
+}{
+\sum_{k\ne i}
+\exp\qty(-\norm{x_i-x_k}^2/(2\sigma_i^2))
+},
+\qquad j\ne i.
+$$
+
+The bandwidth $\sigma_i$ adapts to the local density. The conditional
+probabilities are symmetrized to obtain high-dimensional similarities
+$p_{ij}$.
+
+For low-dimensional coordinates $z_i$, t-SNE uses a heavy-tailed
+Student-$t$ similarity:
+
+$$
+q_{ij}
+=
+\frac{(1+\norm{z_i-z_j}^2)^{-1}}
+{\sum_{k\ne \ell}(1+\norm{z_k-z_\ell}^2)^{-1}}.
+$$
+
+The heavy tail helps moderately distant observations repel one another and
+reduces the crowding that occurs when many high-dimensional neighborhoods
+are represented in two dimensions.
+
+t-SNE minimizes the Kullback--Leibler divergence
+
+$$
+\operatorname{KL}(P\Vert Q)
+=
+\sum_{i\ne j}
+p_{ij}\log\qty(\frac{p_{ij}}{q_{ij}}).
+$$
+
+Because the divergence is asymmetric, failing to place true neighbors
+together is penalized more strongly than placing some unrelated observations
+too close together. This is one reason t-SNE emphasizes local clusters.
+
+
+### Digits Example
+
+```{python}
+from sklearn.datasets import load_digits
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+from sklearn.preprocessing import StandardScaler
+
+digits = load_digits()
+X_digits = StandardScaler().fit_transform(digits.data)
+y_digits = digits.target
+
+# PCA initialization is stable and removes noisy directions before t-SNE.
+X_digits_pca = PCA(n_components=30, random_state=1).fit_transform(
+    X_digits
+)
+
+tsne = TSNE(
+    n_components=2,
+    perplexity=30,
+    init="pca",
+    learning_rate="auto",
+    max_iter=1000,
+    random_state=1,
+)
+X_tsne = tsne.fit_transform(X_digits_pca)
+
+fig, ax = plt.subplots(figsize=(8, 6))
+scatter = ax.scatter(
+    X_tsne[:, 0],
+    X_tsne[:, 1],
+    c=y_digits,
+    cmap="tab10",
+    s=10,
+    alpha=0.75,
+)
+ax.set_xlabel("t-SNE1")
+ax.set_ylabel("t-SNE2")
+ax.set_title("Digits t-SNE")
+ax.legend(*scatter.legend_elements(), title="digit", ncol=2);
+```
+
+The class labels are used only for coloring. t-SNE is fit without the labels.
+
+
+### Perplexity
+
+The main tuning parameter is `perplexity`. It is related to the effective
+number of neighbors used around each observation.
+
+- Smaller perplexity emphasizes very local structure and can fragment the
+  embedding.
+- Larger perplexity incorporates broader neighborhoods and requires more
+  observations.
+
+The result also depends on initialization, learning rate, iteration count,
+and random seed. A useful interpretation should persist across several
+reasonable settings.
+
+::: {.callout-caution}
+## Interpreting t-SNE
+
+Distances between separated groups, group sizes, and empty space in a t-SNE
+plot do not generally have direct quantitative meaning. t-SNE may create
+visually distinct islands even when the original data vary continuously.
+
+Standard `sklearn` t-SNE also does not provide a `.transform()` method for
+new observations. It is therefore mainly a visualization tool rather than a
+reusable feature transformation for a predictive pipeline.
 :::
 
 
@@ -443,11 +680,11 @@ Low-dimensional embeddings are useful but easy to overinterpret.
 ::: {.callout-caution}
 ## Apparent clusters are not proof of clusters
 
-UMAP and spectral embeddings distort some distances to preserve selected
-graph relationships. A visible gap may be affected by graph construction,
-optimization, initialization, or tuning. If clustering is the goal, fit and
-evaluate a clustering procedure rather than treating separated colors or
-islands as self-validating evidence.
+t-SNE, UMAP, Isomap, and spectral embeddings distort some distances to
+preserve selected geometric relationships. A visible gap may be affected by
+graph construction, optimization, initialization, or tuning. If clustering
+is the goal, fit and evaluate a clustering procedure rather than treating
+separated colors or islands as self-validating evidence.
 :::
 
 In particular:
@@ -471,7 +708,9 @@ observations.
 |---|---|---|---|
 | PCA | linear scores | interpretable loadings and optimal low-rank reconstruction | only linear structure |
 | Spectral embedding | Laplacian eigenvectors | exposes graph connectivity and non-convex groups | graph construction and eigen-decomposition can be costly |
+| Isomap | MDS of graph geodesic distances | preserves global geometry along a curved manifold | sensitive to graph shortcuts and disconnected regions |
 | SOM | prototypes on a regular grid | discrete topology-preserving exploratory map | training and grid choices affect the result |
+| t-SNE | neighborhood probability matching | strong local visualization of complex groups | weak global interpretation and no standard out-of-sample transform |
 | UMAP | optimized neighborhood graph | flexible nonlinear visualization and transform support | tuning-sensitive; global geometry is not guaranteed |
 
 PCA is usually the first method to try because it is fast, deterministic up
@@ -484,18 +723,22 @@ structure.
 
 1. Choose and preprocess features based on the scientific question.
 2. Start with PCA as a transparent baseline.
-3. Build graph embeddings only after deciding what distance and neighborhood
+3. Use Isomap when geodesic distance along a manifold is meaningful.
+4. Use t-SNE or UMAP when local neighborhood visualization is the primary
+   goal.
+5. Build graph embeddings only after deciding what distance and neighborhood
    should mean.
-4. repeat the analysis across plausible tuning choices and random seeds;
-5. evaluate clusters in the original feature space and check stability;
-6. treat the embedding as a representation, not as ground truth.
+6. Repeat the analysis across plausible tuning choices and random seeds.
+7. Evaluate clusters in the original feature space and check stability.
+8. Treat the embedding as a representation, not as ground truth.
 
 
 ## Summary
 
 Spectral methods use Laplacian eigenvectors to turn graph connectivity into
-features, after which ordinary clustering can be applied. SOM organizes
-prototype vectors on a grid. UMAP optimizes a low-dimensional graph to
-preserve local neighborhoods. All three methods can reveal nonlinear
-structure, but their output inherits every choice made while constructing
-the neighborhood geometry.
+features, after which ordinary clustering can be applied. Isomap preserves
+shortest-path distances along a neighborhood graph. SOM organizes prototype
+vectors on a grid. t-SNE matches local neighborhood probabilities, while
+UMAP optimizes a low-dimensional graph. These methods can reveal nonlinear
+structure, but their output inherits the preprocessing, neighborhood,
+tuning, and optimization choices used to construct the representation.
