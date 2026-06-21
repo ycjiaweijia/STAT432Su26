@@ -178,7 +178,7 @@ circle_cluster = circle_kmeans.fit_predict(X_circle)
 
 fig, axs = plt.subplots(1, 2, figsize=(10, 4), sharex=True, sharey=True)
 axs[0].scatter(X_circle[:, 0], X_circle[:, 1], c=y_circle, s=18)
-axs[0].set_title("Underlying Structure")
+axs[0].set_title("True labels")
 axs[1].scatter(X_circle[:, 0], X_circle[:, 1], c=circle_cluster, s=18)
 axs[1].set_title("K-Means Partition")
 
@@ -187,7 +187,137 @@ for ax in axs:
     ax.set_ylabel("x2")
 ```
 
-K-means separates the plane into convex Voronoi regions, so it cannot recover the two rings. Spectral clustering in @sec-embedding addresses this type of connectivity-based structure.
+K-means separates the plane into convex regions, so it cannot recover the two rings. It requires other methods to deal with these types of data.
+
+
+
+
+
+
+
+
+### Internal Evaluation a Clustering
+
+Without known labels, clustering evaluation must combine several kinds of evidence. Internal metrics assess geometric compactness and separation, stability checks whether the result persists under perturbations, and interpretation determines whether the groups are meaningful in the original problem.
+
+
+
+Internal clustering metrics evaluate a partition using only the observations and their assigned clusters. They can compare values of $K$, initializations, or different clustering methods, provided that the same features, scaling, and distance are used.
+
+No single metric defines the correct clustering. Each metric favors a particular geometric idea of a good partition.
+
+For simplicity we only cover WCSS and the Silhouette score in the notes.
+
+#### Within-Cluster Sum of Squares
+
+The K-means objective is the within-cluster sum of squares:
+
+$$
+\operatorname{WCSS}
+=
+\sum_{k=1}^K\sum_{i\in C_k}\norm{x_i-\mu_k}_2^2.
+$$
+
+In `sklearn`, WCSS is called **inertia** and is stored in `inertia_`.
+
+```{python}
+kmeans.inertia_
+```
+
+Smaller inertia means observations are closer to their assigned centers. However, inertia cannot be compared naively across different values of $K$: it always decreases when more clusters are added and becomes zero when every distinct observation is its own cluster.
+
+
+#### Silhouette Value
+
+The silhouette value evaluates both within-cluster cohesion and separation from neighboring clusters. For observation $i$, define:
+
+- $a(i)$ as its average distance to observations in its own cluster;
+- $b(i)$ as the smallest average distance to any other cluster.
+
+The silhouette value is
+
+$$
+s(i)=\frac{b(i)-a(i)}{\max\{a(i),b(i)\}}.
+$$
+
+It lies between $-1$ and $1$:
+
+- values near $1$ indicate a well-separated observation;
+- values near $0$ indicate an observation near a cluster boundary;
+- negative values suggest that another cluster may be closer.
+
+The overall silhouette score is the average of $s(i)$ over all observations. Larger values are preferred. It requires at least two clusters and is available as `silhouette_score()`.
+
+<!-- 
+#### Calinski--Harabasz Index
+
+The Calinski--Harabasz index compares between-cluster dispersion with
+within-cluster dispersion. Let $W_K$ and $B_K$ denote the within-cluster and
+between-cluster dispersion matrices. The index is
+
+$$
+\operatorname{CH}(K)
+=
+\frac{\operatorname{tr}(B_K)/(K-1)}
+{\operatorname{tr}(W_K)/(n-K)}.
+$$
+
+A larger value indicates compact clusters whose centers are well separated.
+The adjustment by $K-1$ and $n-K$ makes it more suitable than raw inertia
+for comparing different values of $K$. It is computed by
+`calinski_harabasz_score()`.
+
+
+#### Davies--Bouldin Index
+
+The Davies--Bouldin index compares each cluster with its most similar
+competing cluster. Let $S_k$ measure the average within-cluster distance for
+cluster $k$, and let
+
+$$
+M_{k\ell}=\norm{\mu_k-\mu_\ell}
+$$
+
+be the distance between two cluster centers. Then
+
+$$
+\operatorname{DB}(K)
+=
+\frac{1}{K}
+\sum_{k=1}^K
+\max_{\ell\ne k}
+\frac{S_k+S_\ell}{M_{k\ell}}.
+$$
+
+Smaller values are preferred: clusters should have small internal spread and
+large separation from their closest competitor. It is computed by
+`davies_bouldin_score()`. -->
+
+
+
+### External Evaluation a Clustering
+
+If known labels exist, they may be used after fitting for evaluation. The
+adjusted Rand index compares two partitions while accounting for agreement
+expected by chance.
+
+```{python}
+from sklearn.metrics import adjusted_rand_score
+
+adjusted_rand_score(true_group, cluster)
+```
+
+This does not turn clustering into supervised learning: the labels were not
+used to fit the clusters.
+
+
+
+
+
+
+
+
+
 
 
 
@@ -196,9 +326,7 @@ K-means separates the plane into convex Voronoi regions, so it cannot recover th
 
 The number of clusters $K$ is a tuning parameter. There is no universally correct criterion because the useful level of grouping depends on the scientific question.
 
-The following example compares the four internal metrics over a range of
-candidate values using K-means. Inertia is also defined for $K=1$, while the
-other metrics require at least two clusters.
+The following example compares the four internal metrics over a range of candidate values using K-means. Inertia is also defined for $K=1$, while the other metrics require at least two clusters.
 
 ```{python}
 import pandas as pd
@@ -251,18 +379,12 @@ for ax, (column, title) in zip(axs.ravel(), plots):
 plt.tight_layout();
 ```
 
-For inertia, the elbow heuristic looks for the point after which additional
-clusters produce only modest improvement. For the other metrics, we look for
-a maximum or minimum as indicated above. Agreement among several metrics is
-useful evidence, but disagreement is common because the metrics formalize
-different notions of cluster quality.
+For inertia, the elbow heuristic looks for the point after which additional clusters produce only modest improvement. For the other metrics, we look for a maximum or minimum as indicated above. Agreement among several metrics is useful evidence, but disagreement is common because the metrics formalize different notions of cluster quality.
 
 ::: {.callout-caution}
 ## Diagnostics do not define the scientific answer
 
-These metrics evaluate geometric compactness and separation under the chosen
-features, scaling, and distance. They do not show that the clusters are
-stable, scientifically meaningful, or useful for a later decision.
+These metrics evaluate geometric compactness and separation under the chosen features, scaling, and distance. They do not show that the clusters are stable, scientifically meaningful, or useful for a later decision.
 :::
 
 
@@ -279,22 +401,6 @@ A practical stability analysis can:
 Instability may indicate weak separation, an unsuitable tuning choice, or
 insufficient data. It can also reveal that several clusterings are similarly
 plausible.
-
-
-### External Evaluation
-
-If known labels exist, they may be used after fitting for evaluation. The
-adjusted Rand index compares two partitions while accounting for agreement
-expected by chance.
-
-```{python}
-from sklearn.metrics import adjusted_rand_score
-
-adjusted_rand_score(true_group, cluster)
-```
-
-This does not turn clustering into supervised learning: the labels were not
-used to fit the clusters.
 
 
 ### Interpretation in the Original Features
@@ -320,121 +426,6 @@ representative observations from each group.
 
 
 
-
-
-
-
-
-## Evaluating a Clustering
-
-Without known labels, clustering evaluation must combine several kinds of
-evidence. Internal metrics assess geometric compactness and separation,
-stability checks whether the result persists under perturbations, and
-interpretation determines whether the groups are meaningful in the original
-problem.
-
-
-### Internal Evaluation
-
-Internal clustering metrics evaluate a partition using only the observations
-and their assigned clusters. They can compare values of $K$,
-initializations, or different clustering methods, provided that the same
-features, scaling, and distance are used.
-
-No single metric defines the correct clustering. Each metric favors a
-particular geometric idea of a good partition.
-
-
-#### Within-Cluster Sum of Squares
-
-The K-means objective is the within-cluster sum of squares:
-
-$$
-\operatorname{WCSS}
-=
-\sum_{k=1}^K\sum_{i\in C_k}\norm{x_i-\mu_k}_2^2.
-$$
-
-In `sklearn`, WCSS is called **inertia** and is stored in `inertia_`.
-
-```{python}
-kmeans.inertia_
-```
-
-Smaller inertia means observations are closer to their assigned centers.
-However, inertia cannot be compared naively across different values of $K$:
-it always decreases when more clusters are added and becomes zero when every
-distinct observation is its own cluster.
-
-
-#### Silhouette Value
-
-The silhouette value evaluates both within-cluster cohesion and separation
-from neighboring clusters. For observation $i$, define:
-
-- $a(i)$ as its average distance to observations in its own cluster;
-- $b(i)$ as the smallest average distance to any other cluster.
-
-The silhouette value is
-
-$$
-s(i)=\frac{b(i)-a(i)}{\max\{a(i),b(i)\}}.
-$$
-
-It lies between $-1$ and $1$:
-
-- values near $1$ indicate a well-separated observation;
-- values near $0$ indicate an observation near a cluster boundary;
-- negative values suggest that another cluster may be closer.
-
-The overall silhouette score is the average of $s(i)$ over all observations.
-Larger values are preferred. It requires at least two clusters and is
-available as `silhouette_score()`.
-
-
-#### Calinski--Harabasz Index
-
-The Calinski--Harabasz index compares between-cluster dispersion with
-within-cluster dispersion. Let $W_K$ and $B_K$ denote the within-cluster and
-between-cluster dispersion matrices. The index is
-
-$$
-\operatorname{CH}(K)
-=
-\frac{\operatorname{tr}(B_K)/(K-1)}
-{\operatorname{tr}(W_K)/(n-K)}.
-$$
-
-A larger value indicates compact clusters whose centers are well separated.
-The adjustment by $K-1$ and $n-K$ makes it more suitable than raw inertia
-for comparing different values of $K$. It is computed by
-`calinski_harabasz_score()`.
-
-
-#### Davies--Bouldin Index
-
-The Davies--Bouldin index compares each cluster with its most similar
-competing cluster. Let $S_k$ measure the average within-cluster distance for
-cluster $k$, and let
-
-$$
-M_{k\ell}=\norm{\mu_k-\mu_\ell}
-$$
-
-be the distance between two cluster centers. Then
-
-$$
-\operatorname{DB}(K)
-=
-\frac{1}{K}
-\sum_{k=1}^K
-\max_{\ell\ne k}
-\frac{S_k+S_\ell}{M_{k\ell}}.
-$$
-
-Smaller values are preferred: clusters should have small internal spread and
-large separation from their closest competitor. It is computed by
-`davies_bouldin_score()`.
 
 
 
