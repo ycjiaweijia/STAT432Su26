@@ -19,25 +19,31 @@ x_n^\top
 \in\mathbb R^{n\times p},
 $$
 
-and try to divide the observations into groups whose members are similar. Unlike classification, there are no training labels that define the correct groups.
+and try to divide the observations into groups whose members are similar.
+Unlike classification, there are no training labels that define the correct
+groups.
 
 Clustering is commonly used to:
 
 - explore unknown subpopulations;
-- summarize a large dataset by a small number of prototypes;
+- summarize a large dataset with a small number of groups or prototypes;
 - organize observations for visualization;
 - generate hypotheses for later scientific analysis.
 
 ::: {.callout-caution}
 ## A cluster is not automatically a real class
 
-A clustering algorithm always returns a partition when asked to do so. The result may reflect scientific structure, but it may also reflect scaling, outliers, an unsuitable distance, or a forced choice of the number of clusters. Interpretation is part of the analysis.
+A clustering algorithm returns a partition when asked to do so. The result
+may reflect scientific structure, but it may also reflect scaling, outliers,
+an unsuitable distance, or a forced choice of the number of clusters.
+Interpretation is part of the analysis.
 :::
 
 
-<!-- ## Similarity, Distance, and Scaling -->
+## Distance and Scaling
 
-Most clustering methods begin with a notion of dissimilarity. For numerical features, the default is often Euclidean distance:
+Most clustering methods begin with a notion of dissimilarity. For numerical
+features, the default is often Euclidean distance:
 
 $$
 d(x_i,x_j)
@@ -47,27 +53,39 @@ d(x_i,x_j)
 \sqrt{\sum_{\ell=1}^p(x_{i\ell}-x_{j\ell})^2}.
 $$
 
-The distance defines what the algorithm means by *similar*. Changing the features, their scales, or the distance metric itself effectively changes the clustering problem. In particular, features with larger numerical ranges can dominate the Euclidean distance calculation.
+The distance defines what the algorithm means by *similar*. Changing the
+features, their scales, or the distance metric changes the clustering
+problem. In particular, features with larger numerical ranges can dominate
+Euclidean distance.
 
-Therefore, as with KNN and other distance-based algorithms, it is often necessary to standardize or normalize the features so that they are on a comparable scale before performing clustering.
-
-
+Therefore, as with KNN and other distance-based methods, it is often
+necessary to standardize the features before clustering.
 
 ::: {.callout-note}
 ## Scaling is a modeling decision
 
-Standardize when numerical scales are arbitrary or incomparable. Do not standardize automatically when the original magnitude is scientifically meaningful, such as comparable pixel intensities or measurements already expressed on a common scale.
+Standardize when numerical scales are arbitrary or incomparable. Do not
+standardize automatically when the original magnitude is scientifically
+meaningful, such as comparable pixel intensities or measurements already
+expressed on a common scale.
 :::
 
-Euclidean distance is not the only choice. Manhattan distance can be more robust to a few large coordinate differences, cosine distance focuses on direction rather than magnitude, and domain-specific data may require a custom dissimilarity. The distance must match the question being asked.
+Euclidean distance is not the only choice. Manhattan distance can be less
+sensitive to a few large coordinate differences, cosine distance focuses on
+direction rather than magnitude, and domain-specific data may require a
+custom dissimilarity. The distance should match the question being asked.
 
 
 ## K-Means Clustering
 
-K-means represents every cluster by its center. Let $C_1,\ldots,C_K$ be a partition of the observations, and let 
+K-means represents each cluster by its center. Let
+$C_1,\ldots,C_K$ be a partition of the observations, and let
 
 $$
-\mu_k=\frac{1}{|C_k|}\sum_{i\in C_k}x_i
+\mu_k
+=
+\frac{1}{|C_k|}
+\sum_{i\in C_k}x_i
 $$
 
 be the center of cluster $k$.
@@ -75,14 +93,18 @@ be the center of cluster $k$.
 ::: {#def-kmeans}
 ## K-means objective
 
-K-means chooses the partition that minimizes the within-cluster sum of squares (WCSS):
+K-means chooses the partition that minimizes the within-cluster sum of
+squares (WCSS):
 
 $$
 \operatorname{WCSS}
 =
-\sum_{k=1}^K\sum_{i\in C_k}\norm{x_i-\mu_k}_2^2.
+\sum_{k=1}^K
+\sum_{i\in C_k}
+\norm{x_i-\mu_k}_2^2.
 $$
-It is also called **inertia** in some references.
+
+In `sklearn`, this objective is called **inertia**.
 :::
 
 The standard algorithm alternates between two steps:
@@ -90,41 +112,59 @@ The standard algorithm alternates between two steps:
 1. assign each observation to its nearest center;
 2. replace each center by the mean of its assigned observations.
 
-Each step decreases, or leaves unchanged, the K-means objective. The algorithm eventually reaches a local optimum, but not necessarily the global optimum. For this reason, software usually tries several random initializations.
+Each step decreases, or leaves unchanged, the K-means objective. The
+algorithm eventually reaches a local optimum, but not necessarily the global
+optimum. For this reason, software usually tries several random
+initializations.
 
 
 ### A Simulated Example
 
-We use `make_blobs` from `sklearn.datasets` to create a datasets, with 500 observations, 3 true centers and the standard deviation of each cluster is 0.7, 0.9 and 0.8. The dataset has 2 features, for the purpose of easy visualization.
+We use `make_blobs` from `sklearn.datasets` to generate 500 observations
+from three clusters. The data have two features so that the result can be
+visualized directly.
 
 ```{python}
 from sklearn.datasets import make_blobs
 
 X, true_group = make_blobs(
-    n_samples=500, n_features=2, centers=3, cluster_std=[0.7, 0.9, 0.8], random_state=4
+    n_samples=500,
+    n_features=2,
+    centers=3,
+    cluster_std=[0.7, 0.9, 0.8],
+    random_state=4,
 )
 ```
 
-The dataset looks like this, with colors indicates the true class.
-
+The colors below show the generating groups. They are not used when fitting
+K-means.
 
 ```{python}
 import matplotlib.pyplot as plt
+
 plt.scatter(X[:, 0], X[:, 1], c=true_group)
+plt.xlabel("x1")
+plt.ylabel("x2")
+plt.title("Simulated Groups");
 ```
 
-We can use `KMeans` from `sklearn.cluster` to implement the K-means model. The API is very similar to supervised learning `sklearn` API. In addition, you can now use `.fit_predict()` to fit and then predict on the same data `X`.
+`KMeans` follows the usual `sklearn` interface. Since clustering is
+performed on the observed data themselves, `.fit_predict()` fits the model
+and returns the cluster assignments for the observations.
 
-Note that the argument `n_init` is to set the number of random initializations. The K-means algorithm will be run `n_init` times, and the best result in terms of inertia will be reported.
-
+The argument `n_init=20` runs K-means from 20 initial center configurations
+and retains the result with the smallest inertia.
 
 <!-- fmt: off -->
 ```{python}
 from sklearn.cluster import KMeans
 
-kmeans = KMeans(n_clusters=3, n_init=20, random_state=1)
+kmeans = KMeans(
+    n_clusters=3,
+    n_init=20,
+    random_state=1,
+)
 cluster = kmeans.fit_predict(X)
-
 
 plt.scatter(X[:, 0], X[:, 1], c=cluster)
 plt.scatter(
@@ -150,94 +190,142 @@ kmeans.cluster_centers_
 ::: {.callout-note}
 ## Label switching
 
-Cluster labels are arbitrary. A cluster labeled `0` in one fit may be labeled `2` in another fit even when the two partitions are identical. Interpret the groups through their members and feature summaries, not the numeric label.
+Cluster labels are arbitrary. A cluster labeled `0` in one fit may be
+labeled `2` in another fit even when the two partitions are identical.
+Interpret the groups through their members and feature summaries, not the
+numeric label.
 :::
 
 
-### What K-Means Assumes
+### When K-Means Works Well
 
-Because K-means uses squared Euclidean distance to a center, it is most effective when clusters are:
+Because K-means uses squared Euclidean distance to a center, it is most
+effective when clusters are:
 
 - compact and approximately spherical;
 - separated by their centers;
 - reasonably similar in size and spread;
 - not dominated by extreme outliers.
 
-It can fail on curved clusters, clusters with very different densities, or data where a mean is not an appropriate prototype.
+It can perform poorly on curved clusters, clusters with very different
+densities, or data where a mean is not an appropriate prototype.
 
 ```{python}
 #| code-fold: true
 from sklearn.datasets import make_circles
 
-X_circle, y_circle = make_circles(
-    n_samples=500, factor=0.45, noise=0.05, random_state=1
+X_circle, true_circle_group = make_circles(
+    n_samples=500,
+    factor=0.45,
+    noise=0.05,
+    random_state=1,
 )
 
-circle_kmeans = KMeans(n_clusters=2, n_init=20, random_state=1)
+circle_kmeans = KMeans(
+    n_clusters=2,
+    n_init=20,
+    random_state=1,
+)
 circle_cluster = circle_kmeans.fit_predict(X_circle)
 
-fig, axs = plt.subplots(1, 2, figsize=(10, 4), sharex=True, sharey=True)
-axs[0].scatter(X_circle[:, 0], X_circle[:, 1], c=y_circle, s=18)
-axs[0].set_title("True labels")
-axs[1].scatter(X_circle[:, 0], X_circle[:, 1], c=circle_cluster, s=18)
+fig, axs = plt.subplots(
+    1,
+    2,
+    figsize=(10, 4),
+    sharex=True,
+    sharey=True,
+)
+
+axs[0].scatter(
+    X_circle[:, 0],
+    X_circle[:, 1],
+    c=true_circle_group,
+    s=18,
+)
+axs[0].set_title("Underlying Structure")
+
+axs[1].scatter(
+    X_circle[:, 0],
+    X_circle[:, 1],
+    c=circle_cluster,
+    s=18,
+)
 axs[1].set_title("K-Means Partition")
 
 for ax in axs:
     ax.set_xlabel("x1")
     ax.set_ylabel("x2")
+
+plt.tight_layout();
 ```
 
-K-means separates the plane into convex regions, so it cannot recover the two rings. It requires other methods to deal with these types of data.
+K-means divides the feature space into convex regions, so it cannot recover
+the two rings. A graph-based method such as spectral clustering is more
+appropriate for this type of connectivity structure.
 
 
+## Evaluating a Clustering
+
+Without known labels, clustering evaluation must combine several kinds of
+evidence. Internal metrics assess geometric compactness and separation,
+stability checks whether the result persists under perturbations, and
+interpretation determines whether the groups are meaningful in the original
+problem.
 
 
+### Internal Evaluation
 
+Internal clustering metrics use only the observations and their assigned
+clusters. They can compare values of $K$ or different initializations of the
+same method. Comparisons between methods are meaningful only when the same
+observations, features, scaling, and distance are used.
 
+No single metric defines the correct clustering. Each metric favors a
+particular geometric idea of a good partition. We focus on two common
+metrics: WCSS and the silhouette score.
 
-
-### Internal Evaluation a Clustering
-
-Without known labels, clustering evaluation must combine several kinds of evidence. Internal metrics assess geometric compactness and separation, stability checks whether the result persists under perturbations, and interpretation determines whether the groups are meaningful in the original problem.
-
-
-
-Internal clustering metrics evaluate a partition using only the observations and their assigned clusters. They can compare values of $K$, initializations, or different clustering methods, provided that the same features, scaling, and distance are used.
-
-No single metric defines the correct clustering. Each metric favors a particular geometric idea of a good partition.
-
-For simplicity we only cover WCSS and the Silhouette score in the notes.
 
 #### Within-Cluster Sum of Squares
 
-The K-means objective is the within-cluster sum of squares:
+For K-means, WCSS is both the fitting objective and an internal measure of
+cluster compactness:
 
 $$
 \operatorname{WCSS}
 =
-\sum_{k=1}^K\sum_{i\in C_k}\norm{x_i-\mu_k}_2^2.
+\sum_{k=1}^K
+\sum_{i\in C_k}
+\norm{x_i-\mu_k}_2^2.
 $$
 
-In `sklearn`, WCSS is called **inertia** and is stored in `inertia_`.
+For a fitted `KMeans` object, WCSS is stored in `inertia_`.
 
 ```{python}
 kmeans.inertia_
 ```
 
-Smaller inertia means observations are closer to their assigned centers. However, inertia cannot be compared naively across different values of $K$: it always decreases when more clusters are added and becomes zero when every distinct observation is its own cluster.
+Smaller inertia means observations are closer to their assigned centers.
+However, inertia always decreases as $K$ increases and becomes zero when
+every distinct observation is its own cluster. Therefore, its absolute
+minimum cannot be used to choose $K$.
 
 
 #### Silhouette Value
 
-The silhouette value evaluates both within-cluster cohesion and separation from neighboring clusters. For observation $i$, define:
+The silhouette value evaluates both within-cluster cohesion and separation
+from neighboring clusters. For observation $i$, define:
 
-- $a(i)$ as its average distance to observations in its own cluster;
-- $b(i)$ as the smallest average distance to any other cluster.
+- $a(i)$ as its average distance to other observations in its own cluster;
+- $b(i)$ as the smallest average distance to observations in another
+  cluster.
 
 The silhouette value is
 
 $$
-s(i)=\frac{b(i)-a(i)}{\max\{a(i),b(i)\}}.
+s(i)
+=
+\frac{b(i)-a(i)}
+{\max\{a(i),b(i)\}}.
 $$
 
 It lies between $-1$ and $1$:
@@ -246,145 +334,78 @@ It lies between $-1$ and $1$:
 - values near $0$ indicate an observation near a cluster boundary;
 - negative values suggest that another cluster may be closer.
 
-The overall silhouette score is the average of $s(i)$ over all observations. Larger values are preferred. It requires at least two clusters and is available as `silhouette_score()`.
-
-<!-- 
-#### Calinski--Harabasz Index
-
-The Calinski--Harabasz index compares between-cluster dispersion with
-within-cluster dispersion. Let $W_K$ and $B_K$ denote the within-cluster and
-between-cluster dispersion matrices. The index is
-
-$$
-\operatorname{CH}(K)
-=
-\frac{\operatorname{tr}(B_K)/(K-1)}
-{\operatorname{tr}(W_K)/(n-K)}.
-$$
-
-A larger value indicates compact clusters whose centers are well separated.
-The adjustment by $K-1$ and $n-K$ makes it more suitable than raw inertia
-for comparing different values of $K$. It is computed by
-`calinski_harabasz_score()`.
-
-
-#### Davies--Bouldin Index
-
-The Davies--Bouldin index compares each cluster with its most similar
-competing cluster. Let $S_k$ measure the average within-cluster distance for
-cluster $k$, and let
-
-$$
-M_{k\ell}=\norm{\mu_k-\mu_\ell}
-$$
-
-be the distance between two cluster centers. Then
-
-$$
-\operatorname{DB}(K)
-=
-\frac{1}{K}
-\sum_{k=1}^K
-\max_{\ell\ne k}
-\frac{S_k+S_\ell}{M_{k\ell}}.
-$$
-
-Smaller values are preferred: clusters should have small internal spread and
-large separation from their closest competitor. It is computed by
-`davies_bouldin_score()`. -->
-
-
-
-### External Evaluation a Clustering
-
-If known labels exist, they may be used after fitting for evaluation. The
-adjusted Rand index compares two partitions while accounting for agreement
-expected by chance.
-
-```{python}
-from sklearn.metrics import adjusted_rand_score
-
-adjusted_rand_score(true_group, cluster)
-```
-
-This does not turn clustering into supervised learning: the labels were not
-used to fit the clusters.
-
-
-
-
-
-
-
-
-
-
-
+The overall silhouette score is the average of $s(i)$ over all observations.
+Larger values are preferred. It requires at least two nonempty clusters.
 
 
 ### Choosing the Number of Clusters
 
-The number of clusters $K$ is a tuning parameter. There is no universally correct criterion because the useful level of grouping depends on the scientific question.
+The number of clusters $K$ is a tuning parameter. There is no universally
+correct criterion because the useful level of grouping depends on the
+scientific question.
 
-The following example compares the four internal metrics over a range of candidate values using K-means. Inertia is also defined for $K=1$, while the other metrics require at least two clusters.
+The elbow plot examines inertia over a range that includes $K=1$. The
+silhouette score is computed only for $K\ge 2$.
 
 ```{python}
-import pandas as pd
+from sklearn.metrics import silhouette_score
 
-from sklearn.metrics import (
-    silhouette_score,
-    calinski_harabasz_score,
-    davies_bouldin_score,
-)
+inertia_k = range(1, 11)
+inertias = []
 
-k_values = range(2, 11)
-metric_rows = []
-
-for k in k_values:
-    model = KMeans(n_clusters=k, n_init=20, random_state=1)
-    labels = model.fit_predict(X)
-
-    metric_rows.append(
-        {
-            "K": k,
-            "inertia": model.inertia_,
-            "silhouette": silhouette_score(X, labels),
-            "calinski_harabasz": calinski_harabasz_score(X, labels),
-            "davies_bouldin": davies_bouldin_score(X, labels),
-        }
+for k in inertia_k:
+    model = KMeans(
+        n_clusters=k,
+        n_init=20,
+        random_state=1,
     )
+    model.fit(X)
+    inertias.append(model.inertia_)
 
-metric_df = pd.DataFrame(metric_rows).set_index("K")
-metric_df
+silhouette_k = range(2, 11)
+silhouettes = []
+
+for k in silhouette_k:
+    model = KMeans(
+        n_clusters=k,
+        n_init=20,
+        random_state=1,
+    )
+    labels = model.fit_predict(X)
+    silhouettes.append(
+        silhouette_score(X, labels)
+    )
 ```
 
-Plotting the metrics makes their different directions explicit:
+Plot the two diagnostics together.
 
 ```{python}
-fig, axs = plt.subplots(2, 2, figsize=(11, 8), sharex=True)
+fig, axs = plt.subplots(1, 2, figsize=(11, 4))
 
-plots = [
-    ("inertia", "Inertia: elbow or smaller"),
-    ("silhouette", "Silhouette: larger is better"),
-    ("calinski_harabasz", "Calinski-Harabasz: larger is better"),
-    ("davies_bouldin", "Davies-Bouldin: smaller is better"),
-]
+axs[0].plot(inertia_k, inertias, marker="o")
+axs[0].set_xlabel("number of clusters K")
+axs[0].set_ylabel("inertia")
+axs[0].set_title("Elbow Plot")
 
-for ax, (column, title) in zip(axs.ravel(), plots):
-    ax.plot(metric_df.index, metric_df[column], marker="o")
-    ax.set_title(title)
-    ax.set_xlabel("number of clusters K")
-    ax.set_ylabel(column.replace("_", " "))
+axs[1].plot(silhouette_k, silhouettes, marker="o")
+axs[1].set_xlabel("number of clusters K")
+axs[1].set_ylabel("average silhouette")
+axs[1].set_title("Silhouette Score")
 
 plt.tight_layout();
 ```
 
-For inertia, the elbow heuristic looks for the point after which additional clusters produce only modest improvement. For the other metrics, we look for a maximum or minimum as indicated above. Agreement among several metrics is useful evidence, but disagreement is common because the metrics formalize different notions of cluster quality.
+For inertia, the elbow heuristic looks for the point after which additional
+clusters produce only modest improvement. For the silhouette score, larger
+values are preferred. The two diagnostics can disagree because they measure
+different aspects of the partition.
 
 ::: {.callout-caution}
 ## Diagnostics do not define the scientific answer
 
-These metrics evaluate geometric compactness and separation under the chosen features, scaling, and distance. They do not show that the clusters are stable, scientifically meaningful, or useful for a later decision.
+These metrics evaluate geometric compactness and separation under the chosen
+features, scaling, and distance. They do not show that the clusters are
+stable, scientifically meaningful, or useful for a later decision.
 :::
 
 
@@ -403,12 +424,32 @@ insufficient data. It can also reveal that several clusterings are similarly
 plausible.
 
 
+### External Evaluation
+
+When known labels are available, they may be used after clustering for
+evaluation. The adjusted Rand index (ARI) compares two partitions while
+accounting for agreement expected by chance. It equals $1$ for identical
+partitions and has expected value near $0$ for independent random
+partitions.
+
+```{python}
+from sklearn.metrics import adjusted_rand_score
+
+adjusted_rand_score(true_group, cluster)
+```
+
+This does not turn clustering into supervised learning because the labels
+were not used to fit the clusters.
+
+
 ### Interpretation in the Original Features
 
 An embedding plot is useful, but clusters should ultimately be described
 using the original variables.
 
 ```{python}
+import pandas as pd
+
 cluster_summary = (
     pd.DataFrame(X, columns=["x1", "x2"])
     .assign(cluster=cluster)
@@ -423,21 +464,15 @@ For real data, combine such summaries with domain knowledge and
 representative observations from each group.
 
 
-
-
-
-
-
-
 ## Hierarchical Clustering
 
-Hierarchical clustering builds a nested sequence of partitions. Agglomerative
-hierarchical clustering begins with each observation in its own cluster and
-repeatedly merges the two closest clusters until all observations belong to
-one cluster.
+Hierarchical clustering builds a nested sequence of partitions.
+Agglomerative hierarchical clustering begins with each observation in its
+own cluster and repeatedly merges the two closest clusters until all
+observations belong to one cluster.
 
-The result is a tree called a **dendrogram**. Unlike K-means, the tree can be
-fit before choosing the final number of clusters.
+The result is a tree called a **dendrogram**. Unlike K-means, the hierarchy
+can be fit before choosing the final number of clusters.
 
 
 ### Linkage
@@ -450,7 +485,8 @@ also needs a distance between groups. For two clusters $G$ and $H$:
 $$
 d_{\text{single}}(G,H)
 =
-\min_{i\in G,\;j\in H}d(x_i,x_j).
+\min_{i\in G,\;j\in H}
+d(x_i,x_j).
 $$
 
 **Complete linkage** uses the farthest pair:
@@ -458,7 +494,8 @@ $$
 $$
 d_{\text{complete}}(G,H)
 =
-\max_{i\in G,\;j\in H}d(x_i,x_j).
+\max_{i\in G,\;j\in H}
+d(x_i,x_j).
 $$
 
 **Average linkage** uses the average pairwise distance:
@@ -467,11 +504,14 @@ $$
 d_{\text{average}}(G,H)
 =
 \frac{1}{|G||H|}
-\sum_{i\in G}\sum_{j\in H}d(x_i,x_j).
+\sum_{i\in G}
+\sum_{j\in H}
+d(x_i,x_j).
 $$
 
 **Ward linkage** merges the pair that produces the smallest increase in
-within-cluster sum of squares.
+within-cluster sum of squares. Ward linkage is based on Euclidean geometry
+and tends to produce compact clusters.
 
 Different linkage rules express different ideas of what makes two groups
 close. Single linkage can identify elongated connected groups but is
@@ -482,10 +522,18 @@ to produce more compact groups.
 ### Dendrogram
 
 ```{python}
-from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+from scipy.cluster.hierarchy import (
+    linkage,
+    dendrogram,
+    fcluster,
+)
 
 X_small = X[:40]
-Z = linkage(X_small, method="ward")
+Z = linkage(
+    X_small,
+    method="ward",
+    metric="euclidean",
+)
 
 plt.figure(figsize=(10, 5))
 dendrogram(Z)
@@ -498,7 +546,11 @@ The merge height records the dissimilarity at which two branches are joined.
 A horizontal cut through the tree produces a partition.
 
 ```{python}
-hierarchical_cluster = fcluster(Z, t=3, criterion="maxclust")
+hierarchical_cluster = fcluster(
+    Z,
+    t=3,
+    criterion="maxclust",
+)
 hierarchical_cluster
 ```
 
@@ -513,13 +565,29 @@ heuristic.
 from sklearn.cluster import AgglomerativeClustering
 
 methods = ["single", "complete", "average", "ward"]
-fig, axs = plt.subplots(2, 2, figsize=(10, 8), sharex=True, sharey=True)
+
+fig, axs = plt.subplots(
+    2,
+    2,
+    figsize=(10, 8),
+    sharex=True,
+    sharey=True,
+)
 
 for ax, method in zip(axs.ravel(), methods):
-    model = AgglomerativeClustering(n_clusters=3, linkage=method)
+    model = AgglomerativeClustering(
+        n_clusters=3,
+        linkage=method,
+        metric="euclidean",
+    )
     labels = model.fit_predict(X)
 
-    ax.scatter(X[:, 0], X[:, 1], c=labels, s=18)
+    ax.scatter(
+        X[:, 0],
+        X[:, 1],
+        c=labels,
+        s=18,
+    )
     ax.set_title(method)
     ax.set_xlabel("x1")
     ax.set_ylabel("x2")
@@ -535,13 +603,13 @@ affects the rest of the tree.
 
 ## Practical Workflow
 
-A defensible clustering analysis usually follows these steps:
+A clustering analysis usually follows these steps:
 
 1. select features that match the scientific question;
 2. handle missing values and obvious data quality problems;
 3. choose scaling and a distance metric deliberately;
-4. visualize the data, possibly after PCA;
-5. compare multiple clustering methods and tuning choices;
+4. visualize the data, possibly after dimension reduction;
+5. compare clustering methods and tuning choices;
 6. check stability under perturbations;
 7. interpret the groups in the original feature space.
 
@@ -553,7 +621,8 @@ reduce noise, but they also change the geometry on which clustering is based.
 ## Summary
 
 K-means minimizes within-cluster squared distance and works best for compact,
-center-separated groups. Hierarchical clustering builds a dendrogram and
-depends on both the observation distance and the linkage rule. In both cases,
-scaling, tuning, stability, and interpretation are part of the model rather
-than optional cleanup steps.
+center-separated groups. Internal metrics such as inertia and silhouette
+score help compare candidate partitions, but they must be combined with
+stability and interpretation. Hierarchical clustering builds a dendrogram
+whose structure depends on both the observation distance and the linkage
+rule.
