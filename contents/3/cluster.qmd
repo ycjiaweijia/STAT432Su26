@@ -39,6 +39,22 @@ an unsuitable distance, or a forced choice of the number of clusters.
 Interpretation is part of the analysis.
 :::
 
+## Three Families of Clustering Methods
+
+Clustering methods differ in what they treat as a group. We focus on three
+major families, represented by one typical method from each family:
+
+| Family | Typical method | What defines a cluster? |
+|---|---|---|
+| Partitioning | K-means | observations close to the same center |
+| Hierarchical | agglomerative hierarchical clustering | observations joined through a sequence of merges |
+| Density-based | DBSCAN | observations connected through dense regions |
+
+These definitions lead to different assumptions. K-means favors compact
+center-based groups, hierarchical clustering represents nested structure,
+and DBSCAN can identify irregularly shaped groups while labeling isolated
+observations as noise.
+
 
 ## Distance and Scaling
 
@@ -76,7 +92,7 @@ direction rather than magnitude, and domain-specific data may require a
 custom dissimilarity. The distance should match the question being asked.
 
 
-## K-Means Clustering
+## Partitioning: K-Means Clustering
 
 K-means represents each cluster by its center. Let
 $C_1,\ldots,C_K$ be a partition of the observations, and let
@@ -125,6 +141,7 @@ from three clusters. The data have two features so that the result can be
 visualized directly.
 
 ```{python}
+import numpy as np
 from sklearn.datasets import make_blobs
 
 X, true_group = make_blobs(
@@ -260,8 +277,8 @@ plt.tight_layout();
 ```
 
 K-means divides the feature space into convex regions, so it cannot recover
-the two rings. A graph-based method such as spectral clustering is more
-appropriate for this type of connectivity structure.
+the two rings. A density-based method such as DBSCAN is more appropriate
+when the rings are separated by low-density space.
 
 
 ## Evaluating a Clustering
@@ -464,7 +481,7 @@ For real data, combine such summaries with domain knowledge and
 representative observations from each group.
 
 
-## Hierarchical Clustering
+## Hierarchical: Agglomerative Clustering
 
 Hierarchical clustering builds a nested sequence of partitions.
 Agglomerative hierarchical clustering begins with each observation in its
@@ -601,6 +618,187 @@ However, early agglomerative merges cannot be undone, so a poor early merge
 affects the rest of the tree.
 
 
+## Density-Based: DBSCAN
+
+Density-based spatial clustering of applications with noise (DBSCAN)
+defines clusters as connected regions of sufficiently high local density.
+Unlike K-means and the hierarchical examples above, it does not require the
+number of clusters to be specified in advance.
+
+DBSCAN uses two main parameters:
+
+- `eps`: the radius of a local neighborhood;
+- `min_samples`: the number of observations required for a dense
+  neighborhood, including the observation itself.
+
+An observation is a **core point** when its `eps` neighborhood contains at
+least `min_samples` observations. A **border point** is not a core point but
+lies within the neighborhood of one. An observation that is neither a core
+point nor a border point is labeled as **noise**.
+
+Starting from a core point, DBSCAN repeatedly adds density-reachable core
+points and their border points. This allows a cluster to follow a curved or
+irregularly shaped dense region.
+
+```{python}
+from sklearn.cluster import DBSCAN
+
+circle_dbscan = DBSCAN(
+    eps=0.15,
+    min_samples=5,
+)
+circle_dbscan_group = circle_dbscan.fit_predict(X_circle)
+
+fig, axs = plt.subplots(
+    1,
+    2,
+    figsize=(10, 4),
+    sharex=True,
+    sharey=True,
+)
+
+axs[0].scatter(
+    X_circle[:, 0],
+    X_circle[:, 1],
+    c=circle_cluster,
+    s=18,
+)
+axs[0].set_title("K-Means")
+
+axs[1].scatter(
+    X_circle[:, 0],
+    X_circle[:, 1],
+    c=circle_dbscan_group,
+    s=18,
+)
+axs[1].set_title("DBSCAN")
+
+for ax in axs:
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x2")
+
+plt.tight_layout();
+```
+
+In `sklearn`, noise observations receive the label `-1`. As with all
+clustering labels, the nonnegative cluster labels have no ordinal meaning.
+
+### Choosing `eps` and `min_samples`
+
+Smaller `eps` or larger `min_samples` makes the density requirement more
+strict. This may split clusters or label more observations as noise. Larger
+`eps` or smaller `min_samples` can merge groups through low-density bridges.
+
+DBSCAN works well when clusters have irregular shapes and are separated by
+sparse regions. It is less effective when cluster densities differ
+substantially, because one global value of `eps` may be too small for a
+sparse cluster and too large for a dense cluster.
+
+
+## Comparing the Three Methods
+
+The three methods answer different versions of the clustering question:
+
+| Property | K-means | Hierarchical clustering | DBSCAN |
+|---|---|---|---|
+| Main idea | nearest center | repeated merges | density connectivity |
+| Number of clusters required? | yes | chosen by cutting the tree | no |
+| Typical cluster shape | compact and convex | depends on linkage | irregular shapes allowed |
+| Explicit noise label? | no | no | yes |
+| Main tuning choices | $K$, initialization | distance, linkage, tree cut | `eps`, `min_samples` |
+| Main output | one partition and centers | a dendrogram | clusters and noise points |
+
+No method is uniformly best. The geometry of the data and the scientific
+meaning of a group should determine which definition is appropriate.
+
+### One Dataset, Three Definitions of a Cluster
+
+The two-moons data contain two curved groups and a few uniformly distributed
+noise observations. This example makes the assumptions of the methods
+visible.
+
+```{python}
+from sklearn.datasets import make_moons
+
+X_moons, y_moons = make_moons(
+    n_samples=450,
+    noise=0.06,
+    random_state=2,
+)
+
+rng = np.random.default_rng(2)
+moon_noise = rng.uniform(
+    low=[-1.5, -0.8],
+    high=[2.5, 1.3],
+    size=(30, 2),
+)
+X_compare = np.vstack([X_moons, moon_noise])
+```
+
+Fit one representative from each family. For a direct comparison, we cut
+the hierarchical tree into two groups and set K-means to use two centers.
+DBSCAN determines the number of dense groups from its neighborhood
+parameters.
+
+```{python}
+compare_kmeans = KMeans(
+    n_clusters=2,
+    n_init=20,
+    random_state=1,
+).fit_predict(X_compare)
+
+compare_hierarchical = AgglomerativeClustering(
+    n_clusters=2,
+    linkage="single",
+    metric="euclidean",
+).fit_predict(X_compare)
+
+compare_dbscan = DBSCAN(
+    eps=0.16,
+    min_samples=6,
+).fit_predict(X_compare)
+
+fig, axs = plt.subplots(
+    1,
+    3,
+    figsize=(14, 4),
+    sharex=True,
+    sharey=True,
+)
+
+for ax, labels, title in zip(
+    axs,
+    [
+        compare_kmeans,
+        compare_hierarchical,
+        compare_dbscan,
+    ],
+    [
+        "K-Means",
+        "Hierarchical: Single Linkage",
+        "DBSCAN",
+    ],
+):
+    ax.scatter(
+        X_compare[:, 0],
+        X_compare[:, 1],
+        c=labels,
+        s=18,
+    )
+    ax.set_title(title)
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x2")
+
+plt.tight_layout();
+```
+
+K-means cuts the plane into center-based regions and therefore breaks the
+curved groups. Single-linkage hierarchical clustering can follow connected
+shapes, but isolated observations can create chains that join groups.
+DBSCAN can recover the dense curves and identify sparse observations as
+noise, provided its density parameters match the scale of the data.
+
+
 ## Practical Workflow
 
 A clustering analysis usually follows these steps:
@@ -620,9 +818,9 @@ reduce noise, but they also change the geometry on which clustering is based.
 
 ## Summary
 
-K-means minimizes within-cluster squared distance and works best for compact,
-center-separated groups. Internal metrics such as inertia and silhouette
-score help compare candidate partitions, but they must be combined with
-stability and interpretation. Hierarchical clustering builds a dendrogram
-whose structure depends on both the observation distance and the linkage
-rule.
+K-means, hierarchical clustering, and DBSCAN use different definitions of a
+cluster. K-means finds compact center-based groups, hierarchical clustering
+builds a nested sequence of merges, and DBSCAN finds density-connected
+groups while allowing noise observations. Internal metrics can compare
+candidate partitions, but method choice must also reflect cluster geometry,
+stability, and interpretation in the original variables.

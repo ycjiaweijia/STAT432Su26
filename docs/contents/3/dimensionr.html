@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>13&nbsp; Principal Component Analysis – Basics of Statistical Learning</title>
+<title>13&nbsp; Unsupervised Dimension Reduction – Basics of Statistical Learning</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -405,7 +405,7 @@ window.Quarto = {
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-          <h1 class="quarto-secondary-nav-title"><span id="sec-unsupervised-pca" class="quarto-section-identifier"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Principal Component Analysis</span></span></h1>
+          <h1 class="quarto-secondary-nav-title"><span id="sec-unsupervised-pca" class="quarto-section-identifier"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Unsupervised Dimension Reduction</span></span></h1>
         </a>     
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
@@ -561,7 +561,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/3/dimensionr.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Principal Component Analysis</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Unsupervised Dimension Reduction</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -640,7 +640,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block"><span id="sec-unsupervised-pca" class="quarto-section-identifier"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Principal Component Analysis</span></span></h1>
+<h1 class="title d-none d-lg-block"><span id="sec-unsupervised-pca" class="quarto-section-identifier"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Unsupervised Dimension Reduction</span></span></h1>
 </div>
 
 
@@ -744,7 +744,7 @@ Z_j=Xv_j
 </section>
 <section id="a-two-dimensional-example" class="level2" data-number="13.3">
 <h2 data-number="13.3" class="anchored" data-anchor-id="a-two-dimensional-example"><span class="header-section-number">13.3</span> A Two-Dimensional Example</h2>
-<div id="0d4f4bcc" class="cell" data-execution_count="1">
+<div id="c8f53e29" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -771,13 +771,13 @@ Z_j=Xv_j
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>scores_2d <span class="op">=</span> pca_2d.fit_transform(X_centered)</span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>pca_2d.components_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>array([[-0.58619037,  0.81017334],
        [ 0.81017334,  0.58619037]])</code></pre>
 </div>
 </div>
 <p>The rows of <code>components_</code> are <span class="math inline">\(v_1^\top\)</span> and <span class="math inline">\(v_2^\top\)</span>.</p>
-<div id="7fecbc19" class="cell" data-execution_count="2">
+<div id="88993c37" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ax.scatter(X_centered[:, <span class="dv">0</span>], X_centered[:, <span class="dv">1</span>], alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ax.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"grey"</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span>
@@ -905,7 +905,7 @@ X_m
 </ul>
 <section id="visualizing-reconstruction" class="level3" data-number="13.5.1">
 <h3 data-number="13.5.1" class="anchored" data-anchor-id="visualizing-reconstruction"><span class="header-section-number">13.5.1</span> Visualizing Reconstruction</h3>
-<div id="be28a8c6" class="cell" data-execution_count="3">
+<div id="4250cc7c" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>pca_1d <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>score_1d <span class="op">=</span> pca_1d.fit_transform(X_centered)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>X_reconstructed <span class="op">=</span> pca_1d.inverse_transform(score_1d)</span>
@@ -959,7 +959,7 @@ X_m
 <li>retain the original scale when magnitude and variance are meaningful;</li>
 <li>state the choice because it changes the principal directions.</li>
 </ul>
-<div id="2b15829d" class="cell" data-execution_count="4">
+<div id="1ccf6fe8" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>X_scaled <span class="op">=</span> StandardScaler().fit_transform(X_original)</span>
@@ -974,7 +974,7 @@ X_m
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    },</span>
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    index<span class="op">=</span>[<span class="st">"PC1"</span>, <span class="st">"PC2"</span>],</span>
 <span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
+<div class="cell-output cell-output-display" data-execution_count="4">
 <div>
 
 
@@ -1045,7 +1045,7 @@ X_m
 <section id="pca-on-the-digits-data" class="level2" data-number="13.8">
 <h2 data-number="13.8" class="anchored" data-anchor-id="pca-on-the-digits-data"><span class="header-section-number">13.8</span> PCA on the Digits Data</h2>
 <p>The handwritten digits dataset has 64 features, one for each pixel in an <span class="math inline">\(8\times8\)</span> image.</p>
-<div id="4a3a4aec" class="cell" data-execution_count="5">
+<div id="8e647cca" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_digits</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>digits <span class="op">=</span> load_digits()</span>
@@ -1053,12 +1053,12 @@ X_m
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>y_digits <span class="op">=</span> digits.target</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>X_digits.shape</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
+<div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>(1797, 64)</code></pre>
 </div>
 </div>
 <p>Fit PCA and inspect cumulative explained variance.</p>
-<div id="2d667170" class="cell" data-execution_count="6">
+<div id="fa77bb26" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>digits_pca <span class="op">=</span> PCA().fit(X_digits)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>cum_ratio <span class="op">=</span> np.cumsum(digits_pca.explained_variance_ratio_)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1077,14 +1077,14 @@ X_m
 </div>
 </div>
 <p>The number of components needed to explain at least 90% of the sample variance is:</p>
-<div id="5b8fdd3f" class="cell" data-execution_count="7">
+<div id="23f5f444" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>np.searchsorted(cum_ratio, <span class="fl">0.90</span>) <span class="op">+</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
+<div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>np.int64(21)</code></pre>
 </div>
 </div>
 <p>For visualization, retain two components.</p>
-<div id="26c06845" class="cell" data-execution_count="8">
+<div id="41fbe23a" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>digits_2d <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>).fit_transform(X_digits)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
@@ -1113,7 +1113,7 @@ X_m
 <section id="loadings" class="level2" data-number="13.9">
 <h2 data-number="13.9" class="anchored" data-anchor-id="loadings"><span class="header-section-number">13.9</span> Loadings</h2>
 <p>Loadings describe how the original features form each component. For image data, a loading vector can be reshaped back to the image dimensions.</p>
-<div id="1f853922" class="cell" data-execution_count="9">
+<div id="167547ae" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>digits_pca_10 <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">10</span>).fit(X_digits)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">5</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
@@ -1148,7 +1148,7 @@ X_m
 </ol>
 <p>This can remove low-variance noise and reduce computation. It can also make distance-based clustering more stable when many original variables are highly correlated.</p>
 <p>However, PCA preserves high-variance directions, not necessarily cluster separation.</p>
-<div id="dab7b4ea" class="cell" data-execution_count="10">
+<div id="1d6e05a4" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">2</span>)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">300</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>

@@ -4,16 +4,34 @@ jupyter: stats
 
 <!-- {{< include ../t/math.qmd >}} -->
 
-# Unsupervised Dimension Reduction {#sec-unsupervised-pca}
+# Dimension Reduction with PCA {#sec-unsupervised-pca}
 
-Principal component analysis (PCA) represents high-dimensional observations
-with a smaller number of linear coordinates. It is useful for visualization,
-compression, denoising, and preprocessing before clustering.
+Dimension reduction replaces $p$ original features with a smaller number
+$m<p$ of derived coordinates:
+
+$$
+X\in\mathbb R^{n\times p}
+\longrightarrow
+Z\in\mathbb R^{n\times m}.
+$$
+
+The purpose is to retain important structure while obtaining a simpler
+representation for visualization, compression, denoising, or later
+analysis. This chapter considers only **linear dimension reduction** through
+principal component analysis (PCA):
+
+$$
+Z=XV_m.
+$$
+
+Each reduced coordinate is therefore a linear combination of the original
+features.
 
 PCA also appeared in the
 [supervised dimension-reduction chapter](../1/dr.qmd), where the resulting
-components were used in principal component regression (PCR). The matrix
-decomposition is the same, but the goal is different:
+components were used in principal component regression (PCR), and partial
+least squares (PLS) constructed response-guided components. The connection
+is important, but the goal here is different:
 
 | Setting | PCA uses $y$? | How is the dimension chosen? | Main goal |
 |---|---:|---|---|
@@ -21,7 +39,29 @@ decomposition is the same, but the goal is different:
 | PCR | No when constructing components | cross-validation using prediction error | predict $y$ |
 | PLS | Yes | cross-validation using prediction error | predict $y$ |
 
-This chapter studies PCA as an unsupervised representation of $X$.
+PCR and PLS use dimension reduction as a step toward predicting $y$. Here
+there is no response and no regression model: dimension reduction itself is
+the object of interest.
+
+
+## What Is New in the Unsupervised Setting?
+
+The mechanics of PCA are the same as in PCR: center $X$, find principal
+directions, and project observations onto them. What changes is how the
+result is evaluated.
+
+In PCR, a component is useful when it improves prediction of $y$. In this
+chapter, a reduced representation is useful when it:
+
+- captures substantial variation in $X$;
+- reconstructs the original observations with limited error;
+- reveals structure in a low-dimensional plot;
+- removes redundancy or noise before another unsupervised method.
+
+This distinction also explains the role of PLS. PLS can prefer a
+low-variance direction when it is strongly related to $y$. Unsupervised PCA
+cannot make that choice because $y$ is absent; it ranks directions only by
+variation in $X$.
 
 
 ## Row and Column Views of the Data Matrix
