@@ -292,6 +292,8 @@ This shows that for every $\lambda > 0$, there exists an equivalent constrained 
 
 :::
 
+
+
 ::: {.callout-note collapse="true"}
 ## Relation Between $\lambda$ and $s$
 The connection between the penalty parameter $\lambda$ and the constraint $s$ can be explained as follows. The Lagrange multiplier method implies that at the optimal solution
@@ -318,14 +320,49 @@ $\lambda$ is effectively the "price" paid to satisfy the constraint. As $s$ decr
 :::
 
 
+<!-- 
+::: {.callout-note collapse="true"}
+
+## Relation Between $\lambda$ and $s$
+
+The connection between the penalty parameter $\lambda$ and the constraint $s$ can be understood through the constrained formulation
+
+$$
+\min_\beta \norm{y-X\beta}_2^2
+\quad
+\text{subject to}
+\quad
+\norm{\beta}_2^2 \le s.
+$$
+
+There are two possible scenarios:
+
+- Non-binding constraint: If the OLS solution already satisfies $\norm{\hat{\beta}_{\text{ols}}}_2^2 \le s$, then the OLS solution remains optimal for the constrained problem. Therefore, $\hat{\beta}_{\text{ridge}}=\hat{\beta}_{\text{ols}}$. The constraint has no effect, and the corresponding penalty parameter is $\lambda = 0$.
+- Binding constraint: If $\norm{\hat{\beta}_{\text{ols}}}_2^2 > s$, then the OLS solution is not feasible. The constrained optimum must therefore lie on the boundary $\norm{\hat{\beta}_{\text{ridge}}}_2^2 = s$, and the corresponding penalty parameter satisfies $\lambda > 0$.
+
+Therefore, when $\lambda>0$, the parameters $\lambda$ and $s$ are related through $\norm{(X^\top X+\lambda I)^{-1}X^\top y}_2^2=s$. 
+
+The parameter $\lambda$ can be viewed as the "price" paid for enforcing the constraint. As $s$ decreases, the corresponding value of $\lambda$ increases, producing greater shrinkage toward the origin. The norm of the ridge estimator decreases as $\lambda$ increases. 
+
+Consequently, for every $s < \norm{\hat{\beta}_{\text{ols}}}_2^2$, there exists a unique $\lambda>0$ such that $\norm{\hat{\beta}_{\text{ridge}}}_2^2=s$.
+
+This relationship is consistent with the KKT complementary slackness condition in optimization theory,
+
+$$
+\lambda\left(\norm{\beta}_2^2-s\right)=0.
+$$
+
+::: -->
+
+
 
 
 ### SVD and Tikhonov Regularization
 
 
 
-<details>
-<summary><strong>Click to expand.</strong></summary>
+<!-- <details>
+<summary><strong>Click to expand.</strong></summary> -->
 
 
 Recall the OLS estimator
@@ -345,6 +382,30 @@ where
 - $U$ is an $n \times n$ orthogonal matrix,
 - $V$ is a $p \times p$ orthogonal matrix,
 - $D$ is an $n \times p$ diagonal matrix whose nonzero entries $d_1,\ldots,d_r$ are the singular values of $X$.
+
+
+
+
+
+
+::: {.callout-note}
+## Thin SVD 
+
+Let $X = UDV^\top$ be the (full) singular value decomposition of $X$, and let $r=\operatorname{rank}(X)$. If $r<\min(n,p)$, then $D^\top D$ contains zero eigenvalues and is therefore singular.
+
+In statistical learning, we are usually interested in expressions involving $D^{-1}$ or $(D^\top D)^{-1}$ rather than the complete orthogonal basis structure of $U$ and $V$. Therefore, it is often more convenient to work with the **thin (reduced) SVD** $X = U_r D_r V_r^\top$, where $U_r$ and $V_r$ are obtained by removing the columns corresponding to zero singular values, and $D_r$ is obtained by deleting the associated zero rows and columns of $D$. Consequently, $D_r=\operatorname{diag}(\sigma_1,\ldots,\sigma_r)$ is square and invertible.
+
+By a slight abuse of notation, statistical learning texts often write $X = UDV^\top$ while actually referring to the thin SVD. We follow this convention throughout this section. Unless otherwise stated, all SVDs appearing below should be interpreted as thin SVDs.
+:::
+
+
+
+
+
+
+
+
+
 
 Using the SVD,
 
@@ -377,6 +438,17 @@ $$
 
 
 If some singular values $d_i$ are very small, the factors $1/d_i$ become very large, which leads to unstable coefficient estimates. Therefore this expression reveals the instability of OLS.  
+
+
+
+
+
+
+
+
+
+
+
 
 Now turn to Ridge regression. We replace the OLS estimator with
 
@@ -427,7 +499,7 @@ Tikhonov regularization is a method used to solve ill-posed problems and handle 
 
 
 
-</details>
+<!-- </details> -->
 
 
 
@@ -754,7 +826,7 @@ B1, B2 = np.meshgrid(beta1_vals, beta2_vals)
 
 betas = np.column_stack([B1.ravel(), B2.ravel()])
 preds = X @ betas.T
-rss_term = np.sum((y[:, None] - preds) ** 2, axis=0)
+rss_term = np.sum((y.reshape(-1, 1) - preds) ** 2, axis=0)
 rss_value0 = rss_term.reshape(B1.shape)
 ```
 
@@ -805,7 +877,7 @@ fig, axes = plt.subplots(2, 2, figsize=(10, 8))
 for ax, reg_lambda in zip(axes.ravel(), lambda_vals):
     betas = np.column_stack([B1.ravel(), B2.ravel()])
     preds = X @ betas.T
-    rss_term = np.sum((y[:, None] - preds) ** 2, axis=0)
+    rss_term = np.sum((y.reshape(-1, 1) - preds) ** 2, axis=0)
     penalty_term = reg_lambda * np.sum(betas**2, axis=1)
     rss_value = (rss_term + penalty_term).reshape(B1.shape)
 
@@ -838,14 +910,14 @@ Geometrically, this shrinkage prevents the estimator from drifting freely along 
 ::: {.callout-note collapse="true"}
 ## Gram matrix and Covariance matrix
 
-The Gram matrix $X\top X$ represents the raw inner products of predictors. In the context of $\rss$ map, it is the direct source of the surface geometry.
+The Gram matrix $X^\top X$ represents the raw inner products of predictors. In the context of $\rss$ map, it is the direct source of the surface geometry.
 
 The Covariance matrix is essentially the Gram matrix of the centered data, usually scaled by $n-1$.
 $$
 \mathbf{S} = \frac{1}{n-1} \sum (x_i - \bar{x})(x_i - \bar{x})^top.
 $$
 
-Therefore if the data is already centered, the Gram matrix and the covariance matrix are directly related: $X\top X=(n-1)\Cov$.
+Therefore if the data is already centered, the Gram matrix and the covariance matrix are directly related: $X^\top X=(n-1)\Cov$.
 
 
 
