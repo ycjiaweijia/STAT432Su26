@@ -39,21 +39,23 @@ an unsuitable distance, or a forced choice of the number of clusters.
 Interpretation is part of the analysis.
 :::
 
-## Three Families of Clustering Methods
+## Overview of the Main Approaches
 
-Clustering methods differ in what they treat as a group. We focus on three
-major families, represented by one typical method from each family:
+Clustering methods differ in what they treat as a group. We focus on four
+major paradigms, represented by one typical method from each:
 
 | Family | Typical method | What defines a cluster? |
 |---|---|---|
-| Partitioning | K-means | observations close to the same center |
+| Centroid-based | K-means | observations close to the same center |
 | Hierarchical | agglomerative hierarchical clustering | observations joined through a sequence of merges |
 | Density-based | DBSCAN | observations connected through dense regions |
+| Graph-based | spectral clustering | observations connected in a similarity graph |
 
-These definitions lead to different assumptions. K-means favors compact
-center-based groups, hierarchical clustering represents nested structure,
-and DBSCAN can identify irregularly shaped groups while labeling isolated
-observations as noise.
+These are four fundamentally different definitions of a cluster. K-means
+uses proximity to centroids, hierarchical clustering uses a nested sequence
+of merges, DBSCAN uses density connectivity, and spectral clustering first
+constructs a graph-based representation in which connected groups become
+easier to separate.
 
 
 ## Distance and Scaling
@@ -92,7 +94,7 @@ direction rather than magnitude, and domain-specific data may require a
 custom dissimilarity. The distance should match the question being asked.
 
 
-## Partitioning: K-Means Clustering
+## Centroid-Based: K-Means Clustering
 
 K-means represents each cluster by its center. Let
 $C_1,\ldots,C_K$ be a partition of the observations, and let
@@ -279,206 +281,6 @@ plt.tight_layout();
 K-means divides the feature space into convex regions, so it cannot recover
 the two rings. A density-based method such as DBSCAN is more appropriate
 when the rings are separated by low-density space.
-
-
-## Evaluating a Clustering
-
-Without known labels, clustering evaluation must combine several kinds of
-evidence. Internal metrics assess geometric compactness and separation,
-stability checks whether the result persists under perturbations, and
-interpretation determines whether the groups are meaningful in the original
-problem.
-
-
-### Internal Evaluation
-
-Internal clustering metrics use only the observations and their assigned
-clusters. They can compare values of $K$ or different initializations of the
-same method. Comparisons between methods are meaningful only when the same
-observations, features, scaling, and distance are used.
-
-No single metric defines the correct clustering. Each metric favors a
-particular geometric idea of a good partition. We focus on two common
-metrics: WCSS and the silhouette score.
-
-
-#### Within-Cluster Sum of Squares
-
-For K-means, WCSS is both the fitting objective and an internal measure of
-cluster compactness:
-
-$$
-\operatorname{WCSS}
-=
-\sum_{k=1}^K
-\sum_{i\in C_k}
-\norm{x_i-\mu_k}_2^2.
-$$
-
-For a fitted `KMeans` object, WCSS is stored in `inertia_`.
-
-```{python}
-kmeans.inertia_
-```
-
-Smaller inertia means observations are closer to their assigned centers.
-However, inertia always decreases as $K$ increases and becomes zero when
-every distinct observation is its own cluster. Therefore, its absolute
-minimum cannot be used to choose $K$.
-
-
-#### Silhouette Value
-
-The silhouette value evaluates both within-cluster cohesion and separation
-from neighboring clusters. For observation $i$, define:
-
-- $a(i)$ as its average distance to other observations in its own cluster;
-- $b(i)$ as the smallest average distance to observations in another
-  cluster.
-
-The silhouette value is
-
-$$
-s(i)
-=
-\frac{b(i)-a(i)}
-{\max\{a(i),b(i)\}}.
-$$
-
-It lies between $-1$ and $1$:
-
-- values near $1$ indicate a well-separated observation;
-- values near $0$ indicate an observation near a cluster boundary;
-- negative values suggest that another cluster may be closer.
-
-The overall silhouette score is the average of $s(i)$ over all observations.
-Larger values are preferred. It requires at least two nonempty clusters.
-
-
-### Choosing the Number of Clusters
-
-The number of clusters $K$ is a tuning parameter. There is no universally
-correct criterion because the useful level of grouping depends on the
-scientific question.
-
-The elbow plot examines inertia over a range that includes $K=1$. The
-silhouette score is computed only for $K\ge 2$.
-
-```{python}
-from sklearn.metrics import silhouette_score
-
-inertia_k = range(1, 11)
-inertias = []
-
-for k in inertia_k:
-    model = KMeans(
-        n_clusters=k,
-        n_init=20,
-        random_state=1,
-    )
-    model.fit(X)
-    inertias.append(model.inertia_)
-
-silhouette_k = range(2, 11)
-silhouettes = []
-
-for k in silhouette_k:
-    model = KMeans(
-        n_clusters=k,
-        n_init=20,
-        random_state=1,
-    )
-    labels = model.fit_predict(X)
-    silhouettes.append(
-        silhouette_score(X, labels)
-    )
-```
-
-Plot the two diagnostics together.
-
-```{python}
-fig, axs = plt.subplots(1, 2, figsize=(11, 4))
-
-axs[0].plot(inertia_k, inertias, marker="o")
-axs[0].set_xlabel("number of clusters K")
-axs[0].set_ylabel("inertia")
-axs[0].set_title("Elbow Plot")
-
-axs[1].plot(silhouette_k, silhouettes, marker="o")
-axs[1].set_xlabel("number of clusters K")
-axs[1].set_ylabel("average silhouette")
-axs[1].set_title("Silhouette Score")
-
-plt.tight_layout();
-```
-
-For inertia, the elbow heuristic looks for the point after which additional
-clusters produce only modest improvement. For the silhouette score, larger
-values are preferred. The two diagnostics can disagree because they measure
-different aspects of the partition.
-
-::: {.callout-caution}
-## Diagnostics do not define the scientific answer
-
-These metrics evaluate geometric compactness and separation under the chosen
-features, scaling, and distance. They do not show that the clusters are
-stable, scientifically meaningful, or useful for a later decision.
-:::
-
-
-### Stability
-
-A useful clustering should not change completely after a small perturbation.
-A practical stability analysis can:
-
-1. resample observations or features;
-2. repeat preprocessing and clustering;
-3. compare which pairs of observations are repeatedly grouped together;
-4. inspect clusters that split or disappear.
-
-Instability may indicate weak separation, an unsuitable tuning choice, or
-insufficient data. It can also reveal that several clusterings are similarly
-plausible.
-
-
-### External Evaluation
-
-When known labels are available, they may be used after clustering for
-evaluation. The adjusted Rand index (ARI) compares two partitions while
-accounting for agreement expected by chance. It equals $1$ for identical
-partitions and has expected value near $0$ for independent random
-partitions.
-
-```{python}
-from sklearn.metrics import adjusted_rand_score
-
-adjusted_rand_score(true_group, cluster)
-```
-
-This does not turn clustering into supervised learning because the labels
-were not used to fit the clusters.
-
-
-### Interpretation in the Original Features
-
-An embedding plot is useful, but clusters should ultimately be described
-using the original variables.
-
-```{python}
-import pandas as pd
-
-cluster_summary = (
-    pd.DataFrame(X, columns=["x1", "x2"])
-    .assign(cluster=cluster)
-    .groupby("cluster")
-    .agg(["mean", "std", "size"])
-)
-
-cluster_summary
-```
-
-For real data, combine such summaries with domain knowledge and
-representative observations from each group.
 
 
 ## Hierarchical: Agglomerative Clustering
@@ -695,23 +497,147 @@ substantially, because one global value of `eps` may be too small for a
 sparse cluster and too large for a dense cluster.
 
 
-## Comparing the Three Methods
+## Graph-Based: Spectral Clustering
 
-The three methods answer different versions of the clustering question:
+The previous methods define clusters directly from centers, merges, or
+density in the observed feature space. Spectral clustering illustrates a
+broader strategy:
 
-| Property | K-means | Hierarchical clustering | DBSCAN |
-|---|---|---|---|
-| Main idea | nearest center | repeated merges | density connectivity |
-| Number of clusters required? | yes | chosen by cutting the tree | no |
-| Typical cluster shape | compact and convex | depends on linkage | irregular shapes allowed |
-| Explicit noise label? | no | no | yes |
-| Main tuning choices | $K$, initialization | distance, linkage, tree cut | `eps`, `min_samples` |
-| Main output | one partition and centers | a dendrogram | clusters and noise points |
+$$
+X
+\longrightarrow
+\text{new representation } Z
+\longrightarrow
+\text{clustering in } Z.
+$$
 
-No method is uniformly best. The geometry of the data and the scientific
-meaning of a group should determine which definition is appropriate.
+Clustering therefore does not have to mean drawing boundaries around
+centers in the original coordinate system. A method can first construct a
+representation that makes the relevant structure easier to separate.
 
-### One Dataset, Three Definitions of a Cluster
+### From a Neighborhood Graph to New Coordinates
+
+Spectral clustering treats observations as vertices in a graph. Two
+observations are connected when they are sufficiently similar, for example
+when one is among the nearest neighbors of the other. Let
+
+$$
+W=\mqty[W_{ij}]
+$$
+
+be the weighted adjacency matrix and define the degree matrix
+
+$$
+D=\diag(d_1,\ldots,d_n),
+\qquad
+d_i=\sum_j W_{ij}.
+$$
+
+The graph Laplacian is
+
+$$
+L=D-W.
+$$
+
+Eigenvectors of a graph Laplacian provide new coordinates that reflect graph
+connectivity. A typical spectral clustering algorithm:
+
+1. constructs a similarity or nearest-neighbor graph;
+2. computes eigenvectors of a graph Laplacian;
+3. uses the eigenvectors as a new representation;
+4. applies a standard clustering method, usually K-means, in that
+   representation.
+
+The final step may still use centroids, but they are found in learned
+coordinates rather than in the original feature space.
+
+### Concentric Circles
+
+The concentric circles cannot be separated by placing two centers in the
+original plane. Their neighborhood graph, however, records connectivity
+around each ring.
+
+```{python}
+#| warning: false
+from sklearn.cluster import SpectralClustering
+
+circle_spectral = SpectralClustering(
+    n_clusters=2,
+    affinity="nearest_neighbors",
+    n_neighbors=10,
+    assign_labels="kmeans",
+    random_state=1,
+)
+circle_spectral_group = circle_spectral.fit_predict(
+    X_circle
+)
+
+fig, axs = plt.subplots(
+    1,
+    3,
+    figsize=(13, 4),
+    sharex=True,
+    sharey=True,
+)
+
+for ax, labels, title in zip(
+    axs,
+    [
+        true_circle_group,
+        circle_cluster,
+        circle_spectral_group,
+    ],
+    [
+        "Underlying Structure",
+        "K-Means in Original Space",
+        "Spectral Clustering",
+    ],
+):
+    ax.scatter(
+        X_circle[:, 0],
+        X_circle[:, 1],
+        c=labels,
+        s=18,
+    )
+    ax.set_title(title)
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x2")
+
+plt.tight_layout();
+```
+
+Spectral clustering recovers the rings because the graph representation
+captures connectivity along each ring. It does not draw circular boundaries
+or search for circular cluster centers.
+
+::: {.callout-caution}
+## Graph construction is part of the model
+
+The distance metric, number of neighbors, affinity function, and number of
+clusters can all change the result. A graph that is too sparse may disconnect
+a true group, while a graph that is too dense may create shortcuts between
+groups.
+:::
+
+
+## Comparing the Four Methods
+
+The four methods answer different versions of the clustering question:
+
+| Property | K-means | Hierarchical | DBSCAN | Spectral |
+|---|---|---|---|---|
+| Main idea | nearest centroid | repeated merges | density connectivity | graph connectivity |
+| Number of clusters required? | yes | chosen by cutting the tree | no | yes |
+| Typical cluster shape | compact and convex | depends on linkage | irregular shapes allowed | non-convex graph-connected groups |
+| Explicit noise label? | no | no | yes | no |
+| Main tuning choices | $K$, initialization | distance, linkage, tree cut | `eps`, `min_samples` | $K$, affinity, graph neighborhood |
+| Main output | partition and centers | dendrogram | clusters and noise points | graph-derived partition |
+
+No method is uniformly best. The geometry of the data, the desired
+definition of a group, and the scientific question should determine which
+paradigm is appropriate.
+
+### One Dataset, Four Definitions of a Cluster
 
 The two-moons data contain two curved groups and a few uniformly distributed
 noise observations. This example makes the assumptions of the methods
@@ -735,12 +661,13 @@ moon_noise = rng.uniform(
 X_compare = np.vstack([X_moons, moon_noise])
 ```
 
-Fit one representative from each family. For a direct comparison, we cut
-the hierarchical tree into two groups and set K-means to use two centers.
+Fit one representative from each paradigm. For a direct comparison,
+K-means, hierarchical clustering, and spectral clustering use two groups.
 DBSCAN determines the number of dense groups from its neighborhood
 parameters.
 
 ```{python}
+#| warning: false
 compare_kmeans = KMeans(
     n_clusters=2,
     n_init=20,
@@ -758,25 +685,35 @@ compare_dbscan = DBSCAN(
     min_samples=6,
 ).fit_predict(X_compare)
 
+compare_spectral = SpectralClustering(
+    n_clusters=2,
+    affinity="nearest_neighbors",
+    n_neighbors=30,
+    assign_labels="kmeans",
+    random_state=1,
+).fit_predict(X_compare)
+
 fig, axs = plt.subplots(
-    1,
-    3,
-    figsize=(14, 4),
+    2,
+    2,
+    figsize=(10, 8),
     sharex=True,
     sharey=True,
 )
 
 for ax, labels, title in zip(
-    axs,
+    axs.ravel(),
     [
         compare_kmeans,
         compare_hierarchical,
         compare_dbscan,
+        compare_spectral,
     ],
     [
         "K-Means",
         "Hierarchical: Single Linkage",
         "DBSCAN",
+        "Spectral Clustering",
     ],
 ):
     ax.scatter(
@@ -797,6 +734,212 @@ curved groups. Single-linkage hierarchical clustering can follow connected
 shapes, but isolated observations can create chains that join groups.
 DBSCAN can recover the dense curves and identify sparse observations as
 noise, provided its density parameters match the scale of the data.
+Spectral clustering follows much of the curved structure through graph
+connectivity, but the added noise points can create graph shortcuts. Unlike
+DBSCAN, it must assign every observation to a cluster rather than explicitly
+identifying noise.
+
+
+## Evaluating a Clustering
+
+Method comparison produces candidate partitions; evaluation asks whether
+those partitions are geometrically coherent, stable, and meaningful.
+Without known labels, no single score can answer all three questions.
+
+
+### Internal Evaluation
+
+Internal clustering metrics use only the observations and their assigned
+clusters. They can compare values of $K$, initializations, or methods when
+the observations, features, scaling, and distance are held fixed.
+
+No single metric defines the correct clustering. Each metric favors a
+particular geometric idea of a good partition. We focus on two common
+metrics: WCSS and the silhouette score.
+
+This limitation matters when comparing paradigms. For example, a silhouette
+score computed with original Euclidean distance may favor compact groups and
+undervalue a graph-connected partition such as concentric rings. Evaluation
+should match the geometry the method is intended to recover.
+
+
+#### Within-Cluster Sum of Squares
+
+For K-means, WCSS is both the fitting objective and an internal measure of
+cluster compactness:
+
+$$
+\operatorname{WCSS}
+=
+\sum_{k=1}^K
+\sum_{i\in C_k}
+\norm{x_i-\mu_k}_2^2.
+$$
+
+For a fitted `KMeans` object, WCSS is stored in `inertia_`.
+
+```{python}
+kmeans.inertia_
+```
+
+Smaller inertia means observations are closer to their assigned centers.
+However, inertia always decreases as $K$ increases and becomes zero when
+every distinct observation is its own cluster. Therefore, its absolute
+minimum cannot be used to choose $K$.
+
+
+#### Silhouette Value
+
+The silhouette value evaluates both within-cluster cohesion and separation
+from neighboring clusters. For observation $i$, define:
+
+- $a(i)$ as its average distance to other observations in its own cluster;
+- $b(i)$ as the smallest average distance to observations in another
+  cluster.
+
+The silhouette value is
+
+$$
+s(i)
+=
+\frac{b(i)-a(i)}
+{\max\{a(i),b(i)\}}.
+$$
+
+It lies between $-1$ and $1$:
+
+- values near $1$ indicate a well-separated observation;
+- values near $0$ indicate an observation near a cluster boundary;
+- negative values suggest that another cluster may be closer.
+
+The overall silhouette score is the average of $s(i)$ over all observations.
+Larger values are preferred. It requires at least two nonempty clusters.
+
+
+### Choosing the Number of Clusters
+
+For methods such as K-means, the number of clusters $K$ is a tuning
+parameter. There is no universally correct criterion because the useful
+level of grouping depends on the scientific question.
+
+The elbow plot examines inertia over a range that includes $K=1$. The
+silhouette score is computed only for $K\ge 2$.
+
+```{python}
+from sklearn.metrics import silhouette_score
+
+inertia_k = range(1, 11)
+inertias = []
+
+for k in inertia_k:
+    model = KMeans(
+        n_clusters=k,
+        n_init=20,
+        random_state=1,
+    )
+    model.fit(X)
+    inertias.append(model.inertia_)
+
+silhouette_k = range(2, 11)
+silhouettes = []
+
+for k in silhouette_k:
+    model = KMeans(
+        n_clusters=k,
+        n_init=20,
+        random_state=1,
+    )
+    labels = model.fit_predict(X)
+    silhouettes.append(
+        silhouette_score(X, labels)
+    )
+```
+
+Plot the two diagnostics together.
+
+```{python}
+fig, axs = plt.subplots(1, 2, figsize=(11, 4))
+
+axs[0].plot(inertia_k, inertias, marker="o")
+axs[0].set_xlabel("number of clusters K")
+axs[0].set_ylabel("inertia")
+axs[0].set_title("Elbow Plot")
+
+axs[1].plot(silhouette_k, silhouettes, marker="o")
+axs[1].set_xlabel("number of clusters K")
+axs[1].set_ylabel("average silhouette")
+axs[1].set_title("Silhouette Score")
+
+plt.tight_layout();
+```
+
+For inertia, the elbow heuristic looks for the point after which additional
+clusters produce only modest improvement. For the silhouette score, larger
+values are preferred. The two diagnostics can disagree because they measure
+different aspects of the partition.
+
+::: {.callout-caution}
+## Diagnostics do not define the scientific answer
+
+These metrics evaluate geometric compactness and separation under the chosen
+features, scaling, and distance. They do not show that the clusters are
+stable, scientifically meaningful, or useful for a later decision.
+:::
+
+
+### Stability
+
+A useful clustering should not change completely after a small perturbation.
+A practical stability analysis can:
+
+1. resample observations or features;
+2. repeat preprocessing and clustering;
+3. compare which pairs of observations are repeatedly grouped together;
+4. inspect clusters that split or disappear.
+
+Instability may indicate weak separation, an unsuitable tuning choice, or
+insufficient data. It can also reveal that several clusterings are similarly
+plausible.
+
+
+### External Evaluation
+
+When known labels are available, they may be used after clustering for
+evaluation. The adjusted Rand index (ARI) compares two partitions while
+accounting for agreement expected by chance. It equals $1$ for identical
+partitions and has expected value near $0$ for independent random
+partitions.
+
+```{python}
+from sklearn.metrics import adjusted_rand_score
+
+adjusted_rand_score(true_group, cluster)
+```
+
+This does not turn clustering into supervised learning because the labels
+were not used to fit the clusters.
+
+
+### Interpretation in the Original Features
+
+An embedding plot is useful, but clusters should ultimately be described
+using the original variables.
+
+```{python}
+import pandas as pd
+
+cluster_summary = (
+    pd.DataFrame(X, columns=["x1", "x2"])
+    .assign(cluster=cluster)
+    .groupby("cluster")
+    .agg(["mean", "std", "size"])
+)
+
+cluster_summary
+```
+
+For real data, combine such summaries with domain knowledge and
+representative observations from each group.
 
 
 ## Practical Workflow
@@ -806,21 +949,26 @@ A clustering analysis usually follows these steps:
 1. select features that match the scientific question;
 2. handle missing values and obvious data quality problems;
 3. choose scaling and a distance metric deliberately;
-4. visualize the data, possibly after dimension reduction;
-5. compare clustering methods and tuning choices;
+4. decide whether clustering should use the original features or a
+   constructed representation;
+5. compare clustering paradigms and tuning choices;
 6. check stability under perturbations;
 7. interpret the groups in the original feature space.
 
-PCA and other dimension-reduction methods are discussed in
-@sec-unsupervised-pca and @sec-embedding. They can reveal structure and
-reduce noise, but they also change the geometry on which clustering is based.
+Spectral clustering already demonstrated that a representation can make
+some groups easier to separate. The next chapter, @sec-unsupervised-pca,
+studies this representation problem directly through linear dimension
+reduction. The following chapter, @sec-embedding, develops nonlinear
+representations primarily for visualization. These transformations can
+reveal structure and reduce noise, but they also change the geometry on
+which clustering is based.
 
 
 ## Summary
 
-K-means, hierarchical clustering, and DBSCAN use different definitions of a
-cluster. K-means finds compact center-based groups, hierarchical clustering
-builds a nested sequence of merges, and DBSCAN finds density-connected
-groups while allowing noise observations. Internal metrics can compare
-candidate partitions, but method choice must also reflect cluster geometry,
-stability, and interpretation in the original variables.
+The four paradigms use different definitions of a cluster. K-means finds
+centroid-based groups, hierarchical clustering builds a nested sequence of
+merges, DBSCAN finds density-connected groups while allowing noise, and
+spectral clustering finds groups through connectivity in a graph-derived
+representation. Method choice and evaluation must reflect the intended
+geometry, stability, and interpretation in the original variables.
