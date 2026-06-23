@@ -6,8 +6,8 @@ jupyter: stats
 
 # Dimension Reduction with PCA {#sec-unsupervised-pca}
 
-Dimension reduction replaces $p$ original features with a smaller number
-$m<p$ of derived coordinates:
+Dimension reduction replaces $p$ original predictors, or features, with a
+smaller number $m<p$ of derived variables, or components:
 
 $$
 X\in\mathbb R^{n\times p}
@@ -25,7 +25,7 @@ Z=XV_m.
 $$
 
 Each reduced coordinate is therefore a linear combination of the original
-features.
+predictors.
 
 In @sec-clustering, spectral clustering showed that an algorithm may first
 construct a new representation and then analyze observations in that
@@ -34,15 +34,21 @@ clustering algorithm: the goal is to construct a lower-dimensional version
 of $X$ that can be examined, reconstructed, or passed to a later method.
 
 PCA also appeared in the
-[supervised dimension-reduction chapter](../1/dr.qmd), where the resulting
-components were used in principal component regression (PCR), and partial
-least squares (PLS) constructed response-guided components. The connection
-is important, but the goal here is different:
+[supervised dimension-reduction chapter](../1/dr.qmd), where the same
+notation was introduced:
 
-| Setting | PCA uses $y$? | How is the dimension chosen? | Main goal |
+$$
+Z_j=Xv_j,\qquad Z=XV=UD.
+$$
+
+There, the resulting components were used in principal component regression
+(PCR), and partial least squares (PLS) constructed response-guided
+components. The algebra is the same, but the goal here is different:
+
+| Setting | Uses $y$ to construct components? | How is the dimension chosen? | Main goal |
 |---|---:|---|---|
 | Unsupervised PCA | No | variance, reconstruction, or visualization | represent $X$ |
-| PCR | No when constructing components | cross-validation using prediction error | predict $y$ |
+| PCR | No | cross-validation using prediction error | predict $y$ |
 | PLS | Yes | cross-validation using prediction error | predict $y$ |
 
 PCR and PLS use dimension reduction as a step toward predicting $y$. Here
@@ -52,9 +58,15 @@ the object of interest.
 
 ## What Is New in the Unsupervised Setting?
 
-The mechanics of PCA are the same as in PCR: center $X$, find principal
-directions, and project observations onto them. What changes is how the
-result is evaluated.
+The mechanics of PCA are exactly the same as in PCR from
+[Chapter 1](../1/dr.qmd): center $X$, find principal directions
+$v_1,\ldots,v_m$, and form scores
+
+$$
+Z_m=XV_m.
+$$
+
+What changes is how the result is evaluated.
 
 In PCR, a component is useful when it improves prediction of $y$. In this
 chapter, a reduced representation is useful when it:
@@ -64,36 +76,244 @@ chapter, a reduced representation is useful when it:
 - reveals structure in a low-dimensional plot;
 - removes redundancy or noise before another unsupervised method.
 
-This distinction also explains the role of PLS. PLS can prefer a
-low-variance direction when it is strongly related to $y$. Unsupervised PCA
-cannot make that choice because $y$ is absent; it ranks directions only by
-variation in $X$.
+This distinction also explains why PLS was introduced after PCR in
+[Chapter 1](../1/dr.qmd). PLS can prefer a low-variance direction when it is
+strongly related to $y$. Unsupervised PCA cannot make that choice because
+$y$ is absent; it ranks directions only by variation in $X$.
 
 
 ## Row and Column Views of the Data Matrix
 
-Let $X\in\mathbb R^{n\times p}$ contain $n$ observations and $p$ features.
+As in the earlier dimension-reduction chapter, let
+$X\in\mathbb R^{n\times p}$ contain $n$ observations and $p$ predictors.
 After centering the columns:
 
 - row $x_i^\top\in\mathbb R^p$ represents observation $i$ in feature space;
-- column $X_j\in\mathbb R^n$ represents feature $j$ across observations.
+- column $X_j\in\mathbb R^n$ represents predictor $j$ across observations.
 
 Clustering and nearest-neighbor methods compare rows. PCA constructs new
 directions in the feature space and gives every row a coordinate along those
 directions.
 
 ::: {.callout-note}
-## Terminology from `dr.qmd`
+## Terminology from Chapter 1
 
 The **loadings** are directions in feature space. The **scores** are the
-coordinates of observations after projection. The same terminology applies
-here and in PCR.
+coordinates of observations after projection. In the notation of
+[Chapter 1](../1/dr.qmd),
+
+$$
+Z=XV=UD=\left[Z_1,\ldots,Z_r\right]=[z_{ij}].
+$$
+
+Here $V$ contains loadings, $Z$ contains scores, and $U$ contains normalized
+scores.
 :::
+
+
+## Matrix Entries and Linear Combinations
+
+It is useful to start from the meaning of a single matrix entry. Let
+$e_i\in\mathbb R^n$ be the vector with a 1 in position $i$ and zeros
+elsewhere, and let $f_j\in\mathbb R^p$ be the vector with a 1 in position
+$j$ and zeros elsewhere. Then
+
+$$
+x_{ij}=e_i^\top X f_j.
+$$
+
+This expression selects row $i$ and column $j$. In words, $x_{ij}$ is the
+value of predictor $j$ for observation $i$.
+
+For example, if $X$ has 7 observations and 6 predictors, then
+
+$$
+e_4^\top=
+\begin{bmatrix}
+0&0&0&1&0&0&0
+\end{bmatrix},
+\qquad
+f_3=
+\begin{bmatrix}
+0\\0\\1\\0\\0\\0
+\end{bmatrix},
+$$
+
+and
+
+$$
+e_4^\top X f_3=x_{43}.
+$$
+
+The standard basis vectors $e_i$ and $f_j$ pick out one original observation
+and one original predictor. PCA replaces these one-at-a-time selections with
+linear combinations.
+
+### Combining predictors
+
+If $v\in\mathbb R^p$, then
+
+$$
+Xv
+$$
+
+is a new component column for all observations. This is the same object
+called a principal component in [Chapter 1](../1/dr.qmd). The value for
+observation $i$ is
+
+$$
+e_i^\top Xv
+=
+x_i^\top v
+=
+v_1x_{i1}+\cdots+v_px_{ip}.
+$$
+
+So the new component is a weighted combination of the original predictors.
+For a concrete two-predictor example, if
+
+$$
+v=
+\begin{bmatrix}
+0.6\\
+-0.8
+\end{bmatrix},
+$$
+
+then the new component value for observation $i$ is
+
+$$
+0.6\,x_{i1}-0.8\,x_{i2}.
+$$
+
+The entries of $v$ are the coefficients used to combine the original
+predictors. In PCA, the principal directions are the columns of $V$. These
+columns are called **loadings**. Equivalently, if
+$v_j=(v_{1j},\ldots,v_{pj})^\top$, then
+
+$$
+Z_j=Xv_j
+=
+v_{1j}X_1+v_{2j}X_2+\cdots+v_{pj}X_p.
+$$
+
+This is the same formula used for PCR. The difference is that PCR later
+regresses $y$ on $Z_1,\ldots,Z_m$, while this chapter studies
+$Z_1,\ldots,Z_m$ as an unsupervised representation of $X$.
+
+### Combining observations
+
+There is also a dual row-side view. If $u\in\mathbb R^n$, then
+
+$$
+u^\top X
+$$
+
+is a weighted combination of the original observations. Its $j$-th predictor
+value is
+
+$$
+u^\top Xf_j
+=
+u_1x_{1j}+\cdots+u_nx_{nj}.
+$$
+
+For example, with three observations,
+
+$$
+u=
+\begin{bmatrix}
+1/2\\
+1/2\\
+0
+\end{bmatrix}
+$$
+
+gives
+
+$$
+u^\top X
+=
+\frac12 x_1^\top+\frac12 x_2^\top,
+$$
+
+the average of the first two observation vectors. By contrast,
+
+$$
+u=
+\begin{bmatrix}
+1/\sqrt2\\
+-1/\sqrt2\\
+0
+\end{bmatrix}
+$$
+
+gives
+
+$$
+u^\top X
+=
+\frac{1}{\sqrt2}x_1^\top-\frac{1}{\sqrt2}x_2^\top,
+$$
+
+a contrast between the first two observations.
+
+In the SVD form of PCA,
+
+$$
+X=UDV^\top,
+$$
+
+the columns of $U$ are called the **left singular vectors**. In the
+terminology used in [Chapter 1](../1/dr.qmd), they are the
+**normalized scores**. The actual PCA score matrix is
+
+$$
+Z=XV=UD,
+$$
+
+so $U$ records the observation-side directions after normalization, while
+$UD$ gives the coordinates of observations in the principal component
+system.
+
+### Pairing an observation pattern with a feature direction
+
+The SVD writes the data matrix as
+
+$$
+X
+=
+d_1u_1v_1^\top
++d_2u_2v_2^\top
++\cdots
++d_ru_rv_r^\top.
+$$
+
+Each term pairs one observation-side pattern $u_k$ with one feature-side
+direction $v_k$. The scalar $d_k$ tells how much of that paired pattern is
+present in the data.
+
+This is the central meaning of PCA: instead of describing the data only by
+the original observation-predictor pairs $(e_i,f_j)$, PCA finds paired
+directions $(u_k,v_k)$ that summarize the strongest linear structure in
+$X$. This was already important for PCR, because PCR uses the scores
+$Z=XV$ as new predictors in a regression model. Here we emphasize the same
+decomposition again because there is no later regression step: the score
+matrix $Z$ itself is the reduced representation.
+
+If a response $y$ is later introduced, PCR uses these PCA scores as
+predictors. PLS goes one step further and chooses directions using $y$. In
+this chapter, however, PCA itself is unsupervised: the paired directions are
+chosen from $X$ alone.
 
 
 ## Principal Directions
 
-Assume that $X$ is centered. The first principal direction is
+Assume that $X$ is centered. As in PCR, PCA directions can be defined either
+through the Gram matrix $X^\top X$ or through a variance maximization
+problem. The two descriptions are equivalent.
+
+The first principal direction is
 
 $$
 v_1
@@ -122,9 +342,15 @@ $$
 Z_j=Xv_j
 $$
 
-is the $j$-th principal component score vector. The loading $v_j$ describes
-the direction; the entries of $Z_j$ describe where observations lie along
-that direction.
+is the $j$-th principal component score vector. Equivalently,
+
+$$
+Z=XV=\left[Z_1,\ldots,Z_r\right]=[z_{ij}].
+$$
+
+The loading vector $v_j$ describes the direction in feature space. The score
+$z_{ij}$ describes where observation $i$ lies along principal direction
+$v_j$.
 :::
 
 
@@ -198,8 +424,9 @@ orthogonal and captures the remaining variation.
 
 ## SVD View
 
-The same singular value decomposition used in `dr.qmd` provides the cleanest
-matrix description. If centered $X$ has rank $r$, then
+The same singular value decomposition used in
+[Chapter 1](../1/dr.qmd) provides the cleanest matrix description. If
+centered $X$ has rank $r$, then
 
 $$
 X=UDV^\top,
@@ -223,12 +450,13 @@ $$
 
 Therefore:
 
-| Quantity | Matrix | Interpretation |
-|---|---|---|
-| Loadings | $V$ | principal directions in feature space |
-| Scores | $Z=UD$ | coordinates of observations |
-| Singular values | $D$ | spread along each component |
-| Component variances | $D^2/(n-1)$ | variance explained by each component |
+| Quantity | Matrix | Space | Interpretation |
+|---|---|---|---|
+| Loadings | $V$ | feature space $\mathbb R^p$ | principal directions, or rotated axes |
+| Scores | $Z=UD$ | observation space $\mathbb R^n$ | transformed coordinates of observations |
+| Normalized scores | $U$ | observation space $\mathbb R^n$ | unit-length directions of score vectors |
+| Singular values | $D$ | -- | scaling, or spread, of each component |
+| Component variances | $D^2/(n-1)$ | -- | variance explained by each component |
 
 Because
 
@@ -238,7 +466,10 @@ $$
 V\frac{D^2}{n-1}V^\top,
 $$
 
-PCA is also the eigen-decomposition of the sample covariance matrix.
+PCA is also the eigen-decomposition of the sample covariance matrix. This
+is why [Chapter 1](../1/dr.qmd) defined $v_k$ as an eigenvector of
+$X^\top X$: the SVD, covariance eigen-decomposition, and
+variance-maximization definitions are three views of the same object.
 
 
 ## PCA as Matrix Approximation
@@ -385,9 +616,13 @@ For unsupervised PCA, $m$ may be chosen using:
 - downstream clustering stability;
 - the dimension needed for a particular visualization.
 
-This differs from PCR in `dr.qmd`. For prediction, the number of components
-should be chosen by cross-validation against the response, not merely by
-variance explained.
+This is the same explained-variance calculation introduced in
+[Chapter 1](../1/dr.qmd), but the selection criterion changes with the
+task. In PCR and PLS, $m$ should be chosen by cross-validation against the
+response because the goal is prediction. In this chapter there is no
+response, so the choice of $m$ must be justified by the representation goal:
+compression, reconstruction, visualization, or a downstream unsupervised
+analysis such as clustering.
 
 
 ## PCA on the Digits Data
@@ -452,8 +687,21 @@ The labels are used only to interpret the plot. PCA itself receives only
 
 ## Loadings
 
-Loadings describe how the original features form each component. For image
-data, a loading vector can be reshaped back to the image dimensions.
+Loadings describe how the original predictors form each component. This is
+the same meaning as in PCR:
+
+$$
+Z_j
+=
+v_{1j}X_1+\cdots+v_{pj}X_p.
+$$
+
+The new point here is interpretive rather than algebraic. In supervised
+PCR, loadings matter because they tell us which linear combinations become
+regression predictors. In unsupervised PCA, loadings matter because they
+tell us what structure the reduced representation is actually preserving.
+For image data, a loading vector can be reshaped back to the image
+dimensions.
 
 ```{python}
 digits_pca_10 = PCA(n_components=10).fit(X_digits)
@@ -490,7 +738,9 @@ distance-based clustering more stable when many original variables are
 highly correlated.
 
 However, PCA preserves high-variance directions, not necessarily cluster
-separation.
+separation. This is the unsupervised analogue of the PCR limitation
+emphasized in [Chapter 1](../1/dr.qmd): directions with large variance in
+$X$ are not always the directions most relevant for the later task.
 
 ```{python}
 rng = np.random.default_rng(2)
@@ -529,7 +779,9 @@ If only PC1 were retained, the cluster information would be discarded.
 The leading PCs are optimal for reconstructing $X$ under squared error. They
 are not guaranteed to be optimal for prediction, clustering, or preserving
 rare subgroups. This is the same limitation that motivates PLS after PCR in
-`dr.qmd`.
+[Chapter 1](../1/dr.qmd). The difference is that, in supervised learning,
+$y$ provides a direct way to define relevance; in unsupervised learning,
+relevance must be defined by the scientific or analytical goal.
 :::
 
 
@@ -537,10 +789,15 @@ rare subgroups. This is the same limitation that motivates PLS after PCR in
 
 PCA rotates centered data into orthogonal directions ordered by variance.
 The loadings $V$ are directions, the scores $Z=XV=UD$ are transformed
-observations, and truncated PCA is the best low-rank squared-error
-approximation of $X$. In unsupervised learning, the retained dimension should
-match the representation, visualization, or clustering goal. It need not be
-the dimension that would be selected for supervised prediction.
+observations, and $U$ contains normalized scores. These are the same objects
+used in PCR in [Chapter 1](../1/dr.qmd). The difference is the role they
+play: PCR treats the scores as predictors for $y$, while this chapter treats
+the scores as a lower-dimensional representation of $X$ itself.
+
+Truncated PCA is the best low-rank squared-error approximation of $X$. In
+unsupervised learning, the retained dimension should match the
+representation, visualization, or clustering goal. It need not be the
+dimension that would be selected for supervised prediction.
 
 PCA is linear and its coordinates have interpretable loadings. The next
 chapter, @sec-embedding, relaxes linearity and focuses on two-dimensional

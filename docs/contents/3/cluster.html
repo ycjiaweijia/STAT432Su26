@@ -683,24 +683,8 @@ window.Quarto = {
 
 
 <!-- {{< include ../t/math.qmd >}} -->
-<p>Clustering is an unsupervised learning problem. We observe only a predictor matrix</p>
-<p><span class="math display">\[
-X=
-\mqty[
-x_1^\top\\
-\vdots\\
-x_n^\top
-]
-\in\mathbb R^{n\times p},
-\]</span></p>
-<p>and try to divide the observations into groups whose members are similar. Unlike classification, there are no training labels that define the correct groups.</p>
-<p>Clustering is commonly used to:</p>
-<ul>
-<li>explore unknown subpopulations;</li>
-<li>summarize a large dataset with a small number of groups or prototypes;</li>
-<li>organize observations for visualization;</li>
-<li>generate hypotheses for later scientific analysis.</li>
-</ul>
+<p>Clustering is an unsupervised learning problem. We observe only a predictor matrix <span class="math inline">\(X\in\mathbb R^{n\times p}\)</span>, and try to divide the observations into groups whose members are similar. Unlike classification, there are no training labels that define the correct groups.</p>
+<p>Clustering is commonly used to explore unknown subpopulations, summarize a large dataset with a small number of groups or prototypes, organize observations for visualization or generate hypotheses for later scientific analysis, and more.</p>
 <div class="callout callout-style-default callout-caution callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -812,7 +796,7 @@ d(x_i,x_j)
 <section id="a-simulated-example" class="level3" data-number="12.3.1">
 <h3 data-number="12.3.1" class="anchored" data-anchor-id="a-simulated-example"><span class="header-section-number">12.3.1</span> A Simulated Example</h3>
 <p>We use <code>make_blobs</code> from <code>sklearn.datasets</code> to generate 500 observations from three clusters. The data have two features so that the result can be visualized directly.</p>
-<div id="93a22e5a" class="cell" data-execution_count="1">
+<div id="deab1497" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> make_blobs</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -825,7 +809,7 @@ d(x_i,x_j)
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The colors below show the generating groups. They are not used when fitting K-means.</p>
-<div id="caa7a52d" class="cell" data-execution_count="2">
+<div id="a8f31484" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(X[:, <span class="dv">0</span>], X[:, <span class="dv">1</span>], c<span class="op">=</span>true_group)</span>
@@ -843,7 +827,7 @@ d(x_i,x_j)
 <p><code>KMeans</code> follows the usual <code>sklearn</code> interface. Since clustering is performed on the observed data themselves, <code>.fit_predict()</code> fits the model and returns the cluster assignments for the observations.</p>
 <p>The argument <code>n_init=20</code> runs K-means from 20 initial center configurations and retains the result with the smallest inertia.</p>
 <!-- fmt: off -->
-<div id="2995e7c8" class="cell" data-execution_count="3">
+<div id="fd046f09" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>kmeans <span class="op">=</span> KMeans(</span>
@@ -875,7 +859,7 @@ d(x_i,x_j)
 </div>
 <!-- fmt: on -->
 <p>The fitted centers are available from the model.</p>
-<div id="80919d2e" class="cell" data-execution_count="4">
+<div id="4d326fd7" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>kmeans.cluster_centers_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>array([[ 9.45999811,  1.0020861 ],
@@ -907,7 +891,7 @@ d(x_i,x_j)
 <li>not dominated by extreme outliers.</li>
 </ul>
 <p>It can perform poorly on curved clusters, clusters with very different densities, or data where a mean is not an appropriate prototype.</p>
-<div id="4e18b937" class="cell" data-execution_count="5">
+<div id="a9cce033" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> make_circles</span>
@@ -1002,7 +986,7 @@ d(x_i,x_j).
 </section>
 <section id="dendrogram" class="level3" data-number="12.4.2">
 <h3 data-number="12.4.2" class="anchored" data-anchor-id="dendrogram"><span class="header-section-number">12.4.2</span> Dendrogram</h3>
-<div id="fcea7c1e" class="cell" data-execution_count="6">
+<div id="c425b3fc" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.cluster.hierarchy <span class="im">import</span> (</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    linkage,</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    dendrogram,</span>
@@ -1030,7 +1014,7 @@ d(x_i,x_j).
 </div>
 </div>
 <p>The merge height records the dissimilarity at which two branches are joined. A horizontal cut through the tree produces a partition.</p>
-<div id="906566f3" class="cell" data-execution_count="7">
+<div id="993bba25" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>hierarchical_cluster <span class="op">=</span> fcluster(</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    Z,</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    t<span class="op">=</span><span class="dv">3</span>,</span>
@@ -1046,7 +1030,7 @@ d(x_i,x_j).
 </section>
 <section id="comparing-linkages" class="level3" data-number="12.4.3">
 <h3 data-number="12.4.3" class="anchored" data-anchor-id="comparing-linkages"><span class="header-section-number">12.4.3</span> Comparing Linkages</h3>
-<div id="07edc4cf" class="cell" data-execution_count="8">
+<div id="fe83618a" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> AgglomerativeClustering</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>methods <span class="op">=</span> [<span class="st">"single"</span>, <span class="st">"complete"</span>, <span class="st">"average"</span>, <span class="st">"ward"</span>]</span>
@@ -1099,7 +1083,7 @@ d(x_i,x_j).
 </ul>
 <p>An observation is a <strong>core point</strong> when its <code>eps</code> neighborhood contains at least <code>min_samples</code> observations. A <strong>border point</strong> is not a core point but lies within the neighborhood of one. An observation that is neither a core point nor a border point is labeled as <strong>noise</strong>.</p>
 <p>Starting from a core point, DBSCAN repeatedly adds density-reachable core points and their border points. This allows a cluster to follow a curved or irregularly shaped dense region.</p>
-<div id="95db6be5" class="cell" data-execution_count="9">
+<div id="f0447c6c" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> DBSCAN</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>circle_dbscan <span class="op">=</span> DBSCAN(</span>
@@ -1191,7 +1175,7 @@ L=D-W.
 <section id="concentric-circles" class="level3" data-number="12.6.2">
 <h3 data-number="12.6.2" class="anchored" data-anchor-id="concentric-circles"><span class="header-section-number">12.6.2</span> Concentric Circles</h3>
 <p>The concentric circles cannot be separated by placing two centers in the original plane. Their neighborhood graph, however, records connectivity around each ring.</p>
-<div id="e09d3992" class="cell" data-execution_count="10">
+<div id="4d0e1237" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> SpectralClustering</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>circle_spectral <span class="op">=</span> SpectralClustering(</span>
@@ -1330,7 +1314,7 @@ L=D-W.
 <section id="one-dataset-four-definitions-of-a-cluster" class="level3" data-number="12.7.1">
 <h3 data-number="12.7.1" class="anchored" data-anchor-id="one-dataset-four-definitions-of-a-cluster"><span class="header-section-number">12.7.1</span> One Dataset, Four Definitions of a Cluster</h3>
 <p>The two-moons data contain two curved groups and a few uniformly distributed noise observations. This example makes the assumptions of the methods visible.</p>
-<div id="96bfdfbd" class="cell" data-execution_count="11">
+<div id="747ba548" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> make_moons</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>X_moons, y_moons <span class="op">=</span> make_moons(</span>
@@ -1348,7 +1332,7 @@ L=D-W.
 <span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>X_compare <span class="op">=</span> np.vstack([X_moons, moon_noise])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Fit one representative from each paradigm. For a direct comparison, K-means, hierarchical clustering, and spectral clustering use two groups. DBSCAN determines the number of dense groups from its neighborhood parameters.</p>
-<div id="e87db8bc" class="cell" data-execution_count="12">
+<div id="1a573bfc" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>compare_kmeans <span class="op">=</span> KMeans(</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    n_clusters<span class="op">=</span><span class="dv">2</span>,</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    n_init<span class="op">=</span><span class="dv">20</span>,</span>
@@ -1438,7 +1422,7 @@ L=D-W.
 \norm{x_i-\mu_k}_2^2.
 \]</span></p>
 <p>For a fitted <code>KMeans</code> object, WCSS is stored in <code>inertia_</code>.</p>
-<div id="7d5afafa" class="cell" data-execution_count="13">
+<div id="8ab054eb" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>kmeans.inertia_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <pre><code>569.9430376800667</code></pre>
@@ -1473,7 +1457,7 @@ s(i)
 <h3 data-number="12.8.2" class="anchored" data-anchor-id="choosing-the-number-of-clusters"><span class="header-section-number">12.8.2</span> Choosing the Number of Clusters</h3>
 <p>For methods such as K-means, the number of clusters <span class="math inline">\(K\)</span> is a tuning parameter. There is no universally correct criterion because the useful level of grouping depends on the scientific question.</p>
 <p>The elbow plot examines inertia over a range that includes <span class="math inline">\(K=1\)</span>. The silhouette score is computed only for <span class="math inline">\(K\ge 2\)</span>.</p>
-<div id="f5454d99" class="cell" data-execution_count="14">
+<div id="0fd6a1ee" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> silhouette_score</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>inertia_k <span class="op">=</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">11</span>)</span>
@@ -1503,7 +1487,7 @@ s(i)
 <span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Plot the two diagnostics together.</p>
-<div id="9639c8a9" class="cell" data-execution_count="15">
+<div id="9417d6d5" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">4</span>))</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].plot(inertia_k, inertias, marker<span class="op">=</span><span class="st">"o"</span>)</span>
@@ -1554,7 +1538,7 @@ s(i)
 <section id="external-evaluation" class="level3" data-number="12.8.4">
 <h3 data-number="12.8.4" class="anchored" data-anchor-id="external-evaluation"><span class="header-section-number">12.8.4</span> External Evaluation</h3>
 <p>When known labels are available, they may be used after clustering for evaluation. The adjusted Rand index (ARI) compares two partitions while accounting for agreement expected by chance. It equals <span class="math inline">\(1\)</span> for identical partitions and has expected value near <span class="math inline">\(0\)</span> for independent random partitions.</p>
-<div id="7173f573" class="cell" data-execution_count="16">
+<div id="d625e9cf" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> adjusted_rand_score</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>adjusted_rand_score(true_group, cluster)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1567,7 +1551,7 @@ s(i)
 <section id="interpretation-in-the-original-features" class="level3" data-number="12.8.5">
 <h3 data-number="12.8.5" class="anchored" data-anchor-id="interpretation-in-the-original-features"><span class="header-section-number">12.8.5</span> Interpretation in the Original Features</h3>
 <p>An embedding plot is useful, but clusters should ultimately be described using the original variables.</p>
-<div id="12ebd280" class="cell" data-execution_count="17">
+<div id="a175a80e" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>cluster_summary <span class="op">=</span> (</span>
