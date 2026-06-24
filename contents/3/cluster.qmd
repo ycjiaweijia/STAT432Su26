@@ -4,21 +4,23 @@ jupyter: stats
 
 <!-- {{< include ../t/math.qmd >}} -->
 
+
+
 # Clustering {#sec-clustering}
 
-Clustering is an unsupervised learning problem. We observe only a predictor matrix $X\in\mathbb R^{n\times p}$, and try to divide the observations into groups whose members are similar. Unlike classification, there are no training labels that define the correct groups.
+Clustering is an unsupervised learning problem. We observe only a feature matrix $X\in\mathbb R^{n\times p}$ and seek to partition the observations into groups whose members are similar. Unlike classification, there are no training labels that define the target categories.
 
-Clustering is commonly used to explore unknown subpopulations, summarize a large dataset with a small number of groups or prototypes, organize observations for visualization or generate hypotheses for later scientific analysis, and more.
+Clustering is commonly used to explore latent subpopulations, summarize a large dataset with a small number of groups or prototypes, organize observations for visualization, and generate hypotheses for later scientific analysis.
 
 ::: {.callout-caution}
-## A cluster is not automatically a real class
+## A cluster is not automatically a real category
 
-A clustering algorithm returns a partition when asked to do so. The result may reflect scientific structure, but it may also reflect scaling, outliers, an unsuitable distance, or a forced choice of the number of clusters. Interpretation is part of the analysis.
+A clustering algorithm produces cluster assignments according to its objective and tuning choices. The result may reflect meaningful structure, but it may also reflect feature scaling, outliers, an unsuitable dissimilarity measure, or a forced choice of the number of clusters. Interpretation is part of the analysis.
 :::
 
 <!-- ## Overview of the Main Approaches -->
 
-Clustering methods differ in what they treat as a group. We focus on four major paradigms, represented by one typical method from each:
+Clustering methods differ in their definition of a group. We focus on four major paradigms, represented by one typical method from each:
 
 | Family | Typical method | What defines a cluster? |
 |---|---|---|
@@ -27,7 +29,7 @@ Clustering methods differ in what they treat as a group. We focus on four major 
 | Density-based | DBSCAN | observations connected through dense regions |
 | Graph-based | spectral clustering | observations connected in a similarity graph |
 
-Note that many other clustering approaches exist. These four paradigms are widely used because they represent substantially different ways of defining what constitutes a cluster. We focus on one representative and commonly used algorithm from each paradigm to illustrate the main ideas behind each approach.
+Many other clustering approaches exist. These four paradigms are emphasized because they represent substantially different definitions of what constitutes a cluster. We use one representative algorithm from each paradigm to illustrate the main ideas.
 
 
 
@@ -41,9 +43,9 @@ $$
 d(x_i,x_j)=\norm{x_i-x_j}_2=\sqrt{\sum_{\ell=1}^p(x_{i\ell}-x_{j\ell})^2}.
 $$
 
-The distance defines what the algorithm means by *similar*. Changing the features, their scales, or the distance measure changes the clustering problem. In particular, features with larger numerical ranges can dominate distance calculations and therefore have a disproportionate influence on the resulting clusters.
+The distance defines what the algorithm means by *similar*. Changing the features, their scales, or the dissimilarity measure changes the clustering problem. In particular, features with larger numerical ranges can dominate distance calculations and therefore have a disproportionate influence on the resulting clusters.
 
-Therefore, as with KNN and other distance-based methods, it is often advisable to standardize the features before clustering.
+As with KNN and other distance-based methods, it is often advisable to standardize the features before clustering when their scales are not directly comparable.
 
 ::: {.callout-note}
 
@@ -52,7 +54,7 @@ Therefore, as with KNN and other distance-based methods, it is often advisable t
 Standardize when numerical scales are arbitrary or incomparable. Do not standardize automatically when the original magnitudes are scientifically meaningful, such as comparable pixel intensities or measurements already expressed on a common scale.
 :::
 
-Euclidean distance is not the only choice. Many clustering methods can be combined with alternative notions of similarity or dissimilarity. For example, Manhattan distance can be less sensitive to a few large coordinate differences, cosine similarity focuses on direction rather than magnitude, and domain-specific applications may require custom measures of similarity. The choice of similarity measure should reflect the structure one hopes to discover in the data.
+Euclidean distance is not the only choice. Many clustering methods can be combined with alternative notions of similarity or dissimilarity. For example, Manhattan distance can be less sensitive to a few large coordinate differences, cosine similarity focuses on direction rather than magnitude, and domain-specific applications may require custom similarity measures. The choice of similarity measure should reflect the structure one hopes to discover in the data.
 
 
 
@@ -62,24 +64,23 @@ Euclidean distance is not the only choice. Many clustering methods can be combin
 
 ## Evaluating a Clustering
 
-Evaluating clustering is different from evaluating supervised learning. In classification or regression, the target variable defines what a correct prediction means, and we can measure performance on held-out labeled data. In clustering, the labels are not observed during fitting. The algorithm creates a partition, but there may be several reasonable partitions of the same data depending on the features, scaling, distance, and scientific question.
+Evaluating clustering differs from evaluating supervised learning. In classification or regression, the response variable defines what a correct prediction means, and performance can be measured on held-out labeled data. In clustering, group membership is not observed during fitting. The algorithm produces cluster assignments, but several different assignments may be reasonable for the same dataset depending on the features, scaling, distance, and scientific question.
 
-For this reason, clustering evaluation usually asks two different questions:
+For this reason, clustering evaluation usually separates two questions:
 
 - Are the fitted clusters geometrically coherent in the observed feature space?
-- If external labels are available, how well do the cluster assignments agree with those labels?
+- If reference labels are available, how well do the cluster assignments agree with those external labels?
 
-Although some evaluation measures are commonly associated with particular clustering methods, the focus here is on understanding the metrics themselves; the corresponding algorithms will be discussed in later sections.
+Although some evaluation measures are commonly associated with particular clustering methods, the focus here is on the metrics themselves; the corresponding algorithms are discussed in later sections.
 
 
 ### WCSS (or Inertia)
 
-Internal clustering metrics use only the observations and their assigned clusters. They can compare values of $K$, initializations, or methods, but only when the observations, features, scaling, and distance are held fixed. They measure geometric properties of a partition, not whether the clusters
-are scientifically true.
+Internal clustering metrics use only the observations and their cluster assignments. They can compare values of $K$, initializations, or methods, but only when the observations, features, scaling, and distance are held fixed. They measure geometric properties of the fitted clustering, not whether the clusters correspond to meaningful external categories.
 
 Two common internal metrics are WCSS and the silhouette value.
 
-The examples below use a small hypothetical dataset so that the mechanics of the evaluation are clear. We first visualize the true class labels.
+The examples below use a small hypothetical dataset to illustrate the mechanics of the evaluation. We first visualize one set of cluster assignments.
 
 <!-- fmt: off -->
 ```{python}
@@ -106,7 +107,7 @@ plt.scatter(X_eval[:, 0], X_eval[:, 1], c=cluster_eval);
 ```
 <!-- fmt: on -->
 
-The within-cluster sum of squares (WCSS) is defined as follows where $\mu_k$'s are the current center. It is used to evaluate whether the current centers are placed good.
+The within-cluster sum of squares (WCSS) measures the total squared distance from each observation to the center of its assigned cluster. If $\mu_k$ is the center of cluster $C_k$, then
 
 $$
 \operatorname{WCSS}
@@ -117,9 +118,9 @@ $$
 $$
 
 
-For K-means, WCSS is both the fitting objective and an internal measure of cluster compactness. It plays a role similar to the residual sum of squares (RSS) in regression.
+For K-means, WCSS is both the fitting objective and an internal measure of cluster compactness. It plays a role similar to the residual sum of squares (RSS) in regression: smaller values indicate that observations are closer to their fitted centers.
 
-WCSS can be computed for any partition of the observations. However, it is most naturally associated with K-means because K-means explicitly minimizes WCSS during fitting. For clustering methods designed to detect non-spherical or density-based structures, WCSS may not provide a meaningful assessment of clustering quality.
+WCSS can be computed for any assignment of observations to clusters. However, it is most naturally associated with K-means because K-means explicitly minimizes WCSS during fitting. For clustering methods designed to detect non-spherical or density-based structures, WCSS may not provide a meaningful assessment of clustering quality.
 
 In `sklearn`, WCSS is also called inertia and is stored as `.inertia_` on a fitted `KMeans` object.
 
@@ -134,8 +135,11 @@ kmeans_eval.inertia_
 Smaller inertia means observations are closer to their assigned centers. However, inertia always decreases as $K$ increases and becomes zero when every distinct observation is its own cluster. Therefore, its absolute minimum cannot be used to choose $K$.
 
 
-### Silhouette Value
-The silhouette value is another internal evaluation method. It evaluates both within-cluster cohesion and separation from neighboring clusters. For observation $i$, define:
+
+
+### <span onclick="say('silhouette')">Silhouette</span> Value
+
+The Silhouette value is another internal evaluation measure. It evaluates both within-cluster cohesion and separation from nearby clusters. For observation $i$, define:
 
 - $a(i)$ as its average distance to other observations in its own cluster;
 - $b(i)$ as the smallest average distance to observations in another cluster.
@@ -163,46 +167,251 @@ from sklearn.metrics import silhouette_score
 silhouette_score(X_eval, cluster_eval)
 ```
 
-This score is close to 1. So it means that most observations stay together with their own clusters and stay far away from other clusters.
+This score is close to 1, indicating that most observations are much closer to observations in their assigned cluster than to observations in other clusters.
 
 
-### Rand Score
+### Rand Index
 
-When known labels are available, they may be used after clustering for evaluation. This is called external evaluation. This is common in simulations, benchmark datasets, or applications where external categories are known but intentionally not used to fit the clusters.
+When reference labels are available, they can be used after clustering for external validation. This setting is common in simulations, benchmark datasets, or applications where external categories are known but intentionally withheld from the clustering algorithm.
 
-External evaluation does not turn clustering into supervised learning, because the labels were not used to fit the clusters. It asks whether the unsupervised partition happens to align with an external grouping.
+External validation does not turn clustering into supervised learning because the reference labels are not used during fitting. Instead, it asks how well the cluster assignments agree with an external reference labeling.
 
-The Rand score compares two partitions by looking at all pairs of observations. A pair is counted as agreement if the two observations are in the same group in both partitions, or in different groups in both partitions. The score lies between $0$ and $1$, with larger values indicating stronger agreement.
+The Rand index compares cluster assignments with reference labels by considering all pairs of observations. A pair is counted as an agreement if the two observations are assigned to the same cluster and have the same reference label, or if they are assigned to different clusters and have different reference labels. The index lies between $0$ and $1$, with larger values indicating stronger agreement.
+
+Let $a$ be the number of observation pairs that are grouped together by both labelings. That is, the two observations have the same cluster assignment and also have the same reference label. Let $b$ be the number of
+observation pairs that are separated by both labelings. That is, the two observations have different cluster assignments and also have different reference labels. Since there are ${n \choose 2}$ total pairs, the Rand
+index is
+
+$$
+\operatorname{RI}
+=
+\frac{a+b}{{n \choose 2}}.
+$$
 
 ```{python}
 from sklearn.metrics import rand_score
 
-true_class = np.array([1, 1, 1, 2, 2, 2, 2, 3, 3, 3])
-pred_cluster = np.array([0, 0, 0, 1, 1, 2, 2, 2, 2, 2])
+reference_labels = np.array([1, 1, 1, 2, 2, 2, 2, 3, 3, 3])
+cluster_assignments = np.array([0, 0, 0, 1, 1, 2, 2, 2, 2, 2])
 
-rand_score(true_class, pred_cluster)
+rand_score(reference_labels, cluster_assignments)
 ```
 
-### Adjusted Rand Score
 
-The Rand score can be high even when two partitions agree partly by chance, especially when there are many pairs of observations. The adjusted Rand score corrects for this chance agreement.
+<details>
+<summary><strong>Click to expand.</strong></summary>
 
-The adjusted Rand score compares the observed pairwise agreement with the agreement that would be expected from random partitions with similar group sizes. Its interpretation is:
 
-- $1$ means the two partitions are identical, up to relabeling of the clusters;
+
+The diagram below shows where the two labelings agree and disagree. The reference labels define groups $\{1,2,3\}$, while the clustering algorithm returns cluster labels $\{0,1,2\}$. The mismatch occurs because reference class 2 is split across clusters 1 and 2, and cluster 2 also contains observations from reference class 3.
+
+```{mermaid}
+flowchart LR
+    subgraph Reference labels
+        R1["Class 1"]
+        R2["Class 2"]
+        R3["Class 3"]
+    end
+
+    subgraph Observation groups
+        G1["obs 1, 2, 3"]
+        G2["obs 4, 5"]
+        G3["obs 6, 7"]
+        G4["obs 8, 9, 10"]
+    end
+
+    subgraph Cluster assignments
+        C0["Cluster 0"]
+        C1["Cluster 1"]
+        C2["Cluster 2"]
+    end
+
+    R1 --> G1 --> C0
+    R2 --> G2 --> C1
+    R2 --> G3 --> C2
+    R3 --> G4 --> C2
+```
+
+
+
+
+The diagram also gives a quick way to compute the four pair counts:
+
+- $a$: pairs together in both labelings. Add ${m\choose 2}$ within each middle observation group:
+  $a={3\choose 2}+{2\choose 2}+{2\choose 2}+{3\choose 2}=8$.
+- $c$: pairs together in the reference labels but separated by the cluster
+  assignments. Reference class 2 is split into groups of sizes 2 and 2, so
+  $c=2\times 2=4$.
+- $d$: pairs separated by the reference labels but together in the cluster
+  assignments. Cluster 2 contains 2 observations from reference class 2 and
+  3 observations from reference class 3, so $d=2\times 3=6$.
+- $b$: pairs separated by both labelings. The fastest calculation is
+  subtraction from all pairs:
+
+$$
+b
+=
+{10\choose 2}-a-c-d
+=
+45-8-4-6
+=
+27.
+$$
+
+
+
+</details>
+
+
+There are ${10 \choose 2}=45$ observation pairs. Among them, $a=8$ pairs are grouped together by both labelings, and $b=27$ pairs are separated by both labelings. Therefore,
+
+$$
+\operatorname{RI}
+=
+\frac{8+27}{45}
+\approx
+0.778.
+$$
+
+
+
+### Adjusted Rand Index
+
+The Rand index can be high even when two labelings agree partly by chance, especially when there are many pairs of observations. The adjusted Rand index corrects for this chance agreement.
+
+
+::: {#exm-high-rand-score}
+## A relatively high Rand index can be misleading
+
+
+
+Suppose the reference labels contain two groups of equal size, but the clustering algorithm assigns every observation to its own cluster:
+
+<!-- | Observation | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | -->
+
+| Reference label | 1 | 1 | 1 | 1 | 1 | 2 | 2 | 2 | 2 | 2 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Cluster assignment | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+
+This clustering does not recover the two reference groups. However, the Rand index is still above $0.5$ because many pairs from different reference classes are also placed in different clusters. In this example, $a=0$ and $b=25$, so
+
+$$
+\operatorname{RI}
+=
+\frac{0+25}{{10\choose 2}}
+=
+\frac{25}{45}
+\approx
+0.556.
+$$
+
+
+```{python}
+from sklearn.metrics import rand_score
+
+reference_labels = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]
+cluster_assignments = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+rand_score(reference_labels, cluster_assignments)
+```
+
+
+:::
+
+
+The adjusted Rand index compares the observed pairwise agreement with the agreement expected from random labelings with similar group sizes. Suppose $n_{ij}$ is the number of observations that are in reference class $i$ and cluster $j$. Let
+
+$$
+a_i=\sum_j n_{ij},
+\qquad
+b_j=\sum_i n_{ij}.
+$$
+
+Thus, $a_i$ is the size of reference class $i$, and $b_j$ is the size of cluster $j$. Then the adjusted Rand index is
+
+$$
+\operatorname{ARI}
+=
+\frac{
+\sum_{ij}{n_{ij}\choose 2}
+-
+\frac{
+\sum_i {a_i\choose 2}\sum_j {b_j\choose 2}
+}{{n\choose 2}}
+}{
+\frac{1}{2}
+\left[
+\sum_i {a_i\choose 2}
++
+\sum_j {b_j\choose 2}
+\right]
+-
+\frac{
+\sum_i {a_i\choose 2}\sum_j {b_j\choose 2}
+}{{n\choose 2}}
+}.
+$$
+
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
+
+
+The formula has three main parts:
+
+- $\sum_{ij}{n_{ij}\choose 2}$ is the observed number of pairs that are placed together in both the reference labels and the cluster assignments.
+- $\frac{\sum_i {a_i\choose 2}\sum_j {b_j\choose 2}}{{n\choose 2}}$ is the expected number of such agreeing pairs under random labelings with the same class sizes and cluster sizes.
+- $\frac{1}{2}\left[\sum_i {a_i\choose 2}+\sum_j {b_j\choose 2}\right]$ is the average of the largest pair counts implied by the two marginal labelings.
+
+Thus, the adjusted Rand index has the form
+
+$$
+\operatorname{ARI}
+=
+\frac{
+\text{observed agreement}
+-
+\text{expected agreement}
+}{
+\text{maximum agreement}
+-
+\text{expected agreement}
+}.
+$$
+
+The key difference between the Rand index and the adjusted Rand index is that the Rand index measures raw pairwise agreement, while the adjusted Rand index measures pairwise agreement after correcting for chance. This correction matters because many pairs may agree simply because they are separated in both labelings, even when the clustering does not recover the reference groups.
+
+
+</details>
+
+
+Its interpretation is:
+
+- $1$ means the two labelings are identical, up to relabeling of the clusters;
 - values near $0$ mean the agreement is about what would be expected by chance;
 - negative values are possible when the agreement is worse than expected by chance.
 
-This correction is useful because cluster labels themselves are arbitrary. For example, cluster labels `[0, 0, 1, 1]` and `[2, 2, 5, 5]` describe the same partition even though the numeric labels are different.
+This correction is useful because cluster labels themselves are arbitrary. For example, cluster assignments `[0, 0, 1, 1]` and `[2, 2, 5, 5]` describe the same grouping even though the numeric labels are different.
 
+
+
+::: {#exm-}
+## A relatively high Rand index can be misleading (cont.)
+
+Continue from the @exm-high-rand-score.
 ```{python}
 from sklearn.metrics import adjusted_rand_score
 
-adjusted_rand_score(true_class, pred_cluster)
+reference_labels = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]
+cluster_assignments = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+adjusted_rand_score(reference_labels, cluster_assignments)
 ```
+The adjusted Rand index is $0$, correctly indicating that the observed agreement is no greater than what would be expected by chance.
+:::
 
 
-The same tools can compare two clustering runs on the same observations. This is useful when checking whether a clustering is stable under small changes in preprocessing, initialization, or resampling.
+The same score can compare two clustering runs on the same observations. This is useful for assessing whether the fitted clustering is stable under small changes in preprocessing, initialization, or resampling.
 
 ```{python}
 cluster_run_1 = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2, 2])
@@ -211,18 +420,13 @@ cluster_run_2 = np.array([1, 1, 1, 0, 0, 0, 2, 2, 2, 2])
 adjusted_rand_score(cluster_run_1, cluster_run_2)
 ```
 
-This example gives high agreement even though the numeric cluster labels changed. That is appropriate because cluster labels are arbitrary.
+This example gives high agreement even though the numeric cluster labels have changed. That is appropriate because the labels identify groups only up to relabeling.
 
-::: {.callout-note}
-## Stability
-
-A useful clustering should not change completely after a small perturbation. One practical check is to repeat the clustering after changing the initialization, preprocessing, or resampled data, and then compare the resulting partitions with the adjusted Rand score.
-:::
 
 
 ### Interpretation in the Original Features
 
-Numerical scores do not explain what a cluster means. After fitting a clustering, the groups should be described using the original variables. For tabular data, a simple interpretation step is to summarize each feature by cluster.
+Numerical scores do not explain what a cluster represents. After fitting a clustering, the groups should be described using the original variables. For tabular data, a simple interpretation step is to summarize each feature by cluster.
 
 ```{python}
 import pandas as pd
@@ -240,7 +444,7 @@ cluster_summary
 ::: {.callout-caution}
 ## No single score validates a clustering
 
-Internal metrics and Rand-based agreement scores answer different questions. A useful clustering should be geometrically coherent, reasonably stable, and interpretable for the problem at hand.
+Internal metrics and Rand-index-based agreement measures answer different questions. A useful clustering should be geometrically coherent, reasonably stable, and interpretable for the problem at hand.
 :::
 
 
@@ -283,9 +487,9 @@ Each step decreases, or leaves unchanged, the K-means objective. The algorithm e
 
 ### K-means in Python
 
-We use a simulated dataset to illustrate the usage of K-means in Python. 
+We use a simulated dataset to illustrate K-means in Python.
 
-We use `make_blobs` from `sklearn.datasets` to generate 500 observations from three clusters. The data have two features so that the result can be visualized directly. The colors below show the generating groups. They are not used when fitting K-means.
+We use `make_blobs` from `sklearn.datasets` to generate 500 observations from three latent groups. The data have two features so that the result can be visualized directly. The colors below show the generating labels. They are not used when fitting K-means.
 
 <!-- fmt: off -->
 ```{python}
@@ -309,9 +513,11 @@ plt.title("Simulated Groups");
 ```
 <!-- fmt: on -->
 
-`KMeans` follows the usual `sklearn` interface. Since clustering is performed on the observed data themselves, we may fit the model and returns the cluster assignments for the observations.
+`KMeans` follows the usual `sklearn` interface. Since clustering is performed on the observed data themselves, we fit the model to the feature matrix and obtain cluster assignments for the observations.
 
-As mentioned previously, it is recommended to run multiple random initializations to increase the chance of finding a better solution. The argument `n_init=20` runs K-means from 20 different initial center configurations and retains the solution with the smallest inertia among all runs. This often helps the algorithm get closer to the global optimum.
+In this simulated example, we set `n_clusters=3` because the data were generated from three latent groups. In real applications, the number of clusters is usually unknown and must be treated as a tuning choice.
+
+As mentioned previously, it is recommended to use multiple random initializations to reduce sensitivity to a poor starting configuration. The argument `n_init=20` runs K-means from 20 different initial center configurations and retains the solution with the smallest inertia among those runs.
 
 
 ```{python}
@@ -321,7 +527,7 @@ kmeans = KMeans(n_clusters=3, n_init=20, random_state=1)
 kmeans.fit(X)
 cluster = kmeans.predict(X) # <1>
 ```
-`cluster` is an array that record the predicted class for each observations. We could then plot the data with classes indicated by different colors.
+`cluster` is an array of cluster assignments, one for each observation. We can then plot the observations with colors indicating their assigned clusters.
 <!-- fmt: off -->
 ``` {python}
 #| code-fold: true
@@ -350,25 +556,16 @@ kmeans.cluster_centers_
 ::: {.callout-note}
 ## Label switching
 
-Cluster labels are arbitrary. A cluster labeled `0` in one fit may be
-labeled `2` in another fit even when the two partitions are identical.
-Interpret the groups through their members and feature summaries, not the
+Cluster labels are arbitrary. A cluster labeled `0` in one fit may be labeled `2` in another fit even when the two clusterings are equivalent. Interpret the groups through their members and feature summaries, not the
 numeric label.
 :::
 
 
 ### Tuning Hyperparameters
 
-The most important K-means hyperparameter is `n_clusters`, the number of
-centers to fit. A larger value gives a more detailed partition and lowers
-the within-cluster sum of squares, but it may split groups that are better
-interpreted together. A smaller value gives a coarser summary but may merge
-distinct groups. There is no universally correct criterion because the
-useful level of grouping depends on the scientific question.
+The most important K-means hyperparameter is `n_clusters`, the number of centers to fit. A larger value gives a more detailed clustering and lowers the within-cluster sum of squares, but it may split groups that are better interpreted together. A smaller value gives a coarser summary but may merge distinct groups. There is no universally correct criterion because the useful level of grouping depends on the scientific question.
 
-Two common diagnostics for choosing `n_clusters` are inertia and the
-silhouette score. The elbow plot examines inertia over a range that
-includes $K=1$. The silhouette score compares within-cluster cohesion with
+Two common diagnostics for choosing `n_clusters` are inertia and the silhouette score. The elbow plot examines inertia over a range that includes $K=1$. The silhouette score compares within-cluster cohesion with
 separation from neighboring clusters and is computed only for $K\ge 2$.
 
 ```{python}
@@ -378,27 +575,19 @@ inertia_k = range(1, 11)
 inertias = []
 
 for k in inertia_k:
-    model = KMeans(
-        n_clusters=k,
-        n_init=20,
-        random_state=1,
-    )
+    model = KMeans(n_clusters=k, n_init=20, random_state=1)
     model.fit(X)
+
     inertias.append(model.inertia_)
 
 silhouette_k = range(2, 11)
 silhouettes = []
 
 for k in silhouette_k:
-    model = KMeans(
-        n_clusters=k,
-        n_init=20,
-        random_state=1,
-    )
+    model = KMeans(n_clusters=k, n_init=20, random_state=1)
     labels = model.fit_predict(X)
-    silhouettes.append(
-        silhouette_score(X, labels)
-    )
+
+    silhouettes.append(silhouette_score(X, labels))
 ```
 
 Plot the two diagnostics together.
@@ -419,52 +608,22 @@ axs[1].set_title("Silhouette Score")
 plt.tight_layout();
 ```
 
-For inertia, the elbow heuristic looks for the point after which additional
-clusters produce only modest improvement. For the silhouette score, larger
-values are preferred. The two diagnostics can disagree because they measure
-different aspects of the partition.
+For inertia, the elbow heuristic looks for the point after which additional clusters produce only modest improvement. For the silhouette score, larger values are preferred. The two diagnostics can disagree because they measure different aspects of the cluster assignments.
 
 Other K-means hyperparameters control how the optimization is carried out:
 
-- `init` controls how the initial centers are chosen. The default
-  `"k-means++"` spreads initial centers out and is usually preferable to
-  purely random initialization.
-- `n_init` controls how many initial center configurations are tried. Since
-  K-means can stop at a local optimum, using several starts makes the result
-  less dependent on one unlucky initialization.
-- `max_iter` is the maximum number of assignment-update steps for one
-  initialization.
-- `tol` controls the convergence tolerance. Smaller values ask the algorithm
-  to keep iterating until the centers change very little.
+- `init` controls how the initial centers are chosen. The default `"k-means++"` spreads initial centers out and is usually preferable to purely random initialization.
+- `n_init` controls how many initial center configurations are tried. Since K-means can stop at a local optimum, using several starts makes the result less dependent on one unlucky initialization.
+- `max_iter` is the maximum number of assignment-update steps for one initialization.
+- `tol` controls the convergence tolerance. Smaller values ask the algorithm to keep iterating until the centers change very little.
 - `random_state` makes randomized initialization reproducible.
 
-For routine analyses, it is common to keep `init="k-means++"` and tune
-`n_clusters`, while using a reasonably large `n_init`.
-
-```{python}
-kmeans_tuned = KMeans(
-    n_clusters=3,
-    init="k-means++",
-    n_init=50,
-    max_iter=300,
-    tol=1e-4,
-    random_state=1,
-)
-
-tuned_cluster = kmeans_tuned.fit_predict(X)
-kmeans_tuned.inertia_
-```
-
-The fitted partition still depends on the features and their scaling. A
-well-tuned K-means model on poorly scaled or irrelevant features may still
-produce a misleading clustering.
+For routine analyses, it is common to keep `init="k-means++"` (which is by default) and tune `n_clusters`, while using a reasonably large `n_init`.
 
 ::: {.callout-caution}
 ## Diagnostics do not define the scientific answer
 
-These metrics evaluate geometric compactness and separation under the chosen
-features, scaling, and distance. They do not show that the clusters are
-stable, scientifically meaningful, or useful for a later decision.
+WCSS and the silhouette score evaluate geometric compactness and separation under the chosen features, scaling, and distance. They do not show that the clusters are stable, scientifically meaningful, or useful for a later decision.
 :::
 
 
@@ -509,7 +668,7 @@ K-means divides the feature space into convex regions, so it cannot recover the 
 
 ## Hierarchical: Agglomerative Clustering
 
-Hierarchical clustering builds a nested sequence of partitions. Agglomerative hierarchical clustering begins with each observation in its own cluster and repeatedly merges the two closest clusters until all observations belong to one cluster.
+Hierarchical clustering builds a nested sequence of clusterings. Agglomerative hierarchical clustering begins with each observation in its own cluster and repeatedly merges the two closest clusters until all observations belong to one cluster.
 
 The result is a tree called a **dendrogram**. Unlike K-means, the hierarchy can be fit before choosing the final number of clusters.
 
@@ -517,7 +676,8 @@ The result is a tree called a **dendrogram**. Unlike K-means, the hierarchy can 
 ### Linkage
 
 The distance between individual observations is not enough; the algorithm
-also needs a distance between groups. For two clusters $G$ and $H$:
+also requires a linkage rule that defines the distance between groups. For
+two clusters $G$ and $H$:
 
 **Single linkage** uses the closest pair:
 
@@ -582,7 +742,7 @@ plt.title("Hierarchical Clustering Dendrogram");
 ```
 
 The merge height records the dissimilarity at which two branches are joined.
-A horizontal cut through the tree produces a partition.
+A horizontal cut through the tree produces cluster assignments.
 
 ```{python}
 hierarchical_cluster = fcluster(
@@ -636,8 +796,8 @@ plt.tight_layout();
 
 Hierarchical clustering is especially useful when the nesting itself is
 interesting, such as organizing genes, documents, or related products.
-However, early agglomerative merges cannot be undone, so a poor early merge
-affects the rest of the tree.
+However, early agglomerative merges cannot be undone, so a suboptimal early
+merge can affect the rest of the tree.
 
 
 ## Density-Based: DBSCAN
@@ -659,8 +819,8 @@ lies within the neighborhood of one. An observation that is neither a core
 point nor a border point is labeled as **noise**.
 
 Starting from a core point, DBSCAN repeatedly adds density-reachable core
-points and their border points. This allows a cluster to follow a curved or
-irregularly shaped dense region.
+points and their border points. This allows clusters to follow curved or
+irregularly shaped dense regions.
 
 ```{python}
 from sklearn.cluster import DBSCAN
@@ -731,9 +891,9 @@ X
 \text{clustering in } Z.
 $$
 
-Clustering therefore does not have to mean drawing boundaries around
-centers in the original coordinate system. A method can first construct a
-representation that makes the relevant structure easier to separate.
+Clustering therefore does not have to be based on boundaries around centers
+in the original coordinate system. A method can first construct a
+representation in which the relevant structure is easier to separate.
 
 ### From a Neighborhood Graph to New Coordinates
 
@@ -774,7 +934,7 @@ coordinates rather than in the original feature space.
 ### Concentric Circles
 
 The concentric circles cannot be separated by placing two centers in the
-original plane. Their neighborhood graph, however, records connectivity
+original plane. Their neighborhood graph, however, encodes connectivity
 around each ring.
 
 ```{python}
@@ -835,8 +995,8 @@ or search for circular cluster centers.
 
 The distance metric, number of neighbors, affinity function, and number of
 clusters can all change the result. A graph that is too sparse may disconnect
-a true group, while a graph that is too dense may create shortcuts between
-groups.
+a meaningful group, while a graph that is too dense may create shortcuts
+between groups.
 :::
 
 
@@ -851,10 +1011,10 @@ The four methods answer different versions of the clustering question:
 | Typical cluster shape | compact and convex | depends on linkage | irregular shapes allowed | non-convex graph-connected groups |
 | Explicit noise label? | no | no | yes | no |
 | Main tuning choices | $K$, initialization | distance, linkage, tree cut | `eps`, `min_samples` | $K$, affinity, graph neighborhood |
-| Main output | partition and centers | dendrogram | clusters and noise points | graph-derived partition |
+| Main output | cluster assignments and centers | dendrogram | clusters and noise points | graph-derived cluster assignments |
 
-No method is uniformly best. The geometry of the data, the desired
-definition of a group, and the scientific question should determine which
+No method is uniformly best. The geometry of the data, the intended
+definition of a cluster, and the scientific question should determine which
 paradigm is appropriate.
 
 ### One Dataset, Four Definitions of a Cluster
@@ -881,7 +1041,7 @@ moon_noise = rng.uniform(
 X_compare = np.vstack([X_moons, moon_noise])
 ```
 
-Fit one representative from each paradigm. For a direct comparison,
+We fit one representative method from each paradigm. For a direct comparison,
 K-means, hierarchical clustering, and spectral clustering use two groups.
 DBSCAN determines the number of dense groups from its neighborhood
 parameters.
@@ -971,10 +1131,10 @@ A clustering analysis usually follows these steps:
    constructed representation;
 5. compare clustering paradigms and tuning choices;
 6. check stability under perturbations;
-7. interpret the groups in the original feature space.
+7. interpret the cluster assignments in the original feature space.
 
 Spectral clustering already demonstrated that a representation can make
-some groups easier to separate. The next chapter, @sec-unsupervised-pca,
+some structures easier to separate. The next chapter, @sec-unsupervised-pca,
 studies this representation problem directly through linear dimension
 reduction. The following chapter, @sec-embedding, develops nonlinear
 representations primarily for visualization. These transformations can
@@ -988,5 +1148,5 @@ The four paradigms use different definitions of a cluster. K-means finds
 centroid-based groups, hierarchical clustering builds a nested sequence of
 merges, DBSCAN finds density-connected groups while allowing noise, and
 spectral clustering finds groups through connectivity in a graph-derived
-representation. Method choice and evaluation must reflect the intended
+representation. Method choice and evaluation should reflect the intended
 geometry, stability, and interpretation in the original variables.
