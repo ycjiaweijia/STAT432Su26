@@ -6,24 +6,19 @@ jupyter: stats
 
 # Clustering {#sec-clustering}
 
-Clustering is an unsupervised learning problem. We observe only a predictor
-matrix $X\in\mathbb R^{n\times p}$, and try to divide the observations into groups whose members are similar. Unlike classification, there are no training labels that define the correct groups.
+Clustering is an unsupervised learning problem. We observe only a predictor matrix $X\in\mathbb R^{n\times p}$, and try to divide the observations into groups whose members are similar. Unlike classification, there are no training labels that define the correct groups.
 
 Clustering is commonly used to explore unknown subpopulations, summarize a large dataset with a small number of groups or prototypes, organize observations for visualization or generate hypotheses for later scientific analysis, and more.
 
 ::: {.callout-caution}
 ## A cluster is not automatically a real class
 
-A clustering algorithm returns a partition when asked to do so. The result
-may reflect scientific structure, but it may also reflect scaling, outliers,
-an unsuitable distance, or a forced choice of the number of clusters.
-Interpretation is part of the analysis.
+A clustering algorithm returns a partition when asked to do so. The result may reflect scientific structure, but it may also reflect scaling, outliers, an unsuitable distance, or a forced choice of the number of clusters. Interpretation is part of the analysis.
 :::
 
-## Overview of the Main Approaches
+<!-- ## Overview of the Main Approaches -->
 
-Clustering methods differ in what they treat as a group. We focus on four
-major paradigms, represented by one typical method from each:
+Clustering methods differ in what they treat as a group. We focus on four major paradigms, represented by one typical method from each:
 
 | Family | Typical method | What defines a cluster? |
 |---|---|---|
@@ -32,53 +27,38 @@ major paradigms, represented by one typical method from each:
 | Density-based | DBSCAN | observations connected through dense regions |
 | Graph-based | spectral clustering | observations connected in a similarity graph |
 
-These are four fundamentally different definitions of a cluster. K-means
-uses proximity to centroids, hierarchical clustering uses a nested sequence
-of merges, DBSCAN uses density connectivity, and spectral clustering first
-constructs a graph-based representation in which connected groups become
-easier to separate.
+Note that many other clustering approaches exist. These four paradigms are widely used because they represent substantially different ways of defining what constitutes a cluster. We focus on one representative and commonly used algorithm from each paradigm to illustrate the main ideas behind each approach.
 
 
-## Distance and Scaling
 
-Most clustering methods begin with a notion of dissimilarity. For numerical
-features, the default is often Euclidean distance:
+
+
+## Distance, Similarity, and Scaling
+
+Most clustering methods begin with a notion of similarity or dissimilarity. For numerical data, this is often derived from a distance measure. The most common choice is Euclidean distance:
 
 $$
-d(x_i,x_j)
-=
-\norm{x_i-x_j}_2
-=
-\sqrt{\sum_{\ell=1}^p(x_{i\ell}-x_{j\ell})^2}.
+d(x_i,x_j)=\norm{x_i-x_j}_2=\sqrt{\sum_{\ell=1}^p(x_{i\ell}-x_{j\ell})^2}.
 $$
 
-The distance defines what the algorithm means by *similar*. Changing the
-features, their scales, or the distance metric changes the clustering
-problem. In particular, features with larger numerical ranges can dominate
-Euclidean distance.
+The distance defines what the algorithm means by *similar*. Changing the features, their scales, or the distance measure changes the clustering problem. In particular, features with larger numerical ranges can dominate distance calculations and therefore have a disproportionate influence on the resulting clusters.
 
-Therefore, as with KNN and other distance-based methods, it is often
-necessary to standardize the features before clustering.
+Therefore, as with KNN and other distance-based methods, it is often advisable to standardize the features before clustering.
 
 ::: {.callout-note}
+
 ## Scaling is a modeling decision
 
-Standardize when numerical scales are arbitrary or incomparable. Do not
-standardize automatically when the original magnitude is scientifically
-meaningful, such as comparable pixel intensities or measurements already
-expressed on a common scale.
+Standardize when numerical scales are arbitrary or incomparable. Do not standardize automatically when the original magnitudes are scientifically meaningful, such as comparable pixel intensities or measurements already expressed on a common scale.
 :::
 
-Euclidean distance is not the only choice. Manhattan distance can be less
-sensitive to a few large coordinate differences, cosine distance focuses on
-direction rather than magnitude, and domain-specific data may require a
-custom dissimilarity. The distance should match the question being asked.
+Euclidean distance is not the only choice. Many clustering methods can be combined with alternative notions of similarity or dissimilarity. For example, Manhattan distance can be less sensitive to a few large coordinate differences, cosine similarity focuses on direction rather than magnitude, and domain-specific applications may require custom measures of similarity. The choice of similarity measure should reflect the structure one hopes to discover in the data.
+
 
 
 ## Centroid-Based: K-Means Clustering
 
-K-means represents each cluster by its center. Let
-$C_1,\ldots,C_K$ be a partition of the observations, and let
+K-means represents each cluster by its center. Let $C_1,\ldots,C_K$ be a partition of the observations, and let
 
 $$
 \mu_k
@@ -92,8 +72,7 @@ be the center of cluster $k$.
 ::: {#def-kmeans}
 ## K-means objective
 
-K-means chooses the partition that minimizes the within-cluster sum of
-squares (WCSS):
+K-means chooses the partition that minimizes the within-cluster sum of squares (WCSS):
 
 $$
 \operatorname{WCSS}
@@ -103,7 +82,7 @@ $$
 \norm{x_i-\mu_k}_2^2.
 $$
 
-In `sklearn`, this objective is called **inertia**.
+In `sklearn`, this objective is also called **inertia**.
 :::
 
 The standard algorithm alternates between two steps:
@@ -111,21 +90,21 @@ The standard algorithm alternates between two steps:
 1. assign each observation to its nearest center;
 2. replace each center by the mean of its assigned observations.
 
-Each step decreases, or leaves unchanged, the K-means objective. The
-algorithm eventually reaches a local optimum, but not necessarily the global
-optimum. For this reason, software usually tries several random
-initializations.
+Each step decreases, or leaves unchanged, the K-means objective. The algorithm eventually reaches a local optimum, but not necessarily the global optimum. For this reason, software usually tries several random initializations.
 
 
-### A Simulated Example
+### K-means in Python
 
-We use `make_blobs` from `sklearn.datasets` to generate 500 observations
-from three clusters. The data have two features so that the result can be
-visualized directly.
+We use a simulated dataset to illustrate the usage of K-means in Python. 
 
+We use `make_blobs` from `sklearn.datasets` to generate 500 observations from three clusters. The data have two features so that the result can be visualized directly. The colors below show the generating groups. They are not used when fitting K-means.
+
+<!-- fmt: off -->
 ```{python}
+#| code-fold: true
 import numpy as np
 from sklearn.datasets import make_blobs
+import matplotlib.pyplot as plt
 
 X, true_group = make_blobs(
     n_samples=500,
@@ -134,37 +113,25 @@ X, true_group = make_blobs(
     cluster_std=[0.7, 0.9, 0.8],
     random_state=4,
 )
-```
-
-The colors below show the generating groups. They are not used when fitting
-K-means.
-
-```{python}
-import matplotlib.pyplot as plt
 
 plt.scatter(X[:, 0], X[:, 1], c=true_group)
 plt.xlabel("x1")
 plt.ylabel("x2")
 plt.title("Simulated Groups");
 ```
+<!-- fmt: on -->
 
-`KMeans` follows the usual `sklearn` interface. Since clustering is
-performed on the observed data themselves, `.fit_predict()` fits the model
-and returns the cluster assignments for the observations.
+`KMeans` follows the usual `sklearn` interface. Since clustering is performed on the observed data themselves, we may fit the model and returns the cluster assignments for the observations.
 
-The argument `n_init=20` runs K-means from 20 initial center configurations
-and retains the result with the smallest inertia.
+The argument `n_init=20` runs K-means from 20 initial center configurations and retains the result with the smallest inertia.
 
 <!-- fmt: off -->
 ```{python}
 from sklearn.cluster import KMeans
 
-kmeans = KMeans(
-    n_clusters=3,
-    n_init=20,
-    random_state=1,
-)
-cluster = kmeans.fit_predict(X)
+kmeans = KMeans(n_clusters=3, n_init=20, random_state=1)
+kmeans.fit(X)
+cluster = kmeans.predict(X) # <1>
 
 plt.scatter(X[:, 0], X[:, 1], c=cluster)
 plt.scatter(
@@ -179,6 +146,7 @@ plt.ylabel("x2")
 plt.title("K-Means Clustering")
 plt.legend();
 ```
+1. You may also use `cluster = kmeans.fit_predict(X)` to combine the two commands together.
 <!-- fmt: on -->
 
 The fitted centers are available from the model.
@@ -199,80 +167,48 @@ numeric label.
 
 ### When K-Means Works Well
 
-Because K-means uses squared Euclidean distance to a center, it is most
-effective when clusters are:
+Because K-means uses squared Euclidean distance to a center, it is most effective when clusters are:
 
 - compact and approximately spherical;
 - separated by their centers;
 - reasonably similar in size and spread;
 - not dominated by extreme outliers.
 
-It can perform poorly on curved clusters, clusters with very different
-densities, or data where a mean is not an appropriate prototype.
+It can perform poorly on curved clusters, clusters with very different densities, or data where a mean is not an appropriate prototype.
 
 ```{python}
 #| code-fold: true
 from sklearn.datasets import make_circles
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
 
 X_circle, true_circle_group = make_circles(
-    n_samples=500,
-    factor=0.45,
-    noise=0.05,
-    random_state=1,
+    n_samples=500, factor=0.45, noise=0.05, random_state=1
 )
 
-circle_kmeans = KMeans(
-    n_clusters=2,
-    n_init=20,
-    random_state=1,
-)
+circle_kmeans = KMeans(n_clusters=2, n_init=20, random_state=1)
 circle_cluster = circle_kmeans.fit_predict(X_circle)
 
-fig, axs = plt.subplots(
-    1,
-    2,
-    figsize=(10, 4),
-    sharex=True,
-    sharey=True,
-)
+fig, axs = plt.subplots(1, 2, figsize=(10, 4), sharex=True, sharey=True)
 
-axs[0].scatter(
-    X_circle[:, 0],
-    X_circle[:, 1],
-    c=true_circle_group,
-    s=18,
-)
+axs[0].scatter(X_circle[:, 0], X_circle[:, 1], c=true_circle_group)
 axs[0].set_title("Underlying Structure")
 
-axs[1].scatter(
-    X_circle[:, 0],
-    X_circle[:, 1],
-    c=circle_cluster,
-    s=18,
-)
+axs[1].scatter(X_circle[:, 0], X_circle[:, 1], c=circle_cluster)
 axs[1].set_title("K-Means Partition")
 
 for ax in axs:
     ax.set_xlabel("x1")
     ax.set_ylabel("x2")
-
-plt.tight_layout();
 ```
 
-K-means divides the feature space into convex regions, so it cannot recover
-the two rings. A density-based method such as DBSCAN is more appropriate
-when the rings are separated by low-density space.
-
+K-means divides the feature space into convex regions, so it cannot recover the two rings. 
 
 ## Hierarchical: Agglomerative Clustering
 
-Hierarchical clustering builds a nested sequence of partitions.
-Agglomerative hierarchical clustering begins with each observation in its
-own cluster and repeatedly merges the two closest clusters until all
-observations belong to one cluster.
+Hierarchical clustering builds a nested sequence of partitions. Agglomerative hierarchical clustering begins with each observation in its own cluster and repeatedly merges the two closest clusters until all observations belong to one cluster.
 
-The result is a tree called a **dendrogram**. Unlike K-means, the hierarchy
-can be fit before choosing the final number of clusters.
+The result is a tree called a **dendrogram**. Unlike K-means, the hierarchy can be fit before choosing the final number of clusters.
 
 
 ### Linkage
