@@ -56,6 +56,194 @@ Euclidean distance is not the only choice. Many clustering methods can be combin
 
 
 
+
+
+
+
+## Evaluating a Clustering
+
+Evaluating clustering is different from evaluating supervised learning. In classification or regression, the target variable defines what a correct prediction means, and we can measure performance on held-out labeled data. In clustering, the labels are not observed during fitting. The algorithm creates a partition, but there may be several reasonable partitions of the same data depending on the features, scaling, distance, and scientific question.
+
+For this reason, clustering evaluation usually asks two different questions:
+
+- Are the fitted clusters geometrically coherent in the observed feature space?
+- If external labels are available, how well do the cluster assignments agree with those labels?
+
+Although some evaluation measures are commonly associated with particular clustering methods, the focus here is on understanding the metrics themselves; the corresponding algorithms will be discussed in later sections.
+
+
+### WCSS (or Inertia)
+
+Internal clustering metrics use only the observations and their assigned clusters. They can compare values of $K$, initializations, or methods, but only when the observations, features, scaling, and distance are held fixed. They measure geometric properties of a partition, not whether the clusters
+are scientifically true.
+
+Two common internal metrics are WCSS and the silhouette value.
+
+The examples below use a small hypothetical dataset so that the mechanics of the evaluation are clear. We first visualize the true class labels.
+
+<!-- fmt: off -->
+```{python}
+#| code-fold: true
+import numpy as np
+import matplotlib.pyplot as plt
+
+X_eval = np.array([
+    [0.0, 0.1],
+    [0.2, 0.0],
+    [0.1, 0.3],
+    [4.0, 4.1],
+    [4.2, 3.9],
+    [3.8, 4.0],
+    [8.0, 0.0],
+    [8.2, 0.2],
+    [7.9, -0.1],
+    [8.1, 0.1],
+])
+
+cluster_eval = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2, 2])
+
+plt.scatter(X_eval[:, 0], X_eval[:, 1], c=cluster_eval);
+```
+<!-- fmt: on -->
+
+The within-cluster sum of squares (WCSS) is defined as follows where $\mu_k$'s are the current center. It is used to evaluate whether the current centers are placed good.
+
+$$
+\operatorname{WCSS}
+=
+\sum_{k=1}^K
+\sum_{i\in C_k}
+\norm{x_i-\mu_k}_2^2.
+$$
+
+
+For K-means, WCSS is both the fitting objective and an internal measure of cluster compactness. It plays a role similar to the residual sum of squares (RSS) in regression.
+
+WCSS can be computed for any partition of the observations. However, it is most naturally associated with K-means because K-means explicitly minimizes WCSS during fitting. For clustering methods designed to detect non-spherical or density-based structures, WCSS may not provide a meaningful assessment of clustering quality.
+
+In `sklearn`, WCSS is also called inertia and is stored as `.inertia_` on a fitted `KMeans` object.
+
+```{python}
+from sklearn.cluster import KMeans
+
+kmeans_eval = KMeans(n_clusters=3, n_init=20, random_state=1)
+kmeans_eval.fit(X_eval)
+kmeans_eval.inertia_
+```
+
+Smaller inertia means observations are closer to their assigned centers. However, inertia always decreases as $K$ increases and becomes zero when every distinct observation is its own cluster. Therefore, its absolute minimum cannot be used to choose $K$.
+
+
+### Silhouette Value
+The silhouette value is another internal evaluation method. It evaluates both within-cluster cohesion and separation from neighboring clusters. For observation $i$, define:
+
+- $a(i)$ as its average distance to other observations in its own cluster;
+- $b(i)$ as the smallest average distance to observations in another cluster.
+
+The silhouette value is
+
+$$
+s(i)
+=
+\frac{b(i)-a(i)}
+{\max\{a(i),b(i)\}}.
+$$
+
+It lies between $-1$ and $1$:
+
+- values near $1$ indicate a well-separated observation;
+- values near $0$ indicate an observation near a cluster boundary;
+- negative values suggest that another cluster may be closer.
+
+The overall silhouette score is the average of $s(i)$ over all observations. Larger values are preferred. It requires at least two nonempty clusters.
+
+```{python}
+from sklearn.metrics import silhouette_score
+
+silhouette_score(X_eval, cluster_eval)
+```
+
+This score is close to 1. So it means that most observations stay together with their own clusters and stay far away from other clusters.
+
+
+### Rand Score
+
+When known labels are available, they may be used after clustering for evaluation. This is called external evaluation. This is common in simulations, benchmark datasets, or applications where external categories are known but intentionally not used to fit the clusters.
+
+External evaluation does not turn clustering into supervised learning, because the labels were not used to fit the clusters. It asks whether the unsupervised partition happens to align with an external grouping.
+
+The Rand score compares two partitions by looking at all pairs of observations. A pair is counted as agreement if the two observations are in the same group in both partitions, or in different groups in both partitions. The score lies between $0$ and $1$, with larger values indicating stronger agreement.
+
+```{python}
+from sklearn.metrics import rand_score
+
+true_class = np.array([1, 1, 1, 2, 2, 2, 2, 3, 3, 3])
+pred_cluster = np.array([0, 0, 0, 1, 1, 2, 2, 2, 2, 2])
+
+rand_score(true_class, pred_cluster)
+```
+
+### Adjusted Rand Score
+
+The Rand score can be high even when two partitions agree partly by chance, especially when there are many pairs of observations. The adjusted Rand score corrects for this chance agreement.
+
+The adjusted Rand score compares the observed pairwise agreement with the agreement that would be expected from random partitions with similar group sizes. Its interpretation is:
+
+- $1$ means the two partitions are identical, up to relabeling of the clusters;
+- values near $0$ mean the agreement is about what would be expected by chance;
+- negative values are possible when the agreement is worse than expected by chance.
+
+This correction is useful because cluster labels themselves are arbitrary. For example, cluster labels `[0, 0, 1, 1]` and `[2, 2, 5, 5]` describe the same partition even though the numeric labels are different.
+
+```{python}
+from sklearn.metrics import adjusted_rand_score
+
+adjusted_rand_score(true_class, pred_cluster)
+```
+
+
+The same tools can compare two clustering runs on the same observations. This is useful when checking whether a clustering is stable under small changes in preprocessing, initialization, or resampling.
+
+```{python}
+cluster_run_1 = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2, 2])
+cluster_run_2 = np.array([1, 1, 1, 0, 0, 0, 2, 2, 2, 2])
+
+adjusted_rand_score(cluster_run_1, cluster_run_2)
+```
+
+This example gives high agreement even though the numeric cluster labels changed. That is appropriate because cluster labels are arbitrary.
+
+::: {.callout-note}
+## Stability
+
+A useful clustering should not change completely after a small perturbation. One practical check is to repeat the clustering after changing the initialization, preprocessing, or resampled data, and then compare the resulting partitions with the adjusted Rand score.
+:::
+
+
+### Interpretation in the Original Features
+
+Numerical scores do not explain what a cluster means. After fitting a clustering, the groups should be described using the original variables. For tabular data, a simple interpretation step is to summarize each feature by cluster.
+
+```{python}
+import pandas as pd
+
+cluster_summary = (
+    pd.DataFrame(X_eval, columns=["x1", "x2"])
+    .assign(cluster=cluster_eval)
+    .groupby("cluster")
+    .agg(["mean", "std", "size"])
+)
+
+cluster_summary
+```
+
+::: {.callout-caution}
+## No single score validates a clustering
+
+Internal metrics and Rand-based agreement scores answer different questions. A useful clustering should be geometrically coherent, reasonably stable, and interpretable for the problem at hand.
+:::
+
+
 ## Centroid-Based: K-Means Clustering
 
 K-means represents each cluster by its center. Let $C_1,\ldots,C_K$ be a partition of the observations, and let
@@ -123,16 +311,20 @@ plt.title("Simulated Groups");
 
 `KMeans` follows the usual `sklearn` interface. Since clustering is performed on the observed data themselves, we may fit the model and returns the cluster assignments for the observations.
 
-The argument `n_init=20` runs K-means from 20 initial center configurations and retains the result with the smallest inertia.
+As mentioned previously, it is recommended to run multiple random initializations to increase the chance of finding a better solution. The argument `n_init=20` runs K-means from 20 different initial center configurations and retains the solution with the smallest inertia among all runs. This often helps the algorithm get closer to the global optimum.
 
-<!-- fmt: off -->
+
 ```{python}
 from sklearn.cluster import KMeans
 
 kmeans = KMeans(n_clusters=3, n_init=20, random_state=1)
 kmeans.fit(X)
 cluster = kmeans.predict(X) # <1>
-
+```
+`cluster` is an array that record the predicted class for each observations. We could then plot the data with classes indicated by different colors.
+<!-- fmt: off -->
+``` {python}
+#| code-fold: true
 plt.scatter(X[:, 0], X[:, 1], c=cluster)
 plt.scatter(
     kmeans.cluster_centers_[:, 0],
@@ -162,6 +354,117 @@ Cluster labels are arbitrary. A cluster labeled `0` in one fit may be
 labeled `2` in another fit even when the two partitions are identical.
 Interpret the groups through their members and feature summaries, not the
 numeric label.
+:::
+
+
+### Tuning Hyperparameters
+
+The most important K-means hyperparameter is `n_clusters`, the number of
+centers to fit. A larger value gives a more detailed partition and lowers
+the within-cluster sum of squares, but it may split groups that are better
+interpreted together. A smaller value gives a coarser summary but may merge
+distinct groups. There is no universally correct criterion because the
+useful level of grouping depends on the scientific question.
+
+Two common diagnostics for choosing `n_clusters` are inertia and the
+silhouette score. The elbow plot examines inertia over a range that
+includes $K=1$. The silhouette score compares within-cluster cohesion with
+separation from neighboring clusters and is computed only for $K\ge 2$.
+
+```{python}
+from sklearn.metrics import silhouette_score
+
+inertia_k = range(1, 11)
+inertias = []
+
+for k in inertia_k:
+    model = KMeans(
+        n_clusters=k,
+        n_init=20,
+        random_state=1,
+    )
+    model.fit(X)
+    inertias.append(model.inertia_)
+
+silhouette_k = range(2, 11)
+silhouettes = []
+
+for k in silhouette_k:
+    model = KMeans(
+        n_clusters=k,
+        n_init=20,
+        random_state=1,
+    )
+    labels = model.fit_predict(X)
+    silhouettes.append(
+        silhouette_score(X, labels)
+    )
+```
+
+Plot the two diagnostics together.
+
+```{python}
+fig, axs = plt.subplots(1, 2, figsize=(11, 4))
+
+axs[0].plot(inertia_k, inertias, marker="o")
+axs[0].set_xlabel("number of clusters K")
+axs[0].set_ylabel("inertia")
+axs[0].set_title("Elbow Plot")
+
+axs[1].plot(silhouette_k, silhouettes, marker="o")
+axs[1].set_xlabel("number of clusters K")
+axs[1].set_ylabel("average silhouette")
+axs[1].set_title("Silhouette Score")
+
+plt.tight_layout();
+```
+
+For inertia, the elbow heuristic looks for the point after which additional
+clusters produce only modest improvement. For the silhouette score, larger
+values are preferred. The two diagnostics can disagree because they measure
+different aspects of the partition.
+
+Other K-means hyperparameters control how the optimization is carried out:
+
+- `init` controls how the initial centers are chosen. The default
+  `"k-means++"` spreads initial centers out and is usually preferable to
+  purely random initialization.
+- `n_init` controls how many initial center configurations are tried. Since
+  K-means can stop at a local optimum, using several starts makes the result
+  less dependent on one unlucky initialization.
+- `max_iter` is the maximum number of assignment-update steps for one
+  initialization.
+- `tol` controls the convergence tolerance. Smaller values ask the algorithm
+  to keep iterating until the centers change very little.
+- `random_state` makes randomized initialization reproducible.
+
+For routine analyses, it is common to keep `init="k-means++"` and tune
+`n_clusters`, while using a reasonably large `n_init`.
+
+```{python}
+kmeans_tuned = KMeans(
+    n_clusters=3,
+    init="k-means++",
+    n_init=50,
+    max_iter=300,
+    tol=1e-4,
+    random_state=1,
+)
+
+tuned_cluster = kmeans_tuned.fit_predict(X)
+kmeans_tuned.inertia_
+```
+
+The fitted partition still depends on the features and their scaling. A
+well-tuned K-means model on poorly scaled or irrelevant features may still
+produce a misleading clustering.
+
+::: {.callout-caution}
+## Diagnostics do not define the scientific answer
+
+These metrics evaluate geometric compactness and separation under the chosen
+features, scaling, and distance. They do not show that the clusters are
+stable, scientifically meaningful, or useful for a later decision.
 :::
 
 
@@ -655,208 +958,6 @@ Spectral clustering follows much of the curved structure through graph
 connectivity, but the added noise points can create graph shortcuts. Unlike
 DBSCAN, it must assign every observation to a cluster rather than explicitly
 identifying noise.
-
-
-## Evaluating a Clustering
-
-Method comparison produces candidate partitions; evaluation asks whether
-those partitions are geometrically coherent, stable, and meaningful.
-Without known labels, no single score can answer all three questions.
-
-
-### Internal Evaluation
-
-Internal clustering metrics use only the observations and their assigned
-clusters. They can compare values of $K$, initializations, or methods when
-the observations, features, scaling, and distance are held fixed.
-
-No single metric defines the correct clustering. Each metric favors a
-particular geometric idea of a good partition. We focus on two common
-metrics: WCSS and the silhouette score.
-
-This limitation matters when comparing paradigms. For example, a silhouette
-score computed with original Euclidean distance may favor compact groups and
-undervalue a graph-connected partition such as concentric rings. Evaluation
-should match the geometry the method is intended to recover.
-
-
-#### Within-Cluster Sum of Squares
-
-For K-means, WCSS is both the fitting objective and an internal measure of
-cluster compactness:
-
-$$
-\operatorname{WCSS}
-=
-\sum_{k=1}^K
-\sum_{i\in C_k}
-\norm{x_i-\mu_k}_2^2.
-$$
-
-For a fitted `KMeans` object, WCSS is stored in `inertia_`.
-
-```{python}
-kmeans.inertia_
-```
-
-Smaller inertia means observations are closer to their assigned centers.
-However, inertia always decreases as $K$ increases and becomes zero when
-every distinct observation is its own cluster. Therefore, its absolute
-minimum cannot be used to choose $K$.
-
-
-#### Silhouette Value
-
-The silhouette value evaluates both within-cluster cohesion and separation
-from neighboring clusters. For observation $i$, define:
-
-- $a(i)$ as its average distance to other observations in its own cluster;
-- $b(i)$ as the smallest average distance to observations in another
-  cluster.
-
-The silhouette value is
-
-$$
-s(i)
-=
-\frac{b(i)-a(i)}
-{\max\{a(i),b(i)\}}.
-$$
-
-It lies between $-1$ and $1$:
-
-- values near $1$ indicate a well-separated observation;
-- values near $0$ indicate an observation near a cluster boundary;
-- negative values suggest that another cluster may be closer.
-
-The overall silhouette score is the average of $s(i)$ over all observations.
-Larger values are preferred. It requires at least two nonempty clusters.
-
-
-### Choosing the Number of Clusters
-
-For methods such as K-means, the number of clusters $K$ is a tuning
-parameter. There is no universally correct criterion because the useful
-level of grouping depends on the scientific question.
-
-The elbow plot examines inertia over a range that includes $K=1$. The
-silhouette score is computed only for $K\ge 2$.
-
-```{python}
-from sklearn.metrics import silhouette_score
-
-inertia_k = range(1, 11)
-inertias = []
-
-for k in inertia_k:
-    model = KMeans(
-        n_clusters=k,
-        n_init=20,
-        random_state=1,
-    )
-    model.fit(X)
-    inertias.append(model.inertia_)
-
-silhouette_k = range(2, 11)
-silhouettes = []
-
-for k in silhouette_k:
-    model = KMeans(
-        n_clusters=k,
-        n_init=20,
-        random_state=1,
-    )
-    labels = model.fit_predict(X)
-    silhouettes.append(
-        silhouette_score(X, labels)
-    )
-```
-
-Plot the two diagnostics together.
-
-```{python}
-fig, axs = plt.subplots(1, 2, figsize=(11, 4))
-
-axs[0].plot(inertia_k, inertias, marker="o")
-axs[0].set_xlabel("number of clusters K")
-axs[0].set_ylabel("inertia")
-axs[0].set_title("Elbow Plot")
-
-axs[1].plot(silhouette_k, silhouettes, marker="o")
-axs[1].set_xlabel("number of clusters K")
-axs[1].set_ylabel("average silhouette")
-axs[1].set_title("Silhouette Score")
-
-plt.tight_layout();
-```
-
-For inertia, the elbow heuristic looks for the point after which additional
-clusters produce only modest improvement. For the silhouette score, larger
-values are preferred. The two diagnostics can disagree because they measure
-different aspects of the partition.
-
-::: {.callout-caution}
-## Diagnostics do not define the scientific answer
-
-These metrics evaluate geometric compactness and separation under the chosen
-features, scaling, and distance. They do not show that the clusters are
-stable, scientifically meaningful, or useful for a later decision.
-:::
-
-
-### Stability
-
-A useful clustering should not change completely after a small perturbation.
-A practical stability analysis can:
-
-1. resample observations or features;
-2. repeat preprocessing and clustering;
-3. compare which pairs of observations are repeatedly grouped together;
-4. inspect clusters that split or disappear.
-
-Instability may indicate weak separation, an unsuitable tuning choice, or
-insufficient data. It can also reveal that several clusterings are similarly
-plausible.
-
-
-### External Evaluation
-
-When known labels are available, they may be used after clustering for
-evaluation. The adjusted Rand index (ARI) compares two partitions while
-accounting for agreement expected by chance. It equals $1$ for identical
-partitions and has expected value near $0$ for independent random
-partitions.
-
-```{python}
-from sklearn.metrics import adjusted_rand_score
-
-adjusted_rand_score(true_group, cluster)
-```
-
-This does not turn clustering into supervised learning because the labels
-were not used to fit the clusters.
-
-
-### Interpretation in the Original Features
-
-An embedding plot is useful, but clusters should ultimately be described
-using the original variables.
-
-```{python}
-import pandas as pd
-
-cluster_summary = (
-    pd.DataFrame(X, columns=["x1", "x2"])
-    .assign(cluster=cluster)
-    .groupby("cluster")
-    .agg(["mean", "std", "size"])
-)
-
-cluster_summary
-```
-
-For real data, combine such summaries with domain knowledge and
-representative observations from each group.
 
 
 ## Practical Workflow
