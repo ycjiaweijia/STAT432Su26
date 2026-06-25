@@ -170,7 +170,49 @@ silhouette_score(X_eval, cluster_eval)
 This score is close to 1, indicating that most observations are much closer to observations in their assigned cluster than to observations in other clusters.
 
 
-### Rand Index
+### Stability
+
+A useful clustering should not change drastically under small, reasonable changes to the analysis. Stability asks whether the same broad grouping appears when the data or fitting procedure is slightly perturbed.
+
+Common checks include rerunning the method with different random seeds, changing tuning parameters slightly, refitting after small changes to preprocessing, or clustering bootstrap or subsampled versions of the data. The numeric cluster labels themselves do not need to match, because labels are arbitrary. What matters is whether similar observations remain grouped together.
+
+Stability is not the same as correctness. A clustering can be stable because a method has a strong geometric bias, even if the resulting groups are not scientifically meaningful. It should therefore be considered together with internal scores, visual inspection when possible, and interpretation in the original features.
+
+
+
+### Interpretation in the Original Features
+
+Numerical scores do not explain what a cluster represents. After fitting a clustering, the groups should be described using the original variables. For tabular data, a simple interpretation step is to summarize each feature by cluster.
+
+```{python}
+import pandas as pd
+
+cluster_summary = (
+    pd.DataFrame(X_eval, columns=["x1", "x2"])
+    .assign(cluster=cluster_eval)
+    .groupby("cluster")
+    .agg(["mean", "std", "size"])
+)
+
+cluster_summary
+```
+
+::: {.callout-caution}
+## No single score validates a clustering
+
+Internal metrics and Rand-index-based agreement measures answer different questions. A useful clustering should be geometrically coherent, reasonably stable, and interpretable for the problem at hand.
+:::
+
+
+
+
+
+### Optional: Rand Index
+
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
+
 
 When reference labels are available, they can be used after clustering for external validation. This setting is common in simulations, benchmark datasets, or applications where external categories are known but intentionally withheld from the clustering algorithm.
 
@@ -196,11 +238,6 @@ cluster_assignments = np.array([0, 0, 0, 1, 1, 2, 2, 2, 2, 2])
 
 rand_score(reference_labels, cluster_assignments)
 ```
-
-
-<details>
-<summary><strong>Click to expand.</strong></summary>
-
 
 
 The diagram below shows where the two labelings agree and disagree. The reference labels define groups $\{1,2,3\}$, while the clustering algorithm returns cluster labels $\{0,1,2\}$. The mismatch occurs because reference class 2 is split across clusters 1 and 2, and cluster 2 also contains observations from reference class 3.
@@ -260,8 +297,6 @@ $$
 
 
 
-</details>
-
 
 There are ${10 \choose 2}=45$ observation pairs. Among them, $a=8$ pairs are grouped together by both labelings, and $b=27$ pairs are separated by both labelings. Therefore,
 
@@ -274,8 +309,16 @@ $$
 $$
 
 
+</details>
 
-### Adjusted Rand Index
+
+
+### Optional: Adjusted Rand Index
+
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
+
 
 The Rand index can be high even when two labelings agree partly by chance, especially when there are many pairs of observations. The adjusted Rand index corrects for this chance agreement.
 
@@ -353,9 +396,6 @@ $$
 $$
 
 
-<details>
-<summary><strong>Click to expand.</strong></summary>
-
 
 The formula has three main parts:
 
@@ -381,8 +421,6 @@ $$
 
 The key difference between the Rand index and the adjusted Rand index is that the Rand index measures raw pairwise agreement, while the adjusted Rand index measures pairwise agreement after correcting for chance. This correction matters because many pairs may agree simply because they are separated in both labelings, even when the clustering does not recover the reference groups.
 
-
-</details>
 
 
 Its interpretation is:
@@ -423,29 +461,8 @@ adjusted_rand_score(cluster_run_1, cluster_run_2)
 This example gives high agreement even though the numeric cluster labels have changed. That is appropriate because the labels identify groups only up to relabeling.
 
 
+</details>
 
-### Interpretation in the Original Features
-
-Numerical scores do not explain what a cluster represents. After fitting a clustering, the groups should be described using the original variables. For tabular data, a simple interpretation step is to summarize each feature by cluster.
-
-```{python}
-import pandas as pd
-
-cluster_summary = (
-    pd.DataFrame(X_eval, columns=["x1", "x2"])
-    .assign(cluster=cluster_eval)
-    .groupby("cluster")
-    .agg(["mean", "std", "size"])
-)
-
-cluster_summary
-```
-
-::: {.callout-caution}
-## No single score validates a clustering
-
-Internal metrics and Rand-index-based agreement measures answer different questions. A useful clustering should be geometrically coherent, reasonably stable, and interpretable for the problem at hand.
-:::
 
 
 ## Centroid-Based: K-Means Clustering
@@ -977,7 +994,7 @@ It is less effective when cluster densities differ substantially. One global val
 
 ## Graph-Based: Spectral Clustering
 
-The previous methods define clusters directly from centers, merges, or density in the observed feature space. Spectral clustering illustrates a broader strategy:
+The previous methods define clusters directly from centers, merges, or density in the observed feature space. Spectral clustering first builds a graph representation of the data and then clusters that representation:
 
 $$
 X
@@ -987,11 +1004,11 @@ X
 \text{clustering in } Z.
 $$
 
-Clustering therefore does not have to be based on boundaries around centers in the original coordinate system. A method can first construct a representation in which the relevant structure is easier to separate.
+The final clustering is still a partition of the original observations, but the partition is found after transforming the data into coordinates that reflect graph connectivity.
 
-### From a Neighborhood Graph to New Coordinates
+### From a Graph to New Coordinates
 
-Spectral clustering treats observations as vertices in a graph. Two observations are connected when they are sufficiently similar, for example when one is among the nearest neighbors of the other. The graph represents local connectivity: observations are considered close if they can be connected through short graph paths, not only if they are close to the same center.
+Spectral clustering treats observations as vertices in a graph. Two observations are connected when they are sufficiently similar, for example when one is among the nearest neighbors of the other. The graph represents local connectivity: observations are close if they can be connected through short graph paths, not only if they are close to the same center.
 
 Let
 
@@ -1007,21 +1024,33 @@ D=\diag(d_1,\ldots,d_n),
 d_i=\sum_j W_{ij}.
 $$
 
-The graph Laplacian is
+One graph Laplacian is
 
 $$
 L=D-W.
 $$
 
-Eigenvectors of a graph Laplacian provide new coordinates that reflect graph connectivity. A typical spectral clustering algorithm:
+Many implementations use normalized versions of the graph Laplacian, but the
+main idea is the same: eigenvectors of a Laplacian provide new coordinates that
+reflect graph connectivity. A typical spectral clustering algorithm:
 
 1. constructs a similarity or nearest-neighbor graph;
 2. computes eigenvectors of a graph Laplacian;
 3. uses the eigenvectors as a new representation;
-4. applies a standard clustering method, usually K-means, in that
-   representation.
+4. applies a standard clustering method, usually K-means, in that representation.
 
 The final step may still use centroids, but they are found in learned coordinates rather than in the original feature space.
+
+### How Spectral Clustering Forms Clusters
+
+Spectral clustering first decides which observations are local neighbors. It
+then uses the graph Laplacian to construct a low-dimensional embedding in which
+observations connected through the graph tend to have similar coordinates.
+
+After this embedding is computed, a standard clustering method is applied to the
+embedded points. In `sklearn`, the common choice is K-means. Thus, spectral
+clustering can separate rings or curved groups because K-means is not applied
+directly to the original coordinates.
 
 ### Spectral Clustering in Python
 
@@ -1076,7 +1105,7 @@ for ax, labels, title in zip(
 plt.tight_layout();
 ```
 
-Spectral clustering recovers the rings because the graph representation captures connectivity along each ring. It does not draw circular boundaries or search for circular cluster centers. Instead, it builds a representation in which the two graph-connected rings are easier to separate.
+Spectral clustering recovers the rings because the graph representation captures connectivity along each ring. It does not draw circular boundaries or search for circular cluster centers in the original plane. Instead, it builds a representation in which the two graph-connected rings are easier to separate.
 
 ### Tuning Hyperparameters
 
@@ -1087,10 +1116,57 @@ The most important spectral clustering choices are how to build the graph and ho
 - `n_neighbors` controls the graph scale when `affinity="nearest_neighbors"`. A smaller value gives a more local graph and may disconnect a meaningful group. A larger value gives a denser graph and may create shortcuts between groups.
 - `assign_labels` controls how points are assigned to clusters after the spectral embedding is computed. The common choice `"kmeans"` applies K-means in the new coordinates.
 
+For a nearest-neighbor graph, `n_neighbors` plays a role similar to a scale
+parameter. It is useful to compare several values.
+
+```{python}
+#| warning: false
+#| code-fold: true
+n_neighbor_values = [5, 10, 30]
+
+fig, axs = plt.subplots(1, 3, figsize=(12, 4), sharex=True, sharey=True)
+
+for ax, n_neighbors in zip(axs, n_neighbor_values):
+    labels = SpectralClustering(
+        n_clusters=2,
+        affinity="nearest_neighbors",
+        n_neighbors=n_neighbors,
+        assign_labels="kmeans",
+        random_state=1,
+    ).fit_predict(X_circle)
+
+    ax.scatter(X_circle[:, 0], X_circle[:, 1], c=labels, s=18)
+    ax.set_title(f"n_neighbors = {n_neighbors}")
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x2")
+
+plt.tight_layout();
+```
+
+If the graph is too sparse, a true group may break into disconnected pieces. If
+the graph is too dense, edges may create shortcuts between groups that should
+remain separated.
+
 ::: {.callout-caution}
 ## Graph construction is part of the model
 
-The distance metric, number of neighbors, affinity function, and number of clusters can all change the result. A graph that is too sparse may disconnect a meaningful group, while a graph that is too dense may create shortcuts between groups.
+The distance metric, number of neighbors, affinity function, and number of clusters can all change the result. Spectral clustering should therefore be checked for sensitivity to reasonable graph-construction choices.
+:::
+
+::: {.callout-note}
+## Graphs are not dendrograms
+
+The graph in spectral clustering and the tree in hierarchical clustering encode
+different information. A hierarchical dendrogram records a sequence of merges.
+Cutting the tree at a height gives a flat clustering, and the merge heights
+show the dissimilarity levels at which groups were joined.
+
+The graph in spectral clustering is not a merge history. It records local
+similarities between observations, and the graph Laplacian uses those
+connections to build new coordinates. Clusters are then found in those new
+coordinates, usually by K-means. Thus, hierarchical clustering groups
+observations by following a merge tree, while spectral clustering groups
+observations by transforming a similarity graph.
 :::
 
 ### When Spectral Clustering Works Well
