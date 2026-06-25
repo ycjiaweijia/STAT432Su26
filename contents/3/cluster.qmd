@@ -671,136 +671,166 @@ K-means divides the feature space into convex regions, so it cannot recover the 
 
 ## Hierarchical: Agglomerative Clustering
 
-Hierarchical clustering builds a nested sequence of clusterings. Agglomerative hierarchical clustering begins with each observation in its own cluster and repeatedly merges the two closest clusters until all observations belong to one cluster.
+Hierarchical clustering builds a nested sequence of clusterings. Agglomerative hierarchical clustering begins with each observation in its own cluster and repeatedly merges the two "closest" clusters until all observations belong to one cluster.
 
 The result is a tree called a **dendrogram**. Unlike K-means, the hierarchy can be fit before choosing the final number of clusters.
 
 
 ### Linkage
 
-The distance between individual observations is not enough; the algorithm
-also requires a linkage rule that defines the distance between groups. For
-two clusters $G$ and $H$:
+At each step of agglomerative hierarchical clustering, we merge the two closest clusters. To determine which clusters are closest, we first need to define the distance between clusters. A linkage rule specifies how this distance is computed.
 
-**Single linkage** uses the closest pair:
+For two clusters $G$ and $H$, common linkage rules include:
 
-$$
-d_{\text{single}}(G,H)
-=
-\min_{i\in G,\;j\in H}
-d(x_i,x_j).
-$$
+- Single linkage uses the closest pair: $d_{\text{single}}(G,H)=\min_{i\in G,\;j\in H}d(x_i,x_j).$
+- Complete linkage uses the farthest pair: $d_{\text{complete}}(G,H)=\max_{i\in G,\;j\in H}d(x_i,x_j).$
+- Average linkage uses the average pairwise distance: $d_{\text{avg}}(G,H)=\frac{1}{|G||H|}\sum_{i\in G,j\in H}d(x_i,x_j).$
+- Ward linkage merges the pair of clusters that produces the smallest increase in the within-cluster sum of squares (WCSS). Unlike the previous linkage rules, Ward linkage is based on cluster variance rather than pairwise distances, and therefore tends to produce compact, approximately spherical clusters.
 
-**Complete linkage** uses the farthest pair:
-
-$$
-d_{\text{complete}}(G,H)
-=
-\max_{i\in G,\;j\in H}
-d(x_i,x_j).
-$$
-
-**Average linkage** uses the average pairwise distance:
-
-$$
-d_{\text{average}}(G,H)
-=
-\frac{1}{|G||H|}
-\sum_{i\in G}
-\sum_{j\in H}
-d(x_i,x_j).
-$$
-
-**Ward linkage** merges the pair that produces the smallest increase in
-within-cluster sum of squares. Ward linkage is based on Euclidean geometry
-and tends to produce compact clusters.
-
-Different linkage rules express different ideas of what makes two groups
-close. Single linkage can identify elongated connected groups but is
-sensitive to chains of intermediate points. Complete and Ward linkage tend
-to produce more compact groups.
+Different linkage rules represent different notions of what makes two clusters close. Single linkage can recover elongated or irregularly shaped clusters, but it is sensitive to the chaining effect, where intermediate points connect otherwise separate groups. Complete linkage and Ward linkage are less affected by chaining and tend to produce more compact clusters.
 
 
 ### Dendrogram
 
+A dendrogram is a visual record of the sequence of merges. At the beginning, each observation is its own cluster. At each step, the two closest current clusters are merged according to the chosen linkage rule. The height of the merge records the dissimilarity at which the two branches are joined.
+
+The merge height is not always the distance between two individual observations. It is the dissimilarity between the two clusters being merged, as defined by the linkage rule. For single linkage, the height is the smallest pairwise distance between the two clusters. For complete linkage, it is the largest pairwise distance; for average linkage, it is the average pairwise distance; and for Ward linkage, it is based on the increase in within-cluster variation caused by the merge.
+
+For example, consider five one-dimensional observations:
+
+$$
+0.0,\quad 0.2,\quad 0.3,\quad 3.0,\quad 3.2.
+$$
+
+Using single linkage, the tree is built as follows:
+
+1. Merge $0.2$ and $0.3$, the closest pair, at height $0.1$.
+2. Merge $0.0$ with the cluster $\{0.2,0.3\}$ at height $0.2$.
+3. Merge $3.0$ and $3.2$ at height $0.2$.
+4. Merge the two larger clusters $\{0.0,0.2,0.3\}$ and $\{3.0,3.2\}$ at height $2.7$.
+
 ```{python}
-from scipy.cluster.hierarchy import (
-    linkage,
-    dendrogram,
-    fcluster,
-)
+#| echo: false
+from scipy.cluster.hierarchy import linkage, dendrogram
+X_toy = [[0.0], [0.2], [0.3], [3.0], [3.2]]
+Z_toy = linkage(X_toy, method="single", metric="euclidean")
+dendrogram(Z_toy, labels=[str(i[0]) for i in X_toy])
+plt.xlabel("observation")
+plt.ylabel("merge height")
+plt.title("Dendrogram for Five Points");
+```
+The toy dendrogram shows the main interpretation: observations that merge at low heights are similar under the chosen linkage rule, while branches that merge only at high heights are more separated.
 
-X_small = X[:40]
-Z = linkage(
-    X_small,
-    method="ward",
-    metric="euclidean",
-)
+### Hierarchical clustering in Python
 
-plt.figure(figsize=(10, 5))
+In `sklearn`, agglomerative hierarchical clustering is fit using `AgglomerativeClustering`. Here we apply it to the simulated dataset from K-means. Like other `sklearn` estimators, it provides `fit_predict` for returning cluster assignments.
+
+```{python}
+from sklearn.cluster import AgglomerativeClustering
+hierarchical_model = AgglomerativeClustering(n_clusters=3, linkage="single")
+hierarchical_cluster = hierarchical_model.fit_predict(X)
+```
+
+Here `n_clusters=3` is chosen for illustration. We can visualize the resulting cluster assignments in the original feature space.
+
+```{python}
+import matplotlib.pyplot as plt
+
+plt.scatter(X[:, 0], X[:, 1], c=hierarchical_cluster)
+plt.xlabel("x1")
+plt.ylabel("x2")
+plt.title("Hierarchical Clustering Assignments");
+```
+
+`sklearn` can fit an agglomerative hierarchical clustering model and return the cluster assignments, but it does not provide a function to directly plot a dendrogram. For visualization, we use `linkage` from `scipy.cluster.hierarchy` to compute the hierarchy and `dendrogram` to display the resulting merge tree.
+
+
+```{python}
+from scipy.cluster.hierarchy import linkage, dendrogram
+
+Z = linkage(X, method="single")
 dendrogram(Z)
 plt.xlabel("observation")
 plt.ylabel("merge height")
 plt.title("Hierarchical Clustering Dendrogram");
 ```
 
-The merge height records the dissimilarity at which two branches are joined.
-A horizontal cut through the tree produces cluster assignments.
+The merge height records the dissimilarity at which two clusters are merged. Drawing a horizontal line across the dendrogram determines the final clustering: each connected component below the line forms one cluster.
 
-```{python}
-hierarchical_cluster = fcluster(
-    Z,
-    t=3,
-    criterion="maxclust",
-)
-hierarchical_cluster
-```
+The dendrogram summarizes the fitted hierarchy, not uncertainty about the hierarchy. A large vertical gap often suggests a natural place to cut the tree because the corresponding merge occurs at a much larger dissimilarity than previous merges. However, this is only a heuristic and may be supplemented by validation measures such as the silhouette score or by domain knowledge.
 
-The dendrogram describes the fitted hierarchy, not uncertainty about the
-hierarchy. A large vertical gap can suggest a useful cut, but it is still a
-heuristic.
+
+
+
+::: {.callout-note}
+## Choosing the Number of Clusters
+
+Hierarchical clustering separates fitting the hierarchy from choosing the final flat clustering. One common approach is to inspect the dendrogram and make a horizontal cut at a merge height. This keeps merges below the cut and separates branches that would only merge above the cut. Equivalently, cutting the tree at a chosen height turns the hierarchy into a flat set of cluster assignments.
+
+Another approach is to choose `n_clusters` directly, as in K-means, by comparing different scores across different possible choices of `n_clusters`.
+:::
 
 
 ### Comparing Linkages
 
+To make the effect of linkage visible, we use a dataset whose geometry is not compact or spherical. The two-moons data have two curved groups, so different linkage rules can produce noticeably different flat clusterings.
+
+Although the data are generated from two underlying groups, we set `n_clusters=4` here to make the behavior of the linkage rules easier to compare.
+
 ```{python}
+#| code-fold: true
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.datasets import make_moons
+import matplotlib.pyplot as plt
+
+X_ex, _ = make_moons(n_samples=400, noise=0.06, random_state=6)
 
 methods = ["single", "complete", "average", "ward"]
-
-fig, axs = plt.subplots(
-    2,
-    2,
-    figsize=(10, 8),
-    sharex=True,
-    sharey=True,
-)
+fig, axs = plt.subplots(2, 2, figsize=(10, 8), sharex=True, sharey=True)
 
 for ax, method in zip(axs.ravel(), methods):
-    model = AgglomerativeClustering(
-        n_clusters=3,
-        linkage=method,
-        metric="euclidean",
-    )
-    labels = model.fit_predict(X)
+    model = AgglomerativeClustering(n_clusters=4, linkage=method)
+    labels = model.fit_predict(X_ex)
 
-    ax.scatter(
-        X[:, 0],
-        X[:, 1],
-        c=labels,
-        s=18,
-    )
+    ax.scatter(X_ex[:, 0], X_ex[:, 1], c=labels)
     ax.set_title(method)
     ax.set_xlabel("x1")
-    ax.set_ylabel("x2")
-
-plt.tight_layout();
+    ax.set_ylabel("x2");
 ```
 
-Hierarchical clustering is especially useful when the nesting itself is
-interesting, such as organizing genes, documents, or related products.
-However, early agglomerative merges cannot be undone, so a suboptimal early
-merge can affect the rest of the tree.
+The cluster labels are arbitrary, so the important feature is the shape of the split:
+
+- Single linkage uses the closest pair of observations between two clusters. It favors connected shapes and can follow long curves. In the plot, it keeps most of each moon as a connected chain, and the extra clusters appear where a small gap breaks the chain.
+- Complete linkage uses the farthest pair of observations between two clusters. It favors clusters with small diameter, so it tends to produce compact, ball-like groups rather than long or stretched groups. In the plot, it cuts the moons into shorter pieces instead of preserving the full curved shapes.
+- Average linkage uses the average distance over all pairs of observations between two clusters. It is a compromise between connectivity and compactness: it is less sensitive to one nearby pair than single linkage, but less strict about the farthest pair than complete linkage. In the plot, it still splits the moons where the average distance to the rest of the arc becomes large.
+- Ward linkage merges clusters that cause the smallest increase in WCSS. It favors compact, variance-minimizing clusters, similar in spirit to K-means. In the plot, its cuts look like local spatial blocks rather than moon-shaped pieces, because the curved groups are not compact around a single center.
+
+::: {.callout-note}
+## Complete linkage and Ward linkage
+
+Complete linkage and Ward linkage both tend to produce compact, ball-like clusters, but they measure compactness differently.
+
+- Complete linkage is based on cluster diameter. It avoids merges that would make the farthest two observations in a cluster too far apart.
+- Ward linkage is based on within-cluster variation. It avoids merges that would cause a large increase in WCSS, where each cluster is summarized by its mean.
+
+Thus, complete linkage is diameter-based compactness, while Ward linkage is variance-based compactness.
+
+They can differ when cluster sizes or shapes are uneven. Complete linkage reacts strongly to the most distant pair of observations, so one outlying point can prevent a merge by making the cluster diameter too large. Ward linkage reacts to the overall increase in WCSS, so it also depends on cluster sizes and centroids. If two large clusters have nearby centers, Ward linkage may still merge them even when a few observations are relatively far apart, because those observations may not dominate the total WCSS increase.
+:::
+
+
+### When Hierarchical Clustering Works Well
+
+Hierarchical clustering is especially useful when the nested structure itself is meaningful. For example, it is often used to organize genes, documents, products, or other observations where relationships at multiple levels of granularity are informative.
+
+It is most useful when:
+
+- the hierarchy itself is part of the interpretation;
+- one wants to inspect several possible numbers of clusters from the same fitted tree;
+- the dataset is small or moderate in size;
+- the chosen linkage rule matches the geometry of the groups.
+
+However, agglomerative clustering can be computationally expensive for very large datasets, and early merges cannot be undone. A suboptimal early merge can affect the rest of the tree.
 
 
 ## Density-Based: DBSCAN
