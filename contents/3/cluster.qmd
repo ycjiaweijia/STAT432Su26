@@ -835,15 +835,14 @@ However, agglomerative clustering can be computationally expensive for very larg
 
 ## Density-Based: DBSCAN
 
-Density-based spatial clustering of applications with noise (DBSCAN) defines clusters as connected regions of sufficiently high local density. Unlike K-means, hierarchical clustering, or spectral clustering, DBSCAN does not require the number of clusters to be specified in advance.
+Density-based spatial clustering of applications with noise (DBSCAN) defines clusters as connected regions of sufficiently high local density. Unlike K-means, hierarchical clustering, or spectral clustering (that will be discussed later), DBSCAN does not require the number of clusters to be specified in advance.
 
 The main idea is that a cluster should be a dense region separated from other dense regions by lower-density space. This makes DBSCAN useful when clusters are curved, irregularly shaped, or when some observations should be treated as noise rather than forced into a cluster.
 
 DBSCAN uses two main parameters:
 
 - `eps`: the radius of a local neighborhood;
-- `min_samples`: the number of observations required for a dense
-  neighborhood, including the observation itself.
+- `min_samples`: the number of observations required for a dense neighborhood, including the observation itself.
 
 These parameters define three types of observations:
 
@@ -851,46 +850,45 @@ These parameters define three types of observations:
 - A **border point** is not a core point, but lies within the `eps` neighborhood of a core point.
 - A **noise point** is neither a core point nor a border point.
 
-Starting from a core point, DBSCAN expands a cluster by repeatedly adding density-reachable core points and their border points. Because this expansion follows local density rather than distance to a center, DBSCAN can recover curved or irregularly shaped dense regions.
+### How DBSCAN Forms Clusters
+
+DBSCAN begins by checking the `eps` neighborhood of each observation. If an observation has at least `min_samples` observations in that neighborhood, counting itself, it becomes a core point. A core point can start a new cluster if it has not already been reached from another core point.
+
+Once a core point starts a cluster, DBSCAN adds all observations within its `eps` neighborhood. If any of those observations are also core points, their own `eps` neighborhoods are added as well. This expansion continues until no new core points can be reached. All core points connected in this way belong to the same cluster, and non-core points reached from those core points are included as border points.
+
+Observations that are not reachable from any core point are labeled as noise. Thus, DBSCAN does not assign points by nearest center. It forms clusters by following chains of dense neighborhoods, and the number of clusters is whatever number of separated dense regions the algorithm finds.
+
+### DBSCAN in Python
+We use `DBSCAN` from `sklearn.cluster` to implement the method. 
 
 ```{python}
 from sklearn.cluster import DBSCAN
+from sklearn.datasets import make_circles
 
-circle_dbscan = DBSCAN(
-    eps=0.15,
-    min_samples=5,
+
+X_circle, true_circle_group = make_circles(
+    n_samples=500, factor=0.45, noise=0.05, random_state=1
 )
+
+circle_dbscan = DBSCAN(eps=0.13, min_samples=4)
 circle_dbscan_group = circle_dbscan.fit_predict(X_circle)
+```
 
-fig, axs = plt.subplots(
-    1,
-    2,
-    figsize=(10, 4),
-    sharex=True,
-    sharey=True,
-)
+```{python}
+#| code-fold: true
+import matplotlib.pyplot as plt
 
-axs[0].scatter(
-    X_circle[:, 0],
-    X_circle[:, 1],
-    c=circle_cluster,
-    s=18,
-)
+fig, axs = plt.subplots(1, 2, figsize=(10, 4), sharex=True, sharey=True)
+
+axs[0].scatter(X_circle[:, 0], X_circle[:, 1], c=circle_cluster)
 axs[0].set_title("K-Means")
 
-axs[1].scatter(
-    X_circle[:, 0],
-    X_circle[:, 1],
-    c=circle_dbscan_group,
-    s=18,
-)
+axs[1].scatter(X_circle[:, 0], X_circle[:, 1], c=circle_dbscan_group)
 axs[1].set_title("DBSCAN")
 
 for ax in axs:
     ax.set_xlabel("x1")
     ax.set_ylabel("x2")
-
-plt.tight_layout();
 ```
 
 In `sklearn`, noise observations receive the label `-1`. As with all
@@ -901,6 +899,63 @@ clustering labels, the nonnegative cluster labels have no ordinal meaning.
 The most important DBSCAN hyperparameter is `eps`, because it controls the scale at which density is measured. A smaller `eps` makes neighborhoods smaller and the density requirement stricter. This may split clusters or label more observations as noise. A larger `eps` makes neighborhoods larger and can merge groups through low-density bridges.
 
 The parameter `min_samples` controls how much local support is required for a point to be considered a core point. Larger values make the method more conservative and usually produce more noise points.
+
+A practical workflow is to first set `min_samples`, then use the data to select `eps`. A common starting choice is to set `min_samples` to about twice the number of features. In this two-dimensional example, we use `4`.
+
+After choosing `min_samples`, compute the distance from each observation to the neighbor that determines whether it is a core point. Since `min_samples` includes the observation itself in `sklearn`, this is the distance to the `min_samples`-th nearest observation when the observation itself is included as the first neighbor. Points inside dense regions should have small such distances, while isolated or low-density points should have larger distances. Sorting these distances gives a diagnostic plot. A visible elbow in the plot suggests a candidate value of `eps`.
+
+In Python we can use `NearestNeighbors` from `sklearn.neighbors` to compute these distances. The result is then sorted and plotted.
+
+```{python}
+from sklearn.neighbors import NearestNeighbors
+
+min_samples = 4
+
+neighbors = NearestNeighbors(n_neighbors=min_samples)
+neighbors.fit(X_circle)
+
+distances, indices = neighbors.kneighbors(X_circle)
+k_distances = np.sort(distances[:, -1])
+
+plt.plot(k_distances)
+plt.axhline(y=0.13, ls="--")
+plt.xlabel("sorted observation index")
+plt.ylabel(f"distance to {min_samples}-th nearest neighbor")
+plt.title("K-Distance Plot for Choosing eps");
+```
+
+A candidate `eps` can be drawn as a horizontal line on this plot. Observations with k-distances below the line satisfy the core-point density requirement. Observations above the line are not core points; they may later become border points if they lie within `eps` of a core point, or they may be labeled as noise.
+
+Thus, decreasing `eps` usually creates fewer core points, more noise, and a greater chance that a dense region is split into pieces. Increasing `eps` usually creates more core points and a greater chance that nearby dense regions are merged through a bridge of points.
+
+In this example, the curve remains relatively flat for most observations and then increases more sharply for observations whose local neighborhoods are sparser. An `eps` value near the bend separates the dense ring structure from the lower-density gaps. We next check nearby values.
+
+```{python}
+#| code-fold: true
+eps_values = [0.12, 0.13, 0.14]
+
+fig, axs = plt.subplots(1, 3, figsize=(12, 4), sharex=True, sharey=True)
+
+for ax, eps in zip(axs, eps_values):
+    labels = DBSCAN(eps=eps, min_samples=min_samples).fit_predict(X_circle)
+
+    ax.scatter(X_circle[:, 0], X_circle[:, 1], c=labels)
+    ax.set_title(f"eps = {eps}")
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x2")
+```
+
+If small changes in `eps` lead to very different cluster assignments, the density structure may not be stable at a single scale. In that case, the fitted clusters should be interpreted cautiously, or a method designed for varying density levels may be more appropriate.
+
+In this example, from `0.12` to `0.14` the clustering structure is relatively stable. The color labels may change because cluster labels are arbitrary, but the two-ring grouping is essentially the same. Therefore, `0.13` is a reasonable choice within this stable range.
+
+::: {.callout-caution}
+## Silhouette scores are only a rough diagnostic for DBSCAN
+
+One can compute silhouette scores over a grid of `eps` and `min_samples` values, but this is not ordinary cross-validation because clustering has no supervised prediction error. The score is also harder to interpret for DBSCAN: treating noise as an extra cluster can distort the score, while removing noise ignores one of DBSCAN's main outputs.
+
+Silhouette scores also favor compact, well-separated groups, whereas DBSCAN is often used for curved or irregular clusters. Use them only as a secondary diagnostic alongside the k-distance plot, the number of clusters, the fraction of noise points, visual inspection when possible, and sensitivity to nearby parameter values.
+:::
 
 ::: {.callout-note}
 ## DBSCAN does not tune `n_clusters`
