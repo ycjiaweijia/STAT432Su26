@@ -503,19 +503,19 @@ X, true_group = make_blobs(
     n_features=2,
     centers=3,
     cluster_std=[0.7, 0.9, 0.8],
-    random_state=4,
+    random_state=3,
 )
 
 plt.scatter(X[:, 0], X[:, 1], c=true_group)
 plt.xlabel("x1")
 plt.ylabel("x2")
-plt.title("Simulated Groups");
+plt.title("Simulated Groups")
 ```
 <!-- fmt: on -->
 
 `KMeans` follows the usual `sklearn` interface. Since clustering is performed on the observed data themselves, we fit the model to the feature matrix and obtain cluster assignments for the observations.
 
-In this simulated example, we set `n_clusters=3` because the data were generated from three latent groups. In real applications, the number of clusters is usually unknown and must be treated as a tuning choice.
+For this first illustration, we set `n_clusters=3` so that the fitted result can be compared visually with the simulated groups. This does not represent how $K$ is chosen in practice. In real applications, the number of clusters is usually unknown and must be treated as a tuning choice.
 
 As mentioned previously, it is recommended to use multiple random initializations to reduce sensitivity to a poor starting configuration. The argument `n_init=20` runs K-means from 20 different initial center configurations and retains the solution with the smallest inertia among those runs.
 
@@ -527,6 +527,8 @@ kmeans = KMeans(n_clusters=3, n_init=20, random_state=1)
 kmeans.fit(X)
 cluster = kmeans.predict(X) # <1>
 ```
+1. You may also use `cluster = kmeans.fit_predict(X)` to combine the two commands together.
+
 `cluster` is an array of cluster assignments, one for each observation. We can then plot the observations with colors indicating their assigned clusters.
 <!-- fmt: off -->
 ``` {python}
@@ -544,7 +546,6 @@ plt.ylabel("x2")
 plt.title("K-Means Clustering")
 plt.legend();
 ```
-1. You may also use `cluster = kmeans.fit_predict(X)` to combine the two commands together.
 <!-- fmt: on -->
 
 The fitted centers are available from the model.
@@ -573,26 +574,25 @@ from sklearn.metrics import silhouette_score
 
 inertia_k = range(1, 11)
 inertias = []
-
 for k in inertia_k:
     model = KMeans(n_clusters=k, n_init=20, random_state=1)
     model.fit(X)
-
     inertias.append(model.inertia_)
 
 silhouette_k = range(2, 11)
 silhouettes = []
-
 for k in silhouette_k:
     model = KMeans(n_clusters=k, n_init=20, random_state=1)
     labels = model.fit_predict(X)
-
     silhouettes.append(silhouette_score(X, labels))
 ```
 
 Plot the two diagnostics together.
 
 ```{python}
+#| code-fold: true
+import matplotlib.pyplot as plt
+
 fig, axs = plt.subplots(1, 2, figsize=(11, 4))
 
 axs[0].plot(inertia_k, inertias, marker="o")
@@ -603,12 +603,15 @@ axs[0].set_title("Elbow Plot")
 axs[1].plot(silhouette_k, silhouettes, marker="o")
 axs[1].set_xlabel("number of clusters K")
 axs[1].set_ylabel("average silhouette")
-axs[1].set_title("Silhouette Score")
-
-plt.tight_layout();
+axs[1].set_title("Silhouette Score");
 ```
 
-For inertia, the elbow heuristic looks for the point after which additional clusters produce only modest improvement. For the silhouette score, larger values are preferred. The two diagnostics can disagree because they measure different aspects of the cluster assignments.
+For inertia, the elbow heuristic looks for the point after which additional clusters produce only modest improvement. In this example, the largest improvements occur for small values of $K$, and $K=3$ is a plausible elbow.
+
+For the silhouette score, larger values are preferred. In this example, the average silhouette score is largest at $K=3$ over the range considered.
+
+The two diagnostics can disagree because they measure different aspects of the cluster assignments. The final choice of $K$ should be guided by the analysis goal, stability, and interpretability, not by a single plot alone. In this simulated example, the diagnostics are consistent with the illustrative choice $K=3$.
+
 
 Other K-means hyperparameters control how the optimization is carried out:
 
@@ -618,7 +621,7 @@ Other K-means hyperparameters control how the optimization is carried out:
 - `tol` controls the convergence tolerance. Smaller values ask the algorithm to keep iterating until the centers change very little.
 - `random_state` makes randomized initialization reproducible.
 
-For routine analyses, it is common to keep `init="k-means++"` (which is by default) and tune `n_clusters`, while using a reasonably large `n_init`.
+For routine analyses, it is common to use `init="k-means++"` (which is the default value in the current version of `sklearn`) and tune `n_clusters`, while using a reasonably large `n_init`.
 
 ::: {.callout-caution}
 ## Diagnostics do not define the scientific answer
