@@ -835,10 +835,9 @@ However, agglomerative clustering can be computationally expensive for very larg
 
 ## Density-Based: DBSCAN
 
-Density-based spatial clustering of applications with noise (DBSCAN)
-defines clusters as connected regions of sufficiently high local density.
-Unlike K-means and the hierarchical examples above, it does not require the
-number of clusters to be specified in advance.
+Density-based spatial clustering of applications with noise (DBSCAN) defines clusters as connected regions of sufficiently high local density. Unlike K-means, hierarchical clustering, or spectral clustering, DBSCAN does not require the number of clusters to be specified in advance.
+
+The main idea is that a cluster should be a dense region separated from other dense regions by lower-density space. This makes DBSCAN useful when clusters are curved, irregularly shaped, or when some observations should be treated as noise rather than forced into a cluster.
 
 DBSCAN uses two main parameters:
 
@@ -846,14 +845,13 @@ DBSCAN uses two main parameters:
 - `min_samples`: the number of observations required for a dense
   neighborhood, including the observation itself.
 
-An observation is a **core point** when its `eps` neighborhood contains at
-least `min_samples` observations. A **border point** is not a core point but
-lies within the neighborhood of one. An observation that is neither a core
-point nor a border point is labeled as **noise**.
+These parameters define three types of observations:
 
-Starting from a core point, DBSCAN repeatedly adds density-reachable core
-points and their border points. This allows clusters to follow curved or
-irregularly shaped dense regions.
+- A **core point** has at least `min_samples` observations in its `eps` neighborhood, including itself.
+- A **border point** is not a core point, but lies within the `eps` neighborhood of a core point.
+- A **noise point** is neither a core point nor a border point.
+
+Starting from a core point, DBSCAN expands a cluster by repeatedly adding density-reachable core points and their border points. Because this expansion follows local density rather than distance to a center, DBSCAN can recover curved or irregularly shaped dense regions.
 
 ```{python}
 from sklearn.cluster import DBSCAN
@@ -900,21 +898,31 @@ clustering labels, the nonnegative cluster labels have no ordinal meaning.
 
 ### Choosing `eps` and `min_samples`
 
-Smaller `eps` or larger `min_samples` makes the density requirement more
-strict. This may split clusters or label more observations as noise. Larger
-`eps` or smaller `min_samples` can merge groups through low-density bridges.
+The most important DBSCAN hyperparameter is `eps`, because it controls the scale at which density is measured. A smaller `eps` makes neighborhoods smaller and the density requirement stricter. This may split clusters or label more observations as noise. A larger `eps` makes neighborhoods larger and can merge groups through low-density bridges.
 
-DBSCAN works well when clusters have irregular shapes and are separated by
-sparse regions. It is less effective when cluster densities differ
-substantially, because one global value of `eps` may be too small for a
-sparse cluster and too large for a dense cluster.
+The parameter `min_samples` controls how much local support is required for a point to be considered a core point. Larger values make the method more conservative and usually produce more noise points.
+
+::: {.callout-note}
+## DBSCAN does not tune `n_clusters`
+
+DBSCAN determines the number of clusters from the density structure induced by `eps` and `min_samples`. This is useful when the number of groups is unknown, but it also means that the result can change substantially when the density scale changes.
+:::
+
+### When DBSCAN Works Well
+
+DBSCAN is most useful when:
+
+- clusters have irregular or curved shapes;
+- clusters are separated by sparse regions;
+- noise points should be explicitly identified;
+- a single density scale is reasonable for the dataset.
+
+It is less effective when cluster densities differ substantially. One global value of `eps` may be too small for a sparse cluster and too large for a dense cluster.
 
 
 ## Graph-Based: Spectral Clustering
 
-The previous methods define clusters directly from centers, merges, or
-density in the observed feature space. Spectral clustering illustrates a
-broader strategy:
+The previous methods define clusters directly from centers, merges, or density in the observed feature space. Spectral clustering illustrates a broader strategy:
 
 $$
 X
@@ -924,15 +932,13 @@ X
 \text{clustering in } Z.
 $$
 
-Clustering therefore does not have to be based on boundaries around centers
-in the original coordinate system. A method can first construct a
-representation in which the relevant structure is easier to separate.
+Clustering therefore does not have to be based on boundaries around centers in the original coordinate system. A method can first construct a representation in which the relevant structure is easier to separate.
 
 ### From a Neighborhood Graph to New Coordinates
 
-Spectral clustering treats observations as vertices in a graph. Two
-observations are connected when they are sufficiently similar, for example
-when one is among the nearest neighbors of the other. Let
+Spectral clustering treats observations as vertices in a graph. Two observations are connected when they are sufficiently similar, for example when one is among the nearest neighbors of the other. The graph represents local connectivity: observations are considered close if they can be connected through short graph paths, not only if they are close to the same center.
+
+Let
 
 $$
 W=\mqty[W_{ij}]
@@ -952,8 +958,7 @@ $$
 L=D-W.
 $$
 
-Eigenvectors of a graph Laplacian provide new coordinates that reflect graph
-connectivity. A typical spectral clustering algorithm:
+Eigenvectors of a graph Laplacian provide new coordinates that reflect graph connectivity. A typical spectral clustering algorithm:
 
 1. constructs a similarity or nearest-neighbor graph;
 2. computes eigenvectors of a graph Laplacian;
@@ -961,14 +966,11 @@ connectivity. A typical spectral clustering algorithm:
 4. applies a standard clustering method, usually K-means, in that
    representation.
 
-The final step may still use centroids, but they are found in learned
-coordinates rather than in the original feature space.
+The final step may still use centroids, but they are found in learned coordinates rather than in the original feature space.
 
-### Concentric Circles
+### Spectral Clustering in Python
 
-The concentric circles cannot be separated by placing two centers in the
-original plane. Their neighborhood graph, however, encodes connectivity
-around each ring.
+The concentric circles cannot be separated by placing two centers in the original plane. Their neighborhood graph, however, encodes connectivity around each ring.
 
 ```{python}
 #| warning: false
@@ -1019,18 +1021,33 @@ for ax, labels, title in zip(
 plt.tight_layout();
 ```
 
-Spectral clustering recovers the rings because the graph representation
-captures connectivity along each ring. It does not draw circular boundaries
-or search for circular cluster centers.
+Spectral clustering recovers the rings because the graph representation captures connectivity along each ring. It does not draw circular boundaries or search for circular cluster centers. Instead, it builds a representation in which the two graph-connected rings are easier to separate.
+
+### Tuning Hyperparameters
+
+The most important spectral clustering choices are how to build the graph and how many clusters to return.
+
+- `n_clusters` specifies the number of final clusters, similar to K-means.
+- `affinity` controls how the similarity graph is constructed. The example above uses `"nearest_neighbors"`.
+- `n_neighbors` controls the graph scale when `affinity="nearest_neighbors"`. A smaller value gives a more local graph and may disconnect a meaningful group. A larger value gives a denser graph and may create shortcuts between groups.
+- `assign_labels` controls how points are assigned to clusters after the spectral embedding is computed. The common choice `"kmeans"` applies K-means in the new coordinates.
 
 ::: {.callout-caution}
 ## Graph construction is part of the model
 
-The distance metric, number of neighbors, affinity function, and number of
-clusters can all change the result. A graph that is too sparse may disconnect
-a meaningful group, while a graph that is too dense may create shortcuts
-between groups.
+The distance metric, number of neighbors, affinity function, and number of clusters can all change the result. A graph that is too sparse may disconnect a meaningful group, while a graph that is too dense may create shortcuts between groups.
 :::
+
+### When Spectral Clustering Works Well
+
+Spectral clustering is most useful when:
+
+- clusters are better described by graph connectivity than by distance to a center;
+- groups are non-convex, such as rings or moons;
+- a meaningful similarity or neighborhood graph can be constructed;
+- the dataset is small or moderate in size.
+
+It is less useful when the graph construction is unclear or unstable. Unlike DBSCAN, spectral clustering does not label noise explicitly and usually requires the number of clusters to be chosen in advance.
 
 
 ## Comparing the Four Methods
