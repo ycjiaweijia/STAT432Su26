@@ -20,32 +20,30 @@ A clustering algorithm produces cluster assignments according to its objective a
 
 <!-- ## Overview of the Main Approaches -->
 
-Clustering methods differ in their definition of a group. We focus on four major paradigms, represented by one typical method from each:
+Clustering methods differ in their definition of a group. In the notes we focuses on three major direct clustering paradigms, represented by one typical method from each:
 
 | Family | Typical method | What defines a cluster? |
 |---|---|---|
 | Centroid-based | K-means | observations close to the same center |
 | Hierarchical | agglomerative hierarchical clustering | observations joined through a sequence of merges |
 | Density-based | DBSCAN | observations connected through dense regions |
-| Graph-based representation | spectral clustering | observations clustered after a graph-derived transformation |
 
-Many other clustering approaches exist. These four paradigms are emphasized because they represent substantially different definitions of what constitutes a cluster. We use one representative algorithm from each paradigm to illustrate the main ideas.
-
+Many other clustering approaches exist, including graph-based and representation-based methods. The three paradigms here are emphasized because they give distinct direct definitions of what constitutes a cluster. We use one representative algorithm from each paradigm to illustrate the main ideas.
 
 
 
+
+
+::: {.callout-note}
 
 ## Distance, Similarity, and Scaling
 
-Most clustering methods begin with a notion of similarity or dissimilarity. For numerical data, this is often derived from a distance measure. The most common choice is Euclidean distance:
+Most clustering methods require a notion of similarity or dissimilarity. For numerical data, a common choice is Euclidean distance: $d(x_i,x_j)=\norm{x_i-x_j}_2=\sqrt{\sum_{\ell=1}^p(x_{i\ell}-x_{j\ell})^2}$.
 
-$$
-d(x_i,x_j)=\norm{x_i-x_j}_2=\sqrt{\sum_{\ell=1}^p(x_{i\ell}-x_{j\ell})^2}.
-$$
+The distance defines what the algorithm means by *similar*. Changing the features, their scales, or the dissimilarity measure changes the clustering problem. Features with larger numerical ranges can dominate distance calculations, so standardization is often useful when feature scales are not directly comparable.
 
-The distance defines what the algorithm means by *similar*. Changing the features, their scales, or the dissimilarity measure changes the clustering problem. In particular, features with larger numerical ranges can dominate distance calculations and therefore have a disproportionate influence on the resulting clusters.
-
-As with KNN and other distance-based methods, it is often advisable to standardize the features before clustering when their scales are not directly comparable.
+Euclidean distance is not the only option. Manhattan distance, cosine similarity, or a domain-specific measure may be more appropriate depending on the structure one hopes to discover.
+:::
 
 ::: {.callout-note}
 
@@ -53,8 +51,6 @@ As with KNN and other distance-based methods, it is often advisable to standardi
 
 Standardize when numerical scales are arbitrary or incomparable. Do not standardize automatically when the original magnitudes are scientifically meaningful, such as comparable pixel intensities or measurements already expressed on a common scale.
 :::
-
-Euclidean distance is not the only choice. Many clustering methods can be combined with alternative notions of similarity or dissimilarity. For example, Manhattan distance can be less sensitive to a few large coordinate differences, cosine similarity focuses on direction rather than magnitude, and domain-specific applications may require custom similarity measures. The choice of similarity measure should reflect the structure one hopes to discover in the data.
 
 
 
@@ -85,6 +81,7 @@ The examples below use a small hypothetical dataset to illustrate the mechanics 
 <!-- fmt: off -->
 ```{python}
 #| code-fold: true
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -103,7 +100,8 @@ X_eval = np.array([
 
 cluster_eval = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2, 2])
 
-plt.scatter(X_eval[:, 0], X_eval[:, 1], c=cluster_eval);
+plt.scatter(X_eval[:, 0], X_eval[:, 1], c=cluster_eval)
+plt.gcf().set_size_inches(5, 3)
 ```
 <!-- fmt: on -->
 
@@ -117,12 +115,13 @@ $$
 \norm{x_i-\mu_k}_2^2.
 $$
 
+WCSS can be computed once cluster assignments and centers are specified. For arbitrary cluster labels, a natural choice is to set each center to the mean of its assigned observations. If only centers are given, as in the K-means assignment step, each observation is first assigned to its nearest center and WCSS is then computed from those assignments.
 
 For K-means, WCSS is both the fitting objective and an internal measure of cluster compactness. It plays a role similar to the residual sum of squares (RSS) in regression: smaller values indicate that observations are closer to their fitted centers.
 
-WCSS can be computed for any assignment of observations to clusters. However, it is most naturally associated with K-means because K-means explicitly minimizes WCSS during fitting. For clustering methods designed to detect non-spherical or density-based structures, WCSS may not provide a meaningful assessment of clustering quality.
+WCSS can be computed for any assignment of observations to clusters using any methods. However, it is most naturally associated with K-means because K-means explicitly minimizes WCSS during fitting. For clustering methods designed to detect non-spherical or density-based structures, WCSS may not provide a meaningful assessment of clustering quality.
 
-In `sklearn`, WCSS is also called inertia and is stored as `.inertia_` on a fitted `KMeans` object.
+In `sklearn`, WCSS is also called inertia and is stored as `.inertia_` on a fitted `KMeans` object. This is the WCSS for the fitted centers, specifically the best solution among the initializations tried. There is no general `sklearn` API for computing WCSS from arbitrary centers or labels.
 
 ```{python}
 from sklearn.cluster import KMeans
@@ -131,6 +130,73 @@ kmeans_eval = KMeans(n_clusters=3, n_init=20, random_state=1)
 kmeans_eval.fit(X_eval)
 kmeans_eval.inertia_
 ```
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
+
+For this example, the three fitted groups have centers
+
+$$
+\mu_0
+=
+\frac{(0.0,0.1)+(0.2,0.0)+(0.1,0.3)}{3}
+=
+\left(0.1,\frac{2}{15}\right),
+$$
+
+$$
+\mu_1
+=
+\frac{(4.0,4.1)+(4.2,3.9)+(3.8,4.0)}{3}
+=
+(4.0,4.0),
+$$
+
+$$
+\mu_2
+=
+\frac{(8.0,0.0)+(8.2,0.2)+(7.9,-0.1)+(8.1,0.1)}{4}
+=
+(8.05,0.05).
+$$
+
+Plugging these centers into the WCSS formula gives
+
+$$
+\begin{aligned}
+\operatorname{WCSS}_0
+=&
+\left\|(0.0,0.1)-\left(0.1,\frac{2}{15}\right)\right\|^2
++\left\|(0.2,0.0)-\left(0.1,\frac{2}{15}\right)\right\|^2
++\left\|(0.1,0.3)-\left(0.1,\frac{2}{15}\right)\right\|^2\\
+=&
+\frac{1}{15},\\
+\operatorname{WCSS}_1
+=&
+\|(4.0,4.1)-(4.0,4.0)\|^2
++\|(4.2,3.9)-(4.0,4.0)\|^2
++\|(3.8,4.0)-(4.0,4.0)\|^2\\
+=&0.10,\\
+\operatorname{WCSS}_2
+=&
+\|(8.0,0.0)-(8.05,0.05)\|^2
++\|(8.2,0.2)-(8.05,0.05)\|^2+\|(7.9,-0.1)-(8.05,0.05)\|^2
++\|(8.1,0.1)-(8.05,0.05)\|^2\\
+=&0.10.
+\end{aligned}
+$$
+
+Therefore,
+
+$$
+\operatorname{WCSS}
+=
+\frac{1}{15}+0.10+0.10
+\approx
+0.267.
+$$
+
+</details>
 
 Smaller inertia means observations are closer to their assigned centers. However, inertia always decreases as $K$ increases and becomes zero when every distinct observation is its own cluster. Therefore, its absolute minimum cannot be used to choose $K$.
 
@@ -166,6 +232,76 @@ from sklearn.metrics import silhouette_score
 
 silhouette_score(X_eval, cluster_eval)
 ```
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
+
+For example, consider the first observation $x_1=(0.0,0.1)$, which belongs to cluster 0. Its average distance to the other observations in its own cluster is
+
+$$
+a(1)
+=
+\frac{
+\|(0.0,0.1)-(0.2,0.0)\|
++
+\|(0.0,0.1)-(0.1,0.3)\|
+}{2}
+\approx
+0.224.
+$$
+
+Next compute its average distance to each other cluster:
+
+$$
+\begin{aligned}
+d(1,C_1)
+&=
+\frac{
+\|(0.0,0.1)-(4.0,4.1)\|
++\|(0.0,0.1)-(4.2,3.9)\|
++\|(0.0,0.1)-(3.8,4.0)\|
+}{3}\\
+&\approx 5.589,
+\end{aligned}
+$$
+
+and
+
+$$
+\begin{aligned}
+d(1,C_2)
+&=
+\frac{
+\|(0.0,0.1)-(8.0,0.0)\|
++\|(0.0,0.1)-(8.2,0.2)\|
++\|(0.0,0.1)-(7.9,-0.1)\|
++\|(0.0,0.1)-(8.1,0.1)\|
+}{4}\\
+&\approx 8.051.
+\end{aligned}
+$$
+
+Therefore,
+
+$$
+b(1)=\min\{5.589,8.051\}=5.589,
+$$
+
+and the silhouette value for this observation is
+
+$$
+s(1)
+=
+\frac{b(1)-a(1)}{\max\{a(1),b(1)\}}
+=
+\frac{5.589-0.224}{5.589}
+\approx
+0.960.
+$$
+
+The Silhouette score for the whole dataset is the mean of the score for each individual observation.
+</details>
+
 
 This score is close to 1, indicating that most observations are much closer to observations in their assigned cluster than to observations in other clusters.
 
@@ -526,7 +662,7 @@ X, true_group = make_blobs(
 plt.scatter(X[:, 0], X[:, 1], c=true_group)
 plt.xlabel("x1")
 plt.ylabel("x2")
-plt.title("Simulated Groups")
+plt.title("Simulated Groups");
 ```
 <!-- fmt: on -->
 
@@ -574,8 +710,7 @@ kmeans.cluster_centers_
 ::: {.callout-note}
 ## Label switching
 
-Cluster labels are arbitrary. A cluster labeled `0` in one fit may be labeled `2` in another fit even when the two clusterings are equivalent. Interpret the groups through their members and feature summaries, not the
-numeric label.
+Cluster labels are arbitrary. A cluster labeled `0` in one fit may be labeled `2` in another fit even when the two clusterings are equivalent. Interpret the groups through their members and feature summaries, not the numeric label.
 :::
 
 
@@ -583,8 +718,7 @@ numeric label.
 
 The most important K-means hyperparameter is `n_clusters`, the number of centers to fit. A larger value gives a more detailed clustering and lowers the within-cluster sum of squares, but it may split groups that are better interpreted together. A smaller value gives a coarser summary but may merge distinct groups. There is no universally correct criterion because the useful level of grouping depends on the scientific question.
 
-Two common diagnostics for choosing `n_clusters` are inertia and the silhouette score. The elbow plot examines inertia over a range that includes $K=1$. The silhouette score compares within-cluster cohesion with
-separation from neighboring clusters and is computed only for $K\ge 2$.
+Two common diagnostics for choosing `n_clusters` are inertia and the silhouette score. The elbow plot examines inertia over a range that includes $K=1$. The silhouette score compares within-cluster cohesion with separation from neighboring clusters and is computed only for $K\ge 2$.
 
 ```{python}
 from sklearn.metrics import silhouette_score
@@ -688,9 +822,9 @@ K-means divides the feature space into convex regions, so it cannot recover the 
 
 ## Hierarchical: Agglomerative Clustering
 
-Hierarchical clustering builds a nested sequence of clusterings. Agglomerative hierarchical clustering begins with each observation in its own cluster and repeatedly merges the two "closest" clusters until all observations belong to one cluster.
+<span onclick="say('hierarchical')">Hierarchical</span> clustering builds a nested sequence of clusterings. <span onclick="say('agglomerative')">Agglomerative</span> hierarchical clustering begins with each observation in its own cluster and repeatedly merges the two "closest" clusters until all observations belong to one cluster.
 
-The result is a tree called a **dendrogram**. Unlike K-means, the hierarchy can be fit before choosing the final number of clusters.
+The result is a tree called a <span onclick="say('dendrogram')">**dendrogram**</span>. Unlike K-means, the hierarchy can be fit before choosing the final number of clusters.
 
 
 ### Linkage
@@ -772,19 +906,24 @@ plt.ylabel("merge height")
 plt.title("Hierarchical Clustering Dendrogram");
 ```
 
-The merge height records the dissimilarity at which two clusters are merged. Drawing a horizontal line across the dendrogram determines the final clustering: each connected component below the line forms one cluster.
-
-The dendrogram summarizes the fitted hierarchy, not uncertainty about the hierarchy. A large vertical gap often suggests a natural place to cut the tree because the corresponding merge occurs at a much larger dissimilarity than previous merges. However, this is only a heuristic and may be supplemented by validation measures such as the silhouette score or by domain knowledge.
-
-
+The merge height records the dissimilarity at which two clusters are merged. The dendrogram summarizes the fitted hierarchy, not uncertainty about the hierarchy.
 
 
 ::: {.callout-note}
-## Choosing the Number of Clusters
+## Cutting the Dendrogram
 
-Hierarchical clustering separates fitting the hierarchy from choosing the final flat clustering. One common approach is to inspect the dendrogram and make a horizontal cut at a merge height. This keeps merges below the cut and separates branches that would only merge above the cut. Equivalently, cutting the tree at a chosen height turns the hierarchy into a flat set of cluster assignments.
+Hierarchical clustering separates fitting the hierarchy from choosing the final flat clustering. One conceptual approach is to inspect the dendrogram and make a horizontal cut at a merge height. This keeps merges below the cut and separates branches that would only merge above the cut.
 
-Another approach is to choose `n_clusters` directly, as in K-means, by comparing different scores across different possible choices of `n_clusters`.
+The cut height is often chosen by looking for a large vertical gap in the dendrogram, but this is only a heuristic. It should be checked against the analysis goal, stability, validation scores, and interpretability.
+:::
+
+
+::: {.callout-note}
+## `n_clusters` versus a height cut
+
+In `sklearn`, the usual `AgglomerativeClustering(n_clusters=...)` interface asks for an exact number of clusters. This is not the same as drawing a horizontal line at a fixed dendrogram height. The algorithm can return any requested value of `n_clusters`, even when several merges occur at the same height. Operationally, this is equivalent to following the merge sequence and stopping when exactly `n_clusters` groups remain, rather than choosing all merges below a fixed height.
+
+If the goal is a strict height-based cut, use `scipy.cluster.hierarchy.linkage` with `fcluster`, or use `AgglomerativeClustering` with `distance_threshold` and `n_clusters=None`. In this chapter, we focus mainly on the `sklearn` `n_clusters` interface because it is simple and matches the way the examples compare flat cluster assignments.
 :::
 
 
@@ -852,7 +991,7 @@ However, agglomerative clustering can be computationally expensive for very larg
 
 ## Density-Based: DBSCAN
 
-Density-based spatial clustering of applications with noise (DBSCAN) defines clusters as connected regions of sufficiently high local density. Unlike K-means, hierarchical clustering, or spectral clustering (that will be discussed later), DBSCAN does not require the number of clusters to be specified in advance.
+Density-based spatial clustering of applications with noise (DBSCAN) defines clusters as connected regions of sufficiently high local density. Unlike K-means or hierarchical clustering, DBSCAN does not require the number of clusters to be specified in advance.
 
 The main idea is that a cluster should be a dense region separated from other dense regions by lower-density space. This makes DBSCAN useful when clusters are curved, irregularly shaped, or when some observations should be treated as noise rather than forced into a cluster.
 
@@ -917,7 +1056,22 @@ The most important DBSCAN hyperparameter is `eps`, because it controls the scale
 
 The parameter `min_samples` controls how much local support is required for a point to be considered a core point. Larger values make the method more conservative and usually produce more noise points.
 
+
+
 A practical workflow is to first set `min_samples`, then use the data to select `eps`. A common starting choice is to set `min_samples` to about twice the number of features. In this two-dimensional example, we use `4`.
+
+
+::: {.callout-note}
+## Checking `min_samples`
+
+There is no supervised-style cross-validation rule for choosing `min_samples`. A reasonable value should give a stable and interpretable density structure: nearby choices should not radically change the main clusters, and the fraction of noise points should be plausible for the problem. A lower noise fraction is not automatically better, because forcing sparse points into clusters may hide outliers or connect groups through weak bridges.
+
+Several diagnostics can help. For a chosen `min_samples`, the k-distance plot should ideally show a reasonably clear elbow, suggesting a defensible density scale. As a starting point, two-dimensional data often use `min_samples=4` or
+`5`; more generally, one may start around `p + 1` or `2p`, where $p$ is the number of features.
+
+If external labels are available, the Rand index or adjusted Rand index can be used as additional diagnostics.
+:::
+
 
 After choosing `min_samples`, compute the distance from each observation to the neighbor that determines whether it is a core point. Since `min_samples` includes the observation itself in `sklearn`, this is the distance to the `min_samples`-th nearest observation when the observation itself is included as the first neighbor. Points inside dense regions should have small such distances, while isolated or low-density points should have larger distances. Sorting these distances gives a diagnostic plot. A visible elbow in the plot suggests a candidate value of `eps`.
 
@@ -992,566 +1146,189 @@ DBSCAN is most useful when:
 It is less effective when cluster densities differ substantially. One global value of `eps` may be too small for a sparse cluster and too large for a dense cluster.
 
 
-## Graph-Based: Spectral Clustering
+## Comparing the Three Methods
 
-The previous methods define clusters directly from centers, merges, or density
-in the observed feature space. Spectral clustering is different: its core step
-is to build a new graph-based representation of the data. A clustering method is
-then applied to that new representation:
+The three direct methods answer different versions of the clustering question. The key difference is their definitions of a cluster: what each method treats as evidence that observations belong together:
 
-$$
-X
-\longrightarrow
-\text{graph-based representation } Z
-\longrightarrow
-\text{clustering in } Z.
-$$
+| Method | Informal rule | Works especially well when |
+|---|---|---|
+| K-means | Points belong together if they are close to the same center. | clusters are roughly spherical, compact, and similar in size |
+| Hierarchical clustering | Points belong together if they are joined through a sequence of merges. | one wants to explore grouping structure at several resolutions |
+| DBSCAN | Points belong together if they lie in the same sufficiently dense region. | clusters are dense regions, noise is present, and the number of clusters is unknown |
 
-The final clustering is still a partition of the original observations, but the
-partition is found after transforming the data into coordinates that reflect
-graph connectivity. The last step is often K-means, but in principle the new
-representation can be passed to K-means, hierarchical clustering, DBSCAN, or any
-other clustering method.
+No method is uniformly best. The geometry of the data, the intended definition of a cluster, and the scientific question should determine which paradigm is appropriate. A useful comparison does not require every method to look successful; a poor-looking fit can be informative when it reveals the method's assumptions.
 
-### Building a Graph Representation
 
-Spectral clustering treats observations as vertices in a graph. Two observations
-are connected when they are sufficiently similar, for example when one is among
-the nearest neighbors of the other. The graph represents local connectivity:
-observations are close if they can be connected through short graph paths, not
-only if they are close to the same center.
 
-Let $W=\mqty[W_{ij}]$ be the weighted adjacency matrix and define the degree matrix
+- K-means is fast, simple, and often the practical default when $K$ is known and clusters are roughly compact and center-based. It can revise assignments during iteration, but it forces every observation into one of the $K$ clusters and is not designed for curved shapes or explicit noise.
+- Agglomerative hierarchical clustering is most useful when the merge sequence or dendrogram is part of the interpretation. It can show several possible resolutions from one fitted tree, but early merges cannot be undone and classical agglomerative methods scale poorly because they rely on many pairwise dissimilarities.
+- DBSCAN is useful when clusters are dense regions separated by sparse space. It does not require `n_clusters` and can label observations as noise, but it is sensitive to the density scale set by `eps` and `min_samples` and does not show nested structure.
 
-$$
-D=\operatorname{diag}(d_1,\ldots,d_n),
-\qquad
-d_i=\sum_j W_{ij}.
-$$
+We show three examples below illustrating the strengths and limitations of each method. These examples are not a ranking. They show that each method is answering a different question: nearest center, merge tree, or density connectivity. In the examples, the hierarchical clustering result uses single linkage. When a method performs poorly on a particular geometry, the failure is still useful if it matches the method's definition of a cluster.
 
-One graph Laplacian is
+Since all datasets are generated, we know the true label for each observation. Therefore, we can use ARI as an external metric to compare the clustering results on each dataset. ARI is optional and was introduced earlier in the notes.
 
-$$
-L=D-W.
-$$
+In the curves-with-noise example, the artificially added noise points are treated as a separate reference group when computing ARI. This favors methods that can identify noise points, such as DBSCAN, and penalizes methods such as K-means and hierarchical clustering that must assign every observation to a cluster.
 
-The Laplacian connects the graph to a new coordinate system. For any vector
-$z=(z_1,\ldots,z_n)^\top$ assigning one number to each observation,
+### Example: Curves with Noise
 
-$$
-z^\top Lz
-=
-\frac{1}{2}\sum_{i,j}W_{ij}(z_i-z_j)^2.
-$$
-
-This quantity is small when strongly connected observations receive similar
-values. Therefore, eigenvectors of the Laplacian with small eigenvalues provide
-coordinates that vary slowly across strong graph edges. These eigenvectors form
-the new representation used for clustering.
-
-### A Four-Point Example
-
-Suppose four observations form two disconnected graph components: observation 1
-is connected to observation 2, and observation 3 is connected to observation 4.
-
-```{mermaid}
-graph LR
-    x1["1"] --- x2["2"]
-    x3["3"] --- x4["4"]
-```
-
-With edge weight 1, the weighted adjacency matrix is
-
-$$
-W
-=
-\mqty[
-0 & 1 & 0 & 0\\
-1 & 0 & 0 & 0\\
-0 & 0 & 0 & 1\\
-0 & 0 & 1 & 0
-].
-$$
-
-Each observation has degree 1, so
-
-$$
-D
-=
-\mqty[
-1 & 0 & 0 & 0\\
-0 & 1 & 0 & 0\\
-0 & 0 & 1 & 0\\
-0 & 0 & 0 & 1
-],
-\qquad
-L=D-W
-=
-\mqty[
-1 & -1 & 0 & 0\\
--1 & 1 & 0 & 0\\
-0 & 0 & 1 & -1\\
-0 & 0 & -1 & 1
-]. 
-$$
-
-The vectors
-
-$$
-v_1=\mqty[1\\1\\0\\0],
-\qquad
-v_2=\mqty[0\\0\\1\\1]
-$$
-
-satisfy
-
-$$
-Lv_1=\mqty[0\\0\\0\\0],
-\qquad
-Lv_2=\mqty[0\\0\\0\\0].
-$$
-
-Thus, both are eigenvectors with eigenvalue 0. They are constant within each
-connected component: $v_1$ identifies the component containing observations 1
-and 2, while $v_2$ identifies the component containing observations 3 and 4.
-
-If we use these two eigenvectors as the columns of a new representation matrix
-$Z$, then each row of $Z$ is the new feature vector for one observation:
-
-| Observation | Coordinate from $v_1$ | Coordinate from $v_2$ |
-|---|---:|---:|
-| 1 | 1 | 0 |
-| 2 | 1 | 0 |
-| 3 | 0 | 1 |
-| 4 | 0 | 1 |
-
-In the original data, these four observations may not be easy to separate by a
-linear boundary or by distance to a center. In the graph-based representation,
-observations 1 and 2 now have identical coordinates $(1,0)$, while observations
-3 and 4 have identical coordinates $(0,1)$. The new feature vector records
-graph membership: observations connected through the graph receive similar
-coordinates.
-
-This example is idealized because the graph is exactly disconnected. In real
-datasets, the graph is usually connected but may have weak connections between
-groups. The small-eigenvalue eigenvectors then give approximate component
-coordinates: they change slowly within dense or well-connected regions and more
-sharply across weak connections.
-
-Many implementations use normalized versions of the graph Laplacian instead of
-$L=D-W$. The details differ, but the purpose is the same: construct coordinates
-that summarize graph connectivity.
-
-### How Spectral Clustering Forms Clusters
-
-A typical spectral clustering workflow is:
-
-1. construct a similarity or nearest-neighbor graph;
-2. compute eigenvectors of a graph Laplacian;
-3. store those eigenvectors as a new feature matrix $Z$;
-4. apply a clustering method to $Z$.
-
-The clustering method in the last step is not the essence of spectral
-clustering. The essential step is the new representation $Z$. K-means is common
-because the spectral embedding often turns graph-connected groups into compact
-groups, but other clustering methods can also be applied to the embedded points.
-
-### Spectral Clustering in Python
-
-The concentric circles cannot be separated by placing two centers in the original plane. Their neighborhood graph, however, encodes connectivity around each ring.
-
-In `sklearn`, `SpectralClustering` combines the representation step and the
-final clustering step. With `assign_labels="kmeans"`, it computes a spectral
-embedding internally and then applies K-means to that embedding. This is the
-default assignment method.
-
-```{python}
-#| warning: false
-from sklearn.cluster import SpectralClustering
-
-circle_spectral = SpectralClustering(
-    n_clusters=2,
-    affinity="nearest_neighbors",
-    n_neighbors=10,
-    assign_labels="kmeans",
-    random_state=1,
-)
-circle_spectral_group = circle_spectral.fit_predict(
-    X_circle
-)
-
-fig, axs = plt.subplots(
-    1,
-    3,
-    figsize=(13, 4),
-    sharex=True,
-    sharey=True,
-)
-
-for ax, labels, title in zip(
-    axs,
-    [
-        true_circle_group,
-        circle_cluster,
-        circle_spectral_group,
-    ],
-    [
-        "Underlying Structure",
-        "K-Means in Original Space",
-        "Spectral Clustering",
-    ],
-):
-    ax.scatter(
-        X_circle[:, 0],
-        X_circle[:, 1],
-        c=labels,
-        s=18,
-    )
-    ax.set_title(title)
-    ax.set_xlabel("x1")
-    ax.set_ylabel("x2")
-
-plt.tight_layout();
-```
-
-Spectral clustering recovers the rings because the graph representation captures connectivity along each ring. It does not draw circular boundaries or search for circular cluster centers in the original plane. Instead, it builds a representation in which the two graph-connected rings are easier to separate.
-
-### Exporting the Representation
-
-The spectral representation can also be computed directly and then passed to a
-different clustering method. In `sklearn`, `SpectralEmbedding` returns the new
-coordinates.
-
-```{python}
-#| warning: false
-from sklearn.manifold import SpectralEmbedding
-from sklearn.cluster import AgglomerativeClustering
-
-spectral_embedding = SpectralEmbedding(
-    n_components=2,
-    affinity="nearest_neighbors",
-    n_neighbors=10,
-    random_state=1,
-)
-Z_circle = spectral_embedding.fit_transform(X_circle)
-
-spectral_hierarchical_group = AgglomerativeClustering(
-    n_clusters=2,
-    linkage="ward",
-).fit_predict(Z_circle)
-```
-
-Here `Z_circle` is the graph-based feature matrix. Each row is a new vector for
-one original observation. The hierarchical clustering step above is not
-operating on the original coordinates `X_circle`; it is operating on the
-spectral coordinates `Z_circle`.
-
-```{python}
-#| code-fold: true
-fig, axs = plt.subplots(1, 2, figsize=(10, 4))
-
-axs[0].scatter(Z_circle[:, 0], Z_circle[:, 1], c=true_circle_group, s=18)
-axs[0].set_title("Spectral Representation")
-axs[0].set_xlabel("z1")
-axs[0].set_ylabel("z2")
-
-axs[1].scatter(
-    X_circle[:, 0],
-    X_circle[:, 1],
-    c=spectral_hierarchical_group,
-    s=18,
-)
-axs[1].set_title("Hierarchical Clustering on Z")
-axs[1].set_xlabel("x1")
-axs[1].set_ylabel("x2")
-
-plt.tight_layout();
-```
-
-### Tuning Hyperparameters
-
-The most important spectral clustering choices are how to build the graph and,
-when using a final method such as K-means or hierarchical clustering, how many
-clusters to return.
-
-- `n_clusters` specifies the number of final clusters, similar to K-means.
-- `affinity` controls how the similarity graph is constructed. The example above uses `"nearest_neighbors"`.
-- `n_neighbors` controls the graph scale when `affinity="nearest_neighbors"`. A smaller value gives a more local graph and may disconnect a meaningful group. A larger value gives a denser graph and may create shortcuts between groups.
-- `assign_labels` controls how points are assigned to clusters after the spectral embedding is computed by `SpectralClustering`. The common choice `"kmeans"` applies K-means in the new coordinates.
-
-For a nearest-neighbor graph, `n_neighbors` plays a role similar to a scale
-parameter. It is useful to compare several values.
-
-```{python}
-#| warning: false
-#| code-fold: true
-n_neighbor_values = [5, 10, 30]
-
-fig, axs = plt.subplots(1, 3, figsize=(12, 4), sharex=True, sharey=True)
-
-for ax, n_neighbors in zip(axs, n_neighbor_values):
-    labels = SpectralClustering(
-        n_clusters=2,
-        affinity="nearest_neighbors",
-        n_neighbors=n_neighbors,
-        assign_labels="kmeans",
-        random_state=1,
-    ).fit_predict(X_circle)
-
-    ax.scatter(X_circle[:, 0], X_circle[:, 1], c=labels, s=18)
-    ax.set_title(f"n_neighbors = {n_neighbors}")
-    ax.set_xlabel("x1")
-    ax.set_ylabel("x2")
-
-plt.tight_layout();
-```
-
-If the graph is too sparse, a true group may break into disconnected pieces. If
-the graph is too dense, edges may create shortcuts between groups that should
-remain separated.
-
-::: {.callout-caution}
-## Graph construction is part of the model
-
-The distance metric, number of neighbors, affinity function, and number of clusters can all change the result. Spectral clustering should therefore be checked for sensitivity to reasonable graph-construction choices.
-:::
-
-::: {.callout-note}
-## Graphs are not dendrograms
-
-The graph in spectral clustering and the tree in hierarchical clustering encode
-different information. A hierarchical dendrogram records a sequence of merges.
-Cutting the tree at a height gives a flat clustering, and the merge heights
-show the dissimilarity levels at which groups were joined.
-
-The graph in spectral clustering is not a merge history. It records local
-similarities between observations, and the graph Laplacian uses those
-connections to build new coordinates. A clustering method is then applied to
-those new coordinates. Thus, hierarchical clustering groups observations by
-following a merge tree, while spectral clustering first transforms a similarity
-graph into a new representation.
-:::
-
-### When Spectral Clustering Works Well
-
-Spectral clustering is most useful when:
-
-- a graph-derived representation makes the groups easier to separate;
-- groups are non-convex, such as rings or moons;
-- a meaningful similarity or neighborhood graph can be constructed;
-- the dataset is small or moderate in size.
-
-It is less useful when the graph construction is unclear or unstable. Unlike DBSCAN, spectral clustering does not label noise explicitly and usually requires the number of clusters to be chosen in advance.
-
-
-## Comparing the Four Methods
-
-The four methods answer different versions of the clustering question:
-
-| Property | K-means | Hierarchical | DBSCAN | Spectral |
-|---|---|---|---|---|
-| Main idea | nearest centroid | repeated merges | density connectivity | graph-derived representation |
-| Number of clusters required? | yes | chosen by cutting the tree | no | depends on final method |
-| Typical cluster shape | compact and convex | depends on linkage | irregular shapes allowed | depends on graph representation and final clustering method |
-| Explicit noise label? | no | no | yes | depends on final method |
-| Main tuning choices | $K$, initialization | distance, linkage, tree cut | `eps`, `min_samples` | graph construction, final clustering method, often $K$ |
-| Main output | cluster assignments and centers | dendrogram | clusters and noise points | spectral representation plus cluster assignments |
-
-No method is uniformly best. The geometry of the data, the intended
-definition of a cluster, and the scientific question should determine which
-paradigm is appropriate. A useful comparison does not require every method to
-look successful; a poor-looking fit can be informative when it reveals the
-method's assumptions.
-
-### Direct Clustering Methods
-
-K-means, hierarchical clustering, and DBSCAN are direct clustering methods: they
-cluster the original feature matrix using different definitions of a group.
-Their strengths show up in different data geometries.
-
+<!-- fmt: off -->
 ```{python}
 #| warning: false
 #| code-fold: true
 from sklearn.datasets import make_blobs, make_moons
+from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
+from sklearn.metrics import adjusted_rand_score
+import numpy as np
+import matplotlib.pyplot as plt
 
-X_blob, _ = make_blobs(
-    n_samples=450,
-    centers=3,
-    cluster_std=0.65,
-    random_state=4,
-)
-
-X_hier, _ = make_blobs(
-    n_samples=[120, 120, 120, 120],
-    centers=[[-3, 0], [-1.5, 0], [1.5, 0], [3, 0]],
-    cluster_std=0.35,
-    random_state=5,
-)
-
-X_moon, _ = make_moons(
-    n_samples=450,
-    noise=0.06,
-    random_state=2,
-)
 rng = np.random.default_rng(2)
-moon_noise = rng.uniform(
-    low=[-1.5, -0.8],
-    high=[2.5, 1.3],
-    size=(30, 2),
-)
+
+X_moon, true_moon_group = make_moons(n_samples=450, noise=0.06, random_state=2)
+moon_noise = rng.uniform(low=[-1.5, -0.8], high=[2.5, 1.3], size=(30, 2))
 X_moon_noise = np.vstack([X_moon, moon_noise])
+true_moon_noise_group = np.concatenate(
+    [true_moon_group, np.repeat(-1, len(moon_noise))]
+)
 
-direct_kmeans = KMeans(
-    n_clusters=3,
-    n_init=20,
-    random_state=1,
-).fit_predict(X_blob)
+kmeans_labels = KMeans(n_clusters=2, n_init=20, random_state=1).fit_predict(
+    X_moon_noise
+)
 
-direct_hier = AgglomerativeClustering(
-    n_clusters=2,
-    linkage="ward",
-).fit_predict(X_hier)
+single_labels = AgglomerativeClustering(n_clusters=2, linkage="single").fit_predict(
+    X_moon_noise
+)
 
-direct_dbscan = DBSCAN(
-    eps=0.16,
-    min_samples=6,
-).fit_predict(X_moon_noise)
+dbscan_labels = DBSCAN(eps=0.16, min_samples=6).fit_predict(X_moon_noise)
 
-fig, axs = plt.subplots(1, 3, figsize=(13, 4))
+kmeans_ari = adjusted_rand_score(true_moon_noise_group, kmeans_labels)
+single_ari = adjusted_rand_score(true_moon_noise_group, single_labels)
+dbscan_ari = adjusted_rand_score(true_moon_noise_group, dbscan_labels)
 
-for ax, X_current, labels, title in zip(
-    axs,
-    [X_blob, X_hier, X_moon_noise],
-    [direct_kmeans, direct_hier, direct_dbscan],
-    [
-        "K-Means: Compact Groups",
-        "Hierarchical: Nested Structure",
-        "DBSCAN: Curves and Noise",
-    ],
-):
-    ax.scatter(X_current[:, 0], X_current[:, 1], c=labels, s=18)
-    ax.set_title(title)
+fig, axs = plt.subplots(1, 3, figsize=(12, 3.5), sharex=False, sharey=False)
+
+axs[0].scatter(X_moon_noise[:, 0], X_moon_noise[:, 1], c=kmeans_labels, s=16)
+axs[0].set_title(f"K-Means\nARI = {kmeans_ari:.2f}")
+
+axs[1].scatter(X_moon_noise[:, 0], X_moon_noise[:, 1], c=single_labels, s=16)
+axs[1].set_title(f"Hierarchical: Single\nARI = {single_ari:.2f}")
+
+axs[2].scatter(X_moon_noise[:, 0], X_moon_noise[:, 1], c=dbscan_labels, s=16)
+axs[2].set_title(f"DBSCAN\nARI = {dbscan_ari:.2f}")
+
+for ax in axs:
     ax.set_xlabel("x1")
     ax.set_ylabel("x2")
 
-plt.tight_layout();
+fig.suptitle("Curves with Noise", y=1.05);
 ```
 
-K-means is natural when groups are compact and well summarized by centers.
-Hierarchical clustering is useful when the merge structure itself is part of
-the interpretation, or when one wants to inspect several possible resolutions
-from the same fitted hierarchy. DBSCAN is useful when clusters are dense,
-possibly curved regions and sparse observations should be allowed to remain
-noise.
+The moon dataset contains two curved dense regions plus scattered noise. 
 
-These examples are not a ranking. They show that each method is answering a
-different question: nearest center, merge tree, or density connectivity. When a
-method performs poorly on a particular geometry, the failure is still useful if
-it matches the method's definition of a cluster.
+- DBSCAN works best here because it defines clusters as dense connected regions, so it can follow the two curved shapes and leave scattered observations as noise.
+- K-means has trouble because each cluster is represented by a center, which breaks the curved geometry into center-based regions. 
+- Hierarchical clustering using single linkage can follow connected shapes, but scattered noise may create unwanted connections or unbalanced cuts.
 
-### Spectral Representation with Different Final Methods
-
-Spectral clustering changes the comparison. It first constructs a graph-derived
-representation $Z$, and then a final clustering method is applied to $Z$. The
-same representation can be paired with different final methods.
+### Example: Unequal Densities
 
 ```{python}
 #| warning: false
-from sklearn.manifold import SpectralEmbedding
-
-spectral_embed_compare = SpectralEmbedding(
-    n_components=2,
-    affinity="nearest_neighbors",
-    n_neighbors=10,
-    random_state=1,
-)
-Z_circle_compare = spectral_embed_compare.fit_transform(X_circle)
-
-spectral_then_kmeans = KMeans(
-    n_clusters=2,
-    n_init=20,
-    random_state=1,
-).fit_predict(Z_circle_compare)
-
-spectral_then_hier = AgglomerativeClustering(
-    n_clusters=2,
-    linkage="ward",
-).fit_predict(Z_circle_compare)
-
-spectral_then_dbscan = DBSCAN(
-    eps=0.006,
-    min_samples=5,
-).fit_predict(Z_circle_compare)
-```
-
-```{python}
 #| code-fold: true
-fig, axs = plt.subplots(1, 3, figsize=(13, 4), sharex=True, sharey=True)
 
-for ax, labels, title in zip(
-    axs,
-    [
-        spectral_then_kmeans,
-        spectral_then_hier,
-        spectral_then_dbscan,
-    ],
-    [
-        "Spectral Z + K-Means",
-        "Spectral Z + Hierarchical",
-        "Spectral Z + DBSCAN",
-    ],
-):
-    ax.scatter(X_circle[:, 0], X_circle[:, 1], c=labels, s=18)
-    ax.set_title(title)
+X_unequal_density, true_unequal_density_group = make_blobs(
+    n_samples=[180, 220, 260],
+    centers=[[-4.0, 0], [0.0, 0], [4.5, 0]],
+    cluster_std=[0.18, 0.55, 1.15],
+    random_state=8,
+)
+
+kmeans_labels = KMeans(n_clusters=3, n_init=20, random_state=1).fit_predict(
+    X_unequal_density
+)
+
+single_labels = AgglomerativeClustering(n_clusters=3, linkage="single").fit_predict(
+    X_unequal_density
+)
+
+dbscan_labels = DBSCAN(eps=0.40, min_samples=6).fit_predict(X_unequal_density)
+
+kmeans_ari = adjusted_rand_score(true_unequal_density_group, kmeans_labels)
+single_ari = adjusted_rand_score(true_unequal_density_group, single_labels)
+dbscan_ari = adjusted_rand_score(true_unequal_density_group, dbscan_labels)
+
+fig, axs = plt.subplots(1, 3, figsize=(12, 3.5), sharex=False, sharey=False)
+
+axs[0].scatter(X_unequal_density[:, 0], X_unequal_density[:, 1], c=kmeans_labels, s=16)
+axs[0].set_title(f"K-Means\nARI = {kmeans_ari:.2f}")
+
+axs[1].scatter(X_unequal_density[:, 0], X_unequal_density[:, 1], c=single_labels, s=16)
+axs[1].set_title(f"Hierarchical: Single\nARI = {single_ari:.2f}")
+
+axs[2].scatter(X_unequal_density[:, 0], X_unequal_density[:, 1], c=dbscan_labels, s=16)
+axs[2].set_title(f"DBSCAN\nARI = {dbscan_ari:.2f}")
+
+for ax in axs:
     ax.set_xlabel("x1")
     ax.set_ylabel("x2")
 
-plt.tight_layout();
+fig.suptitle("Unequal Densities", y=1.05);
 ```
 
-K-means on $Z$ is the standard spectral clustering pipeline in many software
-implementations, including `sklearn.SpectralClustering` with
-`assign_labels="kmeans"`. Hierarchical clustering on $Z$ is useful when the
-spectral representation separates the broad groups but one still wants a merge
-tree or several possible resolutions. DBSCAN on $Z$ is useful when the
-representation contains compact dense regions plus possible sparse points, so a
-noise label remains useful after the transformation.
+The unequal-density dataset illustrates a limitation of DBSCAN. The three groups have very different spreads. 
 
-Thus, spectral clustering should not be interpreted as just another final
-assignment rule. Its main contribution is the representation $Z$; the final
-clustering method should be chosen according to what structure remains in that
-representation. A final method may still behave poorly on $Z$, but that can be
-diagnostic: it shows which structure the representation preserved and which
-assumptions the final clustering method added.
+- K-means is relatively effective here because the groups are still roughly center-based, even though their densities differ.
+- DBSCAN is less effective here than K-means and is more sensitive to the chosen `eps`, because one global `eps` may be appropriate for the dense group but too small for the sparse group, or appropriate for the sparse group but too large for the dense group. 
+- Hierarchical clustering using single linkage can also be unstable here because a few close points between groups can create early connections that affect the later merges.
 
+### Example: Uneven Chains
 
-## Practical Workflow
+```{python}
+#| warning: false
+#| code-fold: true
 
-A clustering analysis usually follows these steps:
+rng_chain = np.random.default_rng(9)
+t_chain = np.concatenate([np.linspace(0, 1.1, 170), np.linspace(1.1, np.pi, 35)])
+upper_chain = np.column_stack([np.cos(t_chain), np.sin(t_chain)])
+lower_chain = np.column_stack([1 - np.cos(t_chain), 0.5 - np.sin(t_chain)])
+X_chain = np.vstack([upper_chain, lower_chain]) + rng_chain.normal(
+    scale=0.025, size=(2 * len(t_chain), 2)
+)
+true_chain_group = np.concatenate(
+    [np.repeat(0, len(t_chain)), np.repeat(1, len(t_chain))]
+)
 
-1. select features that match the scientific question;
-2. handle missing values and obvious data quality problems;
-3. choose scaling and a distance metric deliberately;
-4. decide whether clustering should use the original features or a
-   constructed representation;
-5. compare clustering paradigms and tuning choices;
-6. check stability under perturbations;
-7. interpret the cluster assignments in the original feature space.
+kmeans_labels = KMeans(n_clusters=2, n_init=20, random_state=1).fit_predict(X_chain)
 
-Spectral clustering already demonstrated that changing the representation can
-make some structures easier to separate. The next chapter, @sec-unsupervised-pca,
-studies this representation problem directly through linear dimension
-reduction. The following chapter, @sec-embedding, develops nonlinear
-representations primarily for visualization. These transformations can
-reveal structure and reduce noise, but they also change the geometry on
-which clustering is based.
+single_labels = AgglomerativeClustering(n_clusters=2, linkage="single").fit_predict(
+    X_chain
+)
+dbscan_labels = DBSCAN(eps=0.08, min_samples=6).fit_predict(X_chain)
 
+kmeans_ari = adjusted_rand_score(true_chain_group, kmeans_labels)
+single_ari = adjusted_rand_score(true_chain_group, single_labels)
+dbscan_ari = adjusted_rand_score(true_chain_group, dbscan_labels)
 
-## Summary
+fig, axs = plt.subplots(1, 3, figsize=(12, 3.5), sharex=False, sharey=False)
 
-The four paradigms use different definitions of a cluster. K-means finds
-centroid-based groups, hierarchical clustering builds a nested sequence of
-merges, DBSCAN finds density-connected groups while allowing noise, and spectral
-clustering constructs a graph-derived representation before applying a final
-clustering method. Method choice and evaluation should reflect the intended
-geometry, stability, and interpretation in the original variables.
+axs[0].scatter(X_chain[:, 0], X_chain[:, 1], c=kmeans_labels, s=16)
+axs[0].set_title(f"K-Means\nARI = {kmeans_ari:.2f}")
+
+axs[1].scatter(X_chain[:, 0], X_chain[:, 1], c=single_labels, s=16)
+axs[1].set_title(f"Hierarchical: Single\nARI = {single_ari:.2f}")
+
+axs[2].scatter(X_chain[:, 0], X_chain[:, 1], c=dbscan_labels, s=16)
+axs[2].set_title(f"DBSCAN\nARI = {dbscan_ari:.2f}")
+
+for ax in axs:
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x2")
+
+fig.suptitle("Uneven Chains", y=1.05);
+```
+<!-- fmt: on -->
+
+The uneven-chain dataset illustrates a case where hierarchical clustering using single linkage can be useful. The groups are best described as connected chains with uneven spacing. 
+
+- Single linkage can follow each chain through nearest-neighbor connections, so it is the most natural fit among the three methods. 
+- K-means instead cuts the plane into center-based regions, which mixes parts of the two chains. 
+- DBSCAN can label the thinner parts on both sides of the chains as noise when one global density scale is used. In this example, those side segments are not merged into one cluster; they are mostly excluded as noise because they are too sparse under the chosen `eps` and `min_samples`.
