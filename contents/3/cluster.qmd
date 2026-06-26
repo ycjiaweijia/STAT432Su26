@@ -27,7 +27,7 @@ Clustering methods differ in their definition of a group. We focus on four major
 | Centroid-based | K-means | observations close to the same center |
 | Hierarchical | agglomerative hierarchical clustering | observations joined through a sequence of merges |
 | Density-based | DBSCAN | observations connected through dense regions |
-| Graph-based | spectral clustering | observations connected in a similarity graph |
+| Graph-based representation | spectral clustering | observations clustered after a graph-derived transformation |
 
 Many other clustering approaches exist. These four paradigms are emphasized because they represent substantially different definitions of what constitutes a cluster. We use one representative algorithm from each paradigm to illustrate the main ideas.
 
@@ -994,32 +994,37 @@ It is less effective when cluster densities differ substantially. One global val
 
 ## Graph-Based: Spectral Clustering
 
-The previous methods define clusters directly from centers, merges, or density in the observed feature space. Spectral clustering first builds a graph representation of the data and then clusters that representation:
+The previous methods define clusters directly from centers, merges, or density
+in the observed feature space. Spectral clustering is different: its core step
+is to build a new graph-based representation of the data. A clustering method is
+then applied to that new representation:
 
 $$
 X
 \longrightarrow
-\text{new representation } Z
+\text{graph-based representation } Z
 \longrightarrow
 \text{clustering in } Z.
 $$
 
-The final clustering is still a partition of the original observations, but the partition is found after transforming the data into coordinates that reflect graph connectivity.
+The final clustering is still a partition of the original observations, but the
+partition is found after transforming the data into coordinates that reflect
+graph connectivity. The last step is often K-means, but in principle the new
+representation can be passed to K-means, hierarchical clustering, DBSCAN, or any
+other clustering method.
 
-### From a Graph to New Coordinates
+### Building a Graph Representation
 
-Spectral clustering treats observations as vertices in a graph. Two observations are connected when they are sufficiently similar, for example when one is among the nearest neighbors of the other. The graph represents local connectivity: observations are close if they can be connected through short graph paths, not only if they are close to the same center.
+Spectral clustering treats observations as vertices in a graph. Two observations
+are connected when they are sufficiently similar, for example when one is among
+the nearest neighbors of the other. The graph represents local connectivity:
+observations are close if they can be connected through short graph paths, not
+only if they are close to the same center.
 
-Let
+Let $W=\mqty[W_{ij}]$ be the weighted adjacency matrix and define the degree matrix
 
 $$
-W=\mqty[W_{ij}]
-$$
-
-be the weighted adjacency matrix and define the degree matrix
-
-$$
-D=\diag(d_1,\ldots,d_n),
+D=\operatorname{diag}(d_1,\ldots,d_n),
 \qquad
 d_i=\sum_j W_{ij}.
 $$
@@ -1030,31 +1035,135 @@ $$
 L=D-W.
 $$
 
-Many implementations use normalized versions of the graph Laplacian, but the
-main idea is the same: eigenvectors of a Laplacian provide new coordinates that
-reflect graph connectivity. A typical spectral clustering algorithm:
+The Laplacian connects the graph to a new coordinate system. For any vector
+$z=(z_1,\ldots,z_n)^\top$ assigning one number to each observation,
 
-1. constructs a similarity or nearest-neighbor graph;
-2. computes eigenvectors of a graph Laplacian;
-3. uses the eigenvectors as a new representation;
-4. applies a standard clustering method, usually K-means, in that representation.
+$$
+z^\top Lz
+=
+\frac{1}{2}\sum_{i,j}W_{ij}(z_i-z_j)^2.
+$$
 
-The final step may still use centroids, but they are found in learned coordinates rather than in the original feature space.
+This quantity is small when strongly connected observations receive similar
+values. Therefore, eigenvectors of the Laplacian with small eigenvalues provide
+coordinates that vary slowly across strong graph edges. These eigenvectors form
+the new representation used for clustering.
+
+### A Four-Point Example
+
+Suppose four observations form two disconnected graph components: observation 1
+is connected to observation 2, and observation 3 is connected to observation 4.
+
+```{mermaid}
+graph LR
+    x1["1"] --- x2["2"]
+    x3["3"] --- x4["4"]
+```
+
+With edge weight 1, the weighted adjacency matrix is
+
+$$
+W
+=
+\mqty[
+0 & 1 & 0 & 0\\
+1 & 0 & 0 & 0\\
+0 & 0 & 0 & 1\\
+0 & 0 & 1 & 0
+].
+$$
+
+Each observation has degree 1, so
+
+$$
+D
+=
+\mqty[
+1 & 0 & 0 & 0\\
+0 & 1 & 0 & 0\\
+0 & 0 & 1 & 0\\
+0 & 0 & 0 & 1
+],
+\qquad
+L=D-W
+=
+\mqty[
+1 & -1 & 0 & 0\\
+-1 & 1 & 0 & 0\\
+0 & 0 & 1 & -1\\
+0 & 0 & -1 & 1
+]. 
+$$
+
+The vectors
+
+$$
+v_1=\mqty[1\\1\\0\\0],
+\qquad
+v_2=\mqty[0\\0\\1\\1]
+$$
+
+satisfy
+
+$$
+Lv_1=\mqty[0\\0\\0\\0],
+\qquad
+Lv_2=\mqty[0\\0\\0\\0].
+$$
+
+Thus, both are eigenvectors with eigenvalue 0. They are constant within each
+connected component: $v_1$ identifies the component containing observations 1
+and 2, while $v_2$ identifies the component containing observations 3 and 4.
+
+If we use these two eigenvectors as the columns of a new representation matrix
+$Z$, then each row of $Z$ is the new feature vector for one observation:
+
+| Observation | Coordinate from $v_1$ | Coordinate from $v_2$ |
+|---|---:|---:|
+| 1 | 1 | 0 |
+| 2 | 1 | 0 |
+| 3 | 0 | 1 |
+| 4 | 0 | 1 |
+
+In the original data, these four observations may not be easy to separate by a
+linear boundary or by distance to a center. In the graph-based representation,
+observations 1 and 2 now have identical coordinates $(1,0)$, while observations
+3 and 4 have identical coordinates $(0,1)$. The new feature vector records
+graph membership: observations connected through the graph receive similar
+coordinates.
+
+This example is idealized because the graph is exactly disconnected. In real
+datasets, the graph is usually connected but may have weak connections between
+groups. The small-eigenvalue eigenvectors then give approximate component
+coordinates: they change slowly within dense or well-connected regions and more
+sharply across weak connections.
+
+Many implementations use normalized versions of the graph Laplacian instead of
+$L=D-W$. The details differ, but the purpose is the same: construct coordinates
+that summarize graph connectivity.
 
 ### How Spectral Clustering Forms Clusters
 
-Spectral clustering first decides which observations are local neighbors. It
-then uses the graph Laplacian to construct a low-dimensional embedding in which
-observations connected through the graph tend to have similar coordinates.
+A typical spectral clustering workflow is:
 
-After this embedding is computed, a standard clustering method is applied to the
-embedded points. In `sklearn`, the common choice is K-means. Thus, spectral
-clustering can separate rings or curved groups because K-means is not applied
-directly to the original coordinates.
+1. construct a similarity or nearest-neighbor graph;
+2. compute eigenvectors of a graph Laplacian;
+3. store those eigenvectors as a new feature matrix $Z$;
+4. apply a clustering method to $Z$.
+
+The clustering method in the last step is not the essence of spectral
+clustering. The essential step is the new representation $Z$. K-means is common
+because the spectral embedding often turns graph-connected groups into compact
+groups, but other clustering methods can also be applied to the embedded points.
 
 ### Spectral Clustering in Python
 
 The concentric circles cannot be separated by placing two centers in the original plane. Their neighborhood graph, however, encodes connectivity around each ring.
+
+In `sklearn`, `SpectralClustering` combines the representation step and the
+final clustering step. With `assign_labels="kmeans"`, it computes a spectral
+embedding internally and then applies K-means to that embedding. This is the
+default assignment method.
 
 ```{python}
 #| warning: false
@@ -1107,14 +1216,68 @@ plt.tight_layout();
 
 Spectral clustering recovers the rings because the graph representation captures connectivity along each ring. It does not draw circular boundaries or search for circular cluster centers in the original plane. Instead, it builds a representation in which the two graph-connected rings are easier to separate.
 
+### Exporting the Representation
+
+The spectral representation can also be computed directly and then passed to a
+different clustering method. In `sklearn`, `SpectralEmbedding` returns the new
+coordinates.
+
+```{python}
+#| warning: false
+from sklearn.manifold import SpectralEmbedding
+from sklearn.cluster import AgglomerativeClustering
+
+spectral_embedding = SpectralEmbedding(
+    n_components=2,
+    affinity="nearest_neighbors",
+    n_neighbors=10,
+    random_state=1,
+)
+Z_circle = spectral_embedding.fit_transform(X_circle)
+
+spectral_hierarchical_group = AgglomerativeClustering(
+    n_clusters=2,
+    linkage="ward",
+).fit_predict(Z_circle)
+```
+
+Here `Z_circle` is the graph-based feature matrix. Each row is a new vector for
+one original observation. The hierarchical clustering step above is not
+operating on the original coordinates `X_circle`; it is operating on the
+spectral coordinates `Z_circle`.
+
+```{python}
+#| code-fold: true
+fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+
+axs[0].scatter(Z_circle[:, 0], Z_circle[:, 1], c=true_circle_group, s=18)
+axs[0].set_title("Spectral Representation")
+axs[0].set_xlabel("z1")
+axs[0].set_ylabel("z2")
+
+axs[1].scatter(
+    X_circle[:, 0],
+    X_circle[:, 1],
+    c=spectral_hierarchical_group,
+    s=18,
+)
+axs[1].set_title("Hierarchical Clustering on Z")
+axs[1].set_xlabel("x1")
+axs[1].set_ylabel("x2")
+
+plt.tight_layout();
+```
+
 ### Tuning Hyperparameters
 
-The most important spectral clustering choices are how to build the graph and how many clusters to return.
+The most important spectral clustering choices are how to build the graph and,
+when using a final method such as K-means or hierarchical clustering, how many
+clusters to return.
 
 - `n_clusters` specifies the number of final clusters, similar to K-means.
 - `affinity` controls how the similarity graph is constructed. The example above uses `"nearest_neighbors"`.
 - `n_neighbors` controls the graph scale when `affinity="nearest_neighbors"`. A smaller value gives a more local graph and may disconnect a meaningful group. A larger value gives a denser graph and may create shortcuts between groups.
-- `assign_labels` controls how points are assigned to clusters after the spectral embedding is computed. The common choice `"kmeans"` applies K-means in the new coordinates.
+- `assign_labels` controls how points are assigned to clusters after the spectral embedding is computed by `SpectralClustering`. The common choice `"kmeans"` applies K-means in the new coordinates.
 
 For a nearest-neighbor graph, `n_neighbors` plays a role similar to a scale
 parameter. It is useful to compare several values.
@@ -1163,17 +1326,17 @@ show the dissimilarity levels at which groups were joined.
 
 The graph in spectral clustering is not a merge history. It records local
 similarities between observations, and the graph Laplacian uses those
-connections to build new coordinates. Clusters are then found in those new
-coordinates, usually by K-means. Thus, hierarchical clustering groups
-observations by following a merge tree, while spectral clustering groups
-observations by transforming a similarity graph.
+connections to build new coordinates. A clustering method is then applied to
+those new coordinates. Thus, hierarchical clustering groups observations by
+following a merge tree, while spectral clustering first transforms a similarity
+graph into a new representation.
 :::
 
 ### When Spectral Clustering Works Well
 
 Spectral clustering is most useful when:
 
-- clusters are better described by graph connectivity than by distance to a center;
+- a graph-derived representation makes the groups easier to separate;
 - groups are non-convex, such as rings or moons;
 - a meaningful similarity or neighborhood graph can be constructed;
 - the dataset is small or moderate in size.
@@ -1187,102 +1350,86 @@ The four methods answer different versions of the clustering question:
 
 | Property | K-means | Hierarchical | DBSCAN | Spectral |
 |---|---|---|---|---|
-| Main idea | nearest centroid | repeated merges | density connectivity | graph connectivity |
-| Number of clusters required? | yes | chosen by cutting the tree | no | yes |
-| Typical cluster shape | compact and convex | depends on linkage | irregular shapes allowed | non-convex graph-connected groups |
-| Explicit noise label? | no | no | yes | no |
-| Main tuning choices | $K$, initialization | distance, linkage, tree cut | `eps`, `min_samples` | $K$, affinity, graph neighborhood |
-| Main output | cluster assignments and centers | dendrogram | clusters and noise points | graph-derived cluster assignments |
+| Main idea | nearest centroid | repeated merges | density connectivity | graph-derived representation |
+| Number of clusters required? | yes | chosen by cutting the tree | no | depends on final method |
+| Typical cluster shape | compact and convex | depends on linkage | irregular shapes allowed | depends on graph representation and final clustering method |
+| Explicit noise label? | no | no | yes | depends on final method |
+| Main tuning choices | $K$, initialization | distance, linkage, tree cut | `eps`, `min_samples` | graph construction, final clustering method, often $K$ |
+| Main output | cluster assignments and centers | dendrogram | clusters and noise points | spectral representation plus cluster assignments |
 
 No method is uniformly best. The geometry of the data, the intended
 definition of a cluster, and the scientific question should determine which
-paradigm is appropriate.
+paradigm is appropriate. A useful comparison does not require every method to
+look successful; a poor-looking fit can be informative when it reveals the
+method's assumptions.
 
-### One Dataset, Four Definitions of a Cluster
+### Direct Clustering Methods
 
-The two-moons data contain two curved groups and a few uniformly distributed
-noise observations. This example makes the assumptions of the methods
-visible.
+K-means, hierarchical clustering, and DBSCAN are direct clustering methods: they
+cluster the original feature matrix using different definitions of a group.
+Their strengths show up in different data geometries.
 
 ```{python}
-from sklearn.datasets import make_moons
+#| warning: false
+#| code-fold: true
+from sklearn.datasets import make_blobs, make_moons
 
-X_moons, y_moons = make_moons(
+X_blob, _ = make_blobs(
+    n_samples=450,
+    centers=3,
+    cluster_std=0.65,
+    random_state=4,
+)
+
+X_hier, _ = make_blobs(
+    n_samples=[120, 120, 120, 120],
+    centers=[[-3, 0], [-1.5, 0], [1.5, 0], [3, 0]],
+    cluster_std=0.35,
+    random_state=5,
+)
+
+X_moon, _ = make_moons(
     n_samples=450,
     noise=0.06,
     random_state=2,
 )
-
 rng = np.random.default_rng(2)
 moon_noise = rng.uniform(
     low=[-1.5, -0.8],
     high=[2.5, 1.3],
     size=(30, 2),
 )
-X_compare = np.vstack([X_moons, moon_noise])
-```
+X_moon_noise = np.vstack([X_moon, moon_noise])
 
-We fit one representative method from each paradigm. For a direct comparison,
-K-means, hierarchical clustering, and spectral clustering use two groups.
-DBSCAN determines the number of dense groups from its neighborhood
-parameters.
-
-```{python}
-#| warning: false
-compare_kmeans = KMeans(
-    n_clusters=2,
+direct_kmeans = KMeans(
+    n_clusters=3,
     n_init=20,
     random_state=1,
-).fit_predict(X_compare)
+).fit_predict(X_blob)
 
-compare_hierarchical = AgglomerativeClustering(
+direct_hier = AgglomerativeClustering(
     n_clusters=2,
-    linkage="single",
-    metric="euclidean",
-).fit_predict(X_compare)
+    linkage="ward",
+).fit_predict(X_hier)
 
-compare_dbscan = DBSCAN(
+direct_dbscan = DBSCAN(
     eps=0.16,
     min_samples=6,
-).fit_predict(X_compare)
+).fit_predict(X_moon_noise)
 
-compare_spectral = SpectralClustering(
-    n_clusters=2,
-    affinity="nearest_neighbors",
-    n_neighbors=30,
-    assign_labels="kmeans",
-    random_state=1,
-).fit_predict(X_compare)
+fig, axs = plt.subplots(1, 3, figsize=(13, 4))
 
-fig, axs = plt.subplots(
-    2,
-    2,
-    figsize=(10, 8),
-    sharex=True,
-    sharey=True,
-)
-
-for ax, labels, title in zip(
-    axs.ravel(),
+for ax, X_current, labels, title in zip(
+    axs,
+    [X_blob, X_hier, X_moon_noise],
+    [direct_kmeans, direct_hier, direct_dbscan],
     [
-        compare_kmeans,
-        compare_hierarchical,
-        compare_dbscan,
-        compare_spectral,
-    ],
-    [
-        "K-Means",
-        "Hierarchical: Single Linkage",
-        "DBSCAN",
-        "Spectral Clustering",
+        "K-Means: Compact Groups",
+        "Hierarchical: Nested Structure",
+        "DBSCAN: Curves and Noise",
     ],
 ):
-    ax.scatter(
-        X_compare[:, 0],
-        X_compare[:, 1],
-        c=labels,
-        s=18,
-    )
+    ax.scatter(X_current[:, 0], X_current[:, 1], c=labels, s=18)
     ax.set_title(title)
     ax.set_xlabel("x1")
     ax.set_ylabel("x2")
@@ -1290,15 +1437,92 @@ for ax, labels, title in zip(
 plt.tight_layout();
 ```
 
-K-means cuts the plane into center-based regions and therefore breaks the
-curved groups. Single-linkage hierarchical clustering can follow connected
-shapes, but isolated observations can create chains that join groups.
-DBSCAN can recover the dense curves and identify sparse observations as
-noise, provided its density parameters match the scale of the data.
-Spectral clustering follows much of the curved structure through graph
-connectivity, but the added noise points can create graph shortcuts. Unlike
-DBSCAN, it must assign every observation to a cluster rather than explicitly
-identifying noise.
+K-means is natural when groups are compact and well summarized by centers.
+Hierarchical clustering is useful when the merge structure itself is part of
+the interpretation, or when one wants to inspect several possible resolutions
+from the same fitted hierarchy. DBSCAN is useful when clusters are dense,
+possibly curved regions and sparse observations should be allowed to remain
+noise.
+
+These examples are not a ranking. They show that each method is answering a
+different question: nearest center, merge tree, or density connectivity. When a
+method performs poorly on a particular geometry, the failure is still useful if
+it matches the method's definition of a cluster.
+
+### Spectral Representation with Different Final Methods
+
+Spectral clustering changes the comparison. It first constructs a graph-derived
+representation $Z$, and then a final clustering method is applied to $Z$. The
+same representation can be paired with different final methods.
+
+```{python}
+#| warning: false
+from sklearn.manifold import SpectralEmbedding
+
+spectral_embed_compare = SpectralEmbedding(
+    n_components=2,
+    affinity="nearest_neighbors",
+    n_neighbors=10,
+    random_state=1,
+)
+Z_circle_compare = spectral_embed_compare.fit_transform(X_circle)
+
+spectral_then_kmeans = KMeans(
+    n_clusters=2,
+    n_init=20,
+    random_state=1,
+).fit_predict(Z_circle_compare)
+
+spectral_then_hier = AgglomerativeClustering(
+    n_clusters=2,
+    linkage="ward",
+).fit_predict(Z_circle_compare)
+
+spectral_then_dbscan = DBSCAN(
+    eps=0.006,
+    min_samples=5,
+).fit_predict(Z_circle_compare)
+```
+
+```{python}
+#| code-fold: true
+fig, axs = plt.subplots(1, 3, figsize=(13, 4), sharex=True, sharey=True)
+
+for ax, labels, title in zip(
+    axs,
+    [
+        spectral_then_kmeans,
+        spectral_then_hier,
+        spectral_then_dbscan,
+    ],
+    [
+        "Spectral Z + K-Means",
+        "Spectral Z + Hierarchical",
+        "Spectral Z + DBSCAN",
+    ],
+):
+    ax.scatter(X_circle[:, 0], X_circle[:, 1], c=labels, s=18)
+    ax.set_title(title)
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x2")
+
+plt.tight_layout();
+```
+
+K-means on $Z$ is the standard spectral clustering pipeline in many software
+implementations, including `sklearn.SpectralClustering` with
+`assign_labels="kmeans"`. Hierarchical clustering on $Z$ is useful when the
+spectral representation separates the broad groups but one still wants a merge
+tree or several possible resolutions. DBSCAN on $Z$ is useful when the
+representation contains compact dense regions plus possible sparse points, so a
+noise label remains useful after the transformation.
+
+Thus, spectral clustering should not be interpreted as just another final
+assignment rule. Its main contribution is the representation $Z$; the final
+clustering method should be chosen according to what structure remains in that
+representation. A final method may still behave poorly on $Z$, but that can be
+diagnostic: it shows which structure the representation preserved and which
+assumptions the final clustering method added.
 
 
 ## Practical Workflow
@@ -1314,8 +1538,8 @@ A clustering analysis usually follows these steps:
 6. check stability under perturbations;
 7. interpret the cluster assignments in the original feature space.
 
-Spectral clustering already demonstrated that a representation can make
-some structures easier to separate. The next chapter, @sec-unsupervised-pca,
+Spectral clustering already demonstrated that changing the representation can
+make some structures easier to separate. The next chapter, @sec-unsupervised-pca,
 studies this representation problem directly through linear dimension
 reduction. The following chapter, @sec-embedding, develops nonlinear
 representations primarily for visualization. These transformations can
@@ -1327,7 +1551,7 @@ which clustering is based.
 
 The four paradigms use different definitions of a cluster. K-means finds
 centroid-based groups, hierarchical clustering builds a nested sequence of
-merges, DBSCAN finds density-connected groups while allowing noise, and
-spectral clustering finds groups through connectivity in a graph-derived
-representation. Method choice and evaluation should reflect the intended
+merges, DBSCAN finds density-connected groups while allowing noise, and spectral
+clustering constructs a graph-derived representation before applying a final
+clustering method. Method choice and evaluation should reflect the intended
 geometry, stability, and interpretation in the original variables.
