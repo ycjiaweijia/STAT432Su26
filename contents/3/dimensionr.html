@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>13&nbsp; Principal Component Analysis – Basics of Statistical Learning</title>
+<title>13&nbsp; Dimension Reduction with PCA – Basics of Statistical Learning</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -150,7 +150,10 @@ window.MathJax = {
 
 </script><script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
+
+
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
 <script>
 window.MathJax = {
   loader: {
@@ -405,7 +408,7 @@ window.Quarto = {
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-          <h1 class="quarto-secondary-nav-title"><span id="sec-unsupervised-pca" class="quarto-section-identifier"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Principal Component Analysis</span></span></h1>
+          <h1 class="quarto-secondary-nav-title"><span id="sec-unsupervised-pca" class="quarto-section-identifier"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Dimension Reduction with PCA</span></span></h1>
         </a>     
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
@@ -561,13 +564,13 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/3/dimensionr.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Principal Component Analysis</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Dimension Reduction with PCA</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../contents/3/embedding.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Graph and Manifold Embedding</span></span></a>
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Embedding for Visualization</span></span></a>
   </div>
 </li>
       </ul>
@@ -617,20 +620,27 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#row-and-column-views-of-the-data-matrix" id="toc-row-and-column-views-of-the-data-matrix" class="nav-link active" data-scroll-target="#row-and-column-views-of-the-data-matrix"><span class="header-section-number">13.1</span> Row and Column Views of the Data Matrix</a></li>
-  <li><a href="#principal-directions" id="toc-principal-directions" class="nav-link" data-scroll-target="#principal-directions"><span class="header-section-number">13.2</span> Principal Directions</a></li>
-  <li><a href="#a-two-dimensional-example" id="toc-a-two-dimensional-example" class="nav-link" data-scroll-target="#a-two-dimensional-example"><span class="header-section-number">13.3</span> A Two-Dimensional Example</a></li>
-  <li><a href="#svd-view" id="toc-svd-view" class="nav-link" data-scroll-target="#svd-view"><span class="header-section-number">13.4</span> SVD View</a></li>
-  <li><a href="#pca-as-matrix-approximation" id="toc-pca-as-matrix-approximation" class="nav-link" data-scroll-target="#pca-as-matrix-approximation"><span class="header-section-number">13.5</span> PCA as Matrix Approximation</a>
+  <li><a href="#what-is-new-in-the-unsupervised-setting" id="toc-what-is-new-in-the-unsupervised-setting" class="nav-link active" data-scroll-target="#what-is-new-in-the-unsupervised-setting"><span class="header-section-number">13.1</span> What Is New in the Unsupervised Setting?</a></li>
+  <li><a href="#row-and-column-views-of-the-data-matrix" id="toc-row-and-column-views-of-the-data-matrix" class="nav-link" data-scroll-target="#row-and-column-views-of-the-data-matrix"><span class="header-section-number">13.2</span> Row and Column Views of the Data Matrix</a></li>
+  <li><a href="#matrix-entries-and-linear-combinations" id="toc-matrix-entries-and-linear-combinations" class="nav-link" data-scroll-target="#matrix-entries-and-linear-combinations"><span class="header-section-number">13.3</span> Matrix Entries and Linear Combinations</a>
   <ul class="collapse">
-  <li><a href="#visualizing-reconstruction" id="toc-visualizing-reconstruction" class="nav-link" data-scroll-target="#visualizing-reconstruction"><span class="header-section-number">13.5.1</span> Visualizing Reconstruction</a></li>
+  <li><a href="#combining-predictors" id="toc-combining-predictors" class="nav-link" data-scroll-target="#combining-predictors"><span class="header-section-number">13.3.1</span> Combining predictors</a></li>
+  <li><a href="#combining-observations" id="toc-combining-observations" class="nav-link" data-scroll-target="#combining-observations"><span class="header-section-number">13.3.2</span> Combining observations</a></li>
+  <li><a href="#pairing-an-observation-pattern-with-a-feature-direction" id="toc-pairing-an-observation-pattern-with-a-feature-direction" class="nav-link" data-scroll-target="#pairing-an-observation-pattern-with-a-feature-direction"><span class="header-section-number">13.3.3</span> Pairing an observation pattern with a feature direction</a></li>
   </ul></li>
-  <li><a href="#centering-and-scaling" id="toc-centering-and-scaling" class="nav-link" data-scroll-target="#centering-and-scaling"><span class="header-section-number">13.6</span> Centering and Scaling</a></li>
-  <li><a href="#explained-variance-and-choosing-a-dimension" id="toc-explained-variance-and-choosing-a-dimension" class="nav-link" data-scroll-target="#explained-variance-and-choosing-a-dimension"><span class="header-section-number">13.7</span> Explained Variance and Choosing a Dimension</a></li>
-  <li><a href="#pca-on-the-digits-data" id="toc-pca-on-the-digits-data" class="nav-link" data-scroll-target="#pca-on-the-digits-data"><span class="header-section-number">13.8</span> PCA on the Digits Data</a></li>
-  <li><a href="#loadings" id="toc-loadings" class="nav-link" data-scroll-target="#loadings"><span class="header-section-number">13.9</span> Loadings</a></li>
-  <li><a href="#pca-before-clustering" id="toc-pca-before-clustering" class="nav-link" data-scroll-target="#pca-before-clustering"><span class="header-section-number">13.10</span> PCA Before Clustering</a></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">13.11</span> Summary</a></li>
+  <li><a href="#principal-directions" id="toc-principal-directions" class="nav-link" data-scroll-target="#principal-directions"><span class="header-section-number">13.4</span> Principal Directions</a></li>
+  <li><a href="#a-two-dimensional-example" id="toc-a-two-dimensional-example" class="nav-link" data-scroll-target="#a-two-dimensional-example"><span class="header-section-number">13.5</span> A Two-Dimensional Example</a></li>
+  <li><a href="#svd-view" id="toc-svd-view" class="nav-link" data-scroll-target="#svd-view"><span class="header-section-number">13.6</span> SVD View</a></li>
+  <li><a href="#pca-as-matrix-approximation" id="toc-pca-as-matrix-approximation" class="nav-link" data-scroll-target="#pca-as-matrix-approximation"><span class="header-section-number">13.7</span> PCA as Matrix Approximation</a>
+  <ul class="collapse">
+  <li><a href="#visualizing-reconstruction" id="toc-visualizing-reconstruction" class="nav-link" data-scroll-target="#visualizing-reconstruction"><span class="header-section-number">13.7.1</span> Visualizing Reconstruction</a></li>
+  </ul></li>
+  <li><a href="#centering-and-scaling" id="toc-centering-and-scaling" class="nav-link" data-scroll-target="#centering-and-scaling"><span class="header-section-number">13.8</span> Centering and Scaling</a></li>
+  <li><a href="#explained-variance-and-choosing-a-dimension" id="toc-explained-variance-and-choosing-a-dimension" class="nav-link" data-scroll-target="#explained-variance-and-choosing-a-dimension"><span class="header-section-number">13.9</span> Explained Variance and Choosing a Dimension</a></li>
+  <li><a href="#pca-on-the-digits-data" id="toc-pca-on-the-digits-data" class="nav-link" data-scroll-target="#pca-on-the-digits-data"><span class="header-section-number">13.10</span> PCA on the Digits Data</a></li>
+  <li><a href="#loadings" id="toc-loadings" class="nav-link" data-scroll-target="#loadings"><span class="header-section-number">13.11</span> Loadings</a></li>
+  <li><a href="#pca-before-clustering" id="toc-pca-before-clustering" class="nav-link" data-scroll-target="#pca-before-clustering"><span class="header-section-number">13.12</span> PCA Before Clustering</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">13.13</span> Summary</a></li>
   </ul>
 </nav>
     </div>
@@ -640,7 +650,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block"><span id="sec-unsupervised-pca" class="quarto-section-identifier"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Principal Component Analysis</span></span></h1>
+<h1 class="title d-none d-lg-block"><span id="sec-unsupervised-pca" class="quarto-section-identifier"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Dimension Reduction with PCA</span></span></h1>
 </div>
 
 
@@ -658,8 +668,23 @@ window.Quarto = {
 
 
 <!-- {{< include ../t/math.qmd >}} -->
-<p>Principal component analysis (PCA) represents high-dimensional observations with a smaller number of linear coordinates. It is useful for visualization, compression, denoising, and preprocessing before clustering.</p>
-<p>PCA also appeared in the <a href="../../contents/1/dr.html">supervised dimension-reduction chapter</a>, where the resulting components were used in principal component regression (PCR). The matrix decomposition is the same, but the goal is different:</p>
+<p>Dimension reduction replaces <span class="math inline">\(p\)</span> original predictors, or features, with a smaller number <span class="math inline">\(m&lt;p\)</span> of derived variables, or components:</p>
+<p><span class="math display">\[
+X\in\mathbb R^{n\times p}
+\longrightarrow
+Z\in\mathbb R^{n\times m}.
+\]</span></p>
+<p>The purpose is to retain important structure while obtaining a simpler representation for visualization, compression, denoising, or later analysis. This chapter considers only <strong>linear dimension reduction</strong> through principal component analysis (PCA):</p>
+<p><span class="math display">\[
+Z=XV_m.
+\]</span></p>
+<p>Each reduced coordinate is therefore a linear combination of the original predictors.</p>
+<p>In <a href="cluster.html" class="quarto-xref"><span>Chapter 12</span></a>, spectral clustering showed that an algorithm may first construct a new representation and then analyze observations in that representation. Here we separate the representation problem from the clustering algorithm: the goal is to construct a lower-dimensional version of <span class="math inline">\(X\)</span> that can be examined, reconstructed, or passed to a later method.</p>
+<p>PCA also appeared in the <a href="../../contents/1/dr.html">supervised dimension-reduction chapter</a>, where the same notation was introduced:</p>
+<p><span class="math display">\[
+Z_j=Xv_j,\qquad Z=XV=UD.
+\]</span></p>
+<p>There, the resulting components were used in principal component regression (PCR), and partial least squares (PLS) constructed response-guided components. The algebra is the same, but the goal here is different:</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 23%">
@@ -670,7 +695,7 @@ window.Quarto = {
 <thead>
 <tr class="header">
 <th>Setting</th>
-<th style="text-align: right;">PCA uses <span class="math inline">\(y\)</span>?</th>
+<th style="text-align: right;">Uses <span class="math inline">\(y\)</span> to construct components?</th>
 <th>How is the dimension chosen?</th>
 <th>Main goal</th>
 </tr>
@@ -684,7 +709,7 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td>PCR</td>
-<td style="text-align: right;">No when constructing components</td>
+<td style="text-align: right;">No</td>
 <td>cross-validation using prediction error</td>
 <td>predict <span class="math inline">\(y\)</span></td>
 </tr>
@@ -696,13 +721,29 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>This chapter studies PCA as an unsupervised representation of <span class="math inline">\(X\)</span>.</p>
-<section id="row-and-column-views-of-the-data-matrix" class="level2" data-number="13.1">
-<h2 data-number="13.1" class="anchored" data-anchor-id="row-and-column-views-of-the-data-matrix"><span class="header-section-number">13.1</span> Row and Column Views of the Data Matrix</h2>
-<p>Let <span class="math inline">\(X\in\mathbb R^{n\times p}\)</span> contain <span class="math inline">\(n\)</span> observations and <span class="math inline">\(p\)</span> features. After centering the columns:</p>
+<p>PCR and PLS use dimension reduction as a step toward predicting <span class="math inline">\(y\)</span>. Here there is no response and no regression model: dimension reduction itself is the object of interest.</p>
+<section id="what-is-new-in-the-unsupervised-setting" class="level2" data-number="13.1">
+<h2 data-number="13.1" class="anchored" data-anchor-id="what-is-new-in-the-unsupervised-setting"><span class="header-section-number">13.1</span> What Is New in the Unsupervised Setting?</h2>
+<p>The mechanics of PCA are exactly the same as in PCR from <a href="../../contents/1/dr.html">Chapter 1</a>: center <span class="math inline">\(X\)</span>, find principal directions <span class="math inline">\(v_1,\ldots,v_m\)</span>, and form scores</p>
+<p><span class="math display">\[
+Z_m=XV_m.
+\]</span></p>
+<p>What changes is how the result is evaluated.</p>
+<p>In PCR, a component is useful when it improves prediction of <span class="math inline">\(y\)</span>. In this chapter, a reduced representation is useful when it:</p>
+<ul>
+<li>captures substantial variation in <span class="math inline">\(X\)</span>;</li>
+<li>reconstructs the original observations with limited error;</li>
+<li>reveals structure in a low-dimensional plot;</li>
+<li>removes redundancy or noise before another unsupervised method.</li>
+</ul>
+<p>This distinction also explains why PLS was introduced after PCR in <a href="../../contents/1/dr.html">Chapter 1</a>. PLS can prefer a low-variance direction when it is strongly related to <span class="math inline">\(y\)</span>. Unsupervised PCA cannot make that choice because <span class="math inline">\(y\)</span> is absent; it ranks directions only by variation in <span class="math inline">\(X\)</span>.</p>
+</section>
+<section id="row-and-column-views-of-the-data-matrix" class="level2" data-number="13.2">
+<h2 data-number="13.2" class="anchored" data-anchor-id="row-and-column-views-of-the-data-matrix"><span class="header-section-number">13.2</span> Row and Column Views of the Data Matrix</h2>
+<p>As in the earlier dimension-reduction chapter, let <span class="math inline">\(X\in\mathbb R^{n\times p}\)</span> contain <span class="math inline">\(n\)</span> observations and <span class="math inline">\(p\)</span> predictors. After centering the columns:</p>
 <ul>
 <li>row <span class="math inline">\(x_i^\top\in\mathbb R^p\)</span> represents observation <span class="math inline">\(i\)</span> in feature space;</li>
-<li>column <span class="math inline">\(X_j\in\mathbb R^n\)</span> represents feature <span class="math inline">\(j\)</span> across observations.</li>
+<li>column <span class="math inline">\(X_j\in\mathbb R^n\)</span> represents predictor <span class="math inline">\(j\)</span> across observations.</li>
 </ul>
 <p>Clustering and nearest-neighbor methods compare rows. PCA constructs new directions in the feature space and gives every row a coordinate along those directions.</p>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -711,17 +752,149 @@ window.Quarto = {
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Terminology from <code>dr.qmd</code>
+<span class="screen-reader-only">Note</span>Terminology from Chapter 1
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <strong>loadings</strong> are directions in feature space. The <strong>scores</strong> are the coordinates of observations after projection. The same terminology applies here and in PCR.</p>
+<p>The <strong>loadings</strong> are directions in feature space. The <strong>scores</strong> are the coordinates of observations after projection. In the notation of <a href="../../contents/1/dr.html">Chapter 1</a>,</p>
+<p><span class="math display">\[
+Z=XV=UD=\left[Z_1,\ldots,Z_r\right]=[z_{ij}].
+\]</span></p>
+<p>Here <span class="math inline">\(V\)</span> contains loadings, <span class="math inline">\(Z\)</span> contains scores, and <span class="math inline">\(U\)</span> contains normalized scores.</p>
 </div>
 </div>
 </section>
-<section id="principal-directions" class="level2" data-number="13.2">
-<h2 data-number="13.2" class="anchored" data-anchor-id="principal-directions"><span class="header-section-number">13.2</span> Principal Directions</h2>
-<p>Assume that <span class="math inline">\(X\)</span> is centered. The first principal direction is</p>
+<section id="matrix-entries-and-linear-combinations" class="level2" data-number="13.3">
+<h2 data-number="13.3" class="anchored" data-anchor-id="matrix-entries-and-linear-combinations"><span class="header-section-number">13.3</span> Matrix Entries and Linear Combinations</h2>
+<p>It is useful to start from the meaning of a single matrix entry. Let <span class="math inline">\(e_i\in\mathbb R^n\)</span> be the vector with a 1 in position <span class="math inline">\(i\)</span> and zeros elsewhere, and let <span class="math inline">\(f_j\in\mathbb R^p\)</span> be the vector with a 1 in position <span class="math inline">\(j\)</span> and zeros elsewhere. Then</p>
+<p><span class="math display">\[
+x_{ij}=e_i^\top X f_j.
+\]</span></p>
+<p>This expression selects row <span class="math inline">\(i\)</span> and column <span class="math inline">\(j\)</span>. In words, <span class="math inline">\(x_{ij}\)</span> is the value of predictor <span class="math inline">\(j\)</span> for observation <span class="math inline">\(i\)</span>.</p>
+<p>For example, if <span class="math inline">\(X\)</span> has 7 observations and 6 predictors, then</p>
+<p><span class="math display">\[
+e_4^\top=
+\begin{bmatrix}
+0&amp;0&amp;0&amp;1&amp;0&amp;0&amp;0
+\end{bmatrix},
+\qquad
+f_3=
+\begin{bmatrix}
+0\\0\\1\\0\\0\\0
+\end{bmatrix},
+\]</span></p>
+<p>and</p>
+<p><span class="math display">\[
+e_4^\top X f_3=x_{43}.
+\]</span></p>
+<p>The standard basis vectors <span class="math inline">\(e_i\)</span> and <span class="math inline">\(f_j\)</span> pick out one original observation and one original predictor. PCA replaces these one-at-a-time selections with linear combinations.</p>
+<section id="combining-predictors" class="level3" data-number="13.3.1">
+<h3 data-number="13.3.1" class="anchored" data-anchor-id="combining-predictors"><span class="header-section-number">13.3.1</span> Combining predictors</h3>
+<p>If <span class="math inline">\(v\in\mathbb R^p\)</span>, then</p>
+<p><span class="math display">\[
+Xv
+\]</span></p>
+<p>is a new component column for all observations. This is the same object called a principal component in <a href="../../contents/1/dr.html">Chapter 1</a>. The value for observation <span class="math inline">\(i\)</span> is</p>
+<p><span class="math display">\[
+e_i^\top Xv
+=
+x_i^\top v
+=
+v_1x_{i1}+\cdots+v_px_{ip}.
+\]</span></p>
+<p>So the new component is a weighted combination of the original predictors. For a concrete two-predictor example, if</p>
+<p><span class="math display">\[
+v=
+\begin{bmatrix}
+0.6\\
+-0.8
+\end{bmatrix},
+\]</span></p>
+<p>then the new component value for observation <span class="math inline">\(i\)</span> is</p>
+<p><span class="math display">\[
+0.6\,x_{i1}-0.8\,x_{i2}.
+\]</span></p>
+<p>The entries of <span class="math inline">\(v\)</span> are the coefficients used to combine the original predictors. In PCA, the principal directions are the columns of <span class="math inline">\(V\)</span>. These columns are called <strong>loadings</strong>. Equivalently, if <span class="math inline">\(v_j=(v_{1j},\ldots,v_{pj})^\top\)</span>, then</p>
+<p><span class="math display">\[
+Z_j=Xv_j
+=
+v_{1j}X_1+v_{2j}X_2+\cdots+v_{pj}X_p.
+\]</span></p>
+<p>This is the same formula used for PCR. The difference is that PCR later regresses <span class="math inline">\(y\)</span> on <span class="math inline">\(Z_1,\ldots,Z_m\)</span>, while this chapter studies <span class="math inline">\(Z_1,\ldots,Z_m\)</span> as an unsupervised representation of <span class="math inline">\(X\)</span>.</p>
+</section>
+<section id="combining-observations" class="level3" data-number="13.3.2">
+<h3 data-number="13.3.2" class="anchored" data-anchor-id="combining-observations"><span class="header-section-number">13.3.2</span> Combining observations</h3>
+<p>There is also a dual row-side view. If <span class="math inline">\(u\in\mathbb R^n\)</span>, then</p>
+<p><span class="math display">\[
+u^\top X
+\]</span></p>
+<p>is a weighted combination of the original observations. Its <span class="math inline">\(j\)</span>-th predictor value is</p>
+<p><span class="math display">\[
+u^\top Xf_j
+=
+u_1x_{1j}+\cdots+u_nx_{nj}.
+\]</span></p>
+<p>For example, with three observations,</p>
+<p><span class="math display">\[
+u=
+\begin{bmatrix}
+1/2\\
+1/2\\
+0
+\end{bmatrix}
+\]</span></p>
+<p>gives</p>
+<p><span class="math display">\[
+u^\top X
+=
+\frac12 x_1^\top+\frac12 x_2^\top,
+\]</span></p>
+<p>the average of the first two observation vectors. By contrast,</p>
+<p><span class="math display">\[
+u=
+\begin{bmatrix}
+1/\sqrt2\\
+-1/\sqrt2\\
+0
+\end{bmatrix}
+\]</span></p>
+<p>gives</p>
+<p><span class="math display">\[
+u^\top X
+=
+\frac{1}{\sqrt2}x_1^\top-\frac{1}{\sqrt2}x_2^\top,
+\]</span></p>
+<p>a contrast between the first two observations.</p>
+<p>In the SVD form of PCA,</p>
+<p><span class="math display">\[
+X=UDV^\top,
+\]</span></p>
+<p>the columns of <span class="math inline">\(U\)</span> are called the <strong>left singular vectors</strong>. In the terminology used in <a href="../../contents/1/dr.html">Chapter 1</a>, they are the <strong>normalized scores</strong>. The actual PCA score matrix is</p>
+<p><span class="math display">\[
+Z=XV=UD,
+\]</span></p>
+<p>so <span class="math inline">\(U\)</span> records the observation-side directions after normalization, while <span class="math inline">\(UD\)</span> gives the coordinates of observations in the principal component system.</p>
+</section>
+<section id="pairing-an-observation-pattern-with-a-feature-direction" class="level3" data-number="13.3.3">
+<h3 data-number="13.3.3" class="anchored" data-anchor-id="pairing-an-observation-pattern-with-a-feature-direction"><span class="header-section-number">13.3.3</span> Pairing an observation pattern with a feature direction</h3>
+<p>The SVD writes the data matrix as</p>
+<p><span class="math display">\[
+X
+=
+d_1u_1v_1^\top
++d_2u_2v_2^\top
++\cdots
++d_ru_rv_r^\top.
+\]</span></p>
+<p>Each term pairs one observation-side pattern <span class="math inline">\(u_k\)</span> with one feature-side direction <span class="math inline">\(v_k\)</span>. The scalar <span class="math inline">\(d_k\)</span> tells how much of that paired pattern is present in the data.</p>
+<p>This is the central meaning of PCA: instead of describing the data only by the original observation-predictor pairs <span class="math inline">\((e_i,f_j)\)</span>, PCA finds paired directions <span class="math inline">\((u_k,v_k)\)</span> that summarize the strongest linear structure in <span class="math inline">\(X\)</span>. This was already important for PCR, because PCR uses the scores <span class="math inline">\(Z=XV\)</span> as new predictors in a regression model. Here we emphasize the same decomposition again because there is no later regression step: the score matrix <span class="math inline">\(Z\)</span> itself is the reduced representation.</p>
+<p>If a response <span class="math inline">\(y\)</span> is later introduced, PCR uses these PCA scores as predictors. PLS goes one step further and chooses directions using <span class="math inline">\(y\)</span>. In this chapter, however, PCA itself is unsupervised: the paired directions are chosen from <span class="math inline">\(X\)</span> alone.</p>
+</section>
+</section>
+<section id="principal-directions" class="level2" data-number="13.4">
+<h2 data-number="13.4" class="anchored" data-anchor-id="principal-directions"><span class="header-section-number">13.4</span> Principal Directions</h2>
+<p>Assume that <span class="math inline">\(X\)</span> is centered. As in PCR, PCA directions can be defined either through the Gram matrix <span class="math inline">\(X^\top X\)</span> or through a variance maximization problem. The two descriptions are equivalent.</p>
+<p>The first principal direction is</p>
 <p><span class="math display">\[
 v_1
 =
@@ -739,12 +912,16 @@ v_2
 <p><span class="math display">\[
 Z_j=Xv_j
 \]</span></p>
-<p>is the <span class="math inline">\(j\)</span>-th principal component score vector. The loading <span class="math inline">\(v_j\)</span> describes the direction; the entries of <span class="math inline">\(Z_j\)</span> describe where observations lie along that direction.</p>
+<p>is the <span class="math inline">\(j\)</span>-th principal component score vector. Equivalently,</p>
+<p><span class="math display">\[
+Z=XV=\left[Z_1,\ldots,Z_r\right]=[z_{ij}].
+\]</span></p>
+<p>The loading vector <span class="math inline">\(v_j\)</span> describes the direction in feature space. The score <span class="math inline">\(z_{ij}\)</span> describes where observation <span class="math inline">\(i\)</span> lies along principal direction <span class="math inline">\(v_j\)</span>.</p>
 </div>
 </section>
-<section id="a-two-dimensional-example" class="level2" data-number="13.3">
-<h2 data-number="13.3" class="anchored" data-anchor-id="a-two-dimensional-example"><span class="header-section-number">13.3</span> A Two-Dimensional Example</h2>
-<div id="0d4f4bcc" class="cell" data-execution_count="1">
+<section id="a-two-dimensional-example" class="level2" data-number="13.5">
+<h2 data-number="13.5" class="anchored" data-anchor-id="a-two-dimensional-example"><span class="header-section-number">13.5</span> A Two-Dimensional Example</h2>
+<div id="a173a343" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -771,13 +948,13 @@ Z_j=Xv_j
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>scores_2d <span class="op">=</span> pca_2d.fit_transform(X_centered)</span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>pca_2d.components_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>array([[-0.58619037,  0.81017334],
        [ 0.81017334,  0.58619037]])</code></pre>
 </div>
 </div>
 <p>The rows of <code>components_</code> are <span class="math inline">\(v_1^\top\)</span> and <span class="math inline">\(v_2^\top\)</span>.</p>
-<div id="7fecbc19" class="cell" data-execution_count="2">
+<div id="00e42006" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ax.scatter(X_centered[:, <span class="dv">0</span>], X_centered[:, <span class="dv">1</span>], alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ax.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"grey"</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span>
@@ -816,9 +993,9 @@ Z_j=Xv_j
 </div>
 <p>The first direction follows the largest spread of the data. The second is orthogonal and captures the remaining variation.</p>
 </section>
-<section id="svd-view" class="level2" data-number="13.4">
-<h2 data-number="13.4" class="anchored" data-anchor-id="svd-view"><span class="header-section-number">13.4</span> SVD View</h2>
-<p>The same singular value decomposition used in <code>dr.qmd</code> provides the cleanest matrix description. If centered <span class="math inline">\(X\)</span> has rank <span class="math inline">\(r\)</span>, then</p>
+<section id="svd-view" class="level2" data-number="13.6">
+<h2 data-number="13.6" class="anchored" data-anchor-id="svd-view"><span class="header-section-number">13.6</span> SVD View</h2>
+<p>The same singular value decomposition used in <a href="../../contents/1/dr.html">Chapter 1</a> provides the cleanest matrix description. If centered <span class="math inline">\(X\)</span> has rank <span class="math inline">\(r\)</span>, then</p>
 <p><span class="math display">\[
 X=UDV^\top,
 \]</span></p>
@@ -836,14 +1013,16 @@ Z=XV=UD.
 <p>Therefore:</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Quantity</th>
 <th>Matrix</th>
+<th>Space</th>
 <th>Interpretation</th>
 </tr>
 </thead>
@@ -851,21 +1030,31 @@ Z=XV=UD.
 <tr class="odd">
 <td>Loadings</td>
 <td><span class="math inline">\(V\)</span></td>
-<td>principal directions in feature space</td>
+<td>feature space <span class="math inline">\(\mathbb R^p\)</span></td>
+<td>principal directions, or rotated axes</td>
 </tr>
 <tr class="even">
 <td>Scores</td>
 <td><span class="math inline">\(Z=UD\)</span></td>
-<td>coordinates of observations</td>
+<td>observation space <span class="math inline">\(\mathbb R^n\)</span></td>
+<td>transformed coordinates of observations</td>
 </tr>
 <tr class="odd">
-<td>Singular values</td>
-<td><span class="math inline">\(D\)</span></td>
-<td>spread along each component</td>
+<td>Normalized scores</td>
+<td><span class="math inline">\(U\)</span></td>
+<td>observation space <span class="math inline">\(\mathbb R^n\)</span></td>
+<td>unit-length directions of score vectors</td>
 </tr>
 <tr class="even">
+<td>Singular values</td>
+<td><span class="math inline">\(D\)</span></td>
+<td>–</td>
+<td>scaling, or spread, of each component</td>
+</tr>
+<tr class="odd">
 <td>Component variances</td>
 <td><span class="math inline">\(D^2/(n-1)\)</span></td>
+<td>–</td>
 <td>variance explained by each component</td>
 </tr>
 </tbody>
@@ -876,10 +1065,10 @@ Z=XV=UD.
 =
 V\frac{D^2}{n-1}V^\top,
 \]</span></p>
-<p>PCA is also the eigen-decomposition of the sample covariance matrix.</p>
+<p>PCA is also the eigen-decomposition of the sample covariance matrix. This is why <a href="../../contents/1/dr.html">Chapter 1</a> defined <span class="math inline">\(v_k\)</span> as an eigenvector of <span class="math inline">\(X^\top X\)</span>: the SVD, covariance eigen-decomposition, and variance-maximization definitions are three views of the same object.</p>
 </section>
-<section id="pca-as-matrix-approximation" class="level2" data-number="13.5">
-<h2 data-number="13.5" class="anchored" data-anchor-id="pca-as-matrix-approximation"><span class="header-section-number">13.5</span> PCA as Matrix Approximation</h2>
+<section id="pca-as-matrix-approximation" class="level2" data-number="13.7">
+<h2 data-number="13.7" class="anchored" data-anchor-id="pca-as-matrix-approximation"><span class="header-section-number">13.7</span> PCA as Matrix Approximation</h2>
 <p>Keeping the first <span class="math inline">\(m\)</span> components gives</p>
 <p><span class="math display">\[
 X_m=U_mD_mV_m^\top=Z_mV_m^\top.
@@ -903,9 +1092,9 @@ X_m
 <li>diagonalize the covariance matrix;</li>
 <li>find the best low-rank reconstruction under squared error.</li>
 </ul>
-<section id="visualizing-reconstruction" class="level3" data-number="13.5.1">
-<h3 data-number="13.5.1" class="anchored" data-anchor-id="visualizing-reconstruction"><span class="header-section-number">13.5.1</span> Visualizing Reconstruction</h3>
-<div id="be28a8c6" class="cell" data-execution_count="3">
+<section id="visualizing-reconstruction" class="level3" data-number="13.7.1">
+<h3 data-number="13.7.1" class="anchored" data-anchor-id="visualizing-reconstruction"><span class="header-section-number">13.7.1</span> Visualizing Reconstruction</h3>
+<div id="9b2f2cc8" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>pca_1d <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>score_1d <span class="op">=</span> pca_1d.fit_transform(X_centered)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>X_reconstructed <span class="op">=</span> pca_1d.inverse_transform(score_1d)</span>
@@ -949,8 +1138,8 @@ X_m
 <p>The reconstructed points lie on the first principal direction. Their residual distances are the information discarded by the one-dimensional representation.</p>
 </section>
 </section>
-<section id="centering-and-scaling" class="level2" data-number="13.6">
-<h2 data-number="13.6" class="anchored" data-anchor-id="centering-and-scaling"><span class="header-section-number">13.6</span> Centering and Scaling</h2>
+<section id="centering-and-scaling" class="level2" data-number="13.8">
+<h2 data-number="13.8" class="anchored" data-anchor-id="centering-and-scaling"><span class="header-section-number">13.8</span> Centering and Scaling</h2>
 <p>Centering is essential. Without centering, the leading singular direction can reflect the location of the data cloud relative to the origin rather than variation around the sample mean.</p>
 <p><code>sklearn.decomposition.PCA</code> centers features automatically, but it does not scale them to unit variance.</p>
 <p>Whether to scale depends on the meaning of the variables:</p>
@@ -959,7 +1148,7 @@ X_m
 <li>retain the original scale when magnitude and variance are meaningful;</li>
 <li>state the choice because it changes the principal directions.</li>
 </ul>
-<div id="2b15829d" class="cell" data-execution_count="4">
+<div id="63ed334f" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>X_scaled <span class="op">=</span> StandardScaler().fit_transform(X_original)</span>
@@ -974,7 +1163,7 @@ X_m
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    },</span>
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    index<span class="op">=</span>[<span class="st">"PC1"</span>, <span class="st">"PC2"</span>],</span>
 <span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
+<div class="cell-output cell-output-display" data-execution_count="4">
 <div>
 
 
@@ -1017,8 +1206,8 @@ X_m
 </div>
 </div>
 </section>
-<section id="explained-variance-and-choosing-a-dimension" class="level2" data-number="13.7">
-<h2 data-number="13.7" class="anchored" data-anchor-id="explained-variance-and-choosing-a-dimension"><span class="header-section-number">13.7</span> Explained Variance and Choosing a Dimension</h2>
+<section id="explained-variance-and-choosing-a-dimension" class="level2" data-number="13.9">
+<h2 data-number="13.9" class="anchored" data-anchor-id="explained-variance-and-choosing-a-dimension"><span class="header-section-number">13.9</span> Explained Variance and Choosing a Dimension</h2>
 <p>The variance explained by component <span class="math inline">\(j\)</span> is</p>
 <p><span class="math display">\[
 \lambda_j=\frac{d_j^2}{n-1}.
@@ -1040,12 +1229,12 @@ X_m
 <li>downstream clustering stability;</li>
 <li>the dimension needed for a particular visualization.</li>
 </ul>
-<p>This differs from PCR in <code>dr.qmd</code>. For prediction, the number of components should be chosen by cross-validation against the response, not merely by variance explained.</p>
+<p>This is the same explained-variance calculation introduced in <a href="../../contents/1/dr.html">Chapter 1</a>, but the selection criterion changes with the task. In PCR and PLS, <span class="math inline">\(m\)</span> should be chosen by cross-validation against the response because the goal is prediction. In this chapter there is no response, so the choice of <span class="math inline">\(m\)</span> must be justified by the representation goal: compression, reconstruction, visualization, or a downstream unsupervised analysis such as clustering.</p>
 </section>
-<section id="pca-on-the-digits-data" class="level2" data-number="13.8">
-<h2 data-number="13.8" class="anchored" data-anchor-id="pca-on-the-digits-data"><span class="header-section-number">13.8</span> PCA on the Digits Data</h2>
+<section id="pca-on-the-digits-data" class="level2" data-number="13.10">
+<h2 data-number="13.10" class="anchored" data-anchor-id="pca-on-the-digits-data"><span class="header-section-number">13.10</span> PCA on the Digits Data</h2>
 <p>The handwritten digits dataset has 64 features, one for each pixel in an <span class="math inline">\(8\times8\)</span> image.</p>
-<div id="4a3a4aec" class="cell" data-execution_count="5">
+<div id="32f77aa7" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_digits</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>digits <span class="op">=</span> load_digits()</span>
@@ -1053,12 +1242,12 @@ X_m
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>y_digits <span class="op">=</span> digits.target</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>X_digits.shape</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
+<div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>(1797, 64)</code></pre>
 </div>
 </div>
 <p>Fit PCA and inspect cumulative explained variance.</p>
-<div id="2d667170" class="cell" data-execution_count="6">
+<div id="ab365c6d" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>digits_pca <span class="op">=</span> PCA().fit(X_digits)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>cum_ratio <span class="op">=</span> np.cumsum(digits_pca.explained_variance_ratio_)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1077,14 +1266,14 @@ X_m
 </div>
 </div>
 <p>The number of components needed to explain at least 90% of the sample variance is:</p>
-<div id="5b8fdd3f" class="cell" data-execution_count="7">
+<div id="f12a7bcf" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>np.searchsorted(cum_ratio, <span class="fl">0.90</span>) <span class="op">+</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
+<div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>np.int64(21)</code></pre>
 </div>
 </div>
 <p>For visualization, retain two components.</p>
-<div id="26c06845" class="cell" data-execution_count="8">
+<div id="b4049163" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>digits_2d <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>).fit_transform(X_digits)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
@@ -1110,10 +1299,16 @@ X_m
 </div>
 <p>The labels are used only to interpret the plot. PCA itself receives only <code>X_digits</code>.</p>
 </section>
-<section id="loadings" class="level2" data-number="13.9">
-<h2 data-number="13.9" class="anchored" data-anchor-id="loadings"><span class="header-section-number">13.9</span> Loadings</h2>
-<p>Loadings describe how the original features form each component. For image data, a loading vector can be reshaped back to the image dimensions.</p>
-<div id="1f853922" class="cell" data-execution_count="9">
+<section id="loadings" class="level2" data-number="13.11">
+<h2 data-number="13.11" class="anchored" data-anchor-id="loadings"><span class="header-section-number">13.11</span> Loadings</h2>
+<p>Loadings describe how the original predictors form each component. This is the same meaning as in PCR:</p>
+<p><span class="math display">\[
+Z_j
+=
+v_{1j}X_1+\cdots+v_{pj}X_p.
+\]</span></p>
+<p>The new point here is interpretive rather than algebraic. In supervised PCR, loadings matter because they tell us which linear combinations become regression predictors. In unsupervised PCA, loadings matter because they tell us what structure the reduced representation is actually preserving. For image data, a loading vector can be reshaped back to the image dimensions.</p>
+<div id="4382b928" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>digits_pca_10 <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">10</span>).fit(X_digits)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">5</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
@@ -1137,8 +1332,8 @@ X_m
 </div>
 <p>Positive and negative loading regions describe contrasting pixel patterns. The sign of a loading is arbitrary: multiplying both a loading and its scores by <span class="math inline">\(-1\)</span> represents the same component.</p>
 </section>
-<section id="pca-before-clustering" class="level2" data-number="13.10">
-<h2 data-number="13.10" class="anchored" data-anchor-id="pca-before-clustering"><span class="header-section-number">13.10</span> PCA Before Clustering</h2>
+<section id="pca-before-clustering" class="level2" data-number="13.12">
+<h2 data-number="13.12" class="anchored" data-anchor-id="pca-before-clustering"><span class="header-section-number">13.12</span> PCA Before Clustering</h2>
 <p>PCA is not a clustering method, but it is often used before clustering:</p>
 <ol type="1">
 <li>standardize or otherwise preprocess the features;</li>
@@ -1147,8 +1342,8 @@ X_m
 <li>cluster the score vectors.</li>
 </ol>
 <p>This can remove low-variance noise and reduce computation. It can also make distance-based clustering more stable when many original variables are highly correlated.</p>
-<p>However, PCA preserves high-variance directions, not necessarily cluster separation.</p>
-<div id="dab7b4ea" class="cell" data-execution_count="10">
+<p>However, PCA preserves high-variance directions, not necessarily cluster separation. This is the unsupervised analogue of the PCR limitation emphasized in <a href="../../contents/1/dr.html">Chapter 1</a>: directions with large variance in <span class="math inline">\(X\)</span> are not always the directions most relevant for the later task.</p>
+<div id="855b5522" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">2</span>)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">300</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1194,13 +1389,15 @@ X_m
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The leading PCs are optimal for reconstructing <span class="math inline">\(X\)</span> under squared error. They are not guaranteed to be optimal for prediction, clustering, or preserving rare subgroups. This is the same limitation that motivates PLS after PCR in <code>dr.qmd</code>.</p>
+<p>The leading PCs are optimal for reconstructing <span class="math inline">\(X\)</span> under squared error. They are not guaranteed to be optimal for prediction, clustering, or preserving rare subgroups. This is the same limitation that motivates PLS after PCR in <a href="../../contents/1/dr.html">Chapter 1</a>. The difference is that, in supervised learning, <span class="math inline">\(y\)</span> provides a direct way to define relevance; in unsupervised learning, relevance must be defined by the scientific or analytical goal.</p>
 </div>
 </div>
 </section>
-<section id="summary" class="level2" data-number="13.11">
-<h2 data-number="13.11" class="anchored" data-anchor-id="summary"><span class="header-section-number">13.11</span> Summary</h2>
-<p>PCA rotates centered data into orthogonal directions ordered by variance. The loadings <span class="math inline">\(V\)</span> are directions, the scores <span class="math inline">\(Z=XV=UD\)</span> are transformed observations, and truncated PCA is the best low-rank squared-error approximation of <span class="math inline">\(X\)</span>. In unsupervised learning, the retained dimension should match the representation, visualization, or clustering goal. It need not be the dimension that would be selected for supervised prediction.</p>
+<section id="summary" class="level2" data-number="13.13">
+<h2 data-number="13.13" class="anchored" data-anchor-id="summary"><span class="header-section-number">13.13</span> Summary</h2>
+<p>PCA rotates centered data into orthogonal directions ordered by variance. The loadings <span class="math inline">\(V\)</span> are directions, the scores <span class="math inline">\(Z=XV=UD\)</span> are transformed observations, and <span class="math inline">\(U\)</span> contains normalized scores. These are the same objects used in PCR in <a href="../../contents/1/dr.html">Chapter 1</a>. The difference is the role they play: PCR treats the scores as predictors for <span class="math inline">\(y\)</span>, while this chapter treats the scores as a lower-dimensional representation of <span class="math inline">\(X\)</span> itself.</p>
+<p>Truncated PCA is the best low-rank squared-error approximation of <span class="math inline">\(X\)</span>. In unsupervised learning, the retained dimension should match the representation, visualization, or clustering goal. It need not be the dimension that would be selected for supervised prediction.</p>
+<p>PCA is linear and its coordinates have interpretable loadings. The next chapter, <a href="embedding.html" class="quarto-xref"><span>Chapter 14</span></a>, relaxes linearity and focuses on two-dimensional representations designed mainly for visualization.</p>
 
 
 </section>
@@ -1667,8 +1864,8 @@ X_m
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../contents/3/embedding.html" class="pagination-link" aria-label="Graph and Manifold Embedding">
-        <span class="nav-page-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Graph and Manifold Embedding</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../contents/3/embedding.html" class="pagination-link" aria-label="Embedding for Visualization">
+        <span class="nav-page-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Embedding for Visualization</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
