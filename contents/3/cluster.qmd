@@ -921,7 +921,7 @@ The cut height is often chosen by looking for a large vertical gap in the dendro
 ::: {.callout-note}
 ## `n_clusters` versus a height cut
 
-In `sklearn`, the usual `AgglomerativeClustering(n_clusters=...)` interface asks for an exact number of clusters. This is not the same as drawing a horizontal line at a fixed dendrogram height. The algorithm can return any requested value of `n_clusters`, even when several merges occur at the same height. Operationally, this is equivalent to following the merge sequence and stopping when exactly `n_clusters` groups remain, rather than choosing all merges below a fixed height.
+In `sklearn`, the usual `AgglomerativeClustering(n_clusters=...)` interface asks for an exact number of clusters. This is not the same as drawing a horizontal line at a fixed dendrogram height. The algorithm can return any requested value of `n_clusters`, even when several merges occur at the same height. Operationally, this is equivalent to following the merge sequence determined by the implementation and stopping when exactly `n_clusters` groups remain, rather than choosing all merges below a fixed height. If several candidate merges have the same height, the order is implementation-determined, not random.
 
 If the goal is a strict height-based cut, use `scipy.cluster.hierarchy.linkage` with `fcluster`, or use `AgglomerativeClustering` with `distance_threshold` and `n_clusters=None`. In this chapter, we focus mainly on the `sklearn` `n_clusters` interface because it is simple and matches the way the examples compare flat cluster assignments.
 :::
@@ -1168,7 +1168,7 @@ We show three examples below illustrating the strengths and limitations of each 
 
 Since all datasets are generated, we know the true label for each observation. Therefore, we can use ARI as an external metric to compare the clustering results on each dataset. ARI is optional and was introduced earlier in the notes.
 
-In the curves-with-noise example, the artificially added noise points are treated as a separate reference group when computing ARI. This favors methods that can identify noise points, such as DBSCAN, and penalizes methods such as K-means and hierarchical clustering that must assign every observation to a cluster.
+In the curves-with-noise example, the artificially added noise points are treated as a separate reference group when computing ARI. This is a teaching device for simulated data, not something usually available in real applications. It favors methods that can identify noise points, such as DBSCAN, and penalizes methods such as K-means and hierarchical clustering that must assign every observation to a cluster.
 
 ### Example: Curves with Noise
 

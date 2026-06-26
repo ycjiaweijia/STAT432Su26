@@ -153,7 +153,10 @@ window.MathJax = {
 <script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
 <link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script><script src="../../styles/pronunciation.js"></script>
+
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script src="../../styles/pronunciation.js"></script>
 <script>
 window.MathJax = {
   loader: {
@@ -653,9 +656,9 @@ window.Quarto = {
   <li><a href="#comparing-the-three-methods" id="toc-comparing-the-three-methods" class="nav-link" data-scroll-target="#comparing-the-three-methods"><span class="header-section-number">12.5</span> Comparing the Three Methods</a>
   <ul class="collapse">
   <li><a href="#example-curves-with-noise" id="toc-example-curves-with-noise" class="nav-link" data-scroll-target="#example-curves-with-noise"><span class="header-section-number">12.5.1</span> Example: Curves with Noise</a></li>
+  <li><a href="#example-unequal-densities" id="toc-example-unequal-densities" class="nav-link" data-scroll-target="#example-unequal-densities"><span class="header-section-number">12.5.2</span> Example: Unequal Densities</a></li>
+  <li><a href="#example-uneven-chains" id="toc-example-uneven-chains" class="nav-link" data-scroll-target="#example-uneven-chains"><span class="header-section-number">12.5.3</span> Example: Uneven Chains</a></li>
   </ul></li>
-  <li><a href="#practical-workflow" id="toc-practical-workflow" class="nav-link" data-scroll-target="#practical-workflow"><span class="header-section-number">12.6</span> Practical Workflow</a></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">12.7</span> Summary</a></li>
   </ul>
 </nav>
     </div>
@@ -775,7 +778,7 @@ window.Quarto = {
 <p>Two common internal metrics are WCSS and the silhouette value.</p>
 <p>The examples below use a small hypothetical dataset to illustrate the mechanics of the evaluation. We first visualize one set of cluster assignments.</p>
 <!-- fmt: off -->
-<div id="3e687d0f" class="cell" data-execution_count="1">
+<div id="33a2a64b" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -820,13 +823,13 @@ window.Quarto = {
 <p>For K-means, WCSS is both the fitting objective and an internal measure of cluster compactness. It plays a role similar to the residual sum of squares (RSS) in regression: smaller values indicate that observations are closer to their fitted centers.</p>
 <p>WCSS can be computed for any assignment of observations to clusters using any methods. However, it is most naturally associated with K-means because K-means explicitly minimizes WCSS during fitting. For clustering methods designed to detect non-spherical or density-based structures, WCSS may not provide a meaningful assessment of clustering quality.</p>
 <p>In <code>sklearn</code>, WCSS is also called inertia and is stored as <code>.inertia_</code> on a fitted <code>KMeans</code> object. This is the WCSS for the fitted centers, specifically the best solution among the initializations tried. There is no general <code>sklearn</code> API for computing WCSS from arbitrary centers or labels.</p>
-<div id="59989b56" class="cell" data-execution_count="2">
+<div id="46d5429d" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>kmeans_eval <span class="op">=</span> KMeans(n_clusters<span class="op">=</span><span class="dv">3</span>, n_init<span class="op">=</span><span class="dv">20</span>, random_state<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>kmeans_eval.fit(X_eval)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>kmeans_eval.inertia_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="83">
+<div class="cell-output cell-output-display" data-execution_count="2">
 <pre><code>0.26666666666666655</code></pre>
 </div>
 </div>
@@ -912,11 +915,11 @@ s(i)
 <li>negative values suggest that another cluster may be closer.</li>
 </ul>
 <p>The overall silhouette score is the average of <span class="math inline">\(s(i)\)</span> over all observations. Larger values are preferred. It requires at least two nonempty clusters.</p>
-<div id="91a41acf" class="cell" data-execution_count="3">
+<div id="eae510b5" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> silhouette_score</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>silhouette_score(X_eval, cluster_eval)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="84">
+<div class="cell-output cell-output-display" data-execution_count="3">
 <pre><code>0.952562475841761</code></pre>
 </div>
 </div>
@@ -990,7 +993,7 @@ The Silhouette score for the whole dataset is the mean of the score for each ind
 <section id="interpretation-in-the-original-features" class="level3" data-number="12.1.4">
 <h3 data-number="12.1.4" class="anchored" data-anchor-id="interpretation-in-the-original-features"><span class="header-section-number">12.1.4</span> Interpretation in the Original Features</h3>
 <p>Numerical scores do not explain what a cluster represents. After fitting a clustering, the groups should be described using the original variables. For tabular data, a simple interpretation step is to summarize each feature by cluster.</p>
-<div id="c70a24a3" class="cell" data-execution_count="4">
+<div id="43a5bf45" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>cluster_summary <span class="op">=</span> (</span>
@@ -1001,7 +1004,7 @@ The Silhouette score for the whole dataset is the mean of the score for each ind
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>cluster_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="85">
+<div class="cell-output cell-output-display" data-execution_count="4">
 <div>
 
 
@@ -1094,14 +1097,14 @@ The Silhouette score for the whole dataset is the mean of the score for each ind
 =
 \frac{a+b}{{n \choose 2}}.
 \]</span></p>
-<div id="5ae49623" class="cell" data-execution_count="5">
+<div id="f6319a8d" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> rand_score</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>reference_labels <span class="op">=</span> np.array([<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>])</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>cluster_assignments <span class="op">=</span> np.array([<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>])</span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>rand_score(reference_labels, cluster_assignments)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="86">
+<div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>0.7777777777777778</code></pre>
 </div>
 </div>
@@ -1219,14 +1222,14 @@ b
 \approx
 0.556.
 \]</span></p>
-<div id="16417f45" class="cell" data-execution_count="6">
+<div id="b13233dd" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> rand_score</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>reference_labels <span class="op">=</span> [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>]</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>cluster_assignments <span class="op">=</span> [<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>, <span class="dv">9</span>]</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>rand_score(reference_labels, cluster_assignments)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="87">
+<div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>0.5555555555555556</code></pre>
 </div>
 </div>
@@ -1290,26 +1293,26 @@ b_j=\sum_i n_{ij}.
 <p>This correction is useful because cluster labels themselves are arbitrary. For example, cluster assignments <code>[0, 0, 1, 1]</code> and <code>[2, 2, 5, 5]</code> describe the same grouping even though the numeric labels are different.</p>
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 12.2 (A relatively high Rand index can be misleading (cont.))</strong></span> Continue from the <a href="#exm-high-rand-score" class="quarto-xref">Example&nbsp;<span>12.1</span></a>.</p>
-<div id="79c5f46d" class="cell" data-execution_count="7">
+<div id="db354c28" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> adjusted_rand_score</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>reference_labels <span class="op">=</span> [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>]</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>cluster_assignments <span class="op">=</span> [<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>, <span class="dv">9</span>]</span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>adjusted_rand_score(reference_labels, cluster_assignments)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="88">
+<div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>0.0</code></pre>
 </div>
 </div>
 <p>The adjusted Rand index is <span class="math inline">\(0\)</span>, correctly indicating that the observed agreement is no greater than what would be expected by chance.</p>
 </div>
 <p>The same score can compare two clustering runs on the same observations. This is useful for assessing whether the fitted clustering is stable under small changes in preprocessing, initialization, or resampling.</p>
-<div id="c55ed2e5" class="cell" data-execution_count="8">
+<div id="67c63112" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cluster_run_1 <span class="op">=</span> np.array([<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>])</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>cluster_run_2 <span class="op">=</span> np.array([<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>])</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>adjusted_rand_score(cluster_run_1, cluster_run_2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="89">
+<div class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>1.0</code></pre>
 </div>
 </div>
@@ -1349,7 +1352,7 @@ b_j=\sum_i n_{ij}.
 <p>We use a simulated dataset to illustrate K-means in Python.</p>
 <p>We use <code>make_blobs</code> from <code>sklearn.datasets</code> to generate 500 observations from three latent groups. The data have two features so that the result can be visualized directly. The colors below show the generating labels. They are not used when fitting K-means.</p>
 <!-- fmt: off -->
-<div id="f160d88c" class="cell" data-execution_count="9">
+<div id="4fd9b099" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1381,7 +1384,7 @@ b_j=\sum_i n_{ij}.
 <p><code>KMeans</code> follows the usual <code>sklearn</code> interface. Since clustering is performed on the observed data themselves, we fit the model to the feature matrix and obtain cluster assignments for the observations.</p>
 <p>For this first illustration, we set <code>n_clusters=3</code> so that the fitted result can be compared visually with the simulated groups. This does not represent how <span class="math inline">\(K\)</span> is chosen in practice. In real applications, the number of clusters is usually unknown and must be treated as a tuning choice.</p>
 <p>As mentioned previously, it is recommended to use multiple random initializations to reduce sensitivity to a poor starting configuration. The argument <code>n_init=20</code> runs K-means from 20 different initial center configurations and retains the solution with the smallest inertia among those runs.</p>
-<div id="d8a05ddf" class="cell" data-execution_count="10">
+<div id="95753dbe" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-8"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-8-1"><a href="#annotated-cell-8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans</span>
 <span id="annotated-cell-8-2"><a href="#annotated-cell-8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="annotated-cell-8-3"><a href="#annotated-cell-8-3" aria-hidden="true" tabindex="-1"></a>kmeans <span class="op">=</span> KMeans(n_clusters<span class="op">=</span><span class="dv">3</span>, n_init<span class="op">=</span><span class="dv">20</span>, random_state<span class="op">=</span><span class="dv">1</span>)</span>
@@ -1397,7 +1400,7 @@ b_j=\sum_i n_{ij}.
 </div>
 </div>
 <p><code>cluster</code> is an array of cluster assignments, one for each observation. We can then plot the observations with colors indicating their assigned clusters. <!-- fmt: off --></p>
-<div id="536e2f38" class="cell" data-execution_count="11">
+<div id="f376f143" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(X[:, <span class="dv">0</span>], X[:, <span class="dv">1</span>], c<span class="op">=</span>cluster)</span>
@@ -1423,9 +1426,9 @@ b_j=\sum_i n_{ij}.
 </div>
 <!-- fmt: on -->
 <p>The fitted centers are available from the model.</p>
-<div id="ead12da8" class="cell" data-execution_count="12">
+<div id="9bdb3088" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>kmeans.cluster_centers_</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="93">
+<div class="cell-output cell-output-display" data-execution_count="12">
 <pre><code>array([[ 1.01494239,  4.19111967],
        [ 7.70936555,  8.07424709],
        [-4.1867326 ,  0.2695436 ]])</code></pre>
@@ -1449,7 +1452,7 @@ b_j=\sum_i n_{ij}.
 <h3 data-number="12.2.2" class="anchored" data-anchor-id="tuning-hyperparameters"><span class="header-section-number">12.2.2</span> Tuning Hyperparameters</h3>
 <p>The most important K-means hyperparameter is <code>n_clusters</code>, the number of centers to fit. A larger value gives a more detailed clustering and lowers the within-cluster sum of squares, but it may split groups that are better interpreted together. A smaller value gives a coarser summary but may merge distinct groups. There is no universally correct criterion because the useful level of grouping depends on the scientific question.</p>
 <p>Two common diagnostics for choosing <code>n_clusters</code> are inertia and the silhouette score. The elbow plot examines inertia over a range that includes <span class="math inline">\(K=1\)</span>. The silhouette score compares within-cluster cohesion with separation from neighboring clusters and is computed only for <span class="math inline">\(K\ge 2\)</span>.</p>
-<div id="c7d158df" class="cell" data-execution_count="13">
+<div id="488dac02" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> silhouette_score</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>inertia_k <span class="op">=</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">11</span>)</span>
@@ -1467,7 +1470,7 @@ b_j=\sum_i n_{ij}.
 <span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>    silhouettes.append(silhouette_score(X, labels))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Plot the two diagnostics together.</p>
-<div id="f24d80e6" class="cell" data-execution_count="14">
+<div id="75abca54" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -1528,7 +1531,7 @@ b_j=\sum_i n_{ij}.
 <li>not dominated by extreme outliers.</li>
 </ul>
 <p>It can perform poorly on curved clusters, clusters with very different densities, or data where a mean is not an appropriate prototype.</p>
-<div id="17dcef66" class="cell" data-execution_count="15">
+<div id="a956903a" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> make_circles</span>
@@ -1596,7 +1599,7 @@ b_j=\sum_i n_{ij}.
 <li>Merge <span class="math inline">\(3.0\)</span> and <span class="math inline">\(3.2\)</span> at height <span class="math inline">\(0.2\)</span>.</li>
 <li>Merge the two larger clusters <span class="math inline">\(\{0.0,0.2,0.3\}\)</span> and <span class="math inline">\(\{3.0,3.2\}\)</span> at height <span class="math inline">\(2.7\)</span>.</li>
 </ol>
-<div id="f88136c1" class="cell" data-execution_count="16">
+<div id="cb75d07c" class="cell" data-execution_count="16">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1610,13 +1613,13 @@ b_j=\sum_i n_{ij}.
 <section id="hierarchical-clustering-in-python" class="level3" data-number="12.3.3">
 <h3 data-number="12.3.3" class="anchored" data-anchor-id="hierarchical-clustering-in-python"><span class="header-section-number">12.3.3</span> Hierarchical clustering in Python</h3>
 <p>In <code>sklearn</code>, agglomerative hierarchical clustering is fit using <code>AgglomerativeClustering</code>. Here we apply it to the simulated dataset from K-means. Like other <code>sklearn</code> estimators, it provides <code>fit_predict</code> for returning cluster assignments.</p>
-<div id="8538c1fa" class="cell" data-execution_count="17">
+<div id="7b33511e" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> AgglomerativeClustering</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>hierarchical_model <span class="op">=</span> AgglomerativeClustering(n_clusters<span class="op">=</span><span class="dv">3</span>, linkage<span class="op">=</span><span class="st">"single"</span>)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>hierarchical_cluster <span class="op">=</span> hierarchical_model.fit_predict(X)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Here <code>n_clusters=3</code> is chosen for illustration. We can visualize the resulting cluster assignments in the original feature space.</p>
-<div id="ce4b623d" class="cell" data-execution_count="18">
+<div id="0c224b62" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(X[:, <span class="dv">0</span>], X[:, <span class="dv">1</span>], c<span class="op">=</span>hierarchical_cluster)</span>
@@ -1632,7 +1635,7 @@ b_j=\sum_i n_{ij}.
 </div>
 </div>
 <p><code>sklearn</code> can fit an agglomerative hierarchical clustering model and return the cluster assignments, but it does not provide a function to directly plot a dendrogram. For visualization, we use <code>linkage</code> from <code>scipy.cluster.hierarchy</code> to compute the hierarchy and <code>dendrogram</code> to display the resulting merge tree.</p>
-<div id="ac832a5c" class="cell" data-execution_count="19">
+<div id="7e6e50d6" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.cluster.hierarchy <span class="im">import</span> linkage, dendrogram</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> linkage(X, method<span class="op">=</span><span class="st">"single"</span>)</span>
@@ -1673,7 +1676,7 @@ b_j=\sum_i n_{ij}.
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>In <code>sklearn</code>, the usual <code>AgglomerativeClustering(n_clusters=...)</code> interface asks for an exact number of clusters. This is not the same as drawing a horizontal line at a fixed dendrogram height. The algorithm can return any requested value of <code>n_clusters</code>, even when several merges occur at the same height. Operationally, this is equivalent to following the merge sequence and stopping when exactly <code>n_clusters</code> groups remain, rather than choosing all merges below a fixed height.</p>
+<p>In <code>sklearn</code>, the usual <code>AgglomerativeClustering(n_clusters=...)</code> interface asks for an exact number of clusters. This is not the same as drawing a horizontal line at a fixed dendrogram height. The algorithm can return any requested value of <code>n_clusters</code>, even when several merges occur at the same height. Operationally, this is equivalent to following the merge sequence determined by the implementation and stopping when exactly <code>n_clusters</code> groups remain, rather than choosing all merges below a fixed height. If several candidate merges have the same height, the order is implementation-determined, not random.</p>
 <p>If the goal is a strict height-based cut, use <code>scipy.cluster.hierarchy.linkage</code> with <code>fcluster</code>, or use <code>AgglomerativeClustering</code> with <code>distance_threshold</code> and <code>n_clusters=None</code>. In this chapter, we focus mainly on the <code>sklearn</code> <code>n_clusters</code> interface because it is simple and matches the way the examples compare flat cluster assignments.</p>
 </div>
 </div>
@@ -1682,7 +1685,7 @@ b_j=\sum_i n_{ij}.
 <h3 data-number="12.3.4" class="anchored" data-anchor-id="comparing-linkages"><span class="header-section-number">12.3.4</span> Comparing Linkages</h3>
 <p>To make the effect of linkage visible, we use a dataset whose geometry is not compact or spherical. The two-moons data have two curved groups, so different linkage rules can produce noticeably different flat clusterings.</p>
 <p>Although the data are generated from two underlying groups, we set <code>n_clusters=4</code> here to make the behavior of the linkage rules easier to compare.</p>
-<div id="83189857" class="cell" data-execution_count="20">
+<div id="7c9691f4" class="cell" data-execution_count="20">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> AgglomerativeClustering</span>
@@ -1775,7 +1778,7 @@ b_j=\sum_i n_{ij}.
 <section id="dbscan-in-python" class="level3" data-number="12.4.2">
 <h3 data-number="12.4.2" class="anchored" data-anchor-id="dbscan-in-python"><span class="header-section-number">12.4.2</span> DBSCAN in Python</h3>
 <p>We use <code>DBSCAN</code> from <code>sklearn.cluster</code> to implement the method.</p>
-<div id="6812bfc9" class="cell" data-execution_count="21">
+<div id="31cc74c8" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> DBSCAN</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> make_circles</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1787,7 +1790,7 @@ b_j=\sum_i n_{ij}.
 <span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>circle_dbscan <span class="op">=</span> DBSCAN(eps<span class="op">=</span><span class="fl">0.13</span>, min_samples<span class="op">=</span><span class="dv">4</span>)</span>
 <span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>circle_dbscan_group <span class="op">=</span> circle_dbscan.fit_predict(X_circle)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="fbc59a7f" class="cell" data-execution_count="22">
+<div id="27fabb87" class="cell" data-execution_count="22">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -1836,7 +1839,7 @@ b_j=\sum_i n_{ij}.
 </div>
 <p>After choosing <code>min_samples</code>, compute the distance from each observation to the neighbor that determines whether it is a core point. Since <code>min_samples</code> includes the observation itself in <code>sklearn</code>, this is the distance to the <code>min_samples</code>-th nearest observation when the observation itself is included as the first neighbor. Points inside dense regions should have small such distances, while isolated or low-density points should have larger distances. Sorting these distances gives a diagnostic plot. A visible elbow in the plot suggests a candidate value of <code>eps</code>.</p>
 <p>In Python we can use <code>NearestNeighbors</code> from <code>sklearn.neighbors</code> to compute these distances. The result is then sorted and plotted.</p>
-<div id="b3b8cae4" class="cell" data-execution_count="23">
+<div id="7a954cad" class="cell" data-execution_count="23">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.neighbors <span class="im">import</span> NearestNeighbors</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>min_samples <span class="op">=</span> <span class="dv">4</span></span>
@@ -1863,7 +1866,7 @@ b_j=\sum_i n_{ij}.
 <p>A candidate <code>eps</code> can be drawn as a horizontal line on this plot. Observations with k-distances below the line satisfy the core-point density requirement. Observations above the line are not core points; they may later become border points if they lie within <code>eps</code> of a core point, or they may be labeled as noise.</p>
 <p>Thus, decreasing <code>eps</code> usually creates fewer core points, more noise, and a greater chance that a dense region is split into pieces. Increasing <code>eps</code> usually creates more core points and a greater chance that nearby dense regions are merged through a bridge of points.</p>
 <p>In this example, the curve remains relatively flat for most observations and then increases more sharply for observations whose local neighborhoods are sparser. An <code>eps</code> value near the bend separates the dense ring structure from the lower-density gaps. We next check nearby values.</p>
-<div id="9008597b" class="cell" data-execution_count="24">
+<div id="d3c7d4f3" class="cell" data-execution_count="24">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>eps_values <span class="op">=</span> [<span class="fl">0.12</span>, <span class="fl">0.13</span>, <span class="fl">0.14</span>]</span>
@@ -1968,11 +1971,13 @@ b_j=\sum_i n_{ij}.
 <li>Agglomerative hierarchical clustering is most useful when the merge sequence or dendrogram is part of the interpretation. It can show several possible resolutions from one fitted tree, but early merges cannot be undone and classical agglomerative methods scale poorly because they rely on many pairwise dissimilarities.</li>
 <li>DBSCAN is useful when clusters are dense regions separated by sparse space. It does not require <code>n_clusters</code> and can label observations as noise, but it is sensitive to the density scale set by <code>eps</code> and <code>min_samples</code> and does not show nested structure.</li>
 </ul>
-<p>We show three examples below about the strength and limitations of each methods. These examples are not a ranking. They show that each method is answering a different question: nearest center, merge tree, or density connectivity. When a method performs poorly on a particular geometry, the failure is still useful if it matches the method’s definition of a cluster.</p>
+<p>We show three examples below illustrating the strengths and limitations of each method. These examples are not a ranking. They show that each method is answering a different question: nearest center, merge tree, or density connectivity. In the examples, the hierarchical clustering result uses single linkage. When a method performs poorly on a particular geometry, the failure is still useful if it matches the method’s definition of a cluster.</p>
+<p>Since all datasets are generated, we know the true label for each observation. Therefore, we can use ARI as an external metric to compare the clustering results on each dataset. ARI is optional and was introduced earlier in the notes.</p>
+<p>In the curves-with-noise example, the artificially added noise points are treated as a separate reference group when computing ARI. This is a teaching device for simulated data, not something usually available in real applications. It favors methods that can identify noise points, such as DBSCAN, and penalizes methods such as K-means and hierarchical clustering that must assign every observation to a cluster.</p>
 <section id="example-curves-with-noise" class="level3" data-number="12.5.1">
 <h3 data-number="12.5.1" class="anchored" data-anchor-id="example-curves-with-noise"><span class="header-section-number">12.5.1</span> Example: Curves with Noise</h3>
 <!-- fmt: off -->
-<div id="0f49acdf" class="cell" data-execution_count="25">
+<div id="0a0c9161" class="cell" data-execution_count="25">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> make_blobs, make_moons</span>
@@ -2033,11 +2038,12 @@ b_j=\sum_i n_{ij}.
 <ul>
 <li>DBSCAN works best here because it defines clusters as dense connected regions, so it can follow the two curved shapes and leave scattered observations as noise.</li>
 <li>K-means has trouble because each cluster is represented by a center, which breaks the curved geometry into center-based regions.</li>
-<li>Single-linkage hierarchical clustering can follow connected shapes, but scattered noise may create unwanted connections or unbalanced cuts.</li>
+<li>Hierarchical clustering using single linkage can follow connected shapes, but scattered noise may create unwanted connections or unbalanced cuts.</li>
 </ul>
-<section id="unequal-densities" class="level4" data-number="12.5.1.1">
-<h4 data-number="12.5.1.1" class="anchored" data-anchor-id="unequal-densities"><span class="header-section-number">12.5.1.1</span> Unequal Densities</h4>
-<div id="c0bc7e52" class="cell" data-execution_count="26">
+</section>
+<section id="example-unequal-densities" class="level3" data-number="12.5.2">
+<h3 data-number="12.5.2" class="anchored" data-anchor-id="example-unequal-densities"><span class="header-section-number">12.5.2</span> Example: Unequal Densities</h3>
+<div id="6c44f72d" class="cell" data-execution_count="26">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>X_unequal_density, true_unequal_density_group <span class="op">=</span> make_blobs(</span>
@@ -2089,13 +2095,13 @@ b_j=\sum_i n_{ij}.
 <p>The unequal-density dataset illustrates a limitation of DBSCAN. The three groups have very different spreads.</p>
 <ul>
 <li>K-means is relatively effective here because the groups are still roughly center-based, even though their densities differ.</li>
-<li>DBSCAN has trouble because one global <code>eps</code> may be appropriate for the dense group but too small for the sparse group, or appropriate for the sparse group but too large for the dense group.</li>
-<li>Single-linkage hierarchical clustering can also be unstable here because a few close points between groups can create early connections that affect the later merges.</li>
+<li>DBSCAN is less effective here than K-means and is more sensitive to the chosen <code>eps</code>, because one global <code>eps</code> may be appropriate for the dense group but too small for the sparse group, or appropriate for the sparse group but too large for the dense group.</li>
+<li>Hierarchical clustering using single linkage can also be unstable here because a few close points between groups can create early connections that affect the later merges.</li>
 </ul>
 </section>
-<section id="uneven-chains" class="level4" data-number="12.5.1.2">
-<h4 data-number="12.5.1.2" class="anchored" data-anchor-id="uneven-chains"><span class="header-section-number">12.5.1.2</span> Uneven Chains</h4>
-<div id="387d11dc" class="cell" data-execution_count="27">
+<section id="example-uneven-chains" class="level3" data-number="12.5.3">
+<h3 data-number="12.5.3" class="anchored" data-anchor-id="example-uneven-chains"><span class="header-section-number">12.5.3</span> Example: Uneven Chains</h3>
+<div id="67386e5e" class="cell" data-execution_count="27">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>rng_chain <span class="op">=</span> np.random.default_rng(<span class="dv">9</span>)</span>
@@ -2146,34 +2152,15 @@ b_j=\sum_i n_{ij}.
 </div>
 </div>
 <!-- fmt: on -->
-<p>The uneven-chain dataset illustrates a case where single-linkage hierarchical clustering can be useful. The groups are best described as connected chains with uneven spacing.</p>
+<p>The uneven-chain dataset illustrates a case where hierarchical clustering using single linkage can be useful. The groups are best described as connected chains with uneven spacing.</p>
 <ul>
 <li>Single linkage can follow each chain through nearest-neighbor connections, so it is the most natural fit among the three methods.</li>
 <li>K-means instead cuts the plane into center-based regions, which mixes parts of the two chains.</li>
-<li>DBSCAN can label sparse parts of the chains as noise when one global density scale is used, because the same <code>eps</code> must handle both dense and sparse segments.</li>
+<li>DBSCAN can label the thinner parts on both sides of the chains as noise when one global density scale is used. In this example, those side segments are not merged into one cluster; they are mostly excluded as noise because they are too sparse under the chosen <code>eps</code> and <code>min_samples</code>.</li>
 </ul>
-</section>
-</section>
-</section>
-<section id="practical-workflow" class="level2" data-number="12.6">
-<h2 data-number="12.6" class="anchored" data-anchor-id="practical-workflow"><span class="header-section-number">12.6</span> Practical Workflow</h2>
-<p>A clustering analysis usually follows these steps:</p>
-<ol type="1">
-<li>select features that match the scientific question;</li>
-<li>handle missing values and obvious data quality problems;</li>
-<li>choose scaling and a distance metric deliberately;</li>
-<li>decide whether clustering should use the original features or a constructed representation;</li>
-<li>compare clustering paradigms and tuning choices;</li>
-<li>check stability under perturbations;</li>
-<li>interpret the cluster assignments in the original feature space.</li>
-</ol>
-<p>Some clustering methods first change the representation and then cluster the transformed data. The next chapter, <a href="dimensionr.html" class="quarto-xref"><span>Chapter 13</span></a>, studies this representation problem directly through linear dimension reduction. The following chapter, <a href="embedding.html" class="quarto-xref"><span>Chapter 14</span></a>, develops nonlinear and graph-based representations. These transformations can reveal structure and reduce noise, but they also change the geometry on which clustering is based.</p>
-</section>
-<section id="summary" class="level2" data-number="12.7">
-<h2 data-number="12.7" class="anchored" data-anchor-id="summary"><span class="header-section-number">12.7</span> Summary</h2>
-<p>The three direct clustering paradigms use different definitions of a cluster. K-means finds centroid-based groups, hierarchical clustering builds a nested sequence of merges, and DBSCAN finds density-connected groups while allowing noise. Method choice and evaluation should reflect the intended geometry, stability, and interpretation in the original variables.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
