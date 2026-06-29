@@ -735,7 +735,7 @@ y = \theta_0 + \theta_1 Z_1 + \theta_2 Z_2 + \cdots + \theta_m Z_m + \varepsilon
 </summary>
 <p>To demonstrate the idea, we generate the following dataset. It contains 2 variables.</p>
 <!-- fmt: off -->
-<div id="c6a71e5a" class="cell" data-execution_count="1">
+<div id="e024d31c" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -808,41 +808,36 @@ Z_j = X v_j=v_{1j}X_1+v_{2j}X_2+\ldots+v_{pj}X_p
 <strong>Click to expand.</strong>
 </summary>
 <p>We use the same previous dataset <code>X</code>, centering it as <code>Xc</code> and standarizing it as <code>Xs</code>.</p>
-<div id="ffa361e3" class="cell" data-execution_count="2">
+<div id="125fbf4e" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Xc <span class="op">=</span> X <span class="op">-</span> X.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Xs <span class="op">=</span> Xc <span class="op">/</span> Xc.std(axis<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now we plot them together with the princial compoenent. <code>pca()</code> from <code>sklearn</code> will automatically centering columns. In order to show the sceanario, we use <code>svd()</code> from <code>numpy.linalg</code> to do the computation.</p>
-<div id="b54385d2" class="cell" data-execution_count="3">
+<div id="d67863cf" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pca_svd(X):</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    U, D, Vt <span class="op">=</span> np.linalg.svd(X)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Vt.T, D</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_svd(ax, X, V, title, scale<span class="op">=</span><span class="dv">3</span>, length<span class="op">=</span><span class="dv">5</span>):</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    ax.scatter(X[:, <span class="dv">0</span>], X[:, <span class="dv">1</span>])</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> np.linspace(<span class="op">-</span>length, length, <span class="dv">100</span>)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    line <span class="op">=</span> np.outer(t, V[:, <span class="dv">0</span>])</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    ax.plot(line[:, <span class="dv">0</span>], line[:, <span class="dv">1</span>], linewidth<span class="op">=</span><span class="dv">2</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    ax.set_title(title)</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"x1"</span>)</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">"x2"</span>)</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    ax.set_xlim(<span class="op">-</span><span class="fl">4.5</span>, <span class="fl">4.5</span>)</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    ax.set_ylim(<span class="op">-</span><span class="fl">4.5</span>, <span class="fl">4.5</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_svd(ax, X, V, title, scale<span class="op">=</span><span class="dv">3</span>, length<span class="op">=</span><span class="dv">5</span>):</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    ax.scatter(X[:, <span class="dv">0</span>], X[:, <span class="dv">1</span>])</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> np.linspace(<span class="op">-</span>length, length, <span class="dv">100</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    line <span class="op">=</span> np.outer(t, V[:, <span class="dv">0</span>])</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ax.plot(line[:, <span class="dv">0</span>], line[:, <span class="dv">1</span>], linewidth<span class="op">=</span><span class="dv">2</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    ax.set_title(title)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"x1"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">"x2"</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    ax.set_xlim(<span class="op">-</span><span class="fl">4.5</span>, <span class="fl">4.5</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    ax.set_ylim(<span class="op">-</span><span class="fl">4.5</span>, <span class="fl">4.5</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>V_raw <span class="op">=</span> np.linalg.svd(X)[<span class="dv">2</span>].T</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>V_c <span class="op">=</span> np.linalg.svd(Xc)[<span class="dv">2</span>].T</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>V_s <span class="op">=</span> np.linalg.svd(Xs)[<span class="dv">2</span>].T</span>
 <span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>V_raw <span class="op">=</span> np.linalg.svd(X)[<span class="dv">2</span>].T</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>V_c <span class="op">=</span> np.linalg.svd(Xc)[<span class="dv">2</span>].T</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>V_s <span class="op">=</span> np.linalg.svd(Xs)[<span class="dv">2</span>].T</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">0</span>], X, V_raw, <span class="st">"Uncentered (Wrong PCA)"</span>)</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">1</span>], Xc, V_c, <span class="st">"Centered"</span>)</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">2</span>], Xs, V_s, <span class="st">"Centered + Scaled"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">0</span>], X, V_raw, <span class="st">"Uncentered (Wrong PCA)"</span>)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">1</span>], Xc, V_c, <span class="st">"Centered"</span>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">2</span>], Xs, V_s, <span class="st">"Centered + Scaled"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -993,7 +988,7 @@ Z_m = X V_m = U_m D_m
 <section id="pca" class="level3" data-number="5.2.1">
 <h3 data-number="5.2.1" class="anchored" data-anchor-id="pca"><span class="header-section-number">5.2.1</span> PCA</h3>
 <p><code>scikit-learn</code> provides <code>PCA</code> for computing principal components. To demonstrate the code we use the same dataset from lasso.</p>
-<div id="214da9ce" class="cell" data-execution_count="4">
+<div id="4c3ef18c" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1020,13 +1015,13 @@ Z_m = X V_m = U_m D_m
 </details>
 </div>
 <p><code>pca</code> is an unsupervised learnning method. Therefore to perform it we only need <code>X</code>.</p>
-<div id="aa944457" class="cell" data-execution_count="5">
+<div id="b834975e" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>pca <span class="op">=</span> PCA().fit(X_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>All important information can be accessed from the returned object.</p>
-<div id="0b592812" class="cell" data-execution_count="6">
+<div id="80c840f8" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>V <span class="op">=</span> pca.components_.T                   <span class="co"># loadings (V)</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> pca.transform(X_train)              <span class="co"># scores (Z)</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> pca.singular_values_                <span class="co"># singular values (D)</span></span>
@@ -1034,7 +1029,7 @@ Z_m = X V_m = U_m D_m
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>ratio <span class="op">=</span> pca.explained_variance_ratio_   <span class="co"># the ratio of variance that are explained</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>With <code>var</code> and <code>ratio</code>, we may plot the scree plot (although we won’t really use it to select the number of components).</p>
-<div id="0ac9bb3c" class="cell" data-execution_count="7">
+<div id="bb90745a" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-4"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-4-1"><a href="#annotated-cell-4-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> np.arange(<span class="dv">1</span>, <span class="bu">len</span>(var) <span class="op">+</span> <span class="dv">1</span>)</span>
@@ -1080,7 +1075,7 @@ Z_m = X V_m = U_m D_m
 <h3 data-number="5.2.2" class="anchored" data-anchor-id="pcr"><span class="header-section-number">5.2.2</span> PCR</h3>
 <p>Using PCA to do regression, we have to standarize the data. Therefore we set up the pipeline.</p>
 <p>We first use 13 components (which comes from the scree plot) as our starting point. We will tune it later using cross-validation.</p>
-<div id="f61ba96c" class="cell" data-execution_count="8">
+<div id="bad7f42b" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> Pipeline</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
@@ -1109,7 +1104,7 @@ Test R^2 : 0.8536528530700276</code></pre>
 <section id="choosing-number-of-components-by-cross-validation" class="level3" data-number="5.2.3">
 <h3 data-number="5.2.3" class="anchored" data-anchor-id="choosing-number-of-components-by-cross-validation"><span class="header-section-number">5.2.3</span> Choosing number of components by cross-validation</h3>
 <p>We use <span class="math inline">\(K\)</span>-fold cross validation to find the best number of components. Our criterion is negative MSE.</p>
-<div id="fb699975" class="cell" data-execution_count="9">
+<div id="6ab8bfd6" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-6"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-6-1"><a href="#annotated-cell-6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="annotated-cell-6-2"><a href="#annotated-cell-6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="annotated-cell-6-3"><a href="#annotated-cell-6-3" aria-hidden="true" tabindex="-1"></a>n_splits <span class="op">=</span> <span class="dv">5</span></span>
@@ -1136,7 +1131,7 @@ Test R^2 : 0.8536528530700276</code></pre>
 </div>
 </div>
 <p>It shows that 19 is the best number. Then we check the test result.</p>
-<div id="06c45a02" class="cell" data-execution_count="10">
+<div id="fd090f66" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>y_pred_pcr <span class="op">=</span> gs_pcr.predict(X_test)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span>
@@ -1148,7 +1143,7 @@ Test R^2 : 0.8652733542572647</code></pre>
 </div>
 <p>It is slightly better than <code>13</code>, but still worse than tuned <code>ridge</code> and <code>lasso</code>.</p>
 <p>We could also look at the validation curve on the mean test score.</p>
-<div id="cfcd685b" class="cell" data-execution_count="11">
+<div id="1142fc04" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>plt.plot(param_grid[<span class="st">"pca__n_components"</span>], gs_pcr.cv_results_[<span class="st">"mean_test_score"</span>])</span>
@@ -1341,7 +1336,7 @@ Note
 <h2 data-number="5.4" class="anchored" data-anchor-id="pls-in-python"><span class="header-section-number">5.4</span> PLS in Python</h2>
 <p>Although the algorithm is different, the code is very similar to PCR. PLS is implemented by <code>PLSRegression</code> from <code>sklearn.cross_decomposition</code>. The argument <code>scale=True</code> is by default so we don’t need to attach standardizer to it.</p>
 <p>We choose the default number of componenets (which is 2) here. The specific hyperparameter will be tuned later by cross-validation.</p>
-<div id="88187f94" class="cell" data-execution_count="12">
+<div id="369eb835" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cross_decomposition <span class="im">import</span> PLSRegression</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>pls <span class="op">=</span> PLSRegression()</span>
@@ -1349,7 +1344,7 @@ Note
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>pls.fit(X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We could use the following code to get access to the parameters.</p>
-<div id="1fbd9a4c" class="cell" data-execution_count="13">
+<div id="9eaff7aa" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>W <span class="op">=</span> pls.x_weights_    <span class="co"># weights, directions (W)</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> pls.x_scores_     <span class="co"># scores, components (Z)</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> pls.x_loadings_   <span class="co"># loadings (P)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1357,7 +1352,7 @@ Note
 <section id="example" class="level3" data-number="5.4.1">
 <h3 data-number="5.4.1" class="anchored" data-anchor-id="example"><span class="header-section-number">5.4.1</span> Example</h3>
 <p>We use the same simulated dataset as before.</p>
-<div id="a5a56c50" class="cell" data-execution_count="14">
+<div id="f0671f9d" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1384,7 +1379,7 @@ Note
 </details>
 </div>
 <p>Similar to PCR, we need to choose the number of components. Since PLS is fit inside cross-validation, the maximum number of components should be no larger than the number of observations in each training fold.</p>
-<div id="2c6ab426" class="cell" data-execution_count="15">
+<div id="d8ab7ff0" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cross_decomposition <span class="im">import</span> PLSRegression</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1404,7 +1399,7 @@ Note
 </div>
 </div>
 <p>After selecting the number of components by cross-validation, we evaluate the fitted model on the test set.</p>
-<div id="c2f35e6f" class="cell" data-execution_count="16">
+<div id="a8121386" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>y_pred_pls <span class="op">=</span> gs_pls.predict(X_test)</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pls)<span class="sc">}</span><span class="ss">"</span>)</span>
@@ -1415,7 +1410,7 @@ Test R^2 : 0.8598720672844287</code></pre>
 </div>
 </div>
 <p>The validation curve shows how the cross-validation error changes as the number of PLS components increases.</p>
-<div id="26ba2803" class="cell" data-execution_count="17">
+<div id="50471dab" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>plt.plot(param_grid[<span class="st">"n_components"</span>], gs_pls.cv_results_[<span class="st">"mean_test_score"</span>])</span>
@@ -1453,15 +1448,15 @@ Test R^2 : 0.8598720672844287</code></pre>
 </div>
 </div>
 <p>The results for this dataset are summarized in the following table.</p>
-<div id="0c7f611f" class="cell" data-execution_count="18">
+<div id="5f0bb1bb" class="cell" data-execution_count="18">
 <div class="cell-output cell-output-stderr">
 <pre><code>&lt;&gt;:90: SyntaxWarning: "is not" with 'str' literal. Did you mean "!="?
 &lt;&gt;:90: SyntaxWarning: "is not" with 'str' literal. Did you mean "!="?
-C:\Users\xiaox\AppData\Local\Temp\ipykernel_56208\4187596780.py:90: SyntaxWarning: "is not" with 'str' literal. Did you mean "!="?
+C:\Users\xiaox\AppData\Local\Temp\ipykernel_36232\4187596780.py:90: SyntaxWarning: "is not" with 'str' literal. Did you mean "!="?
   if (ols_in is True) or ((ols_in is False) and (name is not "OLS")):</code></pre>
 </div>
 </div>
-<div id="9ad3e05e" class="cell" data-execution_count="19">
+<div id="d82143be" class="cell" data-execution_count="19">
 <div class="cell-output cell-output-display" data-execution_count="17">
 <div>
 
@@ -1539,7 +1534,7 @@ X = Z_1 A_1 + Z_2 A_2 + \varepsilon_X.
 <li>Therefore, the predictive signal lies in low-variance but structured (low-rank) directions of <span class="math inline">\(X\)</span>.</li>
 <li>For simplicity, we take <span class="math inline">\(Z_1\)</span> to be one-dimensional in the following example.</li>
 </ul>
-<div id="1c0bb5bb" class="cell" data-execution_count="20">
+<div id="19b1cbdf" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">42</span>)</span>
@@ -1560,7 +1555,7 @@ X = Z_1 A_1 + Z_2 A_2 + \varepsilon_X.
 <span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="dv">12</span> <span class="op">*</span> Z_1.ravel() <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>n)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="f3cffb37" class="cell" data-execution_count="21">
+<div id="22c056ef" class="cell" data-execution_count="21">
 <div class="cell-output cell-output-display" data-execution_count="19">
 <div>
 
