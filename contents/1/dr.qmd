@@ -99,6 +99,7 @@ Each row of $x_i^\top$ is a vector in $p$-dimensional space, which represents on
 <summary><strong>Click to expand.</strong></summary>
 To demonstrate the idea, we generate the following dataset. It contains 2 variables.
 
+<!-- fmt: off -->
 ```{python}
 import numpy as np
 import matplotlib.pyplot as plt
@@ -115,8 +116,9 @@ X = rng.multivariate_normal(mean=mu, cov=Sigma, size=n)
 plt.scatter(X[:, 0], X[:, 1])
 
 plt.xlabel("x1")
-plt.ylabel("x2")
+plt.ylabel("x2");
 ```
+<!-- fmt: on -->
 
 Each point is an observation and is represented by a point in the feature space.
 
@@ -194,12 +196,6 @@ Now we plot them together with the princial compoenent. `pca()` from `sklearn` w
 ```{python}
 import matplotlib.pyplot as plt
 
-
-def pca_svd(X):
-    U, D, Vt = np.linalg.svd(X, full_matrices=False)
-    return Vt.T, D
-
-
 def plot_svd(ax, X, V, title, scale=3, length=5):
     ax.scatter(X[:, 0], X[:, 1])
     t = np.linspace(-length, length, 100)
@@ -209,19 +205,19 @@ def plot_svd(ax, X, V, title, scale=3, length=5):
     ax.set_title(title)
     ax.set_xlabel("x1")
     ax.set_ylabel("x2")
+    ax.set_xlim(-4.5, 4.5)
+    ax.set_ylim(-4.5, 4.5)
 
 
-V_raw = np.linalg.svd(X, full_matrices=False)[2].T
-V_c = np.linalg.svd(Xc, full_matrices=False)[2].T
-V_s = np.linalg.svd(Xs, full_matrices=False)[2].T
+V_raw = np.linalg.svd(X)[2].T
+V_c = np.linalg.svd(Xc)[2].T
+V_s = np.linalg.svd(Xs)[2].T
 
 fig, axs = plt.subplots(1, 3, figsize=(15, 4))
 
 plot_svd(axs[0], X, V_raw, "Uncentered (Wrong PCA)")
 plot_svd(axs[1], Xc, V_c, "Centered")
 plot_svd(axs[2], Xs, V_s, "Centered + Scaled")
-
-plt.tight_layout()
 ```
 
 The principal component finds the direction that maximizes the variance of the projected data.
@@ -230,7 +226,7 @@ If the data are not centered, the optimization is no longer based purely on vari
 
 As a result, when the mean is large, the first principal direction may be strongly influenced by the location of the data, and can point roughly toward the data cloud rather than reflecting its intrinsic variation.
 
-Note that the last two plots may appear similar at first glance. However, their coordinate scales are different, so this visual similarity can be misleading.
+<!-- Note that the last two plots may appear similar at first glance. However, their coordinate scales are different, so this visual similarity can be misleading. -->
 
 </details>
 

@@ -150,10 +150,7 @@ window.MathJax = {
 
 </script><script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
-
-
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
-<script src="../../styles/pronunciation.js"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script><script src="../../styles/pronunciation.js"></script>
 <script>
 window.MathJax = {
   loader: {
@@ -737,7 +734,8 @@ y = \theta_0 + \theta_1 Z_1 + \theta_2 Z_2 + \cdots + \theta_m Z_m + \varepsilon
 <strong>Click to expand.</strong>
 </summary>
 <p>To demonstrate the idea, we generate the following dataset. It contains 2 variables.</p>
-<div id="d6ab769c" class="cell" data-execution_count="1">
+<!-- fmt: off -->
+<div id="e024d31c" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -753,18 +751,16 @@ y = \theta_0 + \theta_1 Z_1 + \theta_2 Z_2 + \cdots + \theta_m Z_m + \varepsilon
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>plt.scatter(X[:, <span class="dv">0</span>], X[:, <span class="dv">1</span>])</span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"x1"</span>)</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"x2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="1">
-<pre><code>Text(0, 0.5, 'x2')</code></pre>
-</div>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"x2"</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="dr_files/figure-html/cell-2-output-2.png" width="585" height="429" class="figure-img"></p>
+<p><img src="dr_files/figure-html/cell-2-output-1.png" width="585" height="429" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
+<!-- fmt: on -->
 <p>Each point is an observation and is represented by a point in the feature space.</p>
 </details>
 </div>
@@ -812,46 +808,40 @@ Z_j = X v_j=v_{1j}X_1+v_{2j}X_2+\ldots+v_{pj}X_p
 <strong>Click to expand.</strong>
 </summary>
 <p>We use the same previous dataset <code>X</code>, centering it as <code>Xc</code> and standarizing it as <code>Xs</code>.</p>
-<div id="3866e546" class="cell" data-execution_count="2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Xc <span class="op">=</span> X <span class="op">-</span> X.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>Xs <span class="op">=</span> Xc <span class="op">/</span> Xc.std(axis<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="125fbf4e" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Xc <span class="op">=</span> X <span class="op">-</span> X.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Xs <span class="op">=</span> Xc <span class="op">/</span> Xc.std(axis<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now we plot them together with the princial compoenent. <code>pca()</code> from <code>sklearn</code> will automatically centering columns. In order to show the sceanario, we use <code>svd()</code> from <code>numpy.linalg</code> to do the computation.</p>
-<div id="3975a858" class="cell" data-execution_count="3">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pca_svd(X):</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    U, D, Vt <span class="op">=</span> np.linalg.svd(X, full_matrices<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Vt.T, D</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_svd(ax, X, V, title, scale<span class="op">=</span><span class="dv">3</span>, length<span class="op">=</span><span class="dv">5</span>):</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    ax.scatter(X[:, <span class="dv">0</span>], X[:, <span class="dv">1</span>])</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> np.linspace(<span class="op">-</span>length, length, <span class="dv">100</span>)</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    line <span class="op">=</span> np.outer(t, V[:, <span class="dv">0</span>])</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    ax.plot(line[:, <span class="dv">0</span>], line[:, <span class="dv">1</span>], linewidth<span class="op">=</span><span class="dv">2</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    ax.set_title(title)</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"x1"</span>)</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">"x2"</span>)</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>V_raw <span class="op">=</span> np.linalg.svd(X, full_matrices<span class="op">=</span><span class="va">False</span>)[<span class="dv">2</span>].T</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>V_c <span class="op">=</span> np.linalg.svd(Xc, full_matrices<span class="op">=</span><span class="va">False</span>)[<span class="dv">2</span>].T</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>V_s <span class="op">=</span> np.linalg.svd(Xs, full_matrices<span class="op">=</span><span class="va">False</span>)[<span class="dv">2</span>].T</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">0</span>], X, V_raw, <span class="st">"Uncentered (Wrong PCA)"</span>)</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">1</span>], Xc, V_c, <span class="st">"Centered"</span>)</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">2</span>], Xs, V_s, <span class="st">"Centered + Scaled"</span>)</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="d67863cf" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_svd(ax, X, V, title, scale<span class="op">=</span><span class="dv">3</span>, length<span class="op">=</span><span class="dv">5</span>):</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    ax.scatter(X[:, <span class="dv">0</span>], X[:, <span class="dv">1</span>])</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> np.linspace(<span class="op">-</span>length, length, <span class="dv">100</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    line <span class="op">=</span> np.outer(t, V[:, <span class="dv">0</span>])</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ax.plot(line[:, <span class="dv">0</span>], line[:, <span class="dv">1</span>], linewidth<span class="op">=</span><span class="dv">2</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    ax.set_title(title)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"x1"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">"x2"</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    ax.set_xlim(<span class="op">-</span><span class="fl">4.5</span>, <span class="fl">4.5</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    ax.set_ylim(<span class="op">-</span><span class="fl">4.5</span>, <span class="fl">4.5</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>V_raw <span class="op">=</span> np.linalg.svd(X)[<span class="dv">2</span>].T</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>V_c <span class="op">=</span> np.linalg.svd(Xc)[<span class="dv">2</span>].T</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>V_s <span class="op">=</span> np.linalg.svd(Xs)[<span class="dv">2</span>].T</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">0</span>], X, V_raw, <span class="st">"Uncentered (Wrong PCA)"</span>)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">1</span>], Xc, V_c, <span class="st">"Centered"</span>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>plot_svd(axs[<span class="dv">2</span>], Xs, V_s, <span class="st">"Centered + Scaled"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="dr_files/figure-html/cell-4-output-1.png" width="1430" height="374" class="figure-img"></p>
+<p><img src="dr_files/figure-html/cell-4-output-1.png" width="1182" height="376" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -859,7 +849,7 @@ Z_j = X v_j=v_{1j}X_1+v_{2j}X_2+\ldots+v_{pj}X_p
 <p>The principal component finds the direction that maximizes the variance of the projected data.</p>
 <p>If the data are not centered, the optimization is no longer based purely on variance. In this case, the objective involves both the covariance structure and the mean of the data.</p>
 <p>As a result, when the mean is large, the first principal direction may be strongly influenced by the location of the data, and can point roughly toward the data cloud rather than reflecting its intrinsic variation.</p>
-<p>Note that the last two plots may appear similar at first glance. However, their coordinate scales are different, so this visual similarity can be misleading.</p>
+<!-- Note that the last two plots may appear similar at first glance. However, their coordinate scales are different, so this visual similarity can be misleading. -->
 </details>
 </div>
 <hr>
@@ -998,48 +988,48 @@ Z_m = X V_m = U_m D_m
 <section id="pca" class="level3" data-number="5.2.1">
 <h3 data-number="5.2.1" class="anchored" data-anchor-id="pca"><span class="header-section-number">5.2.1</span> PCA</h3>
 <p><code>scikit-learn</code> provides <code>PCA</code> for computing principal components. To demonstrate the code we use the same dataset from lasso.</p>
-<div id="a29eba85" class="cell" data-execution_count="4">
+<div id="4c3ef18c" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">0</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">150</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="dv">12</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, k))</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> rng.normal(size<span class="op">=</span>(k, p))</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> Z <span class="op">@</span> A <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>(n, p))</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> np.zeros(p)</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>beta[:<span class="dv">10</span>] <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">7</span>, <span class="dv">6</span>, <span class="dv">5</span>, <span class="dv">4</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="dv">1</span>, <span class="fl">0.5</span>]</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X <span class="op">@</span> beta <span class="op">+</span> <span class="dv">12</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>n)</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    X, y, test_size<span class="op">=</span><span class="fl">0.3</span>, random_state<span class="op">=</span><span class="dv">0</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">0</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">150</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, k))</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> rng.normal(size<span class="op">=</span>(k, p))</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> Z <span class="op">@</span> A <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>(n, p))</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> np.zeros(p)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>beta[:<span class="dv">10</span>] <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">7</span>, <span class="dv">6</span>, <span class="dv">5</span>, <span class="dv">4</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="dv">1</span>, <span class="fl">0.5</span>]</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X <span class="op">@</span> beta <span class="op">+</span> <span class="dv">12</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>n)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    X, y, test_size<span class="op">=</span><span class="fl">0.3</span>, random_state<span class="op">=</span><span class="dv">0</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p><code>pca</code> is an unsupervised learnning method. Therefore to perform it we only need <code>X</code>.</p>
-<div id="b6164d23" class="cell" data-execution_count="5">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>pca <span class="op">=</span> PCA().fit(X_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="b834975e" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>pca <span class="op">=</span> PCA().fit(X_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>All important information can be accessed from the returned object.</p>
-<div id="ef15773a" class="cell" data-execution_count="6">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>V <span class="op">=</span> pca.components_.T                   <span class="co"># loadings (V)</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> pca.transform(X_train)              <span class="co"># scores (Z)</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> pca.singular_values_                <span class="co"># singular values (D)</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>var <span class="op">=</span> pca.explained_variance_           <span class="co"># variance that are explained</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>ratio <span class="op">=</span> pca.explained_variance_ratio_   <span class="co"># the ratio of variance that are explained</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="80c840f8" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>V <span class="op">=</span> pca.components_.T                   <span class="co"># loadings (V)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> pca.transform(X_train)              <span class="co"># scores (Z)</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> pca.singular_values_                <span class="co"># singular values (D)</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>var <span class="op">=</span> pca.explained_variance_           <span class="co"># variance that are explained</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>ratio <span class="op">=</span> pca.explained_variance_ratio_   <span class="co"># the ratio of variance that are explained</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>With <code>var</code> and <code>ratio</code>, we may plot the scree plot (although we won’t really use it to select the number of components).</p>
-<div id="dcf4436b" class="cell" data-execution_count="7">
+<div id="bb90745a" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-4"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-4-1"><a href="#annotated-cell-4-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> np.arange(<span class="dv">1</span>, <span class="bu">len</span>(var) <span class="op">+</span> <span class="dv">1</span>)</span>
@@ -1085,25 +1075,25 @@ Z_m = X V_m = U_m D_m
 <h3 data-number="5.2.2" class="anchored" data-anchor-id="pcr"><span class="header-section-number">5.2.2</span> PCR</h3>
 <p>Using PCA to do regression, we have to standarize the data. Therefore we set up the pipeline.</p>
 <p>We first use 13 components (which comes from the scree plot) as our starting point. We will tune it later using cross-validation.</p>
-<div id="aca03d7f" class="cell" data-execution_count="8">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> Pipeline</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error, r2_score</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>pcr_pipe <span class="op">=</span> Pipeline(</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    [</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"scaler"</span>, StandardScaler()),</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"pca"</span>, PCA(n_components<span class="op">=</span><span class="dv">13</span>)),</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"model"</span>, LinearRegression()),</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>pcr_pipe.fit(X_train, y_train)</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>y_pred_pcr <span class="op">=</span> pcr_pipe.predict(X_test)</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test R^2 : </span><span class="sc">{</span>r2_score(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="bad7f42b" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> Pipeline</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error, r2_score</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>pcr_pipe <span class="op">=</span> Pipeline(</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    [</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"scaler"</span>, StandardScaler()),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"pca"</span>, PCA(n_components<span class="op">=</span><span class="dv">13</span>)),</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"model"</span>, LinearRegression()),</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>pcr_pipe.fit(X_train, y_train)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>y_pred_pcr <span class="op">=</span> pcr_pipe.predict(X_test)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test R^2 : </span><span class="sc">{</span>r2_score(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Test RMSE: 348.7698605548008
 Test R^2 : 0.8536528530700276</code></pre>
@@ -1114,7 +1104,7 @@ Test R^2 : 0.8536528530700276</code></pre>
 <section id="choosing-number-of-components-by-cross-validation" class="level3" data-number="5.2.3">
 <h3 data-number="5.2.3" class="anchored" data-anchor-id="choosing-number-of-components-by-cross-validation"><span class="header-section-number">5.2.3</span> Choosing number of components by cross-validation</h3>
 <p>We use <span class="math inline">\(K\)</span>-fold cross validation to find the best number of components. Our criterion is negative MSE.</p>
-<div id="641ae892" class="cell" data-execution_count="9">
+<div id="6ab8bfd6" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-6"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-6-1"><a href="#annotated-cell-6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="annotated-cell-6-2"><a href="#annotated-cell-6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="annotated-cell-6-3"><a href="#annotated-cell-6-3" aria-hidden="true" tabindex="-1"></a>n_splits <span class="op">=</span> <span class="dv">5</span></span>
@@ -1141,11 +1131,11 @@ Test R^2 : 0.8536528530700276</code></pre>
 </div>
 </div>
 <p>It shows that 19 is the best number. Then we check the test result.</p>
-<div id="f3ae89d7" class="cell" data-execution_count="10">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>y_pred_pcr <span class="op">=</span> gs_pcr.predict(X_test)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test R^2 : </span><span class="sc">{</span>r2_score(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fd090f66" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>y_pred_pcr <span class="op">=</span> gs_pcr.predict(X_test)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test R^2 : </span><span class="sc">{</span>r2_score(y_test, y_pred_pcr)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Test RMSE: 321.0762521471908
 Test R^2 : 0.8652733542572647</code></pre>
@@ -1153,13 +1143,13 @@ Test R^2 : 0.8652733542572647</code></pre>
 </div>
 <p>It is slightly better than <code>13</code>, but still worse than tuned <code>ridge</code> and <code>lasso</code>.</p>
 <p>We could also look at the validation curve on the mean test score.</p>
-<div id="4aaaeca5" class="cell" data-execution_count="11">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>plt.plot(param_grid[<span class="st">"pca__n_components"</span>], gs_pcr.cv_results_[<span class="st">"mean_test_score"</span>])</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>plt.axvline(<span class="dv">19</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"red"</span>, label<span class="op">=</span><span class="st">"best_gs"</span>)</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>plt.axvline(<span class="dv">13</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"blue"</span>, label<span class="op">=</span><span class="st">"best_elbow"</span>)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="1142fc04" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>plt.plot(param_grid[<span class="st">"pca__n_components"</span>], gs_pcr.cv_results_[<span class="st">"mean_test_score"</span>])</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>plt.axvline(<span class="dv">19</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"red"</span>, label<span class="op">=</span><span class="st">"best_gs"</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>plt.axvline(<span class="dv">13</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"blue"</span>, label<span class="op">=</span><span class="st">"best_elbow"</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1346,91 +1336,91 @@ Note
 <h2 data-number="5.4" class="anchored" data-anchor-id="pls-in-python"><span class="header-section-number">5.4</span> PLS in Python</h2>
 <p>Although the algorithm is different, the code is very similar to PCR. PLS is implemented by <code>PLSRegression</code> from <code>sklearn.cross_decomposition</code>. The argument <code>scale=True</code> is by default so we don’t need to attach standardizer to it.</p>
 <p>We choose the default number of componenets (which is 2) here. The specific hyperparameter will be tuned later by cross-validation.</p>
-<div id="a77597bd" class="cell" data-execution_count="12">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cross_decomposition <span class="im">import</span> PLSRegression</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>pls <span class="op">=</span> PLSRegression()</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>pls.fit(X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="369eb835" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cross_decomposition <span class="im">import</span> PLSRegression</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>pls <span class="op">=</span> PLSRegression()</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>pls.fit(X_train, y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We could use the following code to get access to the parameters.</p>
-<div id="a5a56a30" class="cell" data-execution_count="13">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>W <span class="op">=</span> pls.x_weights_    <span class="co"># weights, directions (W)</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> pls.x_scores_     <span class="co"># scores, components (Z)</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> pls.x_loadings_   <span class="co"># loadings (P)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="9eaff7aa" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>W <span class="op">=</span> pls.x_weights_    <span class="co"># weights, directions (W)</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> pls.x_scores_     <span class="co"># scores, components (Z)</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> pls.x_loadings_   <span class="co"># loadings (P)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="example" class="level3" data-number="5.4.1">
 <h3 data-number="5.4.1" class="anchored" data-anchor-id="example"><span class="header-section-number">5.4.1</span> Example</h3>
 <p>We use the same simulated dataset as before.</p>
-<div id="9e100207" class="cell" data-execution_count="14">
+<div id="f0671f9d" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">0</span>)</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">150</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="dv">12</span></span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, k))</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> rng.normal(size<span class="op">=</span>(k, p))</span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> Z <span class="op">@</span> A <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>(n, p))</span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> np.zeros(p)</span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>beta[:<span class="dv">10</span>] <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">7</span>, <span class="dv">6</span>, <span class="dv">5</span>, <span class="dv">4</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="dv">1</span>, <span class="fl">0.5</span>]</span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X <span class="op">@</span> beta <span class="op">+</span> <span class="dv">12</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>n)</span>
-<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
-<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    X, y, test_size<span class="op">=</span><span class="fl">0.3</span>, random_state<span class="op">=</span><span class="dv">0</span></span>
-<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">0</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">150</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, k))</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> rng.normal(size<span class="op">=</span>(k, p))</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> Z <span class="op">@</span> A <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>(n, p))</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> np.zeros(p)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>beta[:<span class="dv">10</span>] <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">7</span>, <span class="dv">6</span>, <span class="dv">5</span>, <span class="dv">4</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="dv">1</span>, <span class="fl">0.5</span>]</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X <span class="op">@</span> beta <span class="op">+</span> <span class="dv">12</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>n)</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    X, y, test_size<span class="op">=</span><span class="fl">0.3</span>, random_state<span class="op">=</span><span class="dv">0</span></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>Similar to PCR, we need to choose the number of components. Since PLS is fit inside cross-validation, the maximum number of components should be no larger than the number of observations in each training fold.</p>
-<div id="39531ac3" class="cell" data-execution_count="15">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cross_decomposition <span class="im">import</span> PLSRegression</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>n_splits <span class="op">=</span> <span class="dv">5</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>n_train_fold <span class="op">=</span> <span class="bu">int</span>(X_train.shape[<span class="dv">0</span>] <span class="op">*</span> (n_splits <span class="op">-</span> <span class="dv">1</span>) <span class="op">/</span> n_splits)</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>max_components <span class="op">=</span> <span class="bu">min</span>(n_train_fold, X_train.shape[<span class="dv">1</span>])</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>param_grid <span class="op">=</span> {<span class="st">"n_components"</span>: <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, max_components <span class="op">+</span> <span class="dv">1</span>))}</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>gs_pls <span class="op">=</span> GridSearchCV(</span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    PLSRegression(), param_grid, cv<span class="op">=</span>n_splits, scoring<span class="op">=</span><span class="st">"neg_mean_squared_error"</span></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>gs_pls.fit(X_train, y_train)</span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>gs_pls.best_params_[<span class="st">"n_components"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="d8ab7ff0" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cross_decomposition <span class="im">import</span> PLSRegression</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>n_splits <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>n_train_fold <span class="op">=</span> <span class="bu">int</span>(X_train.shape[<span class="dv">0</span>] <span class="op">*</span> (n_splits <span class="op">-</span> <span class="dv">1</span>) <span class="op">/</span> n_splits)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>max_components <span class="op">=</span> <span class="bu">min</span>(n_train_fold, X_train.shape[<span class="dv">1</span>])</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>param_grid <span class="op">=</span> {<span class="st">"n_components"</span>: <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, max_components <span class="op">+</span> <span class="dv">1</span>))}</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>gs_pls <span class="op">=</span> GridSearchCV(</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    PLSRegression(), param_grid, cv<span class="op">=</span>n_splits, scoring<span class="op">=</span><span class="st">"neg_mean_squared_error"</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>gs_pls.fit(X_train, y_train)</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>gs_pls.best_params_[<span class="st">"n_components"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <pre><code>4</code></pre>
 </div>
 </div>
 <p>After selecting the number of components by cross-validation, we evaluate the fitted model on the test set.</p>
-<div id="e12f5771" class="cell" data-execution_count="16">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>y_pred_pls <span class="op">=</span> gs_pls.predict(X_test)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pls)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test R^2 : </span><span class="sc">{</span>r2_score(y_test, y_pred_pls)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="a8121386" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>y_pred_pls <span class="op">=</span> gs_pls.predict(X_test)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test RMSE: </span><span class="sc">{</span>mean_squared_error(y_test, y_pred_pls)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Test R^2 : </span><span class="sc">{</span>r2_score(y_test, y_pred_pls)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Test RMSE: 333.9484272722302
 Test R^2 : 0.8598720672844287</code></pre>
 </div>
 </div>
 <p>The validation curve shows how the cross-validation error changes as the number of PLS components increases.</p>
-<div id="51814c61" class="cell" data-execution_count="17">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>plt.plot(param_grid[<span class="st">"n_components"</span>], gs_pls.cv_results_[<span class="st">"mean_test_score"</span>])</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>plt.axvline(</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    gs_pls.best_params_[<span class="st">"n_components"</span>],</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    linestyle<span class="op">=</span><span class="st">"--"</span>,</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">"red"</span>,</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    label<span class="op">=</span><span class="st">"best_gs"</span>,</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>plt.legend()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="50471dab" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>plt.plot(param_grid[<span class="st">"n_components"</span>], gs_pls.cv_results_[<span class="st">"mean_test_score"</span>])</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>plt.axvline(</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    gs_pls.best_params_[<span class="st">"n_components"</span>],</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    linestyle<span class="op">=</span><span class="st">"--"</span>,</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">"red"</span>,</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    label<span class="op">=</span><span class="st">"best_gs"</span>,</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>plt.legend()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1458,15 +1448,15 @@ Test R^2 : 0.8598720672844287</code></pre>
 </div>
 </div>
 <p>The results for this dataset are summarized in the following table.</p>
-<div id="26680251" class="cell" data-execution_count="18">
+<div id="5f0bb1bb" class="cell" data-execution_count="18">
 <div class="cell-output cell-output-stderr">
 <pre><code>&lt;&gt;:90: SyntaxWarning: "is not" with 'str' literal. Did you mean "!="?
 &lt;&gt;:90: SyntaxWarning: "is not" with 'str' literal. Did you mean "!="?
-C:\Users\xiaox\AppData\Local\Temp\ipykernel_16092\4187596780.py:90: SyntaxWarning: "is not" with 'str' literal. Did you mean "!="?
+C:\Users\xiaox\AppData\Local\Temp\ipykernel_36232\4187596780.py:90: SyntaxWarning: "is not" with 'str' literal. Did you mean "!="?
   if (ols_in is True) or ((ols_in is False) and (name is not "OLS")):</code></pre>
 </div>
 </div>
-<div id="dab94d60" class="cell" data-execution_count="19">
+<div id="d82143be" class="cell" data-execution_count="19">
 <div class="cell-output cell-output-display" data-execution_count="17">
 <div>
 
@@ -1544,28 +1534,28 @@ X = Z_1 A_1 + Z_2 A_2 + \varepsilon_X.
 <li>Therefore, the predictive signal lies in low-variance but structured (low-rank) directions of <span class="math inline">\(X\)</span>.</li>
 <li>For simplicity, we take <span class="math inline">\(Z_1\)</span> to be one-dimensional in the following example.</li>
 </ul>
-<div id="734e4be4" class="cell" data-execution_count="20">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">42</span>)</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">120</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">300</span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>Z_1 <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, <span class="dv">1</span>))</span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>A_1 <span class="op">=</span> rng.normal(size<span class="op">=</span>(<span class="dv">1</span>, p))</span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>X_signal <span class="op">=</span> Z_1 <span class="op">@</span> A_1 <span class="op">*</span> <span class="fl">0.15</span></span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>k_2 <span class="op">=</span> <span class="dv">10</span></span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>Z_2 <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, k_2))</span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>A_2 <span class="op">=</span> rng.normal(size<span class="op">=</span>(k_2, p))</span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>X_noise <span class="op">=</span> Z_2 <span class="op">@</span> A_2 <span class="op">*</span> <span class="dv">15</span></span>
-<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> X_noise <span class="op">+</span> X_signal <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>(n, p))</span>
-<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="dv">12</span> <span class="op">*</span> Z_1.ravel() <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>n)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="19b1cbdf" class="cell" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">42</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">120</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">300</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>Z_1 <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, <span class="dv">1</span>))</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>A_1 <span class="op">=</span> rng.normal(size<span class="op">=</span>(<span class="dv">1</span>, p))</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>X_signal <span class="op">=</span> Z_1 <span class="op">@</span> A_1 <span class="op">*</span> <span class="fl">0.15</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>k_2 <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>Z_2 <span class="op">=</span> rng.normal(size<span class="op">=</span>(n, k_2))</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>A_2 <span class="op">=</span> rng.normal(size<span class="op">=</span>(k_2, p))</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>X_noise <span class="op">=</span> Z_2 <span class="op">@</span> A_2 <span class="op">*</span> <span class="dv">15</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> X_noise <span class="op">+</span> X_signal <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>(n, p))</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="dv">12</span> <span class="op">*</span> Z_1.ravel() <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> rng.normal(size<span class="op">=</span>n)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="6207f226" class="cell" data-execution_count="21">
+<div id="22c056ef" class="cell" data-execution_count="21">
 <div class="cell-output cell-output-display" data-execution_count="19">
 <div>
 
