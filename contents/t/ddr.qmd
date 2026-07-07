@@ -1,0 +1,141 @@
+
+
+## Truncated SVD
+
+PCA and truncated SVD are closely related, but they are not identical in
+typical software use.
+
+PCA is usually applied to centered data:
+
+$$
+X_c = X-\mathbf 1\bar x^\top.
+$$
+
+It then computes a low-rank approximation to $X_c$.
+
+Truncated SVD directly computes
+
+$$
+X\approx U_mD_mV_m^\top
+$$
+
+without necessarily centering the matrix first. This distinction matters
+for sparse high-dimensional data such as document-term matrices. Centering
+a sparse matrix usually makes it dense, which can destroy the computational
+advantage of sparsity. Truncated SVD can work directly with the sparse
+matrix.
+
+In text analysis, applying truncated SVD to a document-term or TF-IDF matrix
+is often called latent semantic analysis. Documents receive low-dimensional
+coordinates in $U_mD_m$, and terms receive directions in $V_m$. Each
+right-singular vector is a weighted combination of terms, so each score
+column can be read as a latent topic-like feature measured across documents.
+
+```{python}
+from scipy import sparse
+
+X_sparse = sparse.random(
+    200,
+    1000,
+    density=0.02,
+    format="csr",
+    random_state=0,
+)
+
+tsvd = TruncatedSVD(n_components=10, random_state=0)
+Z_sparse = tsvd.fit_transform(X_sparse)
+
+Z_sparse.shape
+```
+
+```{python}
+tsvd.explained_variance_ratio_.sum()
+```
+
+The returned matrix `Z_sparse` contains low-dimensional row coordinates,
+analogous to PCA scores. It is also a matrix of derived sparse-data
+features. The difference is that the sparse matrix was not centered before
+decomposition.
+
+
+## Random Projection
+
+PCA learns directions from the data. Random projection does not. It chooses
+a random matrix $R\in\mathbb R^{p\times m}$ and maps
+
+$$
+Z=XR.
+$$
+
+The same feature-construction interpretation still applies: each column of
+$R$ defines a random derived feature, and each column of $Z$ records that
+feature across all observations.
+
+This sounds crude, but in high dimensions random projections can
+approximately preserve pairwise distances when $m$ is large enough. The
+Johnson-Lindenstrauss idea is that many points can often be embedded into a
+much lower-dimensional space while keeping all pairwise distances nearly
+unchanged.
+
+The contrast with PCA is useful.
+
+| Method | Learns directions from data? | Main preservation target |
+|---|---:|---|
+| PCA | Yes | variance and reconstruction |
+| Truncated SVD | Yes | low-rank structure, often without centering |
+| Random projection | No | pairwise distances approximately |
+
+```{python}
+X_high = rng.normal(size=(400, 1000))
+
+rp = GaussianRandomProjection(n_components=50, random_state=0)
+Z_rp = rp.fit_transform(X_high)
+
+idx = rng.choice(X_high.shape[0], size=80, replace=False)
+D_original = pairwise_distances(X_high[idx])
+D_projected = pairwise_distances(Z_rp[idx])
+
+mask = np.triu(np.ones_like(D_original, dtype=bool), k=1)
+
+fig, ax = plt.subplots(figsize=(5.5, 5))
+ax.scatter(D_original[mask], D_projected[mask], s=8, alpha=0.35)
+ax.set_xlabel("original distance")
+ax.set_ylabel("projected distance")
+ax.set_title("Random Projection Preserves Distances Approximately");
+```
+
+Random projection is especially useful when the dataset is too large for a
+full PCA or when approximate distance preservation is enough for the next
+step.
+
+
+### Loadings as Images
+
+For image data, each loading vector can be reshaped into an image. This makes the "direction in feature space" interpretation concrete.
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.datasets import load_digits
+
+digits = load_digits()
+X_digits = digits.data
+y_digits = digits.target
+
+digits_pca = PCA(n_components=10).fit(X_digits)
+
+fig, axs = plt.subplots(2, 5, figsize=(10, 4))
+
+for j, ax in enumerate(axs.ravel()):
+    ax.imshow(digits_pca.components_[j].reshape(8, 8), cmap="coolwarm")
+    ax.set_title(f"PC{j + 1}")
+    ax.axis("off")
+
+plt.tight_layout();
+```
+
+Positive and negative regions describe pixel patterns that are contrasted by
+the component. The plot is not an average digit; it is a direction in the
+64-dimensional pixel space and a recipe for a new pixel-combination feature.
