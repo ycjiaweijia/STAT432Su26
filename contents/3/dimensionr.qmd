@@ -187,6 +187,8 @@ $$
 
 Equivalently, since $Z=UD$, we have $Z_j=d_ju_j$. The column $u_j$ gives the normalized score direction in observation space, while the singular value $d_j$ gives its scale.
 
+
+
 ::: {#exm-loading-signs}
 ## Reading loading signs and magnitudes
 
@@ -209,13 +211,33 @@ The magnitudes are still similar, so both features matter. But the signs are opp
 A feature with a near-zero loading would contribute little to this component. The overall sign is arbitrary: multiplying both the loading vector and the score vector by $-1$ gives the same component. Therefore, signs should be read relative to each other within the same component.
 :::
 
-This scale determines the variance explained by component $j$:
+
+Thus a principal component vector is not just a list of coefficients. It is a direction in feature space, and its entries tell us how to combine the original features to form a new score column. Entries with the same sign capture shared variation among features, while entries with opposite signs define a contrast between features.
+
+::: {#def-explained-variance}
+## Explained variance
+
+For centered data, the variance explained by component $j$ is
 
 $$
-\lambda_j=\frac{d_j^2}{n-1}.
+\lambda_j=\operatorname{Var}(Z_j)=\frac{d_j^2}{n-1}.
 $$
 
-Thus a principal component vector is not just a list of coefficients. It is a feature-space direction, a possible contrast among features, and a recipe for a new score column.
+The explained variance ratio of component $j$ is
+
+$$
+\frac{\lambda_j}{\lambda_1+\cdots+\lambda_r}
+=
+\frac{d_j^2}{d_1^2+\cdots+d_r^2}.
+$$
+
+The cumulative explained variance ratio for the first $m$ components is
+
+$$
+\frac{\sum_{j=1}^m d_j^2}{\sum_{j=1}^r d_j^2}.
+$$
+:::
+
 
 ## PCA as Reconstruction
 
@@ -254,11 +276,19 @@ The important optimality result is:
 $$
 \hat X_m
 =
-\operatorname*{argmin}_{\operatorname{rank}(A)\le m}
+\operatorname*{argmin}_{A\in\mathbb R^{n\times p},\ \operatorname{rank}(A)\le m}
 \norm{X-A}_F^2.
 $$
 
-The reconstruction error is
+Here $A$ is any candidate rank-$m$ approximation to $X$, and $\norm{\cdot}_F$ is the Frobenius norm:
+
+$$
+\norm{X-A}_F^2
+=
+\sum_{i=1}^n\sum_{j=1}^p (x_{ij}-a_{ij})^2.
+$$
+
+Then the reconstruction error is
 
 $$
 \norm{X-\hat X_m}_F^2
@@ -271,14 +301,15 @@ This is the unsupervised meaning of PCA: among all $m$-dimensional linear repres
 ::: {.callout-important}
 ## PCA optimizes reconstruction, not every downstream task
 
-PCA preserves directions with large variance because those directions minimize squared reconstruction error. This does not guarantee that the leading components preserve class separation, rare groups, causal structure, or predictive signal.
+PCA preserves directions with large variance because those directions minimize squared reconstruction error. This does not guarantee that the leading components preserve class separation, rare groups, causal structure, or predictive signal. 
+
+If we use the PCA scores as predictors in a linear regression, we obtain principal component regression (PCR). PCR adds a supervised prediction step, but the PCA directions themselves are still chosen without using $y$.
 :::
 
 
 ### A Two-Dimensional Reconstruction Example
 
-The dataset is generated in the following way. To make the later PCA
-workflow simpler, we center the data from the beginning.
+The dataset is generated in the following way. To make the later PCA workflow simpler, we center the data from the beginning.
 
 ```{python}
 import numpy as np
@@ -291,11 +322,11 @@ Sigma = np.array([
     ])
 
 X_original = rng.multivariate_normal(mean=[1, 2], cov=Sigma, size=100)
-X_centered = X_original - X_original.mean(axis=0)
+X_centered = X_original - X_original.mean(axis=0) # <1>
 ```
+1. `StandardScaler(with_std=False)` also works.
 
-We perform PCA and inverse-transform the one-dimensional scores to
-reconstruct the data in the original feature space.
+We perform PCA and inverse-transform the one-dimensional scores to reconstruct the data in the original feature space.
 ```{python}
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
@@ -304,8 +335,8 @@ pca_1d = PCA(n_components=1)
 score_1d = pca_1d.fit_transform(X_centered)
 X_hat_1d = pca_1d.inverse_transform(score_1d)
 
-plt.scatter(X_centered[:, 0], X_centered[:, 1], alpha=0.55, label="data")
-plt.scatter(X_hat_1d[:, 0], X_hat_1d[:, 1], s=18, color="C1", label="rank-1 reconstruction")
+plt.scatter(X_centered[:, 0], X_centered[:, 1], label="data")
+plt.scatter(X_hat_1d[:, 0], X_hat_1d[:, 1], label="rank-1 reconstruction")
 
 plt.xlabel("x1")
 plt.ylabel("x2")
@@ -313,36 +344,39 @@ plt.title("PCA Projection and Reconstruction")
 plt.legend();
 ```
 
-The orange points are not new observations. They are the best rank-1 reconstruction of the original observations under squared error.
+The orange points are not new observations. They are the rank-1 reconstructions of the original observations obtained by projecting the data onto the first principal component and then mapping them back to the original space. Under the squared-error criterion, this gives the best rank-1 approximation. 
 
 
 ### Centering, Scaling, and What PCA Preserves
 
 PCA depends on the geometry of the input matrix.
 
-Centering is usually essential. Without centering, the first direction can
-partly reflect the location of the data cloud relative to the origin rather
-than variation around the mean.
+Centering is usually essential. Without centering, the first principal component may partly reflect the location of the data cloud relative to the origin rather than the variation around the mean. This is the same phenomenon illustrated in @exm-centering_and_scaling.
 
-Scaling is a modeling choice. `sklearn.decomposition.PCA` centers features
-automatically, but it does not scale them to unit variance. Because a
-loading vector is a set of weights on the input columns, changing the scale
-of a column changes how expensive or cheap it is for a derived feature to
-use that column.
+Scaling is a modeling choice. `sklearn.decomposition.PCA` centers features automatically, but it does not scale them to unit variance. Because the loading vector assigns weights to the input variables, variables with larger scales contribute more to the covariance matrix and therefore tend to have greater influence on the principal components. In practice, the following guidelines are commonly used:
 
-- Scale when units are not comparable.
-- Do not scale when the original magnitude of variation is meaningful.
-- State the choice because it changes the covariance matrix and therefore
-  changes the principal directions.
+- Scale the variables when their units are not comparable.
+- Do not scale them when the original magnitude of variation is meaningful.
+- State the choice explicitly, because it changes the covariance matrix and therefore the principal components.
+
+::: {#exm-}
+
+We first create a version of the same data in which `x2` is measured on a scale ten times larger than `x1`.
 
 ```{python}
+X_modified = X_original * np.array([1, 10])
+```
+Now compare PCA with and without standardization.
+
+```{python}
+#| code-fold: true
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import pandas as pd
 
-X_scaled = StandardScaler().fit_transform(X_original)
+X_scaled = StandardScaler().fit_transform(X_modified)
 
-pca_centered = PCA(n_components=2).fit(X_original)
+pca_centered = PCA(n_components=2).fit(X_modified)
 pca_scaled = PCA(n_components=2).fit(X_scaled)
 
 pd.DataFrame(
@@ -354,19 +388,21 @@ pd.DataFrame(
 )
 ```
 
-::: {.callout-caution}
-## Preprocessing defines the geometry
+The two analyses use the same observations, but the second feature has been measured on a scale ten times larger. Without scaling, PCA treats that larger numerical variation as geometrically important, and therefore PC1 dominates. After standardizing, the comparison is based on the correlation structure instead of the raw units. PC2 can then explain a nontrivial share of the standardized variance, because PCA is no longer dominated by the raw numerical scale of the second feature.
 
-PCA does not know which units are scientifically meaningful. Changing
-units, transforming variables, or standardizing features changes the
-geometry that PCA tries to preserve.
 :::
 
 
-### Choosing a Dimension Without \(y\)
+::: {.callout-caution}
+## Preprocessing defines the geometry
 
-In PCR, the number of components is chosen by prediction error. Without
-$y$, the choice must be tied to the representation goal.
+PCA does not know which units are scientifically meaningful. Changing units, transforming variables, or standardizing features changes the geometry that PCA tries to preserve.
+:::
+
+
+### Choosing a Dimension Without $y$
+
+In PCR, the number of components is chosen by prediction error. Without $y$, the choice must be tied to the representation goal.
 
 Common criteria include:
 
@@ -384,48 +420,80 @@ $$
 {\sum_{j=1}^r d_j^2}.
 $$
 
+Usually we pick the dimension based on a threshold for how much variance it explains.
+
+::: {#exm-}
+
+We use the digits dataset from `sklearn` to demonstrate the example. This is about handwritten digits. The [dataset](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_digits.html) is from `sklearn` that is partially copied from [UCI machine learning repository](https://archive.ics.uci.edu/dataset/80/optical+recognition+of+handwritten+digits). 
+
+The dataset contains 1797 8x8 images. The data flattens the images into 1D arrays, and therefore the dataset is a `(1797, 64)` numpy array.
+
 ```{python}
 from sklearn.datasets import load_digits
 
-digits = load_digits()
-X_digits = digits.data
+X_digits = load_digits().data
+```
 
+We use `np.cumsum()` to find the total variance explained of the first several components. In this example, we decide to use `90%` as the threshold to determine the number of components. This 90% threshold is only for illustration; there is no special reason that this example must use 90%.
+``` {python}
 digits_pca_full = PCA().fit(X_digits)
 cum_ratio = np.cumsum(digits_pca_full.explained_variance_ratio_)
 
 fig, ax = plt.subplots(figsize=(7, 4))
-ax.plot(np.arange(1, len(cum_ratio) + 1), cum_ratio)
+ax.plot(np.arange(1, len(cum_ratio) + 1), cum_ratio, marker='o')
 ax.axhline(0.90, color="C1", linestyle="--", label="90%")
 ax.set_xlabel("number of components")
 ax.set_ylabel("cumulative explained variance")
 ax.set_title("Digits: Cumulative Explained Variance")
 ax.legend();
 ```
+If it is not easy to read from the plot, we can also use `np.argmax` to find the first term that `cum_ratio` exceeds `.90`.
 
 ```{python}
-np.searchsorted(cum_ratio, 0.90) + 1
+np.argmax(cum_ratio >= 0.90) + 1 # <1>
+```
+1. `np.argmax(cum_ratio >= 0.90)` returns the first 0-based index where the cumulative ratio reaches 0.90. The `+1` converts that index to the number of components.
+
+This number answers a reconstruction-style question: how many components are needed to explain 90% of the sample variance? It does not automatically answer how many components are best for clustering, classification, or scientific interpretation.
+:::
+
+::: {.callout-note}
+## Choosing an explained-variance threshold
+
+In practice, the threshold should be justified for the specific goal of the analysis. There is no universal threshold that works for all PCA applications.
+
+Common values such as 90%, 95%, or 99% are heuristics for reconstruction or compression. A higher threshold keeps more detail but gives less dimension reduction; a lower threshold gives stronger compression but may lose important structure.
+
+For visualization, we usually choose 2 or 3 components directly. For denoising, an elbow in the scree plot or visible reconstruction quality may be more useful than a fixed percentage. For clustering or other downstream unsupervised tasks, try several values of $m$ and check whether the downstream result is stable.
+:::
+
+## More Applications of PCA
+
+### Compression
+
+Low-rank reconstruction can compress data by storing the scores $Z_m$ and loadings $V_m$ instead of all of $X$. The scores are the values of $m$ derived features; the loadings say how those derived features relate back to the original $p$ features.
+
+For images, reconstruction makes the compression tradeoff visible.
+
+We use the digits dataset introduced above to illustrate the idea.
+```{python}
+from sklearn.datasets import load_digits
+
+X_digits = load_digits().data
 ```
 
-This number answers a reconstruction-style question: how many components
-are needed to explain 90% of the sample variance? It does not automatically
-answer how many components are best for clustering, classification, or
-scientific interpretation.
-
-## PCA for Compression and Denoising
-
-Low-rank reconstruction can compress data by storing the scores $Z_m$ and
-loadings $V_m$ instead of all of $X$. The scores are the values of $m$
-derived features; the loadings say how those derived features relate back
-to the original $p$ features. PCA can also denoise data when noise is spread
-across many low-variance directions and signal is concentrated in the
-leading components.
-
-For images, reconstruction makes the tradeoff visible.
+We fit PCA on the full digits dataset, and then visualize the reconstruction of one image (0-th image).
 
 ```{python}
+x0 = X_digits[[0]]
+```
+Once the flattened array is reshaped into an `8x8` matrix, we may use `imshow()` to display the image. We then apply `PCA` and display the reconstructed images.
+
+``` {python}
+#| code-fold: true
+from sklearn.decomposition import PCA
+
 components_to_show = [2, 8, 16, 32]
-digit_index = 0
-x0 = X_digits[digit_index : digit_index + 1]
 
 fig, axs = plt.subplots(1, len(components_to_show) + 1, figsize=(11, 2.3))
 
@@ -438,71 +506,218 @@ for ax, m in zip(axs[1:], components_to_show):
     x_hat = pca_m.inverse_transform(pca_m.transform(x0))
     ax.imshow(x_hat.reshape(8, 8), cmap="gray_r")
     ax.set_title(f"{m} PCs")
-    ax.axis("off")
-
-plt.tight_layout();
+    ax.axis("off");
 ```
 
-Small $m$ produces a rough reconstruction. Larger $m$ restores more detail
-but also keeps more noise and idiosyncratic variation.
+Small $m$ produces a rough reconstruction because many components have been discarded. Larger $m$ restores more detail, but it also requires storing more scores and loadings. Because this digit is relatively simple, the visual differences between some reconstructions may be subtle.
+
+We can also measure the per-image storage after the PCA loading matrix has
+been learned and shared across the dataset. Each original image stores 64 pixel values. With $m$ components, each image is represented by $m$ scores. Ignoring the shared loading matrix, the theoretical per-image storage ratios are:
+
+```{python}
+#| echo: false
+import numpy as np
+import pandas as pd
+
+n_images, n_pixels = X_digits.shape
+
+pd.DataFrame(
+    {
+        "scores per image": components_to_show,
+        "original values per image": n_pixels,
+        "relative storage per image": np.array(components_to_show) / n_pixels,
+    },
+    index=[f"{m} PCs" for m in components_to_show],
+)
+```
+
+We can also check the actual memory used by the NumPy arrays with `.nbytes`. Since `sklearn.PCA` centers the data, the compressed representation must store the scores, the loading matrix, and the feature means needed for reconstruction.
+
+```{python}
+#| code-fold: true
+original_bytes = X_digits.nbytes
+
+storage_rows = []
+for m in components_to_show:
+    pca_m = PCA(n_components=m).fit(X_digits)
+    Z_m = pca_m.transform(X_digits)
+
+    compressed_bytes = Z_m.nbytes + pca_m.components_.nbytes + pca_m.mean_.nbytes
+    storage_rows.append(
+        {
+            "components": m,
+            "original KB": original_bytes / 1024,
+            "compressed KB": compressed_bytes / 1024,
+            "compressed / original": compressed_bytes / original_bytes,
+        }
+    )
+
+pd.DataFrame(storage_rows)
+```
+
+These measured ratios are slightly larger than the per-image ratios above because they include the shared loading matrix and the feature means, not only the score values for each image.
+
+For a single image alone, PCA is not necessarily a compression method, because the loading matrix must also be stored. The compression is useful when many observations share the same loading matrix and each observation only needs its own low-dimensional score vector.
 
 
-## PCA Before Clustering
 
-PCA is often used before clustering:
+### Denoising
+
+PCA can also denoise data when noise is spread across many low-variance directions and signal is concentrated in the leading components. In that case, reconstructing with a moderate number of components can keep the main structure while discarding some noise.
+
+
+We illustrate the idea by adding noise to the `x0` image from the digits dataset.
+```{python}
+from sklearn.datasets import load_digits
+
+X_digits = load_digits().data
+x0 = X_digits[[0]]
+
+rng = np.random.default_rng(3)
+x_noisy = x0 + rng.normal(scale=4, size=x0.shape)
+```
+
+For denoising, $m$ is often chosen by inspecting reconstruction quality or by looking for an elbow in the explained-variance curve, rather than by using a fixed threshold. Here we use 16 components as an illustrative middle ground: enough to preserve the main digit shape, but not so many that the reconstruction simply keeps all of the noisy variation.
+
+```{python}
+from sklearn.decomposition import PCA
+
+m_denoise = 16
+pca_denoise = PCA(n_components=m_denoise).fit(X_digits)
+x_denoised = pca_denoise.inverse_transform(pca_denoise.transform(x_noisy))
+
+```
+
+```{python}
+#| code-fold: true
+import matplotlib.pyplot as plt
+
+fig, axs = plt.subplots(1, 3, figsize=(7.5, 2.5))
+
+axs[0].imshow(x0.reshape(8, 8), cmap="gray_r")
+axs[0].set_title("Original")
+axs[0].axis("off")
+
+axs[1].imshow(x_noisy.reshape(8, 8), cmap="gray_r")
+axs[1].set_title("Noisy")
+axs[1].axis("off")
+
+axs[2].imshow(x_denoised.reshape(8, 8), cmap="gray_r")
+axs[2].set_title("Denoised")
+axs[2].axis("off");
+```
+
+The denoised image is still a low-rank reconstruction, but the goal is different from compression. Instead of using as few numbers as possible, we choose enough components to preserve the digit shape while smoothing out variation that does not align with the leading PCA directions.
+
+
+### PCA as Preprocessing
+
+PCA is not only used inside PCR. It can also be used as a preprocessing step before clustering, visualization, anomaly detection, nearest-neighbor methods, or other downstream analyses. This step is optional, not automatic: whether PCA helps depends on the geometry of the data and the goal of the analysis.
+
+
+A common PCA preprocessing workflow for clustering is:
 
 1. preprocess the features;
 2. fit PCA;
 3. retain $m$ component features;
 4. cluster the rows of the score matrix.
 
-This can remove noise, reduce computation, and stabilize distances. But PCA
-preserves high-variance directions, not necessarily cluster separation.
-The clustering algorithm sees the derived features $Z_m=XV_m$, not the
-original columns of $X$.
+This can remove noise, reduce computation, and stabilize distances. However, PCA preserves high-variance directions, not necessarily the directions that best separate clusters. The clustering algorithm sees the derived features $Z_m=XV_m$, not the original columns of $X$.
 
-The following example puts the cluster signal in a low-variance direction
-and adds high-variance noise in another direction.
+The following synthetic example shows a case where PCA helps clustering. The true cluster structure is two-dimensional, but the observed data also contains many noisy features. K-means in the full noisy feature space is partly distracted by the noisy coordinates. After PCA reduces the data to two component features, K-means works better.
+
+We first generate a dataset with only two signal features, then append 200 noise features to form the observed data matrix.
 
 ```{python}
-rng = np.random.default_rng(2)
-n = 300
+import numpy as np
 
-low_variance_signal = np.repeat([-0.35, 0.35], n // 2)
-high_variance_noise = rng.normal(scale=4, size=n)
+rng = np.random.default_rng(12)
+n_per_cluster = 50
 
-X_hidden = np.column_stack(
-    [
-        high_variance_noise,
-        low_variance_signal + rng.normal(scale=0.08, size=n),
-    ]
+centers = np.array([[-2, 0], [2, 0], [0, 2.5]])
+y_cluster = np.repeat([0, 1, 2], n_per_cluster)
+
+signal = np.vstack(
+    [rng.normal(loc=center, scale=0.8, size=(n_per_cluster, 2)) for center in centers]
 )
-y_hidden = np.repeat([0, 1], n // 2)
+noise = rng.normal(scale=0.8, size=(len(y_cluster), 200))
 
-hidden_scores = PCA(n_components=2).fit_transform(X_hidden)
-
-fig, axs = plt.subplots(1, 2, figsize=(11, 4))
-axs[0].scatter(X_hidden[:, 0], X_hidden[:, 1], c=y_hidden, s=18)
-axs[0].set_xlabel("high-variance noise")
-axs[0].set_ylabel("low-variance cluster signal")
-axs[0].set_title("Original Features")
-
-axs[1].scatter(hidden_scores[:, 0], hidden_scores[:, 1], c=y_hidden, s=18)
-axs[1].set_xlabel("PC1")
-axs[1].set_ylabel("PC2")
-axs[1].set_title("PCA Scores");
+X_cluster = np.column_stack([signal, noise])
 ```
 
-If only PC1 is retained, the cluster information is mostly discarded.
+We use the adjusted Rand index to compare the clustering results. The true labels are used only for evaluation in this constructed example. The PCA step and K-means clustering do not use the labels.
 
-::: {.callout-caution}
-## Variance is not relevance
+```{python}
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 
-The leading PCs are optimal for reconstructing $X$ under squared error.
-They are not guaranteed to be optimal for clustering, prediction, anomaly
-detection, or preserving rare subgroups.
+scores_cluster = PCA(n_components=2).fit_transform(X_cluster)
+
+labels_raw = KMeans(n_clusters=3, n_init=20, random_state=1).fit_predict(X_cluster)
+labels_pca = KMeans(n_clusters=3, n_init=20, random_state=1).fit_predict(scores_cluster)
+```
+
+``` {python}
+#| code-fold: true
+from sklearn.metrics import adjusted_rand_score
+import pandas as pd
+
+pd.DataFrame(
+    {
+        "adjusted Rand index": [
+            adjusted_rand_score(y_cluster, labels_raw),
+            adjusted_rand_score(y_cluster, labels_pca),
+        ]
+    },
+    index=["K-means on original features", "PCA + K-means"],
+)
+```
+
+::: {.callout-note}
+## What the plot does not show
+
+The plots below show only the two signal features so that the cluster
+structure is visible. However, K-means on the original features is applied
+to the full matrix `X_cluster`, which also contains 200 noisy features. Those
+noisy coordinates affect the Euclidean distances used by K-means, even
+though they are not drawn in the figure. After PCA, the data are represented
+by two score columns, so much of the noise influence is reduced before
+clustering.
 :::
 
+The clustering results are displayed below. The first panel shows the true
+labels for reference.
+
+```{python}
+#| code-fold: true
+import matplotlib.pyplot as plt
+
+fig, axs = plt.subplots(1, 3, figsize=(12, 3.8))
+
+axs[0].scatter(signal[:, 0], signal[:, 1], c=y_cluster, s=18)
+axs[0].set_xlabel("signal feature 1")
+axs[0].set_ylabel("signal feature 2")
+axs[0].set_title("True Labels")
+
+axs[1].scatter(signal[:, 0], signal[:, 1], c=labels_raw, s=18)
+axs[1].set_xlabel("signal feature 1")
+axs[1].set_ylabel("signal feature 2")
+axs[1].set_title("K-means on Original Features")
+
+axs[2].scatter(scores_cluster[:, 0], scores_cluster[:, 1], c=labels_pca, s=18)
+axs[2].set_xlabel("PC1")
+axs[2].set_ylabel("PC2")
+axs[2].set_title("K-means After PCA");
+```
+
+This example works because PCA reduces many noisy coordinates to a smaller score representation that is more useful for this clustering task. 
+
+
+In practice, PCA as preprocessing should still be chosen according to the goal of the analysis and checked against the downstream result.
+
+
+
+<!-- 
 ## Summary
 
 PCA in PCR is a tool for building predictors. PCA in unsupervised learning
@@ -526,4 +741,4 @@ The retained dimension $m$ should be chosen according to the representation
 goal, such as reconstruction, visualization, denoising, compression, or a
 downstream unsupervised task. PCA is often useful before clustering, but the
 leading components preserve high-variance structure, not necessarily the
-structure most relevant for every later analysis.
+structure most relevant for every later analysis. -->
