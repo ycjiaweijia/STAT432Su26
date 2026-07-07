@@ -68,7 +68,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../contents/3/embedding.html" rel="next">
+<link href="../../contents/app/ide.html" rel="next">
 <link href="../../contents/3/cluster.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -569,12 +569,6 @@ window.Quarto = {
  <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Unsupervised Dimension Reduction</span></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../../contents/3/embedding.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Embedding and Visualization</span></span></a>
-  </div>
-</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -677,12 +671,11 @@ X \longrightarrow Z=XV_m \longrightarrow \hat y.
 X \longrightarrow Z \longrightarrow \hat X.
 \]</span></p>
 <p>The question is no longer “does the reduced representation predict <span class="math inline">\(y\)</span>?” but “what structure of the data matrix does the reduced representation preserve?” This change makes reconstruction, compression, visualization, denoising, and distance preservation more central than prediction.</p>
-<p>We will use PCA as the main example, but the chapter is not only another PCA derivation. The goal is to understand dimension reduction as a way of building useful low-dimensional representations of a data matrix.</p>
-<p>Although we have already introduced PCA, SVD, and related concepts, we will revisit some of them to emphasize the key ideas and place them in a broader context.</p>
+<p>We will use PCA as the main example, revisiting PCA, SVD, and related concepts only where they help explain dimension reduction as a way of building useful low-dimensional representations of a data matrix.</p>
 <section id="how-to-read-the-data-matrix" class="level2" data-number="13.1">
 <h2 data-number="13.1" class="anchored" data-anchor-id="how-to-read-the-data-matrix"><span class="header-section-number">13.1</span> How to Read the Data Matrix</h2>
 <p>Let <span class="math inline">\(X\in\mathbb R^{n\times p}\)</span> contain <span class="math inline">\(n\)</span> observations and <span class="math inline">\(p\)</span> features. We usually center the columns before applying PCA, so the origin represents the sample mean.</p>
-<p>This <span class="math inline">\(X\)</span> has two complementary geometric views. Note that a vector belongs to the space indexed by its coordinates. Therefore</p>
+<p>This <span class="math inline">\(X\)</span> has two complementary geometric views. The coordinates of a vector determine the space it lives in. Therefore</p>
 <ul>
 <li>A row has one coordinate for each feature, so it is a vector in feature space <span class="math inline">\(\mathbb R^p\)</span>.</li>
 <li>A column has one coordinate for each observation, so it is a vector in observation space <span class="math inline">\(\mathbb R^n\)</span>.</li>
@@ -786,7 +779,7 @@ X=UDV^\top,\qquad Z=XV=UD,
 <p><span class="math display">\[
 v_j\in\mathbb R^p,\qquad Z_j=Xv_j\in\mathbb R^n.
 \]</span></p>
-<p>This is the same bridge operation described above. PCA chooses a special feature-space direction <span class="math inline">\(v_j\)</span>, uses <span class="math inline">\(Xv_j\)</span> to construct a new feature column, and then reads that column as one coordinate for all observations.</p>
+<p>This is exactly the operation <span class="math inline">\(Xv\)</span> discussed above: PCA chooses a special feature-space direction <span class="math inline">\(v_j\)</span> and uses <span class="math inline">\(Xv_j\)</span> to combine the original feature columns into one new score column.</p>
 <p>The vector <span class="math inline">\(v_j\)</span> is the loading vector. It gives the weights used to combine the original feature columns:</p>
 <p><span class="math display">\[
 Z_j
@@ -890,7 +883,7 @@ Z_m=(Xv_1,\ldots,Xv_m),
 <section id="a-two-dimensional-reconstruction-example" class="level3" data-number="13.2.1">
 <h3 data-number="13.2.1" class="anchored" data-anchor-id="a-two-dimensional-reconstruction-example"><span class="header-section-number">13.2.1</span> A Two-Dimensional Reconstruction Example</h3>
 <p>The dataset is generated in the following way. To make the later PCA workflow simpler, we center the data from the beginning.</p>
-<div id="9c50115b" class="cell" data-execution_count="1">
+<div id="f55e385a" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-1"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="annotated-cell-1-2"><a href="#annotated-cell-1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="annotated-cell-1-3"><a href="#annotated-cell-1-3" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">1</span>)</span>
@@ -912,7 +905,7 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </div>
 </div>
 <p>We perform PCA and inverse-transform the one-dimensional scores to reconstruct the data in the original feature space.</p>
-<div id="f74e379e" class="cell" data-execution_count="2">
+<div id="03d68978" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -949,11 +942,11 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </ul>
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 13.4</strong></span> We first create a version of the same data in which <code>x2</code> is measured on a scale ten times larger than <code>x1</code>.</p>
-<div id="37fa1aae" class="cell" data-execution_count="3">
+<div id="2c9d8ae7" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>X_modified <span class="op">=</span> X_original <span class="op">*</span> np.array([<span class="dv">1</span>, <span class="dv">10</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now compare PCA with and without standardization.</p>
-<div id="87ba35f4" class="cell" data-execution_count="4">
+<div id="82d68d38" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
@@ -973,7 +966,7 @@ Z_m=(Xv_1,\ldots,Xv_m),
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    index<span class="op">=</span>[<span class="st">"PC1"</span>, <span class="st">"PC2"</span>],</span>
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="42">
 <div>
 
 
@@ -1030,22 +1023,17 @@ Z_m=(Xv_1,\ldots,Xv_m),
 <li>stability of a downstream unsupervised method such as clustering;</li>
 <li>computational constraints.</li>
 </ul>
-<p>The cumulative explained variance for the first <span class="math inline">\(m\)</span> components is</p>
-<p><span class="math display">\[
-\frac{\sum_{j=1}^m d_j^2}
-{\sum_{j=1}^r d_j^2}.
-\]</span></p>
-<p>Usually we pick the dimension based on a threshold for how much variance it explains.</p>
+<p>The right criterion depends on the goal of the analysis. As one common example, we can choose <span class="math inline">\(m\)</span> by setting a threshold for the cumulative explained variance ratio.</p>
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 13.5</strong></span> We use the digits dataset from <code>sklearn</code> to demonstrate the example. This is about handwritten digits. The <a href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_digits.html">dataset</a> is from <code>sklearn</code> that is partially copied from <a href="https://archive.ics.uci.edu/dataset/80/optical+recognition+of+handwritten+digits">UCI machine learning repository</a>.</p>
 <p>The dataset contains 1797 8x8 images. The data flattens the images into 1D arrays, and therefore the dataset is a <code>(1797, 64)</code> numpy array.</p>
-<div id="b91b0782" class="cell" data-execution_count="5">
+<div id="9d2d747b" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_digits</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>X_digits <span class="op">=</span> load_digits().data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We use <code>np.cumsum()</code> to find the total variance explained of the first several components. In this example, we decide to use <code>90%</code> as the threshold to determine the number of components. This 90% threshold is only for illustration; there is no special reason that this example must use 90%.</p>
-<div id="88bbe580" class="cell" data-execution_count="6">
+<div id="a0ac5d0d" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>digits_pca_full <span class="op">=</span> PCA().fit(X_digits)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>cum_ratio <span class="op">=</span> np.cumsum(digits_pca_full.explained_variance_ratio_)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1065,7 +1053,7 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </div>
 </div>
 <p>If it is not easy to read from the plot, we can also use <code>np.argmax</code> to find the first term that <code>cum_ratio</code> exceeds <code>.90</code>.</p>
-<div id="37b0a50c" class="cell" data-execution_count="7">
+<div id="0ff31451" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-18"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="1">1</button><span id="annotated-cell-18-1" class="code-annotation-target"><a href="#annotated-cell-18-1" aria-hidden="true" tabindex="-1"></a>np.argmax(cum_ratio <span class="op">&gt;=</span> <span class="fl">0.90</span>) <span class="op">+</span> <span class="dv">1</span></span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-annotation">
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
@@ -1075,7 +1063,7 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </dd>
 </dl>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="45">
 <pre><code>np.int64(21)</code></pre>
 </div>
 </div>
@@ -1100,23 +1088,24 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </section>
 <section id="more-applications-of-pca" class="level2" data-number="13.3">
 <h2 data-number="13.3" class="anchored" data-anchor-id="more-applications-of-pca"><span class="header-section-number">13.3</span> More Applications of PCA</h2>
+<p>Different goals lead to different choices of <span class="math inline">\(m\)</span>. We now look at three common uses of PCA: compression, denoising, and preprocessing.</p>
 <section id="compression" class="level3" data-number="13.3.1">
 <h3 data-number="13.3.1" class="anchored" data-anchor-id="compression"><span class="header-section-number">13.3.1</span> Compression</h3>
 <p>Low-rank reconstruction can compress data by storing the scores <span class="math inline">\(Z_m\)</span> and loadings <span class="math inline">\(V_m\)</span> instead of all of <span class="math inline">\(X\)</span>. The scores are the values of <span class="math inline">\(m\)</span> derived features; the loadings say how those derived features relate back to the original <span class="math inline">\(p\)</span> features.</p>
-<p>There are two storage costs. The loading matrix and feature means are shared across the dataset, while each observation only needs its own <span class="math inline">\(m\)</span> scores. PCA compression is therefore most useful when many observations share the same fitted PCA basis.</p>
+<p>There are two storage costs: shared quantities, such as the loading matrix and feature means, and per-observation quantities, namely the <span class="math inline">\(m\)</span> scores. PCA compression is therefore most useful when many observations share the same fitted PCA basis.</p>
 <p>For images, reconstruction makes the compression tradeoff visible.</p>
 <p>We use the digits dataset introduced above to illustrate the idea.</p>
-<div id="544a2234" class="cell" data-execution_count="8">
+<div id="92dae90b" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_digits</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>X_digits <span class="op">=</span> load_digits().data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>We fit PCA on the full digits dataset, and then visualize the reconstruction of one image (0-th image).</p>
-<div id="d52dfec5" class="cell" data-execution_count="9">
+<p>We fit PCA on the full digits dataset, and then visualize the reconstruction of the image at index 0.</p>
+<div id="d2ff8264" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>x0 <span class="op">=</span> X_digits[[<span class="dv">0</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Once the flattened array is reshaped into an <code>8x8</code> matrix, we may use <code>imshow()</code> to display the image. We then apply <code>PCA</code> and display the reconstructed images.</p>
-<div id="56caa98a" class="cell" data-execution_count="10">
+<div id="bb23b0f8" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
@@ -1146,8 +1135,8 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </div>
 <p>Small <span class="math inline">\(m\)</span> produces a rough reconstruction because many components have been discarded. Larger <span class="math inline">\(m\)</span> restores more detail, but it also requires storing more scores and loadings. Because this digit is relatively simple, the visual differences between some reconstructions may be subtle.</p>
 <p>We can measure the per-image storage after the PCA loading matrix has been learned and shared across the dataset. Each original image stores 64 pixel values. With <span class="math inline">\(m\)</span> components, each image is represented by <span class="math inline">\(m\)</span> scores. Ignoring the shared loading matrix and feature means, the theoretical per-image storage ratios are:</p>
-<div id="3733d58b" class="cell" data-execution_count="11">
-<div class="cell-output cell-output-display" data-execution_count="11">
+<div id="7ee3aa1f" class="cell" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="49">
 <div>
 
 
@@ -1192,7 +1181,7 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </div>
 </div>
 <p>We can also check the actual memory used by the NumPy arrays with <code>.nbytes</code>. Since <code>sklearn.PCA</code> centers the data, the compressed representation must store the scores, the loading matrix, and the feature means needed for reconstruction.</p>
-<div id="a290b3d0" class="cell" data-execution_count="12">
+<div id="b4f38a66" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>original_bytes <span class="op">=</span> X_digits.nbytes</span>
@@ -1214,7 +1203,7 @@ Z_m=(Xv_1,\ldots,Xv_m),
 <span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(storage_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="50">
 <div>
 
 
@@ -1263,14 +1252,14 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </div>
 </div>
 </div>
-<p>These measured ratios are slightly larger than the per-image ratios above because they include the shared loading matrix and the feature means, not only the score values for each image.</p>
-<p>For a single image alone, PCA is not necessarily a compression method, because the loading matrix must also be stored. The compression is useful when many observations share the same loading matrix and each observation only needs its own low-dimensional score vector.</p>
+<p>These measured ratios are slightly larger because they include the shared quantities, not only the score values for each image.</p>
+<p>For a single image alone, PCA is not necessarily a compression method. The benefit comes when many observations share the same loading matrix and each observation only needs its own low-dimensional score vector.</p>
 </section>
 <section id="denoising" class="level3" data-number="13.3.2">
 <h3 data-number="13.3.2" class="anchored" data-anchor-id="denoising"><span class="header-section-number">13.3.2</span> Denoising</h3>
 <p>PCA can also denoise data when noise is spread across many low-variance directions and signal is concentrated in the leading components. In that case, reconstructing with a moderate number of components can keep the main structure while discarding some noise.</p>
 <p>We illustrate the idea by adding noise to the <code>x0</code> image from the digits dataset.</p>
-<div id="c3db711b" class="cell" data-execution_count="13">
+<div id="dae87023" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_digits</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>X_digits <span class="op">=</span> load_digits().data</span>
@@ -1279,16 +1268,16 @@ Z_m=(Xv_1,\ldots,Xv_m),
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">3</span>)</span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>x_noisy <span class="op">=</span> x0 <span class="op">+</span> rng.normal(scale<span class="op">=</span><span class="dv">4</span>, size<span class="op">=</span>x0.shape)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The PCA basis is learned from the full digits dataset, not from this single noisy image. The fitted basis gives common digit-shaped directions that can be used to reconstruct the noisy observation.</p>
+<p>We learn the PCA basis from the full digits dataset, not from this single noisy image. The leading directions therefore represent common digit-shaped variation, while the added pixel noise is less aligned with those directions.</p>
 <p>For denoising, <span class="math inline">\(m\)</span> is often chosen by inspecting reconstruction quality or by looking for an elbow in the explained-variance curve, rather than by using a fixed threshold. Here we use 16 components as an illustrative middle ground: enough to preserve the main digit shape, but not so many that the reconstruction simply keeps all of the noisy variation.</p>
-<div id="2443986a" class="cell" data-execution_count="14">
+<div id="20035bf8" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>m_denoise <span class="op">=</span> <span class="dv">16</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>pca_denoise <span class="op">=</span> PCA(n_components<span class="op">=</span>m_denoise).fit(X_digits)</span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>x_denoised <span class="op">=</span> pca_denoise.inverse_transform(pca_denoise.transform(x_noisy))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="1a28632a" class="cell" data-execution_count="15">
+<div id="1d16d1be" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -1319,18 +1308,18 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </section>
 <section id="pca-as-preprocessing" class="level3" data-number="13.3.3">
 <h3 data-number="13.3.3" class="anchored" data-anchor-id="pca-as-preprocessing"><span class="header-section-number">13.3.3</span> PCA as Preprocessing</h3>
-<p>PCA is not only used inside PCR. It can also be used as a preprocessing step before clustering, visualization, anomaly detection, nearest-neighbor methods, or other downstream analyses. This step is optional, not automatic: whether PCA helps depends on the geometry of the data and the goal of the analysis.</p>
-<p>A common PCA preprocessing workflow for clustering is:</p>
+<p>PCA is not only used inside PCR. It can also be used as a preprocessing step before clustering, visualization, anomaly detection, nearest-neighbor methods, or other downstream analyses. This step is optional: whether PCA helps depends on the geometry of the data and the goal of the analysis.</p>
+<p>For clustering, a common workflow is:</p>
 <ol type="1">
 <li>preprocess the features;</li>
 <li>fit PCA;</li>
 <li>retain <span class="math inline">\(m\)</span> component features;</li>
 <li>cluster the rows of the score matrix.</li>
 </ol>
-<p>This can remove noise, reduce computation, and stabilize distances. However, PCA preserves high-variance directions, not necessarily the directions that best separate clusters. The clustering algorithm sees the derived features <span class="math inline">\(Z_m=XV_m\)</span>, not the original columns of <span class="math inline">\(X\)</span>.</p>
+<p>This can remove noise, reduce computation, and stabilize distances. But the clustering algorithm now sees the derived features <span class="math inline">\(Z_m=XV_m\)</span>, not the original columns of <span class="math inline">\(X\)</span>. Since PCA preserves high-variance directions rather than cluster separation directly, it should be treated as a modeling choice and checked against the clustering goal.</p>
 <p>The following synthetic example shows a case where PCA helps clustering. The true cluster structure is two-dimensional, but the observed data also contains many noisy features. K-means in the full noisy feature space is partly distracted by the noisy coordinates. After PCA reduces the data to two component features, K-means works better.</p>
 <p>We first generate a dataset with only two signal features, then append 200 noise features to form the observed data matrix.</p>
-<div id="180c65cf" class="cell" data-execution_count="16">
+<div id="8e00dcfa" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">12</span>)</span>
@@ -1347,7 +1336,7 @@ Z_m=(Xv_1,\ldots,Xv_m),
 <span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>X_cluster <span class="op">=</span> np.column_stack([signal, noise])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We use the adjusted Rand index to compare the clustering results. The true labels are used only for evaluation in this constructed example. The PCA step and K-means clustering do not use the labels.</p>
-<div id="bd3eb11b" class="cell" data-execution_count="17">
+<div id="dc669ffe" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1356,7 +1345,7 @@ Z_m=(Xv_1,\ldots,Xv_m),
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>labels_raw <span class="op">=</span> KMeans(n_clusters<span class="op">=</span><span class="dv">3</span>, n_init<span class="op">=</span><span class="dv">20</span>, random_state<span class="op">=</span><span class="dv">1</span>).fit_predict(X_cluster)</span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>labels_pca <span class="op">=</span> KMeans(n_clusters<span class="op">=</span><span class="dv">3</span>, n_init<span class="op">=</span><span class="dv">20</span>, random_state<span class="op">=</span><span class="dv">1</span>).fit_predict(scores_cluster)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="9f79bb52" class="cell" data-execution_count="18">
+<div id="97f120ad" class="cell" data-execution_count="18">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> adjusted_rand_score</span>
@@ -1372,7 +1361,7 @@ Z_m=(Xv_1,\ldots,Xv_m),
 <span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    index<span class="op">=</span>[<span class="st">"K-means on original features"</span>, <span class="st">"PCA + K-means"</span>],</span>
 <span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="18">
+<div class="cell-output cell-output-display" data-execution_count="56">
 <div>
 
 
@@ -1398,21 +1387,8 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </div>
 </div>
 </div>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>What the plot does not show
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>The plots below show only the two signal features so that the cluster structure is visible. However, K-means on the original features is applied to the full matrix <code>X_cluster</code>, which also contains 200 noisy features. Those noisy coordinates affect the Euclidean distances used by K-means, even though they are not drawn in the figure. After PCA, the data are represented by two score columns, so much of the noise influence is reduced before clustering.</p>
-</div>
-</div>
 <p>The clustering results are displayed below. The first panel shows the true labels for reference.</p>
-<div id="9e9c76d6" class="cell" data-execution_count="19">
+<div id="b27e0d3c" class="cell" data-execution_count="19">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -1442,7 +1418,21 @@ Z_m=(Xv_1,\ldots,Xv_m),
 </div>
 </div>
 </div>
-<p>This example works because the cluster signal is recoverable from the leading PCA directions, while many noisy coordinates are reduced to a smaller score representation. In practice, PCA as preprocessing should still be chosen according to the goal of the analysis and checked against the downstream result. If the cluster separation lies in a low-variance direction, PCA may remove the relevant structure instead.</p>
+<p>This example works because the cluster signal is recoverable from the leading PCA directions, while many noisy coordinates are reduced to a smaller score representation.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>What the plot does not show
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The plots show only the two signal features so that the cluster structure is visible. However, K-means on the original features is applied to the full matrix <code>X_cluster</code>, which also contains 200 noisy features. Those noisy coordinates affect the Euclidean distances used by K-means, even though they are not drawn in the figure. After PCA, the data are represented by two score columns, so much of the noise influence is reduced before clustering.</p>
+</div>
+</div>
+<p>In practice, PCA as preprocessing should still be checked against the downstream goal. If the cluster separation lies in a low-variance direction, PCA may remove the relevant structure instead.</p>
 <!-- 
 ## Summary
 
@@ -1935,8 +1925,8 @@ structure most relevant for every later analysis. -->
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../contents/3/embedding.html" class="pagination-link" aria-label="Embedding and Visualization">
-        <span class="nav-page-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Embedding and Visualization</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../contents/app/ide.html" class="pagination-link" aria-label="Python IDE Setup">
+        <span class="nav-page-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Python IDE Setup</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

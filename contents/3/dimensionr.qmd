@@ -460,6 +460,8 @@ For visualization, we usually choose 2 or 3 components directly. For denoising, 
 
 ## More Applications of PCA
 
+Different goals lead to different choices of $m$. We now look at three common uses of PCA: compression, denoising, and preprocessing.
+
 ### Compression
 
 Low-rank reconstruction can compress data by storing the scores $Z_m$ and loadings $V_m$ instead of all of $X$. The scores are the values of $m$ derived features; the loadings say how those derived features relate back to the original $p$ features.
@@ -569,7 +571,7 @@ rng = np.random.default_rng(3)
 x_noisy = x0 + rng.normal(scale=4, size=x0.shape)
 ```
 
-We learn the PCA basis from the full digits dataset, not from this single noisy image, so the fitted directions represent common digit-shaped variation.
+We learn the PCA basis from the full digits dataset, not from this single noisy image. The leading directions therefore represent common digit-shaped variation, while the added pixel noise is less aligned with those directions.
 
 For denoising, $m$ is often chosen by inspecting reconstruction quality or by looking for an elbow in the explained-variance curve, rather than by using a fixed threshold. Here we use 16 components as an illustrative middle ground: enough to preserve the main digit shape, but not so many that the reconstruction simply keeps all of the noisy variation.
 
@@ -606,17 +608,16 @@ The denoised image is still a low-rank reconstruction, but the goal is different
 
 ### PCA as Preprocessing
 
-PCA is not only used inside PCR. It can also be used as a preprocessing step before clustering, visualization, anomaly detection, nearest-neighbor methods, or other downstream analyses. This step is optional, not automatic: whether PCA helps depends on the geometry of the data and the goal of the analysis.
+PCA is not only used inside PCR. It can also be used as a preprocessing step before clustering, visualization, anomaly detection, nearest-neighbor methods, or other downstream analyses. This step is optional: whether PCA helps depends on the geometry of the data and the goal of the analysis.
 
-
-A common PCA preprocessing workflow for clustering is:
+For clustering, a common workflow is:
 
 1. preprocess the features;
 2. fit PCA;
 3. retain $m$ component features;
 4. cluster the rows of the score matrix.
 
-This can remove noise, reduce computation, and stabilize distances. However, PCA preserves high-variance directions, not necessarily the directions that best separate clusters. The clustering algorithm sees the derived features $Z_m=XV_m$, not the original columns of $X$.
+This can remove noise, reduce computation, and stabilize distances. But the clustering algorithm now sees the derived features $Z_m=XV_m$, not the original columns of $X$. Since PCA preserves high-variance directions rather than cluster separation directly, it should be treated as a modeling choice and checked against the clustering goal.
 
 The following synthetic example shows a case where PCA helps clustering. The true cluster structure is two-dimensional, but the observed data also contains many noisy features. K-means in the full noisy feature space is partly distracted by the noisy coordinates. After PCA reduces the data to two component features, K-means works better.
 
@@ -667,13 +668,6 @@ pd.DataFrame(
 )
 ```
 
-::: {.callout-note}
-## What the plot does not show
-
-The plots below show only the two signal features so that the cluster structure is visible. However, K-means on the original features is applied to the full matrix `X_cluster`, which also contains 200 noisy features. Those noisy coordinates affect the Euclidean distances used by K-means, even though they are not drawn in the figure. After PCA, the data are represented by two score columns, so much of the noise influence is reduced before
-clustering.
-:::
-
 The clustering results are displayed below. The first panel shows the true labels for reference.
 
 ```{python}
@@ -698,7 +692,19 @@ axs[2].set_ylabel("PC2")
 axs[2].set_title("K-means After PCA");
 ```
 
+
+
 This example works because the cluster signal is recoverable from the leading PCA directions, while many noisy coordinates are reduced to a smaller score representation.
+
+
+
+
+::: {.callout-note}
+## What the plot does not show
+
+The plots show only the two signal features so that the cluster structure is visible. However, K-means on the original features is applied to the full matrix `X_cluster`, which also contains 200 noisy features. Those noisy coordinates affect the Euclidean distances used by K-means, even though they are not drawn in the figure. After PCA, the data are represented by two score columns, so much of the noise influence is reduced before
+clustering.
+:::
 
 In practice, PCA as preprocessing should still be checked against the downstream goal. If the cluster separation lies in a low-variance direction, PCA may remove the relevant structure instead.
 
