@@ -20,16 +20,14 @@ $$
 
 The question is no longer "does the reduced representation predict $y$?" but "what structure of the data matrix does the reduced representation preserve?" This change makes reconstruction, compression, visualization, denoising, and distance preservation more central than prediction.
 
-We will use PCA as the main example, but the chapter is not only another PCA derivation. The goal is to understand dimension reduction as a way of building useful low-dimensional representations of a data matrix.
-
-Although we have already introduced PCA, SVD, and related concepts, we will revisit some of them to emphasize the key ideas and place them in a broader context.
+We will use PCA as the main example, revisiting PCA, SVD, and related concepts only where they help explain dimension reduction as a way of building useful low-dimensional representations of a data matrix.
 
 
 ## How to Read the Data Matrix
 
 Let $X\in\mathbb R^{n\times p}$ contain $n$ observations and $p$ features. We usually center the columns before applying PCA, so the origin represents the sample mean.
 
-This $X$ has two complementary geometric views. Note that a vector belongs to the space indexed by its coordinates. Therefore
+This $X$ has two complementary geometric views. The coordinates of a vector determine the space it lives in. Therefore
 
 - A row has one coordinate for each feature, so it is a vector in feature space $\mathbb R^p$. 
 - A column has one coordinate for each observation, so it is a vector in observation space $\mathbb R^n$.
@@ -169,7 +167,7 @@ $$
 v_j\in\mathbb R^p,\qquad Z_j=Xv_j\in\mathbb R^n.
 $$
 
-This is the same bridge operation described above. PCA chooses a special feature-space direction $v_j$, uses $Xv_j$ to construct a new feature column, and then reads that column as one coordinate for all observations.
+This is exactly the operation $Xv$ discussed above: PCA chooses a special feature-space direction $v_j$ and uses $Xv_j$ to combine the original feature columns into one new score column.
 
 The vector $v_j$ is the loading vector. It gives the weights used to combine the original feature columns:
 
@@ -413,14 +411,7 @@ Common criteria include:
 - stability of a downstream unsupervised method such as clustering;
 - computational constraints.
 
-The cumulative explained variance for the first $m$ components is
-
-$$
-\frac{\sum_{j=1}^m d_j^2}
-{\sum_{j=1}^r d_j^2}.
-$$
-
-Usually we pick the dimension based on a threshold for how much variance it explains.
+The right criterion depends on the goal of the analysis. As one common example, we can choose $m$ by setting a threshold for the cumulative explained variance ratio.
 
 ::: {#exm-}
 
@@ -473,6 +464,8 @@ For visualization, we usually choose 2 or 3 components directly. For denoising, 
 
 Low-rank reconstruction can compress data by storing the scores $Z_m$ and loadings $V_m$ instead of all of $X$. The scores are the values of $m$ derived features; the loadings say how those derived features relate back to the original $p$ features.
 
+There are two storage costs: shared quantities, such as the loading matrix and feature means, and per-observation quantities, namely the $m$ scores. PCA compression is therefore most useful when many observations share the same fitted PCA basis.
+
 For images, reconstruction makes the compression tradeoff visible.
 
 We use the digits dataset introduced above to illustrate the idea.
@@ -482,7 +475,7 @@ from sklearn.datasets import load_digits
 X_digits = load_digits().data
 ```
 
-We fit PCA on the full digits dataset, and then visualize the reconstruction of one image (0-th image).
+We fit PCA on the full digits dataset, and then visualize the reconstruction of the image at index 0.
 
 ```{python}
 x0 = X_digits[[0]]
@@ -511,8 +504,7 @@ for ax, m in zip(axs[1:], components_to_show):
 
 Small $m$ produces a rough reconstruction because many components have been discarded. Larger $m$ restores more detail, but it also requires storing more scores and loadings. Because this digit is relatively simple, the visual differences between some reconstructions may be subtle.
 
-We can also measure the per-image storage after the PCA loading matrix has
-been learned and shared across the dataset. Each original image stores 64 pixel values. With $m$ components, each image is represented by $m$ scores. Ignoring the shared loading matrix, the theoretical per-image storage ratios are:
+We can measure the per-image storage after the PCA loading matrix has been learned and shared across the dataset. Each original image stores 64 pixel values. With $m$ components, each image is represented by $m$ scores. Ignoring the shared loading matrix and feature means, the theoretical per-image storage ratios are:
 
 ```{python}
 #| echo: false
@@ -555,9 +547,9 @@ for m in components_to_show:
 pd.DataFrame(storage_rows)
 ```
 
-These measured ratios are slightly larger than the per-image ratios above because they include the shared loading matrix and the feature means, not only the score values for each image.
+These measured ratios are slightly larger because they include the shared quantities, not only the score values for each image.
 
-For a single image alone, PCA is not necessarily a compression method, because the loading matrix must also be stored. The compression is useful when many observations share the same loading matrix and each observation only needs its own low-dimensional score vector.
+For a single image alone, PCA is not necessarily a compression method. The benefit comes when many observations share the same loading matrix and each observation only needs its own low-dimensional score vector.
 
 
 
@@ -576,6 +568,8 @@ x0 = X_digits[[0]]
 rng = np.random.default_rng(3)
 x_noisy = x0 + rng.normal(scale=4, size=x0.shape)
 ```
+
+We learn the PCA basis from the full digits dataset, not from this single noisy image, so the fitted directions represent common digit-shaped variation.
 
 For denoising, $m$ is often chosen by inspecting reconstruction quality or by looking for an elbow in the explained-variance curve, rather than by using a fixed threshold. Here we use 16 components as an illustrative middle ground: enough to preserve the main digit shape, but not so many that the reconstruction simply keeps all of the noisy variation.
 
@@ -676,17 +670,11 @@ pd.DataFrame(
 ::: {.callout-note}
 ## What the plot does not show
 
-The plots below show only the two signal features so that the cluster
-structure is visible. However, K-means on the original features is applied
-to the full matrix `X_cluster`, which also contains 200 noisy features. Those
-noisy coordinates affect the Euclidean distances used by K-means, even
-though they are not drawn in the figure. After PCA, the data are represented
-by two score columns, so much of the noise influence is reduced before
+The plots below show only the two signal features so that the cluster structure is visible. However, K-means on the original features is applied to the full matrix `X_cluster`, which also contains 200 noisy features. Those noisy coordinates affect the Euclidean distances used by K-means, even though they are not drawn in the figure. After PCA, the data are represented by two score columns, so much of the noise influence is reduced before
 clustering.
 :::
 
-The clustering results are displayed below. The first panel shows the true
-labels for reference.
+The clustering results are displayed below. The first panel shows the true labels for reference.
 
 ```{python}
 #| code-fold: true
@@ -710,10 +698,9 @@ axs[2].set_ylabel("PC2")
 axs[2].set_title("K-means After PCA");
 ```
 
-This example works because PCA reduces many noisy coordinates to a smaller score representation that is more useful for this clustering task. 
+This example works because the cluster signal is recoverable from the leading PCA directions, while many noisy coordinates are reduced to a smaller score representation.
 
-
-In practice, PCA as preprocessing should still be chosen according to the goal of the analysis and checked against the downstream result.
+In practice, PCA as preprocessing should still be checked against the downstream goal. If the cluster separation lies in a low-variance direction, PCA may remove the relevant structure instead.
 
 
 
