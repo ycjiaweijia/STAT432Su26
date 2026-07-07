@@ -2,13 +2,18 @@
 jupyter: stats
 ---
 
-<!-- {{< include ../t/math.qmd >}} -->
-
 # Embedding and Visualization {#sec-embedding}
 
-The previous chapter introduced PCA as linear dimension reduction. An
-**embedding** is the more general idea of representing high-dimensional
-observations with a smaller number of coordinates:
+The previous chapter treated PCA as a low-rank representation of a data
+matrix. PCA constructs new coordinates by multiplying the data matrix by
+loading vectors:
+
+$$
+Z=XV_m.
+$$
+
+An **embedding** is the broader idea of assigning each high-dimensional
+observation a lower-dimensional coordinate:
 
 $$
 x_i\in\mathbb R^p
@@ -17,93 +22,89 @@ z_i\in\mathbb R^m,
 \qquad m\ll p.
 $$
 
-PCA from @sec-unsupervised-pca is therefore a linear embedding. It preserves
-as much variance as possible in a linear subspace and provides loadings that
-connect the new coordinates to the original features.
+PCA is a linear embedding. Its axes have loadings, so each new coordinate can
+be read as a feature combination. The methods in this chapter are different:
+they usually build coordinates from distances, neighborhoods, or graphs.
+Their axes are useful for visualization, but they usually do not have direct
+feature interpretations.
 
-This chapter focuses on nonlinear embeddings, usually with $m=2$. Some are
-used primarily for visualization, while others are used to make a downstream
-task such as clustering easier. We study three widely used ideas:
+We focus on three methods:
 
-- spectral embedding, often used inside spectral clustering;
-- t-distributed stochastic neighbor embedding (t-SNE);
-- uniform manifold approximation and projection (UMAP).
+- spectral embedding, which builds coordinates from a similarity graph;
+- t-SNE, which matches high-dimensional and low-dimensional neighborhood
+  probabilities;
+- UMAP, which builds and matches fuzzy nearest-neighbor graphs.
 
-These methods prioritize local neighborhoods: observations that are similar
-in the original feature space should usually appear near one another in the
-plot. Unlike PCA, however, their axes generally do not have direct feature
-interpretations, and the plot does not preserve every original distance.
+The shared goal is not to reconstruct $X$ feature by feature. The goal is to
+make selected relationships among observations visible in a small number of
+coordinates, usually two.
 
-::: {.callout-note}
-## Visualization is the main goal here
+::: {.callout-caution}
+## Embedding plots are not maps of all distances
 
-UMAP can also produce more than two coordinates and can transform new
-observations after fitting. Nevertheless, t-SNE and UMAP are used here
-primarily as exploratory visualization methods. Spectral embedding is included
-because it shows how a graph-based representation can support clustering.
+These methods emphasize some relationships and distort others. Nearby points
+in the plot are often meaningful, but global distances, apparent cluster
+sizes, and empty space should be interpreted cautiously.
 :::
 
 
 ## Before Constructing an Embedding
 
-An embedding is built from the features and their distances or
-neighborhoods. The following choices therefore affect the result before the
-algorithm begins:
+An embedding is built from the rows of $X$. The result therefore depends on
+how similarity between rows is defined before the algorithm starts.
+
+Important choices include:
 
 - which features are included;
 - whether features are centered, scaled, or transformed;
 - how missing values are handled;
 - which distance metric defines similarity;
-- whether a preliminary PCA step removes redundant or noisy directions.
+- whether a preliminary PCA step removes noise or redundant directions.
 
-For high-dimensional data, a common workflow is
+A common workflow is
 
 $$
 X
 \longrightarrow
-\text{scaled features}
+\text{preprocessed features}
 \longrightarrow
 \text{optional PCA}
 \longrightarrow
 \text{two-dimensional embedding}.
 $$
 
-PCA preprocessing is especially common before t-SNE. It reduces computation
-and can remove directions dominated by noise, but it should retain enough
-components to preserve the structure of interest.
+The optional PCA step is not used because PCA is the final visualization. It
+is used to denoise the data and reduce computation before a nonlinear method
+such as t-SNE or UMAP.
 
 
-## Spectral Embedding and Clustering
+## Spectral Embedding
 
-Spectral embedding builds a new representation from a similarity graph. It is
-especially useful when observations are better described by graph connectivity
-than by distance to a single center.
+Spectral embedding starts by replacing the original data matrix with a graph.
+The vertices are observations. Edges connect observations that are similar,
+often nearest neighbors.
 
-In spectral clustering, this embedding is followed by a label assignment step:
+The main idea is:
 
 $$
 X
 \longrightarrow
 \text{similarity graph}
 \longrightarrow
-\text{spectral embedding } Z
+\text{graph Laplacian}
 \longrightarrow
-\text{cluster labels}.
+\text{eigenvector coordinates}.
 $$
 
-The final output is a cluster label for each original observation, but the key
-representation step is the spectral embedding $Z$.
+This is useful when the structure is better described by connectivity than by
+distance to a single center. Spectral clustering uses the same embedding and
+then applies a label-assignment method such as K-means.
 
-### From a Graph to Coordinates
+### Mathematical Idea
 
-Treat observations as vertices in a graph. Two observations are connected when
-they are sufficiently similar, for example when one is among the nearest
-neighbors of the other. The graph represents local connectivity: observations
-are close if they can be connected through short graph paths, not only if they
-are close to the same center.
-
-Let $W=\mqty[W_{ij}]$ be the weighted adjacency matrix and define the degree
-matrix
+Let $W=\mqty[W_{ij}]$ be a symmetric weighted adjacency matrix. A large
+$W_{ij}$ means observations $i$ and $j$ are strongly connected. Define the
+degree matrix
 
 $$
 D=\operatorname{diag}(d_1,\ldots,d_n),
@@ -111,40 +112,35 @@ D=\operatorname{diag}(d_1,\ldots,d_n),
 d_i=\sum_j W_{ij}.
 $$
 
-One graph Laplacian is
+The unnormalized graph Laplacian is
 
 $$
 L=D-W.
 $$
 
-For any vector $z=(z_1,\ldots,z_n)^\top$ assigning one number to each
+For any vector $z=(z_1,\ldots,z_n)^\top$ assigning one coordinate to each
 observation,
 
 $$
 z^\top Lz
 =
-\frac{1}{2}\sum_{i,j}W_{ij}(z_i-z_j)^2.
+\frac12\sum_{i,j}W_{ij}(z_i-z_j)^2.
 $$
 
-This quantity is small when strongly connected observations receive similar
-values. Therefore, eigenvectors of a graph Laplacian with small eigenvalues
-provide coordinates that vary slowly across strong graph edges. These
-eigenvectors form the spectral embedding.
+This expression is small when strongly connected observations receive
+similar coordinates. Spectral embedding therefore uses eigenvectors of a
+graph Laplacian with small eigenvalues as the new coordinates.
 
-### A Four-Point Example
+The first eigenvector is usually constant on each connected component, so it
+does not give a useful coordinate. The next eigenvectors give coordinates
+that change slowly along strong graph edges and change sharply across weak
+connections.
 
-Suppose four observations form two strong pairs, with a weak bridge between the
-pairs. Observations 1 and 2 are strongly connected, observations 3 and 4 are
-strongly connected, and observations 2 and 3 are weakly connected.
+::: {#exm-spectral-four-points}
+#### A four-point graph
 
-```{mermaid}
-graph LR
-    x1["1"] ---|"1"| x2["2"]
-    x2["2"] ---|"0.2"| x3["3"]
-    x3["3"] ---|"1"| x4["4"]
-```
-
-The weighted adjacency matrix is
+Suppose observations 1 and 2 are strongly connected, observations 3 and 4
+are strongly connected, and observations 2 and 3 are weakly connected:
 
 $$
 W
@@ -157,45 +153,8 @@ W
 ].
 $$
 
-The degrees are
-
-$$
-d_1=1,\qquad d_2=1.2,\qquad d_3=1.2,\qquad d_4=1.
-$$
-
-Therefore
-
-$$
-D
-=
-\mqty[
-1 & 0 & 0 & 0\\
-0 & 1.2 & 0 & 0\\
-0 & 0 & 1.2 & 0\\
-0 & 0 & 0 & 1
-],
-\qquad
-L=D-W
-=
-\mqty[
-1 & -1 & 0 & 0\\
--1 & 1.2 & -0.2 & 0\\
-0 & -0.2 & 1.2 & -1\\
-0 & 0 & -1 & 1
-].
-$$
-
-The constant vector
-
-$$
-v_1=\mqty[1\\1\\1\\1]
-$$
-
-satisfies $Lv_1=0$. This coordinate does not separate the observations because
-every point receives the same value.
-
-The next eigenvector gives the useful coordinate. For this graph, a
-small-eigenvalue eigenvector is approximately
+The graph has two strong pairs with a weak bridge between them. A small
+nonconstant Laplacian eigenvector is approximately
 
 $$
 v_2
@@ -205,214 +164,121 @@ v_2
 0.448\\
 -0.448\\
 -0.547
-],
-\qquad
-Lv_2\approx 0.180\,v_2.
+].
 $$
 
-The signs and relative sizes are the important part. Observations 1 and 2 have
-positive coordinates, observations 3 and 4 have negative coordinates, and the
-weak bridge between observations 2 and 3 is where the coordinate changes sign.
+Using $v_2$ as a one-dimensional embedding puts observations 1 and 2 near
+each other, observations 3 and 4 near each other, and a large gap between
+the two pairs. The coordinate is not a feature combination like $Xv$ in PCA.
+It is a graph coordinate: it records where each observation sits in the
+connectivity structure.
+:::
 
-If we use $v_2$ as a one-dimensional spectral embedding, each observation
-receives the following new coordinate:
+Many implementations use a normalized Laplacian rather than $L=D-W$. The
+normalization changes the algebra but not the main interpretation:
+coordinates should vary smoothly over strong graph connections.
 
-| Observation | Spectral coordinate from $v_2$ |
-|---|---:|
-| 1 | 0.547 |
-| 2 | 0.448 |
-| 3 | -0.448 |
-| 4 | -0.547 |
+### Spectral Embedding in Python
 
-In this new representation, observations 1 and 2 are close to each other, and
-observations 3 and 4 are close to each other. The weak bridge is reflected by a
-large gap between observations 2 and 3. A simple label assignment rule, such as
-splitting by sign or applying K-means with `n_clusters=2`, would separate the
-graph into $\{1,2\}$ and $\{3,4\}$.
-
-Many implementations use normalized versions of the graph Laplacian instead of
-$L=D-W$. The details differ, but the purpose is the same: construct coordinates
-that summarize graph connectivity.
-
-### Spectral Clustering in Python
-
-The concentric circles cannot be separated by placing two centers in the
-original plane. Their neighborhood graph, however, encodes connectivity around
-each ring.
+The following example uses concentric circles. K-means in the original
+coordinates struggles because the groups are not separated by two centers.
+A nearest-neighbor graph, however, captures the connectivity of each ring.
 
 ```{python}
 #| warning: false
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans, SpectralClustering
-from sklearn.datasets import make_circles
 
-X_circle_embedding, true_circle_group = make_circles(
+from sklearn.cluster import KMeans
+from sklearn.datasets import make_circles, load_digits
+from sklearn.decomposition import PCA
+from sklearn.manifold import SpectralEmbedding, TSNE
+from sklearn.preprocessing import StandardScaler
+
+X_circle, y_circle = make_circles(
     n_samples=500,
     factor=0.45,
     noise=0.05,
     random_state=1,
 )
 
-circle_kmeans_group = KMeans(
+circle_kmeans = KMeans(
     n_clusters=2,
     n_init=20,
     random_state=1,
-).fit_predict(X_circle_embedding)
+).fit_predict(X_circle)
 
-circle_spectral_group = SpectralClustering(
-    n_clusters=2,
+spectral = SpectralEmbedding(
+    n_components=2,
     affinity="nearest_neighbors",
     n_neighbors=10,
-    assign_labels="kmeans",
     random_state=1,
-).fit_predict(X_circle_embedding)
+)
+Z_spectral = spectral.fit_transform(X_circle)
+
+circle_spectral_kmeans = KMeans(
+    n_clusters=2,
+    n_init=20,
+    random_state=1,
+).fit_predict(Z_spectral)
 ```
 
 ```{python}
 #| code-fold: true
-fig, axs = plt.subplots(1, 3, figsize=(13, 4), sharex=True, sharey=True)
+fig, axs = plt.subplots(1, 3, figsize=(13, 4))
 
-for ax, labels, title in zip(
-    axs,
-    [
-        true_circle_group,
-        circle_kmeans_group,
-        circle_spectral_group,
-    ],
-    [
-        "Underlying Structure",
-        "K-Means in Original Space",
-        "Spectral Clustering",
-    ],
-):
-    ax.scatter(
-        X_circle_embedding[:, 0],
-        X_circle_embedding[:, 1],
-        c=labels,
-        s=18,
-    )
-    ax.set_title(title)
-    ax.set_xlabel("x1")
-    ax.set_ylabel("x2")
+axs[0].scatter(X_circle[:, 0], X_circle[:, 1], c=y_circle, s=18)
+axs[0].set_title("Underlying Structure")
+axs[0].set_xlabel("x1")
+axs[0].set_ylabel("x2")
+
+axs[1].scatter(X_circle[:, 0], X_circle[:, 1], c=circle_kmeans, s=18)
+axs[1].set_title("K-Means in Original Space")
+axs[1].set_xlabel("x1")
+axs[1].set_ylabel("x2")
+
+axs[2].scatter(
+    Z_spectral[:, 0],
+    Z_spectral[:, 1],
+    c=circle_spectral_kmeans,
+    s=18,
+)
+axs[2].set_title("K-Means on Spectral Embedding")
+axs[2].set_xlabel("spectral coordinate 1")
+axs[2].set_ylabel("spectral coordinate 2")
 
 plt.tight_layout();
 ```
 
-Spectral clustering recovers the rings because the graph representation
-captures connectivity along each ring. It does not draw circular boundaries or
-search for circular cluster centers in the original plane. Instead, it builds
-coordinates in which the two graph-connected rings are easier to separate.
+The spectral embedding is the representation step. The final colors in the
+third plot come from applying K-means after the graph-based coordinates are
+constructed.
 
-### Label Assigning Strategy
-
-After the spectral embedding is computed, labels must still be assigned to the
-embedded observations. In `sklearn.SpectralClustering`, this step is controlled
-by `assign_labels`.
-
-The main options are:
-
-- `"kmeans"`: applies K-means to the spectral embedding. This is the default and
-  can capture fine details, but it depends on K-means initialization unless
-  `random_state` is fixed.
-- `"discretize"`: converts the continuous spectral embedding into discrete
-  labels through a deterministic discretization procedure.
-- `"cluster_qr"`: uses a deterministic QR-based assignment. It avoids K-means
-  initialization and is often a strong practical alternative.
-
-```{python}
-#| warning: false
-#| code-fold: true
-assign_label_options = ["kmeans", "discretize", "cluster_qr"]
-
-fig, axs = plt.subplots(1, 3, figsize=(13, 4), sharex=True, sharey=True)
-
-for ax, strategy in zip(axs, assign_label_options):
-    labels = SpectralClustering(
-        n_clusters=2,
-        affinity="nearest_neighbors",
-        n_neighbors=10,
-        assign_labels=strategy,
-        random_state=1,
-    ).fit_predict(X_circle_embedding)
-
-    ax.scatter(X_circle_embedding[:, 0], X_circle_embedding[:, 1], c=labels, s=18)
-    ax.set_title(f"assign_labels = {strategy}")
-    ax.set_xlabel("x1")
-    ax.set_ylabel("x2")
-
-plt.tight_layout();
-```
-
-These strategies all use the same spectral embedding. They differ only in how
-the embedded coordinates are converted into discrete labels.
-
-### Tuning the Graph
-
-The most important spectral clustering choices are how to build the graph, how
-many clusters to return, and how to assign labels from the spectral embedding.
-
-- `n_clusters` specifies the number of final clusters.
-- `affinity` controls how the similarity graph is constructed. The example
-  above uses `"nearest_neighbors"`.
-- `n_neighbors` controls the graph scale when `affinity="nearest_neighbors"`.
-  A smaller value gives a more local graph and may disconnect a meaningful
-  group. A larger value gives a denser graph and may create shortcuts between
-  groups.
-- `assign_labels` controls how points are assigned to clusters after the
-  spectral embedding is computed.
-
-```{python}
-#| warning: false
-#| code-fold: true
-n_neighbor_values = [5, 10, 30]
-
-fig, axs = plt.subplots(1, 3, figsize=(12, 4), sharex=True, sharey=True)
-
-for ax, n_neighbors in zip(axs, n_neighbor_values):
-    labels = SpectralClustering(
-        n_clusters=2,
-        affinity="nearest_neighbors",
-        n_neighbors=n_neighbors,
-        assign_labels="kmeans",
-        random_state=1,
-    ).fit_predict(X_circle_embedding)
-
-    ax.scatter(X_circle_embedding[:, 0], X_circle_embedding[:, 1], c=labels, s=18)
-    ax.set_title(f"n_neighbors = {n_neighbors}")
-    ax.set_xlabel("x1")
-    ax.set_ylabel("x2")
-
-plt.tight_layout();
-```
-
-If the graph is too sparse, a true group may break into disconnected pieces. If
-the graph is too dense, edges may create shortcuts between groups that should
-remain separated.
-
-::: {.callout-caution}
-## Graph construction is part of the model
-
-The distance metric, number of neighbors, affinity function, and number of
-clusters can all change the result. Spectral clustering should therefore be
-checked for sensitivity to reasonable graph-construction choices.
-:::
+The most important tuning choice is the graph. With a nearest-neighbor graph,
+`n_neighbors` controls the scale of connectivity. If it is too small, a true
+group may break into disconnected pieces. If it is too large, the graph may
+create shortcuts between groups that should remain separated.
 
 
 ## t-SNE
 
-t-SNE is a nonlinear embedding method designed primarily for visualization.
-It converts high-dimensional distances into neighborhood probabilities and
-then seeks low-dimensional coordinates with similar neighborhood
-probabilities.
+t-SNE is designed mainly for visualization. It does not try to reconstruct
+the original features and does not produce interpretable axes. Instead, it
+tries to preserve local neighborhoods.
 
-Its emphasis is local: close neighbors are represented carefully, while
-distances between widely separated groups receive much less protection.
+The main idea is:
 
+$$
+X
+\longrightarrow
+\text{high-dimensional neighbor probabilities } P
+\longrightarrow
+\text{low-dimensional coordinates with probabilities } Q.
+$$
 
-### Neighborhood Probabilities
+### Mathematical Idea
 
-For each observation $i$, t-SNE defines the probability that $i$ would
-select observation $j$ as a neighbor:
+For each observation $i$, t-SNE defines the probability that $i$ chooses
+observation $j$ as a neighbor:
 
 $$
 p_{j\mid i}
@@ -426,12 +292,12 @@ p_{j\mid i}
 \qquad j\ne i.
 $$
 
-The bandwidth $\sigma_i$ adapts to the local density. These conditional
-probabilities are symmetrized to obtain high-dimensional similarities
-$p_{ij}$.
+The bandwidth $\sigma_i$ is chosen separately for each observation. This
+lets dense and sparse regions use different local distance scales. The
+conditional probabilities are then symmetrized to produce $p_{ij}$.
 
-For low-dimensional coordinates $z_i$, t-SNE uses a heavy-tailed
-Student-$t$ similarity:
+For low-dimensional coordinates $z_i$, t-SNE defines similarities using a
+heavy-tailed Student-$t$ kernel:
 
 $$
 q_{ij}
@@ -440,10 +306,7 @@ q_{ij}
 {\sum_{k\ne \ell}(1+\norm{z_k-z_\ell}^2)^{-1}}.
 $$
 
-The heavy tail helps separate observations that cannot all fit into a small
-two-dimensional neighborhood.
-
-t-SNE chooses the coordinates by minimizing
+The embedding is chosen by minimizing
 
 $$
 \operatorname{KL}(P\Vert Q)
@@ -452,25 +315,18 @@ $$
 p_{ij}\log\qty(\frac{p_{ij}}{q_{ij}}).
 $$
 
-The asymmetric objective strongly penalizes placing true neighbors far
-apart. It penalizes false neighbors less strongly, which is one reason local
-structure is more trustworthy than global spacing in a t-SNE plot.
+This objective strongly penalizes putting high-dimensional neighbors far
+apart in the plot. It penalizes some global distortions less strongly. That
+is why local neighborhoods are usually more trustworthy than distances
+between separated islands.
 
+### t-SNE in Python
 
-### Digits Example
-
-The handwritten digits dataset contains 64 pixel features. We standardize
-the features, retain 30 PCA components, and then construct a two-dimensional
-t-SNE embedding.
+The handwritten digits data have 64 pixel features. We standardize the
+features, reduce to 30 PCA coordinates, and then run t-SNE. The labels are
+used only for coloring the final plot.
 
 ```{python}
-import matplotlib.pyplot as plt
-
-from sklearn.datasets import load_digits
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
-from sklearn.preprocessing import StandardScaler
-
 digits = load_digits()
 X_digits = StandardScaler().fit_transform(digits.data)
 y_digits = digits.target
@@ -485,15 +341,17 @@ tsne = TSNE(
     perplexity=30,
     init="pca",
     learning_rate="auto",
-    max_iter=1000,
     random_state=1,
 )
-X_tsne = tsne.fit_transform(X_digits_pca)
+Z_tsne = tsne.fit_transform(X_digits_pca)
+```
 
+```{python}
+#| code-fold: true
 fig, ax = plt.subplots(figsize=(8, 6))
 scatter = ax.scatter(
-    X_tsne[:, 0],
-    X_tsne[:, 1],
+    Z_tsne[:, 0],
+    Z_tsne[:, 1],
     c=y_digits,
     cmap="tab10",
     s=10,
@@ -502,63 +360,69 @@ scatter = ax.scatter(
 ax.set_xlabel("t-SNE1")
 ax.set_ylabel("t-SNE2")
 ax.set_title("Digits t-SNE")
-ax.legend(
-    *scatter.legend_elements(),
-    title="digit",
-    ncol=2,
-);
+ax.legend(*scatter.legend_elements(), title="digit", ncol=2);
 ```
 
-The class labels are used only for coloring and interpretation. They are not
-used to fit PCA or t-SNE.
+The main tuning parameter is `perplexity`. It behaves like an effective
+neighborhood size.
 
-
-### Perplexity and Sensitivity
-
-The main tuning parameter is `perplexity`. It is related to the effective
-number of neighbors considered around each observation.
-
-- Smaller perplexity emphasizes very local structure and may fragment the
-  embedding.
-- Larger perplexity uses broader neighborhoods but may smooth over local
+- Smaller perplexity emphasizes very local structure and can fragment the
+  display.
+- Larger perplexity uses broader neighborhoods and can smooth over local
   detail.
 
-The result also depends on initialization, learning rate, iteration count,
-and random seed. A visual pattern is more credible when it persists across
-several reasonable settings.
+The result can also depend on initialization and random seed. A pattern is
+more credible when it persists across several reasonable settings.
 
 ::: {.callout-caution}
 ## Interpreting t-SNE
 
-Distances between separated groups, group sizes, and empty space in a t-SNE
-plot do not generally have direct quantitative meaning. Visually distinct
-islands are not by themselves evidence that discrete clusters exist.
-
-Standard `sklearn` t-SNE also has no `.transform()` method for new
-observations. It is mainly an exploratory visualization rather than a
-reusable feature transformation for a predictive pipeline.
+Distances between separated groups, island sizes, and empty space in a t-SNE
+plot do not generally have direct quantitative meaning. Standard
+`sklearn` t-SNE also has no `.transform()` method for new observations, so it
+is mainly an exploratory visualization tool rather than a reusable feature
+transformation.
 :::
 
 
 ## UMAP
 
-UMAP is another nonlinear dimension-reduction method that emphasizes local
-neighborhood structure. At a high level, it:
+UMAP is another nonlinear embedding method based on local neighborhoods. Like
+t-SNE, it is usually used for two-dimensional visualization. Unlike standard
+`sklearn` t-SNE, the common Python implementation can also transform new
+observations after fitting.
 
-1. finds nearest neighbors in the original feature space;
-2. converts local distances into weighted graph connections;
-3. constructs a corresponding graph in the low-dimensional space;
-4. optimizes coordinates so the two graphs agree as closely as possible.
+The main idea is:
 
-UMAP adapts connection strengths to local density rather than applying one
-global distance bandwidth to every observation.
+$$
+X
+\longrightarrow
+\text{nearest-neighbor graph in original space}
+\longrightarrow
+\text{similar graph in low-dimensional space}.
+$$
 
+### Mathematical Idea
+
+UMAP first finds nearest neighbors for each observation. It then turns local
+distances into weighted graph connections. The scale is local: a distance can
+be considered close for one observation and far for another, depending on the
+local density.
+
+In the low-dimensional space, UMAP builds another weighted graph from the
+coordinates $z_i$. It chooses the coordinates so that the low-dimensional
+graph resembles the original nearest-neighbor graph.
+
+The details use fuzzy-set language, but the practical interpretation is
+simple: UMAP tries to keep neighboring observations connected while allowing
+the display to spread out enough to be readable.
 
 ### UMAP in Python
 
-The standard Python implementation is provided by `umap-learn`.
+The standard implementation is provided by `umap-learn`.
 
 ```{.bash}
+#| eval: false
 uv add umap-learn
 ```
 
@@ -566,7 +430,7 @@ uv add umap-learn
 #| eval: false
 import umap
 
-reducer = umap.UMAP(
+umap_model = umap.UMAP(
     n_neighbors=15,
     min_dist=0.1,
     n_components=2,
@@ -574,12 +438,15 @@ reducer = umap.UMAP(
     random_state=1,
 )
 
-X_umap = reducer.fit_transform(X_digits)
+Z_umap = umap_model.fit_transform(X_digits)
+```
 
+```{python}
+#| eval: false
 fig, ax = plt.subplots(figsize=(8, 6))
 scatter = ax.scatter(
-    X_umap[:, 0],
-    X_umap[:, 1],
+    Z_umap[:, 0],
+    Z_umap[:, 1],
     c=y_digits,
     cmap="tab10",
     s=10,
@@ -588,38 +455,24 @@ scatter = ax.scatter(
 ax.set_xlabel("UMAP1")
 ax.set_ylabel("UMAP2")
 ax.set_title("Digits UMAP")
-ax.legend(
-    *scatter.legend_elements(),
-    title="digit",
-    ncol=2,
-);
+ax.legend(*scatter.legend_elements(), title="digit", ncol=2);
 ```
 
-Again, the digit labels are used only to interpret the resulting plot.
+The main tuning parameters are:
 
-
-### Main Tuning Parameters
-
-| Parameter | Role | Typical effect |
+| Parameter | Meaning | Practical effect |
 |---|---|---|
-| `n_neighbors` | size of the local neighborhood | smaller emphasizes local detail; larger uses broader structure |
-| `min_dist` | minimum spacing encouraged in the embedding | smaller permits tighter visual groups |
-| `n_components` | output dimension | usually 2 for visualization |
-| `metric` | original-space dissimilarity | changes which observations are neighbors |
+| `n_neighbors` | size of local neighborhoods | smaller emphasizes local detail; larger uses broader structure |
+| `min_dist` | how tightly points may pack in the display | smaller permits tighter visual groups |
+| `metric` | original-space distance | changes which observations are neighbors |
+| `n_components` | embedding dimension | usually 2 for visualization |
 
-`n_neighbors` controls the scale of structure emphasized by UMAP.
-`min_dist` mainly controls how tightly observations can be packed in the
-display. A compact island produced by a small `min_dist` should not
-automatically be interpreted as a dense cluster in the original space.
-
-
-### Sensitivity Analysis
-
-The same data can produce visibly different plots under different
-parameters. A useful analysis compares several plausible settings.
+The visual compactness of a UMAP island is partly controlled by `min_dist`.
+It should not automatically be interpreted as original-space density.
 
 ```{python}
 #| eval: false
+#| code-fold: true
 settings = [
     (5, 0.05),
     (15, 0.10),
@@ -629,16 +482,13 @@ settings = [
 
 fig, axs = plt.subplots(2, 2, figsize=(10, 8))
 
-for ax, (n_neighbors, min_dist) in zip(
-    axs.ravel(),
-    settings,
-):
-    reducer = umap.UMAP(
+for ax, (n_neighbors, min_dist) in zip(axs.ravel(), settings):
+    model = umap.UMAP(
         n_neighbors=n_neighbors,
         min_dist=min_dist,
         random_state=1,
     )
-    embedding = reducer.fit_transform(X_digits)
+    embedding = model.fit_transform(X_digits)
     ax.scatter(
         embedding[:, 0],
         embedding[:, 1],
@@ -646,90 +496,62 @@ for ax, (n_neighbors, min_dist) in zip(
         cmap="tab10",
         s=6,
     )
-    ax.set_title(
-        f"n_neighbors={n_neighbors}, "
-        f"min_dist={min_dist}"
-    )
+    ax.set_title(f"n_neighbors={n_neighbors}, min_dist={min_dist}")
 
 plt.tight_layout();
 ```
 
-Structures that persist across preprocessing choices, random seeds, and
-reasonable tuning settings are more credible than features visible in one
-plot only.
+Structures that persist across reasonable values of `n_neighbors`,
+`min_dist`, preprocessing choices, and random seeds are more credible than
+structures visible in only one plot.
 
 
-## Comparing PCA, Spectral Embedding, t-SNE, and UMAP
+## Comparing the Methods
 
-PCA provides the linear baseline. Spectral embedding is graph-based and is often
-used to support clustering. t-SNE and UMAP are nonlinear alternatives for local
-visualization.
+PCA, spectral embedding, t-SNE, and UMAP all create lower-dimensional
+coordinates, but they preserve different things.
 
-| Property | PCA | Spectral embedding | t-SNE | UMAP |
-|---|---|---|---|---|
-| Mapping | linear | graph-based | nonlinear | nonlinear |
-| Main goal here | variance-preserving representation | graph-based coordinates for clustering | local visualization | local visualization |
-| Axis interpretation | loadings connect axes to features | coordinates summarize graph connectivity | axes have no direct meaning | axes have no direct meaning |
-| Global distances | partially preserved by linear projection | depend on graph construction | generally unreliable | not guaranteed |
-| Main tuning choices | number of components, scaling | graph construction, number of clusters, label assignment | perplexity, optimization settings | neighbors, minimum distance, metric |
-| New observations | `.transform()` available | no standard `SpectralClustering` transform | no standard `sklearn` transform | transform supported |
+| Method | Main object preserved | Axis meaning | Typical use |
+|---|---|---|---|
+| PCA | variance and reconstruction under a linear model | loadings connect axes to features | baseline visualization, compression, denoising |
+| Spectral embedding | graph connectivity | graph coordinates, not feature loadings | graph-based clustering or visualization |
+| t-SNE | local neighbor probabilities | no direct feature meaning | exploratory local visualization |
+| UMAP | local nearest-neighbor graph | no direct feature meaning | exploratory visualization, sometimes reusable embeddings |
 
-PCA should usually be the first visualization because it is fast,
-transparent, and comparatively stable. t-SNE or UMAP can then reveal local
-patterns that a two-dimensional linear projection misses. Spectral embedding is
-most useful when the goal is graph-based clustering rather than a general
-visual summary.
-
-The nonlinear plots should not be judged by which one looks most separated.
-Instead, ask whether the visible neighborhoods are stable and whether they
-correspond to meaningful differences in the original variables.
-
-
-## What an Embedding Plot Does Not Show
-
-::: {.callout-caution}
-## Apparent clusters are not proof of clusters
-
-t-SNE and UMAP intentionally distort some distances to preserve selected
-neighborhood relationships. Spectral embedding also depends on a chosen graph.
-A visible gap may be caused or enlarged by preprocessing, tuning,
-initialization, or graph construction. If clustering is the goal, fit and
-evaluate a clustering method rather than using islands in an embedding plot as
-the cluster definition.
-:::
-
-In particular:
-
-- axis directions usually have no direct feature interpretation;
-- distances between far-apart groups may be unreliable;
-- displayed group sizes and densities need not match original-space
-  densities;
-- different runs may rotate, reflect, or rearrange the embedding;
-- fitting an embedding to all observations can leak test information in a
-  predictive workflow.
-
-Embedding coordinates should guide exploration. Scientific interpretation
-must return to the original features and observations.
+PCA should usually be the first plot because it is fast, stable, and
+interpretable. t-SNE and UMAP can then reveal local structure that a
+two-dimensional linear projection misses. Spectral embedding is most useful
+when the analysis is naturally graph-based, especially before clustering.
 
 
 ## Practical Workflow
 
-1. Select features that match the scientific question.
-2. Handle missing values and choose scaling deliberately.
-3. Start with a two-dimensional PCA plot.
-4. Use spectral embedding when graph-based clustering is the goal.
-5. Use t-SNE or UMAP when nonlinear local visualization is of interest.
-6. Compare plausible tuning values and random seeds.
-7. Investigate visible groups using the original variables.
-8. Apply and evaluate a clustering method if formal grouping is needed.
+1. Choose features that match the scientific question.
+2. Scale or transform features deliberately.
+3. Start with PCA as a linear baseline.
+4. Use spectral embedding when graph connectivity or clustering is central.
+5. Use t-SNE or UMAP for nonlinear local visualization.
+6. Compare several reasonable tuning values and random seeds.
+7. Interpret visible groups by returning to the original features.
+8. Fit and evaluate a clustering method if formal group labels are needed.
+
+::: {.callout-caution}
+## Apparent clusters are not proof of clusters
+
+t-SNE and UMAP can make continuous structure look separated, and spectral
+embedding depends on the chosen graph. A visible gap is a hypothesis to
+investigate, not a cluster definition by itself.
+:::
 
 
 ## Summary
 
-Embedding is a form of dimension reduction. PCA supplies a linear baseline,
-spectral embedding uses a similarity graph to support clustering, and t-SNE and
-UMAP emphasize local neighborhoods for visualization. These representations can
-reveal structure, but axis values, global distances, apparent densities, and
-visible gaps must be interpreted cautiously. As emphasized in @sec-clustering,
-a visualization may suggest structure, but it does not by itself define or
-validate a clustering.
+An embedding replaces each row $x_i$ with a lower-dimensional coordinate
+$z_i$. PCA does this with linear feature combinations. Spectral embedding
+does it with eigenvectors of a graph Laplacian. t-SNE and UMAP do it by
+constructing low-dimensional coordinates that preserve local neighborhoods.
+
+The central question is always: what relationship is the embedding designed
+to preserve? Once that is clear, the plot can guide exploration, but
+scientific interpretation must return to the original observations and
+features.

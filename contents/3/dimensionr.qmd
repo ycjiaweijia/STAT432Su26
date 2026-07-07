@@ -2,7 +2,7 @@
 jupyter: stats
 ---
 
-# Dimension Reduction and Low-Rank Representations {#sec-unsupervised-pca}
+# Unsupervised Dimension Reduction {#sec-unsupervised-pca}
 
 In the supervised dimension-reduction chapter, PCA appeared inside principal component regression (PCR). There the workflow was
 
@@ -336,6 +336,10 @@ use that column.
   changes the principal directions.
 
 ```{python}
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import pandas as pd
+
 X_scaled = StandardScaler().fit_transform(X_original)
 
 pca_centered = PCA(n_components=2).fit(X_original)
@@ -381,6 +385,11 @@ $$
 $$
 
 ```{python}
+from sklearn.datasets import load_digits
+
+digits = load_digits()
+X_digits = digits.data
+
 digits_pca_full = PCA().fit(X_digits)
 cum_ratio = np.cumsum(digits_pca_full.explained_variance_ratio_)
 
