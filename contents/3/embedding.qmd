@@ -152,6 +152,8 @@ The term $W_{ij}(y_i-y_j)^2$ penalizes the opposite situation: a strong edge wit
 <details>
 <summary><strong>Click to expand.</strong></summary>
 
+---
+
 More explicitly, a one-dimensional observation-space coordinate can be described as trying to solve
 
 $$
@@ -206,6 +208,8 @@ v^\top Lv
 $$
 
 the smallest positive eigenvalue gives the nonconstant coordinate with the smallest graph roughness. Therefore strongly connected observations tend to receive similar values. Additional spectral coordinates come from the next smallest positive eigenvalues.
+
+---
 
 </details>
 
@@ -299,74 +303,194 @@ The result tells us that observations 1 and 2 are close in the embedding, observ
 
 ### Spectral Embedding in Python
 
-The following example uses concentric circles. We use K-means here for comparison.
+We can use `SpectralEmbedding` from `sklearn.manifold` to compute a spectral embedding. The first hyperparameter, `n_components`, specifies the dimension of the embedding. However, it is usually not the most important hyperparameter.
+
+As discussed earlier, spectral embedding starts by constructing a local connectivity graph. There are several ways to construct the connectivity matrix $W$. One of the most common approaches is the nearest neighbors method:
+
+1. Choose the number of nearest neighbors, `n_neighbors`.
+2. For each point, find its `n_neighbors` nearest neighbors.
+3. Set $W_{ij}=1$ if points $i$ and $j$ are connected, and $W_{ij}=0$ otherwise.
+
+This produces a sparse connectivity matrix $W$, which is then used to compute the graph Laplacian and the spectral embedding.
+
+In `SpectralEmbedding`, this construction is specified by `affinity="nearest_neighbors"` together with the parameter `n_neighbors`. In practice, choosing an appropriate neighborhood size or a different way of constructing the connectivity graph is often more important than choosing the embedding dimension.
+
+::: {.callout-note}
+## `SpectralClustering`
+
+A common use of spectral embedding is to apply a clustering algorithm, such as KMeans, to the embedded coordinates. You can do this manually by combining `SpectralEmbedding` with `KMeans`, or you can use `SpectralClustering` from `sklearn.cluster`, which performs these two steps automatically.
+
+If you want to visualize the embedding itself, however, you should use `SpectralEmbedding` directly and then apply the clustering algorithm manually.
+
+:::
 
 
-```{python}
-from sklearn.datasets import make_circles
 
-X_circle, y_circle = make_circles(
-    n_samples=500, factor=0.45, noise=0.05, random_state=1
-)
-```
+#### Example
 
-We use `SpectralEmbedding` from `sklearn.manifold` to implement spectral embedding.
+We generate a dataset consisting of two concentric circles and add a small number of bridge points connecting them. The outer circle has uneven density, meaning that the point density varies along its perimeter.
 
-```{python}
-#| warning: false
-from sklearn.cluster import KMeans
-from sklearn.manifold import SpectralEmbedding
-from sklearn.preprocessing import StandardScaler
+Although the bridge points connect the two circles geometrically, we still regard the data as containing two clusters: the inner circle and the outer circle. The bridge points are treated as noise rather than evidence that the two circles belong to the same cluster.
+
+The dataset is generated manually using NumPy because `sklearn.datasets.make_circles` cannot generate circles with non-uniform point density. The dataset is visualized after generating.
 
 
-circle_kmeans = KMeans(n_clusters=2, n_init=20, random_state=1).fit_predict(X_circle)
-
-Z_spectral = SpectralEmbedding(
-    n_components=2, affinity="nearest_neighbors", n_neighbors=9, random_state=1
-).fit_transform(X_circle)
-circle_spectral_kmeans = KMeans(n_clusters=2, n_init=20, random_state=1).fit_predict(
-    Z_spectral
-)
-```
 
 ```{python}
 #| code-fold: true
-
+import numpy as np
 import matplotlib.pyplot as plt
 
-fig, axs = plt.subplots(1, 3, figsize=(13, 4))
+n_samples = 900
+rng = np.random.default_rng(0)
 
-axs[0].scatter(X_circle[:, 0], X_circle[:, 1], c=y_circle, s=18)
-axs[0].set_title("Underlying Structure")
-axs[0].set_xlabel("x1")
-axs[0].set_ylabel("x2")
+n_inner = n_samples // 2
+n_outer = n_samples - n_inner
 
-axs[1].scatter(X_circle[:, 0], X_circle[:, 1], c=circle_kmeans, s=18)
-axs[1].set_title("K-Means in Original Space")
-axs[1].set_xlabel("x1")
-axs[1].set_ylabel("x2")
+# Inner circle
+theta = rng.uniform(0, 2 * np.pi, n_inner)
+r = rng.normal(1.0, 0.035, n_inner)
+x_in = r * np.cos(theta)
+y_in = r * np.sin(theta)
 
-axs[2].scatter(
-    X_circle[:, 0],
-    X_circle[:, 1],
-    c=circle_spectral_kmeans,
-    s=18,
-)
-axs[2].set_title("K-Means on Spectral Embedding")
-axs[2].set_xlabel("spectral coordinate 1")
-axs[2].set_ylabel("spectral coordinate 2")
+# Outer circle with uneven density
+theta_out = []
+while len(theta_out) < n_outer:
+    theta = rng.uniform(0, 2 * np.pi, 6 * n_outer)
+    prob = 0.08 + 0.92 * np.sin(2.5 * theta) ** 2
+    keep = rng.random(len(theta)) < prob
+    theta_out.extend(theta[keep])
 
-plt.tight_layout();
+theta_out = np.array(theta_out[:n_outer])
+
+r = rng.normal(2.6, 0.04, n_outer)
+x_out = r * np.cos(theta_out)
+y_out = r * np.sin(theta_out)
+
+X = np.vstack([
+    np.column_stack([x_in, y_in]),
+    np.column_stack([x_out, y_out]),
+])
+
+y = np.array([0] * n_inner + [1] * n_outer)
+
+# Bridge points
+n_bridge = 10
+theta = rng.normal(0.4, 0.02, n_bridge)
+r = np.linspace(1.05, 2.55, n_bridge)
+r += rng.normal(0, 0.02, n_bridge)
+
+x = r * np.cos(theta)
+y_bridge = r * np.sin(theta)
+
+X_bridge = np.column_stack([x, y_bridge])
+
+# Assign each bridge point to the nearest circle
+labels = (np.abs(r - 1.0) > np.abs(r - 2.6)).astype(int)
+
+X = np.vstack([X, X_bridge])
+y = np.concatenate([y, labels])
+
+plt.scatter(X[:, 0], X[:, 1], c=y, s=8)
+plt.title("Ground Truth")
+plt.xticks([])
+plt.yticks([])
+plt.axis("equal")
 ```
 
-The spectral embedding is the representation step. The final colors in the
-third plot come from applying K-means after the graph-based coordinates are
-constructed.
 
-The most important tuning choice is the graph. With a nearest-neighbor graph,
-`n_neighbors` controls the scale of connectivity. If it is too small, a true
-group may break into disconnected pieces. If it is too large, the graph may
-create shortcuts between groups that should remain separated.
+Now we apply the four clustering methods and compare their results. Since the true labels are available, we use the adjusted Rand index (ARI) to evaluate the clustering performance.
+
+For all methods, the hyperparameters were only tuned lightly rather than exhaustively. Better performance may be achievable with more careful tuning, but the overall conclusions are unlikely to change. The purpose of this example is not to compare the best possible performance of each algorithm, but to illustrate their typical behavior on this dataset.
+
+
+
+```{python}
+from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
+from sklearn.manifold import SpectralEmbedding
+
+kmeans_labels = KMeans(n_clusters=2, n_init=10, random_state=0).fit_predict(X)
+
+ha_labels = AgglomerativeClustering(n_clusters=2, linkage="ward").fit_predict(X)
+
+dbscan_labels = DBSCAN(eps=0.5, min_samples=10).fit_predict(X)
+
+Z = SpectralEmbedding(n_components=2, n_neighbors=15, random_state=0).fit_transform(X)
+spectral_labels = KMeans(n_clusters=2, random_state=0, n_init=10).fit_predict(Z)
+```
+
+
+``` {python}
+#| code-fold: true
+from sklearn.metrics import adjusted_rand_score
+
+labels = {
+    "KMeans": kmeans_labels,
+    "Agglomerative (Ward)": ha_labels,
+    "DBSCAN": dbscan_labels,
+    "Spectral Clustering": spectral_labels,
+}
+results = {
+    name: (label, adjusted_rand_score(y, label)) for name, label in labels.items()
+}
+
+fig, axes = plt.subplots(2, 2, figsize=(10, 10))
+axes = axes.ravel()
+
+for ax, (name, (labels, ari)) in zip(axes, results.items()):
+    ax.scatter(X[:, 0], X[:, 1], c=labels, s=8)
+    ax.set_title(f"{name}\nARI = {ari:.3f}", fontsize=13)
+
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_aspect("equal")
+```
+The results illustrate the different assumptions made by the clustering algorithms.
+
+- KMeans: Fails. KMeans partitions the data according to the distance to cluster centroids. Since the two circles share the same center, the algorithm cannot separate them into inner and outer circles. Instead, it splits the data into two roughly equal halves.
+
+- Agglomerative (Ward): Performs slightly better but still fails. Ward linkage merges clusters to minimize the increase in within-cluster variance. This favors compact, approximately spherical clusters rather than ring-shaped clusters, so it also tends to cut across the circles instead of preserving their circular structure.
+
+- DBSCAN: Performs reasonably well but is affected by the bridge points. Since DBSCAN defines clusters through density connectivity, the bridge creates a path between the two circles, causing some points to be merged incorrectly.
+
+- Spectral Clustering: Correctly recovers the two circles. Instead of clustering the original coordinates directly, it first constructs a similarity graph and computes a spectral embedding. In this new representation, points belonging to the same circle become much closer, while the weak bridge has little influence. A simple clustering algorithm such as KMeans can then easily separate the two clusters.
+
+The key idea is that spectral clustering does not rely on Euclidean geometry in the original feature space. Instead, it transforms the data into a new space where the cluster structure becomes much easier to identify.
+
+The figure below shows the two-dimensional spectral embedding. Although the circles are not linearly separable in the original space, they become well separated after the embedding, making KMeans sufficient to recover the correct clusters.
+
+```{python}
+plt.scatter(Z[:, 0], Z[:, 1], c=y, s=8)
+plt.title("Spectral Embedding")
+plt.axis("equal")
+```
+
+Indeed, the two clusters are now almost linearly separable in the embedded space. This explains why applying KMeans after the spectral embedding successfully recovers the correct clustering.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## t-SNE
@@ -439,6 +563,7 @@ one common bandwidth $\sigma$ instead of choosing a separate $\sigma_i$ by
 perplexity.
 
 ```{python}
+#| eval: false
 import numpy as np
 import pandas as pd
 from sklearn.metrics import pairwise_distances
@@ -466,6 +591,7 @@ $p_{j\mid i}$. The diagonal entries are zero because an observation is not its
 own neighbor.
 
 ```{python}
+#| eval: false
 sigma = 0.6
 D2 = pairwise_distances(X_tiny, squared=True)
 
@@ -484,6 +610,7 @@ p_{ij}=\frac{p_{j\mid i}+p_{i\mid j}}{2n}.
 $$
 
 ```{python}
+#| eval: false
 n = X_tiny.shape[0]
 P = (P_cond + P_cond.T) / (2 * n)
 
@@ -495,6 +622,7 @@ groups separated. The second interleaves the groups. We compute the
 low-dimensional probabilities $Q$ and the KL objective for each layout.
 
 ```{python}
+#| eval: false
 Z_good = np.column_stack([np.linspace(-2, 2, n), np.zeros(n)])
 Z_bad = np.column_stack([np.tile([-0.5, 0.5], n // 2), np.linspace(-1, 1, n)])
 
@@ -534,6 +662,7 @@ For such a small dataset, the exact orientation and scale of the plot are not
 important; the point is whether local neighbors remain close.
 
 ```{python}
+#| eval: false
 from sklearn.manifold import TSNE
 
 Z_tiny_tsne = TSNE(
@@ -546,6 +675,7 @@ Z_tiny_tsne = TSNE(
 ```
 
 ```{python}
+#| eval: false
 #| code-fold: true
 import matplotlib.pyplot as plt
 
@@ -572,6 +702,7 @@ features, reduce to 30 PCA coordinates, and then run t-SNE. The labels are
 used only for coloring the final plot.
 
 ```{python}
+#| eval: false
 digits = load_digits()
 X_digits = StandardScaler().fit_transform(digits.data)
 y_digits = digits.target
@@ -592,6 +723,7 @@ Z_tsne = tsne.fit_transform(X_digits_pca)
 ```
 
 ```{python}
+#| eval: false
 #| code-fold: true
 fig, ax = plt.subplots(figsize=(8, 6))
 scatter = ax.scatter(
@@ -670,6 +802,7 @@ optimizes the display. The full UMAP algorithm has additional details, but
 the core object is a weighted nearest-neighbor graph.
 
 ```{python}
+#| eval: false
 import numpy as np
 import pandas as pd
 from sklearn.metrics import pairwise_distances
@@ -696,6 +829,7 @@ First compute the pairwise distances and keep the three nearest neighbors of
 each observation.
 
 ```{python}
+#| eval: false
 k = 3
 dist = pairwise_distances(X_umap_tiny)
 neighbor_index = np.argsort(dist, axis=1)[:, 1 : k + 1]
@@ -708,6 +842,7 @@ nearest neighbor receives weight 1, and farther neighbors receive smaller
 weights. Here we use a simple local scale so the calculation is transparent.
 
 ```{python}
+#| eval: false
 n = X_umap_tiny.shape[0]
 directed = np.zeros((n, n))
 
@@ -733,6 +868,7 @@ $$
 where $a_{ij}$ is the directed weight from $i$ to $j$.
 
 ```{python}
+#| eval: false
 W_umap = directed + directed.T - directed * directed.T
 
 pd.DataFrame(np.round(W_umap, 3))
@@ -744,6 +880,7 @@ compute a simplified UMAP-style cross-entropy between the high-dimensional
 graph weights and low-dimensional similarities.
 
 ```{python}
+#| eval: false
 Z_good = np.column_stack([np.linspace(-2, 2, n), np.zeros(n)])
 Z_bad = np.column_stack([np.tile([-0.5, 0.5], n // 2), np.linspace(-1, 1, n)])
 
@@ -782,6 +919,7 @@ neighbors close together and weakly connected pairs farther apart.
 Finally, let `umap-learn` optimize the embedding for the same ten points.
 
 ```{python}
+#| eval: false
 import umap
 
 Z_tiny_umap = umap.UMAP(
@@ -793,6 +931,7 @@ Z_tiny_umap = umap.UMAP(
 ```
 
 ```{python}
+#| eval: false
 #| code-fold: true
 import matplotlib.pyplot as plt
 
@@ -821,6 +960,7 @@ uv add umap-learn
 ```
 
 ```{python}
+#| eval: false
 import umap
 
 umap_model = umap.UMAP(
@@ -835,6 +975,7 @@ Z_umap = umap_model.fit_transform(X_digits)
 ```
 
 ```{python}
+#| eval: false
 fig, ax = plt.subplots(figsize=(8, 6))
 scatter = ax.scatter(
     Z_umap[:, 0],
@@ -863,6 +1004,7 @@ The visual compactness of a UMAP island is partly controlled by `min_dist`.
 It should not automatically be interpreted as original-space density.
 
 ```{python}
+#| eval: false
 #| code-fold: true
 settings = [
     (5, 0.05),
@@ -912,6 +1054,7 @@ The following example uses the digits data. The labels are used only for
 coloring and evaluation, not for fitting PCA or UMAP.
 
 ```{python}
+#| eval: false
 from sklearn.datasets import load_digits
 from sklearn.decomposition import PCA
 from sklearn.manifold import trustworthiness
@@ -930,6 +1073,7 @@ We first reduce the 64 standardized pixel features to 30 PCA coordinates.
 This step removes some noise and makes the nonlinear embedding faster.
 
 ```{python}
+#| eval: false
 pca30 = PCA(n_components=30, random_state=1)
 X_pca30 = pca30.fit_transform(X)
 ```
@@ -939,6 +1083,7 @@ defaults; they set a moderate neighborhood size and allow visible groups to
 form in the display.
 
 ```{python}
+#| eval: false
 umap_model = umap.UMAP(
     n_neighbors=15,
     min_dist=0.1,
@@ -955,6 +1100,7 @@ We compare the PCA plot and the UMAP plot. PCA is the linear baseline. UMAP
 is the nonlinear neighborhood-based display.
 
 ```{python}
+#| eval: false
 #| code-fold: true
 fig, axs = plt.subplots(1, 2, figsize=(12, 4.5))
 
@@ -999,6 +1145,7 @@ from the input representation are still visible in the embedding. The
 mostly true neighbors in the input space.
 
 ```{python}
+#| eval: false
 pd.DataFrame(
     {
         "trustworthiness": [
@@ -1015,6 +1162,7 @@ clustering result rather than relying only on the plot. Since this dataset
 has known labels, we can use the adjusted Rand index for illustration.
 
 ```{python}
+#| eval: false
 labels_pca = KMeans(n_clusters=10, n_init=20, random_state=1).fit_predict(Z_pca2)
 labels_umap = KMeans(n_clusters=10, n_init=20, random_state=1).fit_predict(
     Z_umap_workflow
