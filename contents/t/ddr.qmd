@@ -139,3 +139,109 @@ plt.tight_layout();
 Positive and negative regions describe pixel patterns that are contrasted by
 the component. The plot is not an average digit; it is a direction in the
 64-dimensional pixel space and a recipe for a new pixel-combination feature.
+
+
+
+
+
+
+
+
+
+
+
+
+
+::: {#exm-spectral-ten-points}
+#### A ten-point graph by hand
+
+Now consider ten observations. The first five form one strongly connected
+group, the last five form another strongly connected group, and there is only
+one weak bridge between the two groups.
+
+```{python}
+import numpy as np
+import pandas as pd
+
+n = 10
+W = np.zeros((n, n))
+
+W[:5, :5] = 1
+W[5:, 5:] = 1
+np.fill_diagonal(W, 0)
+
+W[4, 5] = 0.05
+W[5, 4] = 0.05
+
+pd.DataFrame(W)
+```
+
+The degree matrix records the total connection weight of each observation,
+and the unnormalized graph Laplacian is $L=D-W$.
+
+```{python}
+degrees = W.sum(axis=1)
+D = np.diag(degrees)
+L = D - W
+
+pd.DataFrame(L)
+```
+
+To obtain a one-dimensional spectral embedding, compute the eigenvectors of
+$L$. The first eigenvector is constant, so we use the second eigenvector.
+
+```{python}
+eigenvalues, eigenvectors = np.linalg.eigh(L)
+
+embedding_manual = eigenvectors[:, 1]
+
+pd.DataFrame(
+    {
+        "group": np.repeat([0, 1], 5),
+        "manual spectral coordinate": embedding_manual,
+    }
+)
+```
+
+```{python}
+#| code-fold: true
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(7, 2.8))
+ax.scatter(np.arange(n), embedding_manual, c=np.repeat([0, 1], 5), s=60)
+ax.axhline(0, color="gray", linewidth=1)
+ax.set_xlabel("observation index")
+ax.set_ylabel("spectral coordinate")
+ax.set_title("Manual Spectral Embedding from $L$");
+```
+
+The two groups receive coordinates on opposite sides of zero. The weak bridge
+keeps the graph connected, but the second eigenvector still changes sharply
+between the two groups.
+
+We can give the same affinity matrix to `sklearn`. The numerical coordinates
+may differ in scale or sign because spectral embeddings are not unique up to
+sign and normalization, but the separation is the same.
+
+```{python}
+from sklearn.manifold import SpectralEmbedding
+
+sklearn_embedding = SpectralEmbedding(
+    n_components=1,
+    affinity="precomputed",
+    random_state=1,
+).fit_transform(W)
+
+pd.DataFrame(
+    {
+        "group": np.repeat([0, 1], 5),
+        "manual coordinate": embedding_manual,
+        "sklearn coordinate": sklearn_embedding[:, 0],
+    }
+)
+```
+:::
+
+Many implementations use a normalized Laplacian rather than $L=D-W$. The
+normalization changes the algebra but not the main interpretation:
+coordinates should vary smoothly over strong graph connections.

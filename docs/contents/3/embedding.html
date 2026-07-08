@@ -709,7 +709,7 @@ x_i\in\mathbb R^p \longrightarrow z_i\in\mathbb R^m, \qquad m\ll p.
 </div>
 <div class="callout-body-container callout-body">
 <p>In this chapter, embeddings are mainly used for visualization and sometimes for clustering. They can also be useful for other tasks, but not every embedding is useful for every task.</p>
-<p>The reason is that different methods preserve different relationships. PCA preserves variance and optimizes linear reconstruction. Spectral embedding, t-SNE, and UMAP preserve neighborhoods or graph structure in different ways. For example, t-SNE is useful for visualizing local neighborhoods, but distances in a t-SNE plot are not reliable enough to automatically use as input to a distance-based method such as KNN. A good embedding plot is therefore a guide for exploration, not a guarantee that the coordinates are appropriate for clustering, prediction, compression, or denoising.</p>
+<p>The reason is that different methods preserve different relationships. PCA preserves variance and optimizes linear reconstruction. Spectral embedding, t-SNE, and UMAP preserve neighborhoods or graph structure in different ways. For example, t-SNE is useful for visualizing local neighborhoods, but distances in a t-SNE plot are not reliable enough to automatically use as input to a distance-based method such as KNN. A good embedding plot is therefore a guide for exploration, not a guarantee that the coordinates are appropriate for clustering, prediction, compression, or denoising. We will discuss these later in more details.</p>
 </div>
 </div>
 <!-- ## Before Constructing an Embedding -->
@@ -718,8 +718,7 @@ x_i\in\mathbb R^p \longrightarrow z_i\in\mathbb R^m, \qquad m\ll p.
 <li>how each observation is represented as a row vector;</li>
 <li>how similarity or distance between rows is defined.</li>
 </ul>
-<p>Feature selection, scaling, transformations, missing-value handling, and noise reduction matter because they change one of these two choices.</p>
-<p>A common workflow is</p>
+<p>Thus a common workflow is</p>
 <p><span class="math display">\[
 X
 \longrightarrow
@@ -731,7 +730,7 @@ X
 \]</span></p>
 <section id="spectral-embedding" class="level2" data-number="14.1">
 <h2 data-number="14.1" class="anchored" data-anchor-id="spectral-embedding"><span class="header-section-number">14.1</span> Spectral Embedding</h2>
-<p>Spectral embedding starts by replacing the original data matrix with a graph. The vertices are observations. Edges connect observations that are similar, often nearest neighbors.</p>
+<p>Spectral embedding starts by replacing the original data matrix with a graph. The rows <span class="math inline">\(x_i\in\mathbb R^p\)</span> are observations in feature space. Spectral embedding keeps the same observations, but represents their relationships by a graph: the vertices are observations, and edges connect observations that are similar, often nearest neighbors.</p>
 <p>The main idea is:</p>
 <p><span class="math display">\[
 X
@@ -740,12 +739,12 @@ X
 \longrightarrow
 \text{graph Laplacian}
 \longrightarrow
-\text{eigenvector coordinates}.
+\text{observation-space eigenvector coordinates}.
 \]</span></p>
 <p>This is useful when the structure is better described by connectivity than by distance to a single center. Spectral clustering uses the same embedding and then applies a label-assignment method such as K-means.</p>
 <section id="mathematical-idea" class="level3" data-number="14.1.1">
 <h3 data-number="14.1.1" class="anchored" data-anchor-id="mathematical-idea"><span class="header-section-number">14.1.1</span> Mathematical Idea</h3>
-<p>Let <span class="math inline">\(W=\mqty[W_{ij}]\)</span> be a symmetric weighted adjacency matrix. A large <span class="math inline">\(W_{ij}\)</span> means observations <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> are strongly connected. Define the degree matrix</p>
+<p>Let <span class="math inline">\(W=\mqty[W_{ij}]\in\mathbb R^{n\times n}\)</span> be a symmetric weighted adjacency matrix. A large <span class="math inline">\(W_{ij}\)</span> means observations <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> are strongly connected. Define the degree matrix</p>
 <p><span class="math display">\[
 D=\operatorname{diag}(d_1,\ldots,d_n),
 \qquad
@@ -755,6 +754,11 @@ d_i=\sum_j W_{ij}.
 <p><span class="math display">\[
 L=D-W.
 \]</span></p>
+<p>Both <span class="math inline">\(W\)</span> and <span class="math inline">\(L\)</span> are <span class="math inline">\(n\times n\)</span> matrices, so they act on vectors in observation space <span class="math inline">\(\mathbb R^n\)</span>. A vector</p>
+<p><span class="math display">\[
+y=\mqty[y_1,\ldots,y_n]^\top\in\mathbb R^n
+\]</span></p>
+<p>assigns one coordinate value to every observation. The entry <span class="math inline">\(y_i\)</span> is the coordinate assigned to observation <span class="math inline">\(i\)</span>.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -765,28 +769,101 @@ L=D-W.
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The matrix <span class="math inline">\(L\)</span> compares each observation with its neighbors in the graph. If <span class="math inline">\(z=(z_1,\ldots,z_n)^\top\)</span> assigns one number to each observation, then the <span class="math inline">\(i\)</span>-th entry of <span class="math inline">\(Lz\)</span> is</p>
+<p>The matrix <span class="math inline">\(L\)</span> compares each observation with its neighbors in the graph. If <span class="math inline">\(y\in\mathbb R^n\)</span> assigns one number to each observation, then the <span class="math inline">\(i\)</span>-th entry of <span class="math inline">\(Ly\)</span> is</p>
 <p><span class="math display">\[
-(Lz)_i
+(Ly)_i
 =
-d_i z_i-\sum_j W_{ij}z_j
+d_i y_i-\sum_j W_{ij}y_j
 =
-\sum_j W_{ij}(z_i-z_j).
+\sum_j W_{ij}(y_i-y_j).
 \]</span></p>
-<p>Thus <span class="math inline">\((Lz)_i\)</span> is a weighted difference between the coordinate of observation <span class="math inline">\(i\)</span> and the coordinates of its neighbors. If <span class="math inline">\(z_i\)</span> is close to the coordinates of strongly connected neighbors, then <span class="math inline">\((Lz)_i\)</span> is small. If <span class="math inline">\(z_i\)</span> is very different from strongly connected neighbors, then <span class="math inline">\((Lz)_i\)</span> is large.</p>
-<p>In this sense, <span class="math inline">\(L\)</span> measures how rough or unsmooth the coordinate vector <span class="math inline">\(z\)</span> is over the graph. Smooth coordinates change slowly across strong edges.</p>
+<p>Thus <span class="math inline">\((Ly)_i\)</span> is a weighted difference between the coordinate of observation <span class="math inline">\(i\)</span> and the coordinates of its neighbors.</p>
+<ul>
+<li>If <span class="math inline">\(y_i\)</span> is close to the coordinates of strongly connected neighbors, then <span class="math inline">\((Ly)_i\)</span> is small.</li>
+<li>If <span class="math inline">\(y_i\)</span> is very different from strongly connected neighbors, then <span class="math inline">\((Ly)_i\)</span> is large.</li>
+</ul>
+<p>In this sense, <span class="math inline">\(L\)</span> measures how rough or unsmooth the coordinate vector <span class="math inline">\(y\)</span> is over the graph. Smooth coordinates change slowly across strong edges.</p>
 </div>
 </div>
-<p>For any vector <span class="math inline">\(z=(z_1,\ldots,z_n)^\top\)</span> assigning one coordinate to each observation,</p>
+<p>The <strong>graph roughness</strong> of an observation-space coordinate vector <span class="math inline">\(y\)</span> is</p>
 <p><span class="math display">\[
-z^\top Lz
+\operatorname{roughness}_G(y)
 =
-\frac12\sum_{i,j}W_{ij}(z_i-z_j)^2.
+y^\top Ly
+=
+\frac12\sum_{i,j}W_{ij}(y_i-y_j)^2.
 \]</span></p>
-<p>This expression is small when strongly connected observations receive similar coordinates. Spectral embedding therefore uses eigenvectors of a graph Laplacian with small eigenvalues as the new coordinates.</p>
-<p>The first eigenvector is usually constant on each connected component, so it does not give a useful coordinate. The next eigenvectors give coordinates that change slowly along strong graph edges and change sharply across weak connections.</p>
+<p>It measures how much the coordinate values change across graph edges, with larger penalties on stronger edges. This expression is small when strongly connected observations receive similar coordinates. This is exactly the behavior we want from a graph embedding. If <span class="math inline">\(W_{ij}\)</span> is large, then observations <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> are strongly connected, so we want their embedded coordinates to be close:</p>
+<p><span class="math display">\[
+y_i\approx y_j.
+\]</span></p>
+<p>The term <span class="math inline">\(W_{ij}(y_i-y_j)^2\)</span> penalizes the opposite situation: a strong edge with very different coordinates. Therefore minimizing <span class="math inline">\(y^\top Ly\)</span> means finding an observation-space coordinate column that keeps strongly connected observations close together. In other words, we need to find all eigenvalues and eigenvectors of <span class="math inline">\(L\)</span>.</p>
+<details>
+<summary>
+<strong>Click to expand.</strong>
+</summary>
+<p>More explicitly, a one-dimensional observation-space coordinate can be described as trying to solve</p>
+<p><span class="math display">\[
+\min_y y^\top Ly
+\qquad
+\text{subject to }
+\norm{y}^2=1
+\text{ and }
+y\perp \mathbf 1.
+\]</span></p>
+<p>The constraints remove trivial solutions. Without them, <span class="math inline">\(y=0\)</span> minimizes the objective. Even with a nonzero vector, the constant coordinate <span class="math inline">\(y_1=\cdots=y_n\)</span> makes every coordinate difference zero, so it does not separate observations. The constraint <span class="math inline">\(\norm{y}^2=1\)</span> fixes the scale, and <span class="math inline">\(y\perp \mathbf 1\)</span> removes the constant coordinate.</p>
+<p>This optimization problem leads to eigenvectors because <span class="math inline">\(L\)</span> is symmetric. Write its orthonormal eigen-decomposition as</p>
+<p><span class="math display">\[
+L=V\Lambda V^\top.
+\]</span></p>
+<p>If <span class="math inline">\(v_1,\ldots,v_n\)</span> are the eigenvectors of <span class="math inline">\(L\)</span>, then any unit vector <span class="math inline">\(y\)</span> can be expanded in this eigenbasis:</p>
+<p><span class="math display">\[
+y=a_1v_1+\cdots+a_nv_n,
+\qquad
+\sum_{k=1}^n a_k^2=1.
+\]</span></p>
+<p>Then</p>
+<p><span class="math display">\[
+y^\top Ly
+=
+\sum_{k=1}^n \lambda_k a_k^2.
+\]</span></p>
+<p>Thus <span class="math inline">\(y^\top Ly\)</span> is a weighted average of the eigenvalues. To make it small, we put weight on eigenvectors with small eigenvalues. For a graph Laplacian, the smallest eigenvalue is usually <span class="math inline">\(0\)</span>, with a constant eigenvector on each connected component. That eigenvector has zero graph roughness, but it gives every observation the same coordinate. After removing this constant direction, the first useful one-dimensional spectral coordinate is the eigenvector corresponding to the smallest positive eigenvalue:</p>
+<p><span class="math display">\[
+Lv=\lambda v,
+\qquad
+\lambda
+=
+\min\{\lambda_k:\lambda_k&gt;0\}.
+\]</span></p>
+<p>This eigenvector <span class="math inline">\(v=\mqty[v_1,\ldots,v_n]^\top\)</span> assigns one coordinate value to each observation: the entry <span class="math inline">\(v_i\)</span> becomes the new coordinate of observation <span class="math inline">\(i\)</span>. Since</p>
+<p><span class="math display">\[
+v^\top Lv
+=
+\lambda v^\top v,
+\]</span></p>
+<p>the smallest positive eigenvalue gives the nonconstant coordinate with the smallest graph roughness. Therefore strongly connected observations tend to receive similar values. Additional spectral coordinates come from the next smallest positive eigenvalues.</p>
+</details>
+<p>Consider the eigenvectors of the graph Laplacian <span class="math inline">\(v_1,\ldots, v_n\)</span>, ordered by ascending eigenvalues. Each selected eigenvector gives one coordinate column for all observations. For an <span class="math inline">\(m\)</span>-dimensional spectral embedding, we place the first <span class="math inline">\(m\)</span> nonconstant eigenvectors side by side:</p>
+<p><span class="math display">\[
+Z
+=
+\mqty[v_2 &amp; v_3 &amp; \cdots &amp; v_{m+1}]
+\in\mathbb R^{n\times m}.
+\]</span></p>
+<p>The embedding is then obtained by reading across rows of this matrix. The <span class="math inline">\(i\)</span>-th row of <span class="math inline">\(Z\)</span> gives the embedded coordinate of observation <span class="math inline">\(i\)</span>:</p>
+<p><span class="math display">\[
+z_i^\top
+=
+\mqty[v_2(i) &amp; v_3(i) &amp; \cdots &amp; v_{m+1}(i)],
+\]</span></p>
+<p>where <span class="math inline">\(v_k(i)\)</span> is the <span class="math inline">\(i\)</span>-th entry of the <span class="math inline">\(k\)</span>-th Laplacian eigenvector. In words, observation <span class="math inline">\(i\)</span> gets its first coordinate from the <span class="math inline">\(i\)</span>-th entry of <span class="math inline">\(v_2\)</span>, its second coordinate from the <span class="math inline">\(i\)</span>-th entry of <span class="math inline">\(v_3\)</span>, and so on.</p>
 <div id="exm-spectral-four-points" class="theorem example">
-<p><span class="theorem-title"><strong>Example 14.1 (A four-point graph)</strong></span> Suppose observations 1 and 2 are strongly connected, observations 3 and 4 are strongly connected, and observations 2 and 3 are weakly connected:</p>
+<p><span class="theorem-title"><strong>Example 14.1 (A four-point graph)</strong></span> Suppose the original dataset has four observations and any number of predictors:</p>
+<p><span class="math display">\[
+X\in\mathbb R^{4\times p}.
+\]</span></p>
+<p>The value of <span class="math inline">\(p\)</span> does not matter for this example. The spectral embedding starts after those observations have been converted into a similarity matrix. Suppose observations 1 and 2 are strongly connected, observations 3 and 4 are strongly connected, and observations 2 and 3 are weakly connected:</p>
 <p><span class="math display">\[
 W
 =
@@ -797,7 +874,7 @@ W
 0 &amp; 0 &amp; 1 &amp; 0
 ].
 \]</span></p>
-<p>The graph has two strong pairs with a weak bridge between them. A small nonconstant Laplacian eigenvector is approximately</p>
+<p>This matrix says that the graph has two strong pairs, <span class="math inline">\((1,2)\)</span> and <span class="math inline">\((3,4)\)</span>, with a weak bridge between observations 2 and 3. From this matrix we form the graph Laplacian <span class="math inline">\(L=D-W\)</span> and compute the eigenvectors. A small nonconstant Laplacian eigenvector is approximately</p>
 <p><span class="math display">\[
 v_2
 \approx
@@ -808,11 +885,35 @@ v_2
 -0.547
 ].
 \]</span></p>
-<p>Using <span class="math inline">\(v_2\)</span> as a one-dimensional embedding puts observations 1 and 2 near each other, observations 3 and 4 near each other, and a large gap between the two pairs. The coordinate is not a feature combination like <span class="math inline">\(Xv\)</span> in PCA. It is a graph coordinate: it records where each observation sits in the connectivity structure.</p>
+<p>Using <span class="math inline">\(v_2\)</span> as a one-dimensional embedding means the output has dimension</p>
+<p><span class="math display">\[
+Z\in\mathbb R^{4\times 1}.
+\]</span></p>
+<p>The embedding is obtained by reading the entries of <span class="math inline">\(v_2\)</span>:</p>
+<p><span class="math display">\[
+Z
+=
+v_2
+\approx
+\mqty[
+0.547\\
+0.448\\
+-0.448\\
+-0.547
+].
+\]</span></p>
+<p>Thus the spectral embedding maps the original observations as follows:</p>
+<p><span class="math display">\[
+x_1\mapsto 0.547,\qquad
+x_2\mapsto 0.448,\qquad
+x_3\mapsto -0.448,\qquad
+x_4\mapsto -0.547.
+\]</span></p>
+<p>The result tells us that observations 1 and 2 are close in the embedding, observations 3 and 4 are close in the embedding, and there is a large gap between the two pairs. This reflects the graph structure encoded in <span class="math inline">\(W\)</span>: two strong within-pair connections and one weak bridge. The coordinate is not a feature combination like <span class="math inline">\(Xv\)</span> in PCA, where <span class="math inline">\(v\in\mathbb R^p\)</span> is a loading vector. It is a coordinate read from a Laplacian eigenvector, so its values are determined by graph connectivity.</p>
 </div>
 <div id="exm-spectral-ten-points" class="theorem example">
 <p><span class="theorem-title"><strong>Example 14.2 (A ten-point graph by hand)</strong></span> Now consider ten observations. The first five form one strongly connected group, the last five form another strongly connected group, and there is only one weak bridge between the two groups.</p>
-<div id="a75b4714" class="cell" data-execution_count="1">
+<div id="4f88c9c9" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -985,7 +1086,7 @@ v_2
 </div>
 </div>
 <p>The degree matrix records the total connection weight of each observation, and the unnormalized graph Laplacian is <span class="math inline">\(L=D-W\)</span>.</p>
-<div id="ad979f21" class="cell" data-execution_count="2">
+<div id="d09cb7f6" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>degrees <span class="op">=</span> W.<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> np.diag(degrees)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>L <span class="op">=</span> D <span class="op">-</span> W</span>
@@ -1149,7 +1250,7 @@ v_2
 </div>
 </div>
 <p>To obtain a one-dimensional spectral embedding, compute the eigenvectors of <span class="math inline">\(L\)</span>. The first eigenvector is constant, so we use the second eigenvector.</p>
-<div id="958041e2" class="cell" data-execution_count="3">
+<div id="e18711a5" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>eigenvalues, eigenvectors <span class="op">=</span> np.linalg.eigh(L)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>embedding_manual <span class="op">=</span> eigenvectors[:, <span class="dv">1</span>]</span>
@@ -1229,7 +1330,7 @@ v_2
 </div>
 </div>
 </div>
-<div id="bf8b1744" class="cell" data-execution_count="4">
+<div id="c3659409" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -1251,7 +1352,7 @@ v_2
 </div>
 <p>The two groups receive coordinates on opposite sides of zero. The weak bridge keeps the graph connected, but the second eigenvector still changes sharply between the two groups.</p>
 <p>We can give the same affinity matrix to <code>sklearn</code>. The numerical coordinates may differ in scale or sign because spectral embeddings are not unique up to sign and normalization, but the separation is the same.</p>
-<div id="53118012" class="cell" data-execution_count="5">
+<div id="54eacf28" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.manifold <span class="im">import</span> SpectralEmbedding</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>sklearn_embedding <span class="op">=</span> SpectralEmbedding(</span>
@@ -1353,7 +1454,7 @@ v_2
 <section id="spectral-embedding-in-python" class="level3" data-number="14.1.2">
 <h3 data-number="14.1.2" class="anchored" data-anchor-id="spectral-embedding-in-python"><span class="header-section-number">14.1.2</span> Spectral Embedding in Python</h3>
 <p>The following example uses concentric circles. K-means in the original coordinates struggles because the groups are not separated by two centers. A nearest-neighbor graph, however, captures the connectivity of each ring.</p>
-<div id="0dba2f3d" class="cell" data-execution_count="6">
+<div id="300c60b4" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans</span>
@@ -1389,7 +1490,7 @@ v_2
 <span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">1</span>,</span>
 <span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>).fit_predict(Z_spectral)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="edc35995" class="cell" data-execution_count="7">
+<div id="15521d15" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">4</span>))</span>
@@ -1471,7 +1572,7 @@ p_{ij}\log\qty(\frac{p_{ij}}{q_{ij}}).
 <p>This objective strongly penalizes putting high-dimensional neighbors far apart in the plot. It penalizes some global distortions less strongly. That is why local neighborhoods are usually more trustworthy than distances between separated islands.</p>
 <div id="exm-tsne-ten-points" class="theorem example">
 <p><span class="theorem-title"><strong>Example 14.3 (A ten-point t-SNE calculation)</strong></span> We can see the main t-SNE calculation with a tiny dataset. The data have ten observations in two nearby groups. To keep the arithmetic transparent, we use one common bandwidth <span class="math inline">\(\sigma\)</span> instead of choosing a separate <span class="math inline">\(\sigma_i\)</span> by perplexity.</p>
-<div id="e724acec" class="cell" data-execution_count="8">
+<div id="a8a77a4c" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> pairwise_distances</span>
@@ -1494,7 +1595,7 @@ p_{ij}\log\qty(\frac{p_{ij}}{q_{ij}}).
 <span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>y_tiny <span class="op">=</span> np.repeat([<span class="dv">0</span>, <span class="dv">1</span>], <span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>First compute the high-dimensional conditional neighbor probabilities <span class="math inline">\(p_{j\mid i}\)</span>. The diagonal entries are zero because an observation is not its own neighbor.</p>
-<div id="ffc80af6" class="cell" data-execution_count="9">
+<div id="31c55c90" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sigma <span class="op">=</span> <span class="fl">0.6</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>D2 <span class="op">=</span> pairwise_distances(X_tiny, squared<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1665,7 +1766,7 @@ p_{ij}\log\qty(\frac{p_{ij}}{q_{ij}}).
 <p><span class="math display">\[
 p_{ij}=\frac{p_{j\mid i}+p_{i\mid j}}{2n}.
 \]</span></p>
-<div id="0309f835" class="cell" data-execution_count="10">
+<div id="32128a0c" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> X_tiny.shape[<span class="dv">0</span>]</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> (P_cond <span class="op">+</span> P_cond.T) <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> n)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1828,7 +1929,7 @@ p_{ij}=\frac{p_{j\mid i}+p_{i\mid j}}{2n}.
 </div>
 </div>
 <p>Now choose two candidate low-dimensional layouts. The first keeps the two groups separated. The second interleaves the groups. We compute the low-dimensional probabilities <span class="math inline">\(Q\)</span> and the KL objective for each layout.</p>
-<div id="8da2fb5e" class="cell" data-execution_count="11">
+<div id="69bd4cb1" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Z_good <span class="op">=</span> np.column_stack([np.linspace(<span class="op">-</span><span class="dv">2</span>, <span class="dv">2</span>, n), np.zeros(n)])</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>Z_bad <span class="op">=</span> np.column_stack([np.tile([<span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>], n <span class="op">//</span> <span class="dv">2</span>), np.linspace(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>, n)])</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1885,7 +1986,7 @@ p_{ij}=\frac{p_{j\mid i}+p_{i\mid j}}{2n}.
 </div>
 <p>The separated layout has a smaller objective because it puts observations with large high-dimensional neighbor probabilities close together in the low-dimensional display.</p>
 <p>Finally, let <code>sklearn</code> optimize the t-SNE objective for the same ten points. For such a small dataset, the exact orientation and scale of the plot are not important; the point is whether local neighbors remain close.</p>
-<div id="f3af03b3" class="cell" data-execution_count="12">
+<div id="27beab10" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.manifold <span class="im">import</span> TSNE</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>Z_tiny_tsne <span class="op">=</span> TSNE(</span>
@@ -1896,7 +1997,7 @@ p_{ij}=\frac{p_{j\mid i}+p_{i\mid j}}{2n}.
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">1</span>,</span>
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>).fit_transform(X_tiny)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="012689ff" class="cell" data-execution_count="13">
+<div id="94a6a804" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -1928,7 +2029,7 @@ p_{ij}=\frac{p_{j\mid i}+p_{i\mid j}}{2n}.
 <section id="t-sne-in-python" class="level3" data-number="14.2.2">
 <h3 data-number="14.2.2" class="anchored" data-anchor-id="t-sne-in-python"><span class="header-section-number">14.2.2</span> t-SNE in Python</h3>
 <p>The handwritten digits data have 64 pixel features. We standardize the features, reduce to 30 PCA coordinates, and then run t-SNE. The labels are used only for coloring the final plot.</p>
-<div id="6709bd81" class="cell" data-execution_count="14">
+<div id="778d02be" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>digits <span class="op">=</span> load_digits()</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>X_digits <span class="op">=</span> StandardScaler().fit_transform(digits.data)</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>y_digits <span class="op">=</span> digits.target</span>
@@ -1947,7 +2048,7 @@ p_{ij}=\frac{p_{j\mid i}+p_{i\mid j}}{2n}.
 <span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>Z_tsne <span class="op">=</span> tsne.fit_transform(X_digits_pca)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="672197ef" class="cell" data-execution_count="15">
+<div id="c872dd9c" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
@@ -2011,7 +2112,7 @@ X
 <p>The details use fuzzy-set language, but the practical interpretation is simple: UMAP tries to keep neighboring observations connected while allowing the display to spread out enough to be readable.</p>
 <div id="exm-umap-ten-points" class="theorem example">
 <p><span class="theorem-title"><strong>Example 14.4 (A ten-point UMAP calculation)</strong></span> We can use the same kind of tiny example to see what UMAP builds before it optimizes the display. The full UMAP algorithm has additional details, but the core object is a weighted nearest-neighbor graph.</p>
-<div id="252eb286" class="cell" data-execution_count="16">
+<div id="fe2b3691" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> pairwise_distances</span>
@@ -2034,7 +2135,7 @@ X
 <span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>y_umap_tiny <span class="op">=</span> np.repeat([<span class="dv">0</span>, <span class="dv">1</span>], <span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>First compute the pairwise distances and keep the three nearest neighbors of each observation.</p>
-<div id="6a6b4d15" class="cell" data-execution_count="17">
+<div id="ba7468de" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="dv">3</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>dist <span class="op">=</span> pairwise_distances(X_umap_tiny)</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>neighbor_index <span class="op">=</span> np.argsort(dist, axis<span class="op">=</span><span class="dv">1</span>)[:, <span class="dv">1</span> : k <span class="op">+</span> <span class="dv">1</span>]</span>
@@ -2121,7 +2222,7 @@ X
 </div>
 </div>
 <p>UMAP then turns neighbor distances into directed connection weights. The nearest neighbor receives weight 1, and farther neighbors receive smaller weights. Here we use a simple local scale so the calculation is transparent.</p>
-<div id="0fc7c2ef" class="cell" data-execution_count="18">
+<div id="39b802a8" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> X_umap_tiny.shape[<span class="dv">0</span>]</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>directed <span class="op">=</span> np.zeros((n, n))</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2298,7 +2399,7 @@ X
 w_{ij}=a_{ij}+a_{ji}-a_{ij}a_{ji},
 \]</span></p>
 <p>where <span class="math inline">\(a_{ij}\)</span> is the directed weight from <span class="math inline">\(i\)</span> to <span class="math inline">\(j\)</span>.</p>
-<div id="3bc2a793" class="cell" data-execution_count="19">
+<div id="c11cde57" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>W_umap <span class="op">=</span> directed <span class="op">+</span> directed.T <span class="op">-</span> directed <span class="op">*</span> directed.T</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(np.<span class="bu">round</span>(W_umap, <span class="dv">3</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -2460,7 +2561,7 @@ w_{ij}=a_{ij}+a_{ji}-a_{ij}a_{ji},
 </div>
 </div>
 <p>Now compare two candidate two-dimensional layouts. A separated layout should match the graph better than an interleaved layout. To make this visible, we compute a simplified UMAP-style cross-entropy between the high-dimensional graph weights and low-dimensional similarities.</p>
-<div id="6cb80b05" class="cell" data-execution_count="20">
+<div id="5167c7d8" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>Z_good <span class="op">=</span> np.column_stack([np.linspace(<span class="op">-</span><span class="dv">2</span>, <span class="dv">2</span>, n), np.zeros(n)])</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>Z_bad <span class="op">=</span> np.column_stack([np.tile([<span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>], n <span class="op">//</span> <span class="dv">2</span>), np.linspace(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>, n)])</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2519,7 +2620,7 @@ w_{ij}=a_{ij}+a_{ji}-a_{ij}a_{ji},
 </div>
 <p>The separated layout has a smaller loss because it places strongly connected neighbors close together and weakly connected pairs farther apart.</p>
 <p>Finally, let <code>umap-learn</code> optimize the embedding for the same ten points.</p>
-<div id="c91a2e94" class="cell" data-execution_count="21">
+<div id="fa23862e" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> umap</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>Z_tiny_umap <span class="op">=</span> umap.UMAP(</span>
@@ -2533,7 +2634,7 @@ w_{ij}=a_{ij}+a_{ji}-a_{ij}a_{ji},
   warn(</code></pre>
 </div>
 </div>
-<div id="b1b4e523" class="cell" data-execution_count="22">
+<div id="a7b39d91" class="cell" data-execution_count="22">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -2566,7 +2667,7 @@ w_{ij}=a_{ij}+a_{ji}-a_{ij}a_{ji},
 <h3 data-number="14.3.2" class="anchored" data-anchor-id="umap-in-python"><span class="header-section-number">14.3.2</span> UMAP in Python</h3>
 <p>The standard implementation is provided by <code>umap-learn</code>. If it is not installed, you may install it directly.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> add umap-learn</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div id="246b6005" class="cell" data-execution_count="23">
+<div id="d8eb6c65" class="cell" data-execution_count="23">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> umap</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>umap_model <span class="op">=</span> umap.UMAP(</span>
@@ -2583,7 +2684,7 @@ w_{ij}=a_{ij}+a_{ji}-a_{ij}a_{ji},
   warn(</code></pre>
 </div>
 </div>
-<div id="66d75f78" class="cell" data-execution_count="24">
+<div id="9e78cbb5" class="cell" data-execution_count="24">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>scatter <span class="op">=</span> ax.scatter(</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    Z_umap[:, <span class="dv">0</span>],</span>
@@ -2643,7 +2744,7 @@ w_{ij}=a_{ij}+a_{ji}-a_{ij}a_{ji},
 </tbody>
 </table>
 <p>The visual compactness of a UMAP island is partly controlled by <code>min_dist</code>. It should not automatically be interpreted as original-space density.</p>
-<div id="8de31ef5" class="cell" data-execution_count="25">
+<div id="465530fe" class="cell" data-execution_count="25">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>settings <span class="op">=</span> [</span>
@@ -2705,7 +2806,7 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_j
 <li>check whether the embedding is useful for the task.</li>
 </ol>
 <p>The following example uses the digits data. The labels are used only for coloring and evaluation, not for fitting PCA or UMAP.</p>
-<div id="e697f2be" class="cell" data-execution_count="26">
+<div id="21d06cf1" class="cell" data-execution_count="26">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_digits</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.manifold <span class="im">import</span> trustworthiness</span>
@@ -2720,12 +2821,12 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_j
 <span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> digits.target</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We first reduce the 64 standardized pixel features to 30 PCA coordinates. This step removes some noise and makes the nonlinear embedding faster.</p>
-<div id="0c349166" class="cell" data-execution_count="27">
+<div id="a463965f" class="cell" data-execution_count="27">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>pca30 <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">30</span>, random_state<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>X_pca30 <span class="op">=</span> pca30.fit_transform(X)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now fit a two-dimensional UMAP embedding. The choices below are not universal defaults; they set a moderate neighborhood size and allow visible groups to form in the display.</p>
-<div id="5debc1b8" class="cell" data-execution_count="28">
+<div id="7da398fd" class="cell" data-execution_count="28">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>umap_model <span class="op">=</span> umap.UMAP(</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    n_neighbors<span class="op">=</span><span class="dv">15</span>,</span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    min_dist<span class="op">=</span><span class="fl">0.1</span>,</span>
@@ -2742,7 +2843,7 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_j
 </div>
 </div>
 <p>We compare the PCA plot and the UMAP plot. PCA is the linear baseline. UMAP is the nonlinear neighborhood-based display.</p>
-<div id="48611f13" class="cell" data-execution_count="29">
+<div id="c4319b2f" class="cell" data-execution_count="29">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="fl">4.5</span>))</span>
@@ -2784,7 +2885,7 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_j
 </div>
 <p>The point of using UMAP here is not just to make a prettier plot. A two-dimensional PCA plot can only show one linear projection of the data. UMAP can unfold nonlinear neighborhood structure, so digit groups that are mixed in the PCA display may become easier to inspect. This makes it easier to find candidate groups, overlaps between classes, and unusual observations that would be harder to see from PCA alone.</p>
 <p>A plot is only the first check. We can also ask whether local neighborhoods from the input representation are still visible in the embedding. The <code>trustworthiness</code> score is closer to 1 when low-dimensional neighbors are mostly true neighbors in the input space.</p>
-<div id="4187683d" class="cell" data-execution_count="30">
+<div id="4e9f3039" class="cell" data-execution_count="30">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(</span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>    {</span>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">"trustworthiness"</span>: [</span>
@@ -2821,7 +2922,7 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_j
 </div>
 </div>
 <p>If we want to use the embedding before clustering, we should check the clustering result rather than relying only on the plot. Since this dataset has known labels, we can use the adjusted Rand index for illustration.</p>
-<div id="0970a81d" class="cell" data-execution_count="31">
+<div id="8a5537e2" class="cell" data-execution_count="31">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>labels_pca <span class="op">=</span> KMeans(n_clusters<span class="op">=</span><span class="dv">10</span>, n_init<span class="op">=</span><span class="dv">20</span>, random_state<span class="op">=</span><span class="dv">1</span>).fit_predict(Z_pca2)</span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>labels_umap <span class="op">=</span> KMeans(n_clusters<span class="op">=</span><span class="dv">10</span>, n_init<span class="op">=</span><span class="dv">20</span>, random_state<span class="op">=</span><span class="dv">1</span>).fit_predict(</span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    Z_umap_workflow</span>
@@ -2892,7 +2993,7 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_j
 <tr class="even">
 <td>Spectral embedding</td>
 <td>graph connectivity</td>
-<td>graph coordinates, not feature loadings</td>
+<td>observation-space coordinates, not feature loadings</td>
 <td>graph-based clustering or visualization</td>
 </tr>
 <tr class="odd">

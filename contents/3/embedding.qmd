@@ -62,7 +62,11 @@ $$
 
 ## Spectral Embedding
 
-Spectral embedding starts by replacing the original data matrix with a graph. The vertices are observations. Edges connect observations that are similar, often nearest neighbors.
+Spectral embedding starts by replacing the original data matrix with a graph.
+The rows $x_i\in\mathbb R^p$ are observations in feature space. Spectral
+embedding keeps the same observations, but represents their relationships by
+a graph: the vertices are observations, and edges connect observations that
+are similar, often nearest neighbors.
 
 The main idea is:
 
@@ -73,14 +77,14 @@ X
 \longrightarrow
 \text{graph Laplacian}
 \longrightarrow
-\text{eigenvector coordinates}.
+\text{observation-space eigenvector coordinates}.
 $$
 
 This is useful when the structure is better described by connectivity than by distance to a single center. Spectral clustering uses the same embedding and then applies a label-assignment method such as K-means.
 
 ### Mathematical Idea
 
-Let $W=\mqty[W_{ij}]$ be a symmetric weighted adjacency matrix. A large $W_{ij}$ means observations $i$ and $j$ are strongly connected. Define the degree matrix
+Let $W=\mqty[W_{ij}]\in\mathbb R^{n\times n}$ be a symmetric weighted adjacency matrix. A large $W_{ij}$ means observations $i$ and $j$ are strongly connected. Define the degree matrix
 
 $$
 D=\operatorname{diag}(d_1,\ldots,d_n),
@@ -94,48 +98,146 @@ $$
 L=D-W.
 $$
 
+Both $W$ and $L$ are $n\times n$ matrices, so they act on vectors in observation space $\mathbb R^n$. A vector
+
+$$
+y=\mqty[y_1,\ldots,y_n]^\top\in\mathbb R^n
+$$
+
+assigns one coordinate value to every observation. The entry $y_i$ is the coordinate assigned to observation $i$.
+
 ::: {.callout-note}
 
 ## What does $L$ do?
 
-The matrix $L$ compares each observation with its neighbors in the graph. If $z=(z_1,\ldots,z_n)^\top$ assigns one number to each observation, then the $i$-th entry of $Lz$ is
+The matrix $L$ compares each observation with its neighbors in the graph. If $y\in\mathbb R^n$ assigns one number to each observation, then the $i$-th entry of $Ly$ is
 
 $$
-(Lz)_i
+(Ly)_i
 =
-d_i z_i-\sum_j W_{ij}z_j
+d_i y_i-\sum_j W_{ij}y_j
 =
-\sum_j W_{ij}(z_i-z_j).
+\sum_j W_{ij}(y_i-y_j).
 $$
 
-Thus $(Lz)_i$ is a weighted difference between the coordinate of observation $i$ and the coordinates of its neighbors. If $z_i$ is close to the coordinates of strongly connected neighbors, then $(Lz)_i$ is small. If $z_i$ is very different from strongly connected neighbors, then $(Lz)_i$ is large.
+Thus $(Ly)_i$ is a weighted difference between the coordinate of observation $i$ and the coordinates of its neighbors. 
 
-In this sense, $L$ measures how rough or unsmooth the coordinate vector $z$ is over the graph. Smooth coordinates change slowly across strong edges.
+- If $y_i$ is close to the coordinates of strongly connected neighbors, then $(Ly)_i$ is small. 
+- If $y_i$ is very different from strongly connected neighbors, then $(Ly)_i$ is large.
+
+In this sense, $L$ measures how rough or unsmooth the coordinate vector $y$ is over the graph. Smooth coordinates change slowly across strong edges.
 :::
 
-For any vector $z=(z_1,\ldots,z_n)^\top$ assigning one coordinate to each
-observation,
+The **graph roughness** of an observation-space coordinate vector $y$ is
 
 $$
-z^\top Lz
+\operatorname{roughness}_G(y)
 =
-\frac12\sum_{i,j}W_{ij}(z_i-z_j)^2.
+y^\top Ly
+=
+\frac12\sum_{i,j}W_{ij}(y_i-y_j)^2.
 $$
 
-This expression is small when strongly connected observations receive
-similar coordinates. Spectral embedding therefore uses eigenvectors of a
-graph Laplacian with small eigenvalues as the new coordinates.
+It measures how much the coordinate values change across graph edges, with larger penalties on stronger edges. This expression is small when strongly connected observations receive similar coordinates. This is exactly the behavior we want from a graph embedding. If $W_{ij}$ is large, then observations $i$ and $j$ are strongly connected, so we want their embedded coordinates to be close:
 
-The first eigenvector is usually constant on each connected component, so it
-does not give a useful coordinate. The next eigenvectors give coordinates
-that change slowly along strong graph edges and change sharply across weak
-connections.
+$$
+y_i\approx y_j.
+$$
+
+The term $W_{ij}(y_i-y_j)^2$ penalizes the opposite situation: a strong edge with very different coordinates. Therefore minimizing $y^\top Ly$ means finding an observation-space coordinate column that keeps strongly connected observations close together. In other words, we need to find all eigenvalues and eigenvectors of $L$.
+
+
+
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
+
+More explicitly, a one-dimensional observation-space coordinate can be described as trying to solve
+
+$$
+\min_y y^\top Ly
+\qquad
+\text{subject to }
+\norm{y}^2=1
+\text{ and }
+y\perp \mathbf 1.
+$$
+
+The constraints remove trivial solutions. Without them, $y=0$ minimizes the objective. Even with a nonzero vector, the constant coordinate $y_1=\cdots=y_n$ makes every coordinate difference zero, so it does not separate observations. The constraint $\norm{y}^2=1$ fixes the scale, and $y\perp \mathbf 1$ removes the constant coordinate.
+
+This optimization problem leads to eigenvectors because $L$ is symmetric. Write its orthonormal eigen-decomposition as
+
+$$
+L=V\Lambda V^\top.
+$$
+
+If $v_1,\ldots,v_n$ are the eigenvectors of $L$, then any unit vector $y$ can be expanded in this eigenbasis:
+
+$$
+y=a_1v_1+\cdots+a_nv_n,
+\qquad
+\sum_{k=1}^n a_k^2=1.
+$$
+
+Then
+
+$$
+y^\top Ly
+=
+\sum_{k=1}^n \lambda_k a_k^2.
+$$
+
+Thus $y^\top Ly$ is a weighted average of the eigenvalues. To make it small, we put weight on eigenvectors with small eigenvalues. For a graph Laplacian, the smallest eigenvalue is usually $0$, with a constant eigenvector on each connected component. That eigenvector has zero graph roughness, but it gives every observation the same coordinate. After removing this constant direction, the first useful one-dimensional spectral coordinate is the eigenvector corresponding to the smallest positive eigenvalue:
+
+$$
+Lv=\lambda v,
+\qquad
+\lambda
+=
+\min\{\lambda_k:\lambda_k>0\}.
+$$
+
+This eigenvector $v=\mqty[v_1,\ldots,v_n]^\top$ assigns one coordinate value to each observation: the entry $v_i$ becomes the new coordinate of observation $i$. Since
+
+$$
+v^\top Lv
+=
+\lambda v^\top v,
+$$
+
+the smallest positive eigenvalue gives the nonconstant coordinate with the smallest graph roughness. Therefore strongly connected observations tend to receive similar values. Additional spectral coordinates come from the next smallest positive eigenvalues.
+
+</details>
+
+Consider the eigenvectors of the graph Laplacian $v_1,\ldots, v_n$, ordered by ascending eigenvalues. Each selected eigenvector gives one coordinate column for all observations. For an $m$-dimensional spectral embedding, we place the first $m$ nonconstant eigenvectors side by side:
+
+$$
+Z
+=
+\mqty[v_2 & v_3 & \cdots & v_{m+1}]
+\in\mathbb R^{n\times m}.
+$$
+
+The embedding is then obtained by reading across rows of this matrix. The $i$-th row of $Z$ gives the embedded coordinate of observation $i$:
+
+$$
+z_i^\top
+=
+\mqty[v_2(i) & v_3(i) & \cdots & v_{m+1}(i)],
+$$
+
+where $v_k(i)$ is the $i$-th entry of the $k$-th Laplacian eigenvector. In words, observation $i$ gets its first coordinate from the $i$-th entry of $v_2$, its second coordinate from the $i$-th entry of $v_3$, and so on.
 
 ::: {#exm-spectral-four-points}
-#### A four-point graph
+## A four-point graph
 
-Suppose observations 1 and 2 are strongly connected, observations 3 and 4
-are strongly connected, and observations 2 and 3 are weakly connected:
+Suppose the original dataset has four observations and any number of predictors:
+
+$$
+X\in\mathbb R^{4\times p}.
+$$
+
+The value of $p$ does not matter for this example. The spectral embedding starts after those observations have been converted into a similarity matrix. Suppose observations 1 and 2 are strongly connected, observations 3 and 4 are strongly connected, and observations 2 and 3 are weakly connected:
 
 $$
 W
@@ -148,8 +250,7 @@ W
 ].
 $$
 
-The graph has two strong pairs with a weak bridge between them. A small
-nonconstant Laplacian eigenvector is approximately
+This matrix says that the graph has two strong pairs, $(1,2)$ and $(3,4)$, with a weak bridge between observations 2 and 3. From this matrix we form the graph Laplacian $L=D-W$ and compute the eigenvectors. A small nonconstant Laplacian eigenvector is approximately
 
 $$
 v_2
@@ -162,153 +263,77 @@ v_2
 ].
 $$
 
-Using $v_2$ as a one-dimensional embedding puts observations 1 and 2 near
-each other, observations 3 and 4 near each other, and a large gap between
-the two pairs. The coordinate is not a feature combination like $Xv$ in PCA.
-It is a graph coordinate: it records where each observation sits in the
-connectivity structure.
+Using $v_2$ as a one-dimensional embedding means the output has dimension
+
+$$
+Z\in\mathbb R^{4\times 1}.
+$$
+
+The embedding is obtained by reading the entries of $v_2$:
+
+$$
+Z
+=
+v_2
+\approx
+\mqty[
+0.547\\
+0.448\\
+-0.448\\
+-0.547
+].
+$$
+
+Thus the spectral embedding maps the original observations as follows:
+
+$$
+x_1\mapsto 0.547,\qquad
+x_2\mapsto 0.448,\qquad
+x_3\mapsto -0.448,\qquad
+x_4\mapsto -0.547.
+$$
+
+The result tells us that observations 1 and 2 are close in the embedding, observations 3 and 4 are close in the embedding, and there is a large gap between the two pairs. This reflects the graph structure encoded in $W$: two strong within-pair connections and one weak bridge. The coordinate is not a feature combination like $Xv$ in PCA, where $v\in\mathbb R^p$ is a loading vector. It is a coordinate read from a Laplacian eigenvector, so its values are determined by graph connectivity.
 :::
 
-::: {#exm-spectral-ten-points}
-#### A ten-point graph by hand
-
-Now consider ten observations. The first five form one strongly connected
-group, the last five form another strongly connected group, and there is only
-one weak bridge between the two groups.
-
-```{python}
-import numpy as np
-import pandas as pd
-
-n = 10
-W = np.zeros((n, n))
-
-W[:5, :5] = 1
-W[5:, 5:] = 1
-np.fill_diagonal(W, 0)
-
-W[4, 5] = 0.05
-W[5, 4] = 0.05
-
-pd.DataFrame(W)
-```
-
-The degree matrix records the total connection weight of each observation,
-and the unnormalized graph Laplacian is $L=D-W$.
-
-```{python}
-degrees = W.sum(axis=1)
-D = np.diag(degrees)
-L = D - W
-
-pd.DataFrame(L)
-```
-
-To obtain a one-dimensional spectral embedding, compute the eigenvectors of
-$L$. The first eigenvector is constant, so we use the second eigenvector.
-
-```{python}
-eigenvalues, eigenvectors = np.linalg.eigh(L)
-
-embedding_manual = eigenvectors[:, 1]
-
-pd.DataFrame(
-    {
-        "group": np.repeat([0, 1], 5),
-        "manual spectral coordinate": embedding_manual,
-    }
-)
-```
-
-```{python}
-#| code-fold: true
-import matplotlib.pyplot as plt
-
-fig, ax = plt.subplots(figsize=(7, 2.8))
-ax.scatter(np.arange(n), embedding_manual, c=np.repeat([0, 1], 5), s=60)
-ax.axhline(0, color="gray", linewidth=1)
-ax.set_xlabel("observation index")
-ax.set_ylabel("spectral coordinate")
-ax.set_title("Manual Spectral Embedding from $L$");
-```
-
-The two groups receive coordinates on opposite sides of zero. The weak bridge
-keeps the graph connected, but the second eigenvector still changes sharply
-between the two groups.
-
-We can give the same affinity matrix to `sklearn`. The numerical coordinates
-may differ in scale or sign because spectral embeddings are not unique up to
-sign and normalization, but the separation is the same.
-
-```{python}
-from sklearn.manifold import SpectralEmbedding
-
-sklearn_embedding = SpectralEmbedding(
-    n_components=1,
-    affinity="precomputed",
-    random_state=1,
-).fit_transform(W)
-
-pd.DataFrame(
-    {
-        "group": np.repeat([0, 1], 5),
-        "manual coordinate": embedding_manual,
-        "sklearn coordinate": sklearn_embedding[:, 0],
-    }
-)
-```
-:::
-
-Many implementations use a normalized Laplacian rather than $L=D-W$. The
-normalization changes the algebra but not the main interpretation:
-coordinates should vary smoothly over strong graph connections.
 
 ### Spectral Embedding in Python
 
-The following example uses concentric circles. K-means in the original
-coordinates struggles because the groups are not separated by two centers.
-A nearest-neighbor graph, however, captures the connectivity of each ring.
+The following example uses concentric circles. We use K-means here for comparison.
+
+
+```{python}
+from sklearn.datasets import make_circles
+
+X_circle, y_circle = make_circles(
+    n_samples=500, factor=0.45, noise=0.05, random_state=1
+)
+```
+
+We use `SpectralEmbedding` from `sklearn.manifold` to implement spectral embedding.
 
 ```{python}
 #| warning: false
-import matplotlib.pyplot as plt
-
 from sklearn.cluster import KMeans
-from sklearn.datasets import make_circles, load_digits
-from sklearn.decomposition import PCA
-from sklearn.manifold import SpectralEmbedding, TSNE
+from sklearn.manifold import SpectralEmbedding
 from sklearn.preprocessing import StandardScaler
 
-X_circle, y_circle = make_circles(
-    n_samples=500,
-    factor=0.45,
-    noise=0.05,
-    random_state=1,
+
+circle_kmeans = KMeans(n_clusters=2, n_init=20, random_state=1).fit_predict(X_circle)
+
+Z_spectral = SpectralEmbedding(
+    n_components=2, affinity="nearest_neighbors", n_neighbors=9, random_state=1
+).fit_transform(X_circle)
+circle_spectral_kmeans = KMeans(n_clusters=2, n_init=20, random_state=1).fit_predict(
+    Z_spectral
 )
-
-circle_kmeans = KMeans(
-    n_clusters=2,
-    n_init=20,
-    random_state=1,
-).fit_predict(X_circle)
-
-spectral = SpectralEmbedding(
-    n_components=2,
-    affinity="nearest_neighbors",
-    n_neighbors=10,
-    random_state=1,
-)
-Z_spectral = spectral.fit_transform(X_circle)
-
-circle_spectral_kmeans = KMeans(
-    n_clusters=2,
-    n_init=20,
-    random_state=1,
-).fit_predict(Z_spectral)
 ```
 
 ```{python}
 #| code-fold: true
+
+import matplotlib.pyplot as plt
+
 fig, axs = plt.subplots(1, 3, figsize=(13, 4))
 
 axs[0].scatter(X_circle[:, 0], X_circle[:, 1], c=y_circle, s=18)
@@ -322,8 +347,8 @@ axs[1].set_xlabel("x1")
 axs[1].set_ylabel("x2")
 
 axs[2].scatter(
-    Z_spectral[:, 0],
-    Z_spectral[:, 1],
+    X_circle[:, 0],
+    X_circle[:, 1],
     c=circle_spectral_kmeans,
     s=18,
 )
@@ -1023,7 +1048,7 @@ coordinates, but they preserve different things.
 | Method | Main object preserved | Axis meaning | Typical use |
 |---|---|---|---|
 | PCA | variance and reconstruction under a linear model | loadings connect axes to features | baseline visualization, compression, denoising |
-| Spectral embedding | graph connectivity | graph coordinates, not feature loadings | graph-based clustering or visualization |
+| Spectral embedding | graph connectivity | observation-space coordinates, not feature loadings | graph-based clustering or visualization |
 | t-SNE | local neighbor probabilities | no direct feature meaning | exploratory local visualization |
 | UMAP | local nearest-neighbor graph | no direct feature meaning | exploratory visualization, sometimes reusable embeddings |
 
