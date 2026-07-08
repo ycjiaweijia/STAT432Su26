@@ -33,11 +33,11 @@ We focus on three methods:
 The shared goal is not to reconstruct $X$ feature by feature. The goal is to make selected relationships among observations visible in a small number of coordinates, usually two.
 
 ::: {.callout-caution}
-## Visualization is not the only possible use
+## Embeddings are task-dependent
 
-Many embedding methods in this chapter are mainly used for visualization. Since they also replace high-dimensional observations by lower-dimensional coordinates, they can sometimes be used before other tasks, such as clustering or nearest-neighbor analysis.
+In this chapter, embeddings are mainly used for visualization and sometimes for clustering. They can also be useful for other tasks, but not every embedding is useful for every task.
 
-This use should be checked for the specific task. PCA preserves variance and optimizes linear reconstruction, while spectral embedding, t-SNE, and UMAP preserve neighborhoods or graph structure. A good plot is not automatically the best representation for clustering, prediction, compression, or denoising. Nearby points are often meaningful, but global distances, apparent cluster sizes, and empty space should be interpreted cautiously.
+The reason is that different methods preserve different relationships. PCA preserves variance and optimizes linear reconstruction. Spectral embedding, t-SNE, and UMAP preserve neighborhoods or graph structure in different ways. For example, t-SNE is useful for visualizing local neighborhoods, but distances in a t-SNE plot are not reliable enough to automatically use as input to a distance-based method such as KNN. A good embedding plot is therefore a guide for exploration, not a guarantee that the coordinates are appropriate for clustering, prediction, compression, or denoising. We will discuss these later in more details.
 :::
 
 
@@ -48,9 +48,7 @@ Because an embedding is built from the rows of $X$, two choices come before the 
 - how each observation is represented as a row vector;
 - how similarity or distance between rows is defined.
 
-Feature selection, scaling, transformations, missing-value handling, and noise reduction matter because they change one of these two choices.
-
-A common workflow is
+Thus a common workflow is
 
 $$
 X
@@ -64,9 +62,7 @@ $$
 
 ## Spectral Embedding
 
-Spectral embedding starts by replacing the original data matrix with a graph.
-The vertices are observations. Edges connect observations that are similar,
-often nearest neighbors.
+Spectral embedding starts by replacing the original data matrix with a graph. The vertices are observations. Edges connect observations that are similar, often nearest neighbors.
 
 The main idea is:
 
@@ -80,15 +76,11 @@ X
 \text{eigenvector coordinates}.
 $$
 
-This is useful when the structure is better described by connectivity than by
-distance to a single center. Spectral clustering uses the same embedding and
-then applies a label-assignment method such as K-means.
+This is useful when the structure is better described by connectivity than by distance to a single center. Spectral clustering uses the same embedding and then applies a label-assignment method such as K-means.
 
 ### Mathematical Idea
 
-Let $W=\mqty[W_{ij}]$ be a symmetric weighted adjacency matrix. A large
-$W_{ij}$ means observations $i$ and $j$ are strongly connected. Define the
-degree matrix
+Let $W=\mqty[W_{ij}]$ be a symmetric weighted adjacency matrix. A large $W_{ij}$ means observations $i$ and $j$ are strongly connected. Define the degree matrix
 
 $$
 D=\operatorname{diag}(d_1,\ldots,d_n),
