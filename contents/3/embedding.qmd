@@ -395,7 +395,7 @@ plt.scatter(X[:, 0], X[:, 1], c=y, s=8)
 plt.title("Ground Truth")
 plt.xticks([])
 plt.yticks([])
-plt.axis("equal")
+plt.axis("equal");
 ```
 
 
@@ -443,16 +443,13 @@ for ax, (name, (labels, ari)) in zip(axes, results.items()):
 
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_aspect("equal")
+    ax.set_aspect("equal");
 ```
 The results illustrate the different assumptions made by the clustering algorithms.
 
 - KMeans: Fails. KMeans partitions the data according to the distance to cluster centroids. Since the two circles share the same center, the algorithm cannot separate them into inner and outer circles. Instead, it splits the data into two roughly equal halves.
-
 - Agglomerative (Ward): Performs slightly better but still fails. Ward linkage merges clusters to minimize the increase in within-cluster variance. This favors compact, approximately spherical clusters rather than ring-shaped clusters, so it also tends to cut across the circles instead of preserving their circular structure.
-
-- DBSCAN: Performs reasonably well but is affected by the bridge points. Since DBSCAN defines clusters through density connectivity, the bridge creates a path between the two circles, causing some points to be merged incorrectly.
-
+- DBSCAN: Performs reasonably well but is affected by the bridge points. Since DBSCAN defines clusters through density connectivity, the bridge creates a path between the two circles, causing some points to be merged incorrectly. Furthermore, because DBSCAN uses a single density threshold, it struggles with the uneven density of the outer circle and fails to identify it as one cluster.
 - Spectral Clustering: Correctly recovers the two circles. Instead of clustering the original coordinates directly, it first constructs a similarity graph and computes a spectral embedding. In this new representation, points belonging to the same circle become much closer, while the weak bridge has little influence. A simple clustering algorithm such as KMeans can then easily separate the two clusters.
 
 The key idea is that spectral clustering does not rely on Euclidean geometry in the original feature space. Instead, it transforms the data into a new space where the cluster structure becomes much easier to identify.
@@ -462,10 +459,11 @@ The figure below shows the two-dimensional spectral embedding. Although the circ
 ```{python}
 plt.scatter(Z[:, 0], Z[:, 1], c=y, s=8)
 plt.title("Spectral Embedding")
-plt.axis("equal")
+plt.xticks([])
+plt.yticks([])
+plt.axis("equal");
 ```
 
-Indeed, the two clusters are now almost linearly separable in the embedded space. This explains why applying KMeans after the spectral embedding successfully recovers the correct clustering.
 
 
 
