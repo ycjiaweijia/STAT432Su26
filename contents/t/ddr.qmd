@@ -245,3 +245,315 @@ pd.DataFrame(
 Many implementations use a normalized Laplacian rather than $L=D-W$. The
 normalization changes the algebra but not the main interpretation:
 coordinates should vary smoothly over strong graph connections.
+
+
+
+
+
+
+
+
+::: {#exm-tsne-ten-points}
+#### A ten-point t-SNE calculation
+
+We can see the main t-SNE calculation with a tiny dataset. The data have ten
+observations in two nearby groups. To keep the arithmetic transparent, we use
+one common bandwidth $\sigma$ instead of choosing a separate $\sigma_i$ by
+perplexity.
+
+```{python}
+#| eval: false
+import numpy as np
+import pandas as pd
+from sklearn.metrics import pairwise_distances
+
+X_tiny = np.array(
+    [
+        [-2.2, 0.0],
+        [-2.0, 0.3],
+        [-1.8, -0.2],
+        [-1.6, 0.2],
+        [-1.4, -0.1],
+        [1.4, 0.1],
+        [1.6, -0.2],
+        [1.8, 0.2],
+        [2.0, -0.3],
+        [2.2, 0.0],
+    ]
+)
+
+y_tiny = np.repeat([0, 1], 5)
+```
+
+First compute the high-dimensional conditional neighbor probabilities
+$p_{j\mid i}$. The diagonal entries are zero because an observation is not its
+own neighbor.
+
+```{python}
+#| eval: false
+sigma = 0.6
+D2 = pairwise_distances(X_tiny, squared=True)
+
+K = np.exp(-D2 / (2 * sigma**2))
+np.fill_diagonal(K, 0)
+
+P_cond = K / K.sum(axis=1, keepdims=True)
+
+pd.DataFrame(np.round(P_cond, 3))
+```
+
+t-SNE uses a symmetric joint probability matrix. One common symmetrization is
+
+$$
+p_{ij}=\frac{p_{j\mid i}+p_{i\mid j}}{2n}.
+$$
+
+```{python}
+#| eval: false
+n = X_tiny.shape[0]
+P = (P_cond + P_cond.T) / (2 * n)
+
+pd.DataFrame(np.round(P, 3))
+```
+
+Now choose two candidate low-dimensional layouts. The first keeps the two
+groups separated. The second interleaves the groups. We compute the
+low-dimensional probabilities $Q$ and the KL objective for each layout.
+
+```{python}
+#| eval: false
+Z_good = np.column_stack([np.linspace(-2, 2, n), np.zeros(n)])
+Z_bad = np.column_stack([np.tile([-0.5, 0.5], n // 2), np.linspace(-1, 1, n)])
+
+
+def tsne_Q(Z):
+    d2 = pairwise_distances(Z, squared=True)
+    weights = 1 / (1 + d2)
+    np.fill_diagonal(weights, 0)
+    return weights / weights.sum()
+
+
+def kl_divergence(P, Q):
+    mask = P > 0
+    return np.sum(P[mask] * np.log(P[mask] / Q[mask]))
+
+
+Q_good = tsne_Q(Z_good)
+Q_bad = tsne_Q(Z_bad)
+
+pd.DataFrame(
+    {
+        "KL(P || Q)": [
+            kl_divergence(P, Q_good),
+            kl_divergence(P, Q_bad),
+        ]
+    },
+    index=["separated layout", "interleaved layout"],
+)
+```
+
+The separated layout has a smaller objective because it puts observations
+with large high-dimensional neighbor probabilities close together in the
+low-dimensional display.
+
+Finally, let `sklearn` optimize the t-SNE objective for the same ten points.
+For such a small dataset, the exact orientation and scale of the plot are not
+important; the point is whether local neighbors remain close.
+
+```{python}
+#| eval: false
+from sklearn.manifold import TSNE
+
+Z_tiny_tsne = TSNE(
+    n_components=2,
+    perplexity=3,
+    init="random",
+    learning_rate="auto",
+    random_state=1,
+).fit_transform(X_tiny)
+```
+
+```{python}
+#| eval: false
+#| code-fold: true
+import matplotlib.pyplot as plt
+
+fig, axs = plt.subplots(1, 2, figsize=(9, 3.5))
+
+axs[0].scatter(X_tiny[:, 0], X_tiny[:, 1], c=y_tiny, s=60)
+axs[0].set_title("Original 10 Points")
+axs[0].set_xlabel("x1")
+axs[0].set_ylabel("x2")
+
+axs[1].scatter(Z_tiny_tsne[:, 0], Z_tiny_tsne[:, 1], c=y_tiny, s=60)
+axs[1].set_title("sklearn t-SNE")
+axs[1].set_xlabel("t-SNE1")
+axs[1].set_ylabel("t-SNE2")
+
+plt.tight_layout();
+```
+:::
+
+
+
+
+
+
+
+
+::: {#exm-umap-ten-points}
+#### A ten-point UMAP calculation
+
+We can use the same kind of tiny example to see what UMAP builds before it
+optimizes the display. The full UMAP algorithm has additional details, but
+the core object is a weighted nearest-neighbor graph.
+
+```{python}
+#| eval: false
+import numpy as np
+import pandas as pd
+from sklearn.metrics import pairwise_distances
+
+X_umap_tiny = np.array(
+    [
+        [-2.2, 0.0],
+        [-2.0, 0.3],
+        [-1.8, -0.2],
+        [-1.6, 0.2],
+        [-1.4, -0.1],
+        [1.4, 0.1],
+        [1.6, -0.2],
+        [1.8, 0.2],
+        [2.0, -0.3],
+        [2.2, 0.0],
+    ]
+)
+
+y_umap_tiny = np.repeat([0, 1], 5)
+```
+
+First compute the pairwise distances and keep the three nearest neighbors of
+each observation.
+
+```{python}
+#| eval: false
+k = 3
+dist = pairwise_distances(X_umap_tiny)
+neighbor_index = np.argsort(dist, axis=1)[:, 1 : k + 1]
+
+pd.DataFrame(neighbor_index, columns=[f"neighbor {j}" for j in range(1, k + 1)])
+```
+
+UMAP then turns neighbor distances into directed connection weights. The
+nearest neighbor receives weight 1, and farther neighbors receive smaller
+weights. Here we use a simple local scale so the calculation is transparent.
+
+```{python}
+#| eval: false
+n = X_umap_tiny.shape[0]
+directed = np.zeros((n, n))
+
+for i in range(n):
+    nbrs = neighbor_index[i]
+    rho_i = dist[i, nbrs[0]]
+    sigma_i = dist[i, nbrs[-1]] - rho_i
+    sigma_i = max(sigma_i, 1e-12)
+
+    for j in nbrs:
+        adjusted_distance = max(0, dist[i, j] - rho_i)
+        directed[i, j] = np.exp(-adjusted_distance / sigma_i)
+
+pd.DataFrame(np.round(directed, 3))
+```
+
+The directed graph is then symmetrized. UMAP uses the fuzzy-union formula
+
+$$
+w_{ij}=a_{ij}+a_{ji}-a_{ij}a_{ji},
+$$
+
+where $a_{ij}$ is the directed weight from $i$ to $j$.
+
+```{python}
+#| eval: false
+W_umap = directed + directed.T - directed * directed.T
+
+pd.DataFrame(np.round(W_umap, 3))
+```
+
+Now compare two candidate two-dimensional layouts. A separated layout should
+match the graph better than an interleaved layout. To make this visible, we
+compute a simplified UMAP-style cross-entropy between the high-dimensional
+graph weights and low-dimensional similarities.
+
+```{python}
+#| eval: false
+Z_good = np.column_stack([np.linspace(-2, 2, n), np.zeros(n)])
+Z_bad = np.column_stack([np.tile([-0.5, 0.5], n // 2), np.linspace(-1, 1, n)])
+
+
+def umap_low_similarity(Z):
+    d2 = pairwise_distances(Z, squared=True)
+    Q = 1 / (1 + d2)
+    np.fill_diagonal(Q, 0)
+    return Q
+
+
+def graph_cross_entropy(W, Q):
+    mask = ~np.eye(W.shape[0], dtype=bool)
+    W_off = W[mask]
+    Q_off = np.clip(Q[mask], 1e-12, 1 - 1e-12)
+    return -np.sum(W_off * np.log(Q_off) + (1 - W_off) * np.log(1 - Q_off))
+
+
+Q_good = umap_low_similarity(Z_good)
+Q_bad = umap_low_similarity(Z_bad)
+
+pd.DataFrame(
+    {
+        "graph cross-entropy": [
+            graph_cross_entropy(W_umap, Q_good),
+            graph_cross_entropy(W_umap, Q_bad),
+        ]
+    },
+    index=["separated layout", "interleaved layout"],
+)
+```
+
+The separated layout has a smaller loss because it places strongly connected
+neighbors close together and weakly connected pairs farther apart.
+
+Finally, let `umap-learn` optimize the embedding for the same ten points.
+
+```{python}
+#| eval: false
+import umap
+
+Z_tiny_umap = umap.UMAP(
+    n_neighbors=3,
+    min_dist=0.1,
+    n_components=2,
+    random_state=1,
+).fit_transform(X_umap_tiny)
+```
+
+```{python}
+#| eval: false
+#| code-fold: true
+import matplotlib.pyplot as plt
+
+fig, axs = plt.subplots(1, 2, figsize=(9, 3.5))
+
+axs[0].scatter(X_umap_tiny[:, 0], X_umap_tiny[:, 1], c=y_umap_tiny, s=60)
+axs[0].set_title("Original 10 Points")
+axs[0].set_xlabel("x1")
+axs[0].set_ylabel("x2")
+
+axs[1].scatter(Z_tiny_umap[:, 0], Z_tiny_umap[:, 1], c=y_umap_tiny, s=60)
+axs[1].set_title("umap-learn Embedding")
+axs[1].set_xlabel("UMAP1")
+axs[1].set_ylabel("UMAP2")
+
+plt.tight_layout();
+```
+:::
