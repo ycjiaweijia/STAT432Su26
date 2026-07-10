@@ -681,7 +681,7 @@ The latter is often recommended for high-dimensional datasets because it can red
 
 ### Digits example
 
-We use the handwritten digits data as an example. The data have 64 pixel features. We standardize the features, reduce them to 30 PCA coordinates, and then run t-SNE. The labels are used only for coloring the final plot.
+We use the handwritten digits data from `sklearn` as an example. The data have 64 pixel features. We standardize the features, reduce them to 30 PCA coordinates, and then run t-SNE. The labels are used only for coloring the final plot.
 
 ```{python}
 from sklearn.datasets import load_digits
@@ -757,18 +757,16 @@ The figure illustrates how `perplexity` changes the neighborhood scale used by t
 
 Some observations from the plots are:
 
-- All `perplexity` values separate most digit classes, indicating that the handwritten digits have a meaningful local neighborhood structure in the original high-dimensional space.
-- With small `perplexity` (5–10), the embedding focuses on very local neighborhoods. Clusters are more fragmented, and some digit classes appear as multiple disconnected regions. This may indicate distinct local neighborhoods in the original feature space, but these regions should not automatically be interpreted as true subtypes.
-- Increasing `perplexity` (30–50) produces more compact and stable clusters. Samples from the same digit are grouped more consistently, resulting in a cleaner overall layout.
+- All `perplexity` values separate most digit classes, indicating that the handwritten digits have meaningful local neighborhood structure in the original high-dimensional space.
+- With small `perplexity` (5–10), the embedding focuses on very local neighborhoods. Clusters are more fragmented, and some digit classes appear as multiple disconnected regions. This suggests that some digit classes contain multiple local neighborhoods in the original feature space, although these disconnected regions should not automatically be interpreted as genuine subtypes.
+- In this example, increasing `perplexity` (30–50) produces more compact and stable clusters. Samples from the same digit are grouped more consistently, resulting in a cleaner overall layout.
 - The embeddings for `perplexity` 30 and 50 are visually similar, suggesting that the recovered local neighborhood structure is relatively stable over this range.
-- Some overlap between visually similar digits persists under all settings, reflecting ambiguity in the handwritten digits rather than an inappropriate choice of `perplexity`.
+- Some overlap between visually similar digits persists under all settings, possibly reflecting genuine ambiguity in the handwritten digits rather than an inappropriate choice of `perplexity`.
 - Although local neighborhoods are largely preserved, the relative positions, sizes, and distances between clusters change noticeably across `perplexity` values. Therefore, these global geometric relationships should not be interpreted quantitatively.
 
-Overall, `perplexity` controls the trade-off between emphasizing fine local detail and producing a smoother representation of local neighborhood probabilities, rather than determining the number of clusters.
+Overall, `perplexity` controls the trade-off between emphasizing fine local neighborhoods and producing a smoother representation of the underlying neighborhood structure, rather than determining the number of clusters.
 
-A useful `perplexity` is one that produces stable local neighborhoods across reasonable parameter choices. In practice, comparing several `perplexity` values is often more informative than selecting a single "best" visualization. When class labels are available, they should be used only after fitting to verify whether nearby points indeed correspond to similar observations.
-
-
+A useful `perplexity` is one that produces stable local neighborhoods across a reasonable range of parameter values rather than one that gives the most visually appealing plot. Comparing several `perplexity` values is therefore often more informative than selecting a single "best" visualization. When class labels are available, they should be used only after fitting to verify whether nearby points correspond to similar observations. The embedding can then guide further exploration of the original data. For example, overlapping digit classes can be examined in the original images to determine whether the ambiguity reflects genuine variation in handwriting rather than an artifact of the visualization.
 
 
 
@@ -1065,6 +1063,8 @@ Some observations from the plots are:
 - Increasing `n_neighbors` generally produces a smoother and more stable overall layout by incorporating broader neighborhood information during graph construction.
 - Although the global layout changes noticeably across parameter settings, the major local neighborhoods remain largely consistent.
 
+These patterns can also guide inspection of the original data. For example, if several digit classes remain connected or neighboring in the UMAP plot, we can examine those images to understand which strokes or handwriting styles make the classes similar.
+
 
 
 
@@ -1093,7 +1093,7 @@ Some observations from the plots are:
 
 The unsupervised methods in this chapter and the previous chapter are related because they all produce lower-dimensional representations of high-dimensional data. For that reason, they may appear to be interchangeable: PCA, spectral embedding, t-SNE, and UMAP can all be used to make a two-dimensional plot.
 
-However, they are not trying to preserve the same structure. PCA preserves linear variance. Spectral embedding preserves connectivity in a chosen graph. t-SNE preserves local neighborhood probabilities. UMAP preserves a weighted nearest-neighbor graph. Therefore, the right method depends on the question we want the visualization to answer.
+However, they are not trying to preserve the same structure. PCA preserves linear variance. Spectral embedding preserves connectivity in a chosen graph. t-SNE attempts to preserve neighborhood probabilities. UMAP attempts to preserve the weighted nearest-neighbor graph structure. Therefore, the right method depends on the question we want the visualization to answer.
 
 This section compares the methods in two steps. First, we compare t-SNE and UMAP directly, since both are nonlinear visualization methods based on local neighborhoods. Then we compare all four methods together to show how linear variance, graph connectivity, local neighbor probabilities, and nearest-neighbor graph structure lead to different visual conclusions.
 
@@ -1101,10 +1101,11 @@ This section compares the methods in two steps. First, we compare t-SNE and UMAP
 
 t-SNE and UMAP are both nonlinear visualization methods based on local relationships. They both start from high-dimensional distances, but they preserve different objects.
 
-For t-SNE, distances are converted into neighbor probabilities. The high-dimensional probabilities form $P=(p_{ij})$, the low-dimensional probabilities form $Q=(q_{ij})$, and t-SNE moves the plotted points so that $Q$ matches $P$. The main tuning parameter is `perplexity`, which controls the effective neighborhood size in $P$.
+For t-SNE, distances are converted into neighbor probabilities. The high-dimensional probability distribution is $P=(p_{ij})$, the low-dimensional probability distribution is $Q=(q_{ij})$, and t-SNE moves the plotted points so that $Q$ matches $P$. The main tuning parameter is `perplexity`, which controls the effective neighborhood size used to construct $P$.
 
 For UMAP, distances are converted into a weighted nearest-neighbor graph. The high-dimensional graph is $W=(w_{ij})$, the low-dimensional graph is $R(Z)=(r_{ij})$, and UMAP moves the plotted points so that $R(Z)$ resembles $W$. The parameter `n_neighbors` controls the neighborhood scale used to build $W$, while `min_dist` controls how tightly connected points may be packed in the display.
 
+This difference affects how we read the plots. In a t-SNE plot, a continuous bridge made of many nearby points is meaningful: it suggests that the original data may contain a chain of local neighbor relationships connecting the two regions. But a large empty distance between two t-SNE islands should not be interpreted as a reliable measurement of how far apart the groups are in the original space. UMAP has a more direct graph interpretation: connected regions in the plot often reflect connections in the nearest-neighbor graph $W$, although that graph still depends on the chosen `metric` and `n_neighbors`.
 
 So t-SNE is especially useful for inspecting very local neighborhoods. UMAP is especially useful for inspecting nearest-neighbor graph structure, comparing neighborhood scales, and sometimes reusing a fitted embedding for new observations. Neither method should be used to make strict claims about global distances, island sizes, densities, or axis meanings.
 
@@ -1196,35 +1197,27 @@ fig.legend(*scatter.legend_elements(), title="digit", loc="center right")
 fig.tight_layout(rect=[0, 0, 0.9, 1]);
 ```
 
-The figure highlights three main comparisons: the effect of PCA preprocessing, the differences between t-SNE and UMAP, and the interpretation of the resulting embeddings.
+Since neither method aims to preserve global geometry, we focus on the stability of local neighborhoods and on the qualitative differences between the resulting embeddings.
+
+The figure highlights two main comparisons: the effect of PCA preprocessing and the differences between t-SNE and UMAP.
 
 ---
 
-**Raw versus PCA50**
+Raw versus PCA50
 
-- In this MNIST subset, applying PCA before t-SNE or UMAP changes the exact layouts, but the main digit neighborhoods remain similar.
-- Most digit classes remain in similar local regions after PCA preprocessing, indicating that the first 50 principal components preserve the dominant information in the data.
-- In this example, the PCA50 embeddings appear slightly cleaner, with smoother class boundaries and fewer scattered points. In practice, PCA can improve computational efficiency and remove low-variance noise while preserving much of the local structure of the data.
-
----
-
-**t-SNE versus UMAP**
-
-- Both methods reveal the nonlinear neighborhood structure of the handwritten digits. Images with the same label tend to occupy nearby regions, although several visually similar digit classes still overlap.
-- Under the parameter settings used here, the t-SNE embedding forms a relatively continuous arrangement in which neighboring classes merge gradually into one another. This reflects its emphasis on preserving local neighbor probabilities.
-- Under the parameter settings used here, the UMAP embedding is more segmented, with several elongated or curved regions connected through the neighborhood graph. Rather than producing compact circular clusters, it often preserves the connectivity of nearby regions.
+- In this MNIST subset, applying PCA before t-SNE or UMAP changes the exact layout but preserves much of the local neighborhood structure. The PCA50 embeddings therefore produce similar digit neighborhoods while reducing the dimensionality from 784 to 50.
+- In this example, the PCA50 embeddings appear slightly cleaner, with fewer scattered points and more coherent local neighborhoods. In practice, PCA preprocessing can improve computational efficiency and reduce low-variance noise while retaining much of the information needed for nonlinear visualization.
 
 ---
 
-**Interpretation**
+t-SNE versus UMAP
 
-- Local neighborhoods that appear consistently in both embeddings are more likely to reflect genuine relationships in the original data.
-- The two methods produce noticeably different global layouts because they optimize different objective functions. Therefore, the relative positions, orientations, sizes, and long-range distances of the visual groups should not be interpreted quantitatively.
-- Both embeddings should be regarded as visual summaries of local neighborhood structure rather than geometrically accurate maps of the original 784-dimensional feature space.
+- Both methods recover clear local neighborhoods for the handwritten digits. Images with the same label tend to occupy nearby regions, although several visually similar digit classes still overlap.
+- With these settings, the UMAP embeddings show several groups of similar digits as relatively well-separated neighboring regions. For example, groups of visually similar digits, such as 3, 5, and 8 or 4, 7, and 9, tend to occupy neighboring regions, reflecting similarities in their handwritten shapes.
+- With these settings, the t-SNE embeddings connect these similar digit classes through more gradual transitions. Instead of forming clearly separated islands, neighboring classes blend through intermediate handwriting styles, giving the overall layout a more continuous appearance.
 
----
+These differences should be read as differences in the visualization objectives, not as proof that one method has found the true geometry. UMAP's clearer separation and t-SNE's smoother transitions are both diagnostic patterns to investigate, not final cluster definitions.
 
-Overall, t-SNE and UMAP agree on much of the local structure while representing that structure in different ways. Their agreement strengthens confidence in the recovered local neighborhoods, whereas differences in the overall layouts are expected and should not be overinterpreted.
 
 
 
@@ -1286,15 +1279,35 @@ fig.tight_layout(rect=[0, 0, 0.9, 1]);
 The four methods provide different views of the same high-dimensional image subset because they preserve different aspects of the original data. Some observations from the comparison are:
 
 - PCA provides the linear reference view by projecting the images onto two directions of maximum variance. It captures the dominant linear variation but leaves substantial overlap because the digit classes are not linearly separable.
-- Spectral Embedding constructs a nearest-neighbor graph before computing the embedding. It can reveal nonlinear organization that PCA cannot capture, although the result depends strongly on the choice of neighborhood graph.
-- PCA50 + t-SNE and PCA50 + UMAP both start from the same 50-dimensional PCA representation and reveal the nonlinear neighborhood structure of the handwritten digits. Although they preserve many of the same local neighborhoods, they organize these neighborhoods differently because they optimize different objective functions.
-- Both PCA50 + t-SNE and PCA50 + UMAP should be interpreted as visualizations of local neighborhood structure rather than geometrically accurate maps of the original feature space. Their coordinates, distances, orientations, and relative positions should therefore not be interpreted quantitatively.
+- Spectral embedding reveals nonlinear organization that is not visible in the PCA projection. Because the embedding is constructed from a nearest-neighbor graph, the resulting layout depends strongly on the chosen graph.
+- PCA50 + t-SNE and PCA50 + UMAP recover many of the same local neighborhoods, but organize them differently because they optimize different objective functions.
 
-Overall, the four methods emphasize different aspects of the data. PCA summarizes linear variation, Spectral Embedding reveals graph connectivity, and both PCA50-preprocessed t-SNE and UMAP visualize nonlinear neighborhood structure using different optimization objectives.
+The four methods should therefore be interpreted differently because each is designed to preserve a different aspect of the original data. PCA asks whether a low-dimensional linear projection already captures the dominant variation. Spectral embedding asks whether a neighborhood graph reveals meaningful connected structure. t-SNE asks whether local neighborhoods remain coherent after embedding. UMAP asks whether the nearest-neighbor graph exhibits stable graph-connected regions. None of these methods provides a geometrically faithful map of the original feature space. Their interpretation should therefore always be based on the structure each method is designed to preserve.
 
+::: {.callout-note}
+## Using all 70,000 MNIST images
+
+The examples above use a fixed subset of 3,000 images for speed. The next two figures repeat the previous comparisons using the full MNIST dataset with 70,000 images. The first figure compares t-SNE and UMAP, with or without PCA, and the second figure compares PCA, spectral embedding, PCA50 + t-SNE, and PCA50 + UMAP.
+
+![t-SNE and UMAP comparison on all 70,000 MNIST images](images/70k-1.png){#fig-mnist-70k-tsne-umap}
+
+![Four-method comparison on all 70,000 MNIST images](images/70k-2.png){#fig-mnist-70k-four-methods}
+
+Compared with the 3,000-image subset:
+
+
+- The main qualitative conclusions are broadly similar. The 3,000-image subset already captures many of the important neighborhood relationships among the handwritten digits.
+- The plots become visually denser with 70,000 images because many more intermediate handwriting styles are included.
+- PCA changes the least: the dominant linear directions remain similar, and the larger dataset mainly increases sampling density.
+- Spectral embedding becomes smoother because the nearest-neighbor graph is constructed from many more observations, making graph branches more complete and less affected by sampling variability.
+- The t-SNE embedding becomes substantially denser. Many apparent gaps between neighboring digit groups are filled by intermediate observations, producing smoother local transitions.
+- The UMAP embedding also becomes denser while retaining more clearly segmented graph-connected regions.
+- Increasing the sample size improves the completeness and stability of the visualizations, but it does not make global distances, region sizes, or visual densities quantitatively reliable.
+- Running t-SNE and UMAP on all 70,000 images is substantially more computationally expensive than using a representative 3,000-image subset.
+:::
 
 ::: {.callout-caution}
 ## Apparent clusters are not proof of clusters
 
-t-SNE and UMAP can make continuous structure look separated, and spectral embedding depends on the chosen graph. A visible gap is a hypothesis to investigate, not a cluster definition by itself.
+Visible separation in an embedding is a diagnostic clue, not a cluster definition by itself. A gap, island, or bridge should be checked against the structure the method is designed to preserve and, when needed, against quantitative criteria tied to the analysis goal.
 :::
