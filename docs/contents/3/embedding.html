@@ -61,7 +61,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -148,12 +148,7 @@ window.MathJax = {
 
 };
 
-</script><script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
-
-
-
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
-<script src="../../styles/pronunciation.js"></script>
+</script><script src="../../styles/pronunciation.js"></script>
 <script>
 window.MathJax = {
   loader: {
@@ -643,8 +638,8 @@ window.Quarto = {
   </ul></li>
   <li><a href="#comparing-the-methods" id="toc-comparing-the-methods" class="nav-link" data-scroll-target="#comparing-the-methods"><span class="header-section-number">14.4</span> Comparing the Methods</a>
   <ul class="collapse">
-  <li><a href="#digits-comparison-example" id="toc-digits-comparison-example" class="nav-link" data-scroll-target="#digits-comparison-example"><span class="header-section-number">14.4.1</span> Digits comparison example</a></li>
-  <li><a href="#t-sne-vs-umap" id="toc-t-sne-vs-umap" class="nav-link" data-scroll-target="#t-sne-vs-umap"><span class="header-section-number">14.4.2</span> t-SNE vs UMAP</a></li>
+  <li><a href="#t-sne-vs-umap" id="toc-t-sne-vs-umap" class="nav-link" data-scroll-target="#t-sne-vs-umap"><span class="header-section-number">14.4.1</span> t-SNE vs UMAP</a></li>
+  <li><a href="#four-method-comparison" id="toc-four-method-comparison" class="nav-link" data-scroll-target="#four-method-comparison"><span class="header-section-number">14.4.2</span> Four-method comparison</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -949,7 +944,7 @@ x_4\mapsto -0.547.
 <p>We generate a dataset consisting of two concentric circles and add a small number of bridge points connecting them. The outer circle has uneven density, meaning that the point density varies along its perimeter.</p>
 <p>Although the bridge points connect the two circles geometrically, we still regard the data as containing two clusters: the inner circle and the outer circle. The bridge points are treated as noise rather than evidence that the two circles belong to the same cluster.</p>
 <p>The dataset is generated manually using NumPy because <code>sklearn.datasets.make_circles</code> cannot generate circles with non-uniform point density. The dataset is visualized after generating.</p>
-<div id="69eb8e3d" class="cell" data-execution_count="1">
+<div id="cab78c9a" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1021,7 +1016,7 @@ x_4\mapsto -0.547.
 </div>
 <p>Now we apply the four clustering methods and compare their results. Since the true labels are available, we use the adjusted Rand index (ARI) to evaluate the clustering performance.</p>
 <p>For all methods, the hyperparameters were only tuned lightly rather than exhaustively. Better performance may be achievable with more careful tuning, but the overall conclusions are unlikely to change. The purpose of this example is not to compare the best possible performance of each algorithm, but to illustrate their typical behavior on this dataset.</p>
-<div id="8ac26b7b" class="cell" data-execution_count="2">
+<div id="46569b28" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans, AgglomerativeClustering, DBSCAN</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.manifold <span class="im">import</span> SpectralEmbedding</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1034,7 +1029,7 @@ x_4\mapsto -0.547.
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> SpectralEmbedding(n_components<span class="op">=</span><span class="dv">2</span>, n_neighbors<span class="op">=</span><span class="dv">15</span>, random_state<span class="op">=</span><span class="dv">0</span>).fit_transform(X)</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>spectral_labels <span class="op">=</span> KMeans(n_clusters<span class="op">=</span><span class="dv">2</span>, random_state<span class="op">=</span><span class="dv">0</span>, n_init<span class="op">=</span><span class="dv">10</span>).fit_predict(Z)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="affbb45d" class="cell" data-execution_count="3">
+<div id="a32072e1" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> adjusted_rand_score</span>
@@ -1077,7 +1072,7 @@ x_4\mapsto -0.547.
 </ul>
 <p>The key idea is that spectral clustering does not rely on Euclidean geometry in the original feature space. Instead, it transforms the data into a new space where the cluster structure becomes much easier to identify.</p>
 <p>The figure below shows the two-dimensional spectral embedding. Although the circles are not linearly separable in the original space, they become well separated after the embedding, making KMeans sufficient to recover the correct clusters.</p>
-<div id="87f9e21e" class="cell" data-execution_count="4">
+<div id="ebc0e2fa" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(Z[:, <span class="dv">0</span>], Z[:, <span class="dv">1</span>], c<span class="op">=</span>y, s<span class="op">=</span><span class="dv">8</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Spectral Embedding"</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>plt.xticks([])</span>
@@ -1285,7 +1280,7 @@ H(p_{\cdot\mid i})
 <section id="digits-example" class="level3" data-number="14.2.4">
 <h3 data-number="14.2.4" class="anchored" data-anchor-id="digits-example"><span class="header-section-number">14.2.4</span> Digits example</h3>
 <p>We use the handwritten digits data as an example. The data have 64 pixel features. We standardize the features, reduce them to 30 PCA coordinates, and then run t-SNE. The labels are used only for coloring the final plot.</p>
-<div id="b26dea35" class="cell" data-execution_count="5">
+<div id="07b7475c" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_digits</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
@@ -1306,7 +1301,7 @@ H(p_{\cdot\mid i})
 <span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>Z_tsne <span class="op">=</span> tsne.fit_transform(X_digits_pca)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="2fbc96ca" class="cell" data-execution_count="6">
+<div id="1e3d5fc4" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -1332,31 +1327,39 @@ H(p_{\cdot\mid i})
 <section id="more-about-perplexity" class="level3" data-number="14.2.5">
 <h3 data-number="14.2.5" class="anchored" data-anchor-id="more-about-perplexity"><span class="header-section-number">14.2.5</span> More about <code>perplexity</code></h3>
 <p>The plots below use the same preprocessed digits data and the same random seed, but change <code>perplexity</code>.</p>
-<div id="372a43b3" class="cell" data-execution_count="7">
+<div id="73e06793" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>perplexities <span class="op">=</span> [<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">30</span>, <span class="dv">50</span>]</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, perplexity <span class="kw">in</span> <span class="bu">zip</span>(axs.ravel(), perplexities):</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> TSNE(</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        n_components<span class="op">=</span><span class="dv">2</span>,</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        perplexity<span class="op">=</span>perplexity,</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        init<span class="op">=</span><span class="st">"pca"</span>,</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        learning_rate<span class="op">=</span><span class="st">"auto"</span>,</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        random_state<span class="op">=</span><span class="dv">1</span>,</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    Z <span class="op">=</span> model.fit_transform(X_digits_pca)</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    ax.scatter(Z[:, <span class="dv">0</span>], Z[:, <span class="dv">1</span>], c<span class="op">=</span>y_digits, cmap<span class="op">=</span><span class="st">"tab10"</span>, s<span class="op">=</span><span class="dv">8</span>)</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"perplexity = </span><span class="sc">{</span>perplexity<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    ax.set_xticks([])</span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    ax.set_yticks([])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>scatter <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, perplexity <span class="kw">in</span> <span class="bu">zip</span>(axs.ravel(), perplexities):</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> TSNE(</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        n_components<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        perplexity<span class="op">=</span>perplexity,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        init<span class="op">=</span><span class="st">"pca"</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        learning_rate<span class="op">=</span><span class="st">"auto"</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        random_state<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    Z <span class="op">=</span> model.fit_transform(X_digits_pca)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    scatter <span class="op">=</span> ax.scatter(Z[:, <span class="dv">0</span>], Z[:, <span class="dv">1</span>], c<span class="op">=</span>y_digits, cmap<span class="op">=</span><span class="st">"tab10"</span>, s<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"perplexity = </span><span class="sc">{</span>perplexity<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    ax.set_xticks([])</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    ax.set_yticks([])</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>fig.legend(</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>scatter.legend_elements(),</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"digit"</span>,</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    loc<span class="op">=</span><span class="st">"center right"</span>,</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>fig.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="dv">0</span>, <span class="fl">0.9</span>, <span class="dv">1</span>])<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="embedding_files/figure-html/cell-8-output-1.png" width="763" height="631" class="figure-img"></p>
+<p><img src="embedding_files/figure-html/cell-8-output-1.png" width="958" height="758" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1407,7 +1410,7 @@ X
 <div id="callout-10" class="callout-10-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>UMAP first finds the nearest neighbors of each observation according to the chosen distance metric. The parameter <code>n_neighbors</code> controls the size of these local neighborhoods. For each point <span class="math inline">\(x_i\)</span>, UMAP uses only its selected nearest neighbors as candidate directed edges from <span class="math inline">\(i\)</span>. Points outside this selected neighbor set usually have directed weight <span class="math inline">\(a_{ij}=0\)</span> from the point of view of <span class="math inline">\(i\)</span>.</p>
-<p>After the candidate neighbors are selected, UMAP assigns a local distance offset <span class="math inline">\(\rho_i\)</span> and a local scale <span class="math inline">\(\sigma_i\)</span> for each point. The offset <span class="math inline">\(\rho_i\)</span> is usually the distance from <span class="math inline">\(x_i\)</span> to its nearest neighbor. This makes the nearest neighbor receive weight <span class="math inline">\(1\)</span>. The scale <span class="math inline">\(\sigma_i\)</span> controls how quickly the remaining selected neighbors lose weight as distance increases.</p>
+<p>After the candidate neighbors are selected, UMAP assigns a local distance offset <span class="math inline">\(\rho_i\)</span> and a local scale <span class="math inline">\(\sigma_i\)</span> for each point. The offset <span class="math inline">\(\rho_i\)</span> is usually the distance from <span class="math inline">\(x_i\)</span> to its nearest neighbor. This makes the nearest neighbor receive weight <span class="math inline">\(1\)</span>. The scale <span class="math inline">\(\sigma_i\)</span> controls how quickly the remaining selected neighbors lose weight as distance increases. Both <span class="math inline">\(\rho_i\)</span> and <span class="math inline">\(\sigma_i\)</span> are chosen automatically by the algorithm for each point; they are not tuning parameters set by the user.</p>
 <p>A simplified version of the directed neighbor weight from <span class="math inline">\(i\)</span> to <span class="math inline">\(j\)</span> is</p>
 <p><span class="math display">\[
 a_{ij}
@@ -1471,7 +1474,7 @@ r_{ij}
 =
 \frac{1}{1+\alpha\norm{z_i-z_j}^{2\beta}},
 \]</span></p>
-<p>Here <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> are not usually chosen directly by the user. They are fitted internally from UMAP’s display parameters, especially <code>min_dist</code> and <code>spread</code>. If two plotted points are close, <span class="math inline">\(r_{ij}\)</span> is large; if they are far apart, <span class="math inline">\(r_{ij}\)</span> is small.</p>
+<p>Here <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> are not usually chosen directly by the user. They are fitted internally from UMAP’s display parameters, especially <code>min_dist</code>. If two plotted points are close, <span class="math inline">\(r_{ij}\)</span> is large; if they are far apart, <span class="math inline">\(r_{ij}\)</span> is small.</p>
 <p>UMAP then moves the coordinates so that <span class="math inline">\(R(Z)\)</span> resembles <span class="math inline">\(W\)</span>. This is done by minimizing a cross-entropy loss of the form</p>
 <p><span class="math display">\[
 \operatorname{CE}(W,R)
@@ -1483,7 +1486,7 @@ w_{ij}\log r_{ij}
 (1-w_{ij})\log(1-r_{ij})
 \right].
 \]</span></p>
-<p>The first term encourages pairs with large <span class="math inline">\(w_{ij}\)</span> to stay close in the plot. The second term discourages weakly connected pairs from all collapsing into the same place. In practice, UMAP optimizes this objective approximately, using stochastic optimization and negative sampling.</p>
+<p>The first term encourages pairs with large <span class="math inline">\(w_{ij}\)</span> to stay close in the plot. The second term discourages weakly connected pairs from all collapsing into the same place. In practice, UMAP optimizes the low-dimensional coordinates by stochastic gradient descent: sampled edges from <span class="math inline">\(W\)</span> pull connected points together, while randomly sampled non-edges push unrelated points apart.</p>
 </div>
 </div>
 </div>
@@ -1498,7 +1501,7 @@ w_{ij}\log r_{ij}
 </div>
 <div class="callout-body-container callout-body">
 <p>The parameter <code>min_dist</code> is the effective minimum distance between nearby points in the low-dimensional embedding. It is not a hard constraint that all plotted points must be at least this far apart. Instead, it defines the distance scale at which the low-dimensional similarity should begin to decay.</p>
-<p>UMAP does not usually ask the user to choose <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> directly. Instead, it fits <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> from <code>min_dist</code> and <code>spread</code> so that</p>
+<p>UMAP does not usually ask the user to choose <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> directly. Instead, it fits <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> from <code>min_dist</code> so that</p>
 <p><span class="math display">\[
 \frac{1}{1+\alpha d^{2\beta}}
 \]</span></p>
@@ -1514,14 +1517,20 @@ r_{ij}
 \longrightarrow
 R(Z).
 \]</span></p>
-<p>A smaller <code>min_dist</code>, such as <code>0.0</code> or <code>0.1</code>, allows strongly connected points to remain highly similar even when they are packed very close together. This produces tighter visual clusters, but it can also exaggerate apparent gaps between groups. A larger <code>min_dist</code>, such as <code>0.5</code>, makes the similarity curve decay only after a larger separation scale, so the optimization tends to keep connected points more spread out. This can make continuous structure and within-group variation easier to see, but the plot may look less clustered.</p>
-<p>So <code>min_dist</code> does not define the original nearest-neighbor graph <span class="math inline">\(W\)</span>. That graph is mainly determined by <code>metric</code> and <code>n_neighbors</code>. Instead, <code>min_dist</code> affects the low-dimensional graph <span class="math inline">\(R(Z)\)</span>: it says how close strongly connected points are allowed to appear in the display before UMAP stops gaining much by making them even closer. A tight island in a UMAP plot does not automatically mean that the original data have high density there; it may simply reflect a small <code>min_dist</code>.</p>
+<p>The practical interpretation is:</p>
+<ul>
+<li><code>min_dist</code> does not define the original nearest-neighbor graph <span class="math inline">\(W\)</span>. That graph is mainly determined by <code>metric</code> and <code>n_neighbors</code>.</li>
+<li><code>min_dist</code> affects the low-dimensional graph <span class="math inline">\(R(Z)\)</span> through the fitted values of <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span>.</li>
+<li>Smaller <code>min_dist</code> allows points that are strongly connected in <span class="math inline">\(W\)</span> to be placed closer together in the low-dimensional embedding. This usually produces tighter visual clusters.</li>
+<li>Larger <code>min_dist</code> keeps strongly connected points more spread out. This can make continuous structure and within-group variation easier to see, but the plot may look less clustered.</li>
+<li>A tight island in a UMAP plot does not automatically mean that the original data have high density there. It may simply reflect a small <code>min_dist</code>.</li>
+</ul>
 </div>
 </div>
 </section>
 <section id="what-structure-does-umap-preserve" class="level3" data-number="14.3.2">
 <h3 data-number="14.3.2" class="anchored" data-anchor-id="what-structure-does-umap-preserve"><span class="header-section-number">14.3.2</span> What structure does UMAP preserve?</h3>
-<p>UMAP preserves local nearest-neighbor graph structure, not the original coordinates, not the original feature meanings, and not exact Euclidean distances. The input graph depends on the chosen distance metric and on the neighborhood size <code>n_neighbors</code>.</p>
+<p>UMAP preserves local nearest-neighbor graph structure, not the original coordinates, not the original feature meanings, and not exact Euclidean distances. The input graph depends on the chosen distance metric and on the neighborhood size <code>n_neighbors</code>. These determine the original graph <span class="math inline">\(W\)</span> that UMAP tries to preserve. The parameter <code>min_dist</code> does not change <span class="math inline">\(W\)</span>; it changes how tightly connected points may be packed in the low-dimensional display.</p>
 <p>In plain language:</p>
 <ul>
 <li>If two observations are nearest neighbors in the original representation, UMAP tries to keep them close or connected in the plot.</li>
@@ -1540,7 +1549,7 @@ R(Z).
 </div>
 <div class="callout-body-container callout-body">
 <p>UMAP is useful when we want to inspect whether local nearest-neighbor relationships reveal structure that a linear plot such as PCA misses. Like t-SNE, it is mainly a visualization and diagnostic tool: visible groups are hypotheses to investigate, not automatic cluster definitions.</p>
-<p>UMAP can also be useful after clustering. If cluster labels form coherent local regions in a UMAP plot, then the clustering is consistent with the nearest-neighbor graph shown by UMAP. If labels are heavily mixed, the clustering may not match local structure, or the data may not contain clearly separated groups. Formal evaluation should still use criteria tied to the analysis goal, such as trustworthiness, nearest-neighbor overlap, silhouette score, or adjusted Rand index when labels are available.</p>
+<p>UMAP can also be useful after clustering. If cluster labels form coherent local regions in a UMAP plot, then the clustering is consistent with the nearest-neighbor graph shown by UMAP. If labels are heavily mixed, the clustering may not match local structure, or the data may not contain clearly separated groups. Formal evaluation should still use criteria tied to the analysis goal, such as nearest-neighbor overlap, silhouette score, or adjusted Rand index when labels are available.</p>
 </div>
 </div>
 </section>
@@ -1549,7 +1558,7 @@ R(Z).
 <p>The standard implementation is provided by <code>umap-learn</code>. If it is not installed, you may install it directly.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> add umap-learn</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>We use the same standardized digits data and the same 30-dimensional PCA preprocessing as in the t-SNE example.</p>
-<div id="ec3f5bf1" class="cell" data-execution_count="8">
+<div id="006f96ae" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> umap</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>umap_model <span class="op">=</span> umap.UMAP(</span>
@@ -1563,10 +1572,28 @@ R(Z).
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>Z_umap <span class="op">=</span> umap_model.fit_transform(X_digits_pca)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In this example, <code>n_neighbors=15</code> sets a moderate local neighborhood size, and <code>min_dist=0.1</code> allows fairly compact visual groups. These are tuning choices, not universal defaults.</p>
-<p>The parameter <code>n_neighbors</code> controls the construction of the high-dimensional graph <span class="math inline">\(W\)</span>: it determines how many nearby observations each point uses when UMAP builds the weighted nearest-neighbor graph. A small value, such as <code>5</code> or <code>10</code>, makes UMAP focus on very local neighborhoods. This can reveal fine structure, but it can also break continuous structure into many small islands. A larger value, such as <code>30</code> or <code>50</code>, asks UMAP to use broader neighborhoods. This often gives a smoother layout and may preserve more large-scale relationships, but it can hide small local differences.</p>
-<p>The parameter <code>metric</code> defines distance in the original feature space, so it determines which observations count as nearest neighbors before UMAP does any embedding. For standardized numeric features, <code>"euclidean"</code> is a common starting point. For sparse counts or text-like features, cosine distance is often more appropriate. Changing <code>metric</code> can change the graph <span class="math inline">\(W\)</span> itself, so it can change the embedding more fundamentally than changing only the visual display parameters.</p>
-<p>The parameter <code>min_dist</code> affects the low-dimensional graph <span class="math inline">\(R(Z)\)</span> rather than the original graph <span class="math inline">\(W\)</span>. Smaller values allow tighter visual groups, while larger values keep connected points more spread out. In practice, compare several values of <code>n_neighbors</code> and <code>min_dist</code>. Stable local patterns are more credible than structures that appear under only one setting.</p>
-<div id="14cfc49a" class="cell" data-execution_count="9">
+<ul>
+<li>The parameter <code>n_neighbors</code> controls the construction of the high-dimensional graph <span class="math inline">\(W\)</span>: it determines how many nearby observations each point uses when UMAP builds the weighted nearest-neighbor graph. A small value, such as <code>5</code> or <code>10</code>, makes UMAP focus on very local neighborhoods. This can reveal fine structure, but it can also break continuous structure into many small islands. A larger value, such as <code>30</code> or <code>50</code>, asks UMAP to use broader neighborhoods. This often gives a smoother layout and may preserve more large-scale relationships, but it can hide small local differences.</li>
+<li>The parameter <code>metric</code> defines distance in the original feature space, so it determines which observations count as nearest neighbors before UMAP does any embedding. For standardized numeric features, <code>"euclidean"</code> is a common starting point. For sparse counts or text-like features, cosine distance is often more appropriate. Changing <code>metric</code> can change the graph <span class="math inline">\(W\)</span> itself, so it can change the embedding more fundamentally than changing only the visual display parameters.</li>
+<li>The parameter <code>min_dist</code> affects the low-dimensional graph <span class="math inline">\(R(Z)\)</span> rather than the original graph <span class="math inline">\(W\)</span>. Smaller values allow tighter visual groups, while larger values keep connected points more spread out. In practice, try several combinations of <code>n_neighbors</code> and <code>min_dist</code>. Patterns that remain visible across reasonable settings are more credible than patterns that appear only under one parameter choice.</li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Initialization in UMAP
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>UMAP can use PCA initialization, but it usually does not rely on it. Since UMAP first builds a nearest-neighbor graph <span class="math inline">\(W\)</span>, the default initialization is typically graph-based, using spectral initialization from that graph. PCA initialization is possible, but it is not the central idea.</p>
+</div>
+</div>
+<p>We plot the result from the above code.</p>
+<div id="8d150360" class="cell" data-execution_count="9">
+<details class="code-fold">
+<summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>scatter <span class="op">=</span> ax.scatter(</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    Z_umap[:, <span class="dv">0</span>],</span>
@@ -1580,6 +1607,7 @@ R(Z).
 <span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"UMAP2"</span>)</span>
 <span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Digits UMAP"</span>)</span>
 <span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>ax.legend(<span class="op">*</span>scatter.legend_elements(), title<span class="op">=</span><span class="st">"digit"</span>, ncol<span class="op">=</span><span class="dv">2</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1588,60 +1616,160 @@ R(Z).
 </div>
 </div>
 </div>
-<div id="3ede6931" class="cell" data-execution_count="10">
+<p>We will try different combinations of <code>n_neighbors</code> and <code>min_dist</code>.</p>
+<div id="603cfc69" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>settings <span class="op">=</span> [</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">5</span>, <span class="fl">0.05</span>),</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">15</span>, <span class="fl">0.10</span>),</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">50</span>, <span class="fl">0.10</span>),</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">50</span>, <span class="fl">0.50</span>),</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, (n_neighbors, min_dist) <span class="kw">in</span> <span class="bu">zip</span>(axs.ravel(), settings):</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> umap.UMAP(</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        n_neighbors<span class="op">=</span>n_neighbors,</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        min_dist<span class="op">=</span>min_dist,</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        random_state<span class="op">=</span><span class="dv">1</span>,</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    embedding <span class="op">=</span> model.fit_transform(X_digits_pca)</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    ax.scatter(</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>        embedding[:, <span class="dv">0</span>],</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        embedding[:, <span class="dv">1</span>],</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>        c<span class="op">=</span>y_digits,</span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>        cmap<span class="op">=</span><span class="st">"tab10"</span>,</span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        s<span class="op">=</span><span class="dv">6</span>,</span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"n_neighbors=</span><span class="sc">{</span>n_neighbors<span class="sc">}</span><span class="ss">, min_dist=</span><span class="sc">{</span>min_dist<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>n_neighbors_values <span class="op">=</span> [<span class="dv">5</span>, <span class="dv">15</span>, <span class="dv">50</span>]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>min_dist_values <span class="op">=</span> [<span class="fl">0.05</span>, <span class="fl">0.10</span>, <span class="fl">0.50</span>]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">10</span>))</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>scatter <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> row, n_neighbors <span class="kw">in</span> <span class="bu">enumerate</span>(n_neighbors_values):</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> col, min_dist <span class="kw">in</span> <span class="bu">enumerate</span>(min_dist_values):</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        ax <span class="op">=</span> axs[row, col]</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        model <span class="op">=</span> umap.UMAP(</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>            n_neighbors<span class="op">=</span>n_neighbors,</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>            min_dist<span class="op">=</span>min_dist,</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>            random_state<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        embedding <span class="op">=</span> model.fit_transform(X_digits_pca)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>        scatter <span class="op">=</span> ax.scatter(</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>            embedding[:, <span class="dv">0</span>],</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>            embedding[:, <span class="dv">1</span>],</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>            c<span class="op">=</span>y_digits,</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>            cmap<span class="op">=</span><span class="st">"tab10"</span>,</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>            s<span class="op">=</span><span class="dv">6</span>,</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>        ax.set_title(<span class="ss">f"n_neighbors=</span><span class="sc">{</span>n_neighbors<span class="sc">}</span><span class="ss">, min_dist=</span><span class="sc">{</span>min_dist<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>        ax.set_xticks([])</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        ax.set_yticks([])</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>fig.legend(</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>scatter.legend_elements(),</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"digit"</span>,</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    loc<span class="op">=</span><span class="st">"center right"</span>,</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>fig.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="dv">0</span>, <span class="fl">0.9</span>, <span class="dv">1</span>])<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_jobs value 1 overridden to 1 by setting random_state. Use no seed for parallelism.
-  warn(
-D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_jobs value 1 overridden to 1 by setting random_state. Use no seed for parallelism.
-  warn(
-D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_jobs value 1 overridden to 1 by setting random_state. Use no seed for parallelism.
-  warn(
-D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_jobs value 1 overridden to 1 by setting random_state. Use no seed for parallelism.
-  warn(</code></pre>
-</div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="embedding_files/figure-html/cell-11-output-2.png" width="950" height="758" class="figure-img"></p>
+<p><img src="embedding_files/figure-html/cell-11-output-1.png" width="1150" height="950" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>Structures that persist across reasonable values of <code>n_neighbors</code>, <code>min_dist</code>, preprocessing choices, and random seeds are more credible than structures visible in only one plot.</p>
+<p>There are some findings from the plots. You are welcome to find more.</p>
+<ul>
+<li>The overall class structure is stable across all parameter settings. Most digit classes remain well separated, indicating that the underlying neighborhood relationships are largely preserved.</li>
+<li>Digits <code>0</code> and <code>6</code> remain isolated in every embedding, suggesting that these classes are intrinsically distinct from the others.</li>
+<li>Some groups of digits consistently appear close together, such as <code>1</code>, <code>2</code>, <code>3</code>, <code>8</code>, and <code>9</code>, although their relative arrangement changes across different parameter settings.</li>
+<li>Increasing <code>min_dist</code> mainly changes the compactness of the clusters. Small values produce dense, compact clusters, while larger values result in more diffuse clusters that occupy a larger area.</li>
+<li>Increasing <code>n_neighbors</code> changes the global organization of the embedding. Small values produce many isolated clusters, whereas larger values arrange nearby clusters into a more coherent overall structure.</li>
+<li>Although the overall geometry varies considerably with the choice of hyperparameters, the major clusters remain identifiable and their local neighborhood relationships are largely consistent.</li>
+</ul>
 </section>
 </section>
 <section id="comparing-the-methods" class="level2" data-number="14.4">
 <h2 data-number="14.4" class="anchored" data-anchor-id="comparing-the-methods"><span class="header-section-number">14.4</span> Comparing the Methods</h2>
-<p>PCA, spectral embedding, t-SNE, and UMAP all create lower-dimensional coordinates, but they preserve different relationships. The right method depends on what property we want to inspect.</p>
+<section id="t-sne-vs-umap" class="level3" data-number="14.4.1">
+<h3 data-number="14.4.1" class="anchored" data-anchor-id="t-sne-vs-umap"><span class="header-section-number">14.4.1</span> t-SNE vs UMAP</h3>
+<p>t-SNE and UMAP are both nonlinear visualization methods based on local relationships. They both start from high-dimensional distances, but they preserve different objects.</p>
+<p>For t-SNE, distances are converted into neighbor probabilities. The high-dimensional probabilities form <span class="math inline">\(P=(p_{ij})\)</span>, the low-dimensional probabilities form <span class="math inline">\(Q=(q_{ij})\)</span>, and t-SNE moves the plotted points so that <span class="math inline">\(Q\)</span> matches <span class="math inline">\(P\)</span>. The main tuning parameter is <code>perplexity</code>, which controls the effective neighborhood size in <span class="math inline">\(P\)</span>.</p>
+<p>For UMAP, distances are converted into a weighted nearest-neighbor graph. The high-dimensional graph is <span class="math inline">\(W=(w_{ij})\)</span>, the low-dimensional graph is <span class="math inline">\(R(Z)=(r_{ij})\)</span>, and UMAP moves the plotted points so that <span class="math inline">\(R(Z)\)</span> resembles <span class="math inline">\(W\)</span>. The parameter <code>n_neighbors</code> controls the neighborhood scale used to build <span class="math inline">\(W\)</span>, while <code>min_dist</code> controls how tightly connected points may be packed in the display.</p>
+<p>So t-SNE is especially useful for inspecting very local neighborhoods. UMAP is especially useful for inspecting nearest-neighbor graph structure, comparing neighborhood scales, and sometimes reusing a fitted embedding for new observations. Neither method should be used to make strict claims about global distances, island sizes, densities, or axis meanings.</p>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span>Apparent clusters are not proof of clusters
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>t-SNE and UMAP can make continuous structure look separated, and spectral embedding depends on the chosen graph. A visible gap is a hypothesis to investigate, not a cluster definition by itself.</p>
+</div>
+</div>
+<p>We compare them on a swiss roll dataset. This dataset is useful here because the data lie on a curved two-dimensional surface embedded in three dimensions. The color records the position along the roll, so a good nonlinear visualization should show a smooth color progression.</p>
+<div id="b44cf426" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> make_swiss_roll</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>X_swiss_raw, swiss_position <span class="op">=</span> make_swiss_roll(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    n_samples<span class="op">=</span><span class="dv">1500</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    noise<span class="op">=</span><span class="fl">0.05</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>X_swiss <span class="op">=</span> StandardScaler().fit_transform(X_swiss_raw)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>Z_tsne_compare <span class="op">=</span> TSNE(</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    n_components<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    perplexity<span class="op">=</span><span class="dv">30</span>,</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    init<span class="op">=</span><span class="st">"pca"</span>,</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    learning_rate<span class="op">=</span><span class="st">"auto"</span>,</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>).fit_transform(X_swiss)</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>Z_umap_compare <span class="op">=</span> umap.UMAP(</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    n_components<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    n_neighbors<span class="op">=</span><span class="dv">20</span>,</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    min_dist<span class="op">=</span><span class="fl">0.1</span>,</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    metric<span class="op">=</span><span class="st">"euclidean"</span>,</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>).fit_transform(X_swiss)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cb3a39b0" class="cell" data-execution_count="12">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="fl">4.8</span>), constrained_layout<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>scatter0 <span class="op">=</span> axs[<span class="dv">0</span>].scatter(</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    Z_tsne_compare[:, <span class="dv">0</span>],</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    Z_tsne_compare[:, <span class="dv">1</span>],</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    c<span class="op">=</span>swiss_position,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">"viridis"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    s<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_title(<span class="st">"t-SNE"</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_xlabel(<span class="st">"t-SNE1"</span>)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_ylabel(<span class="st">"t-SNE2"</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_xticks([])</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_yticks([])</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>scatter1 <span class="op">=</span> axs[<span class="dv">1</span>].scatter(</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    Z_umap_compare[:, <span class="dv">0</span>],</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    Z_umap_compare[:, <span class="dv">1</span>],</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    c<span class="op">=</span>swiss_position,</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">"viridis"</span>,</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    s<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].set_title(<span class="st">"UMAP"</span>)</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].set_xlabel(<span class="st">"UMAP1"</span>)</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].set_ylabel(<span class="st">"UMAP2"</span>)</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].set_xticks([])</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].set_yticks([])</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>fig.colorbar(scatter1, ax<span class="op">=</span>axs, label<span class="op">=</span><span class="st">"position along roll"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="embedding_files/figure-html/cell-13-output-1.png" width="1161" height="472" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Both plots reveal the curved local structure that PCA would have difficulty showing directly. Nearby colors tend to remain near each other, which means both methods are preserving local neighborhoods along the roll.</p>
+<p>The t-SNE plot is best read locally. It usually keeps nearby pieces of the roll close, but it may break the continuous surface into visually separated patches. Those gaps should not be interpreted as real gaps in the original data.</p>
+<p>The UMAP plot is also local, but its interpretation is graph-based. It often gives a smoother sense of how neighboring parts of the roll connect, especially when <code>n_neighbors</code> is not too small. The compactness of the display is partly controlled by <code>min_dist</code>, so visual density should still be interpreted carefully.</p>
+</section>
+<section id="four-method-comparison" class="level3" data-number="14.4.2">
+<h3 data-number="14.4.2" class="anchored" data-anchor-id="four-method-comparison"><span class="header-section-number">14.4.2</span> Four-method comparison</h3>
+<p>PCA, spectral embedding, t-SNE, and UMAP all create low-dimensional coordinates, but they answer different diagnostic questions. PCA is the linear baseline. Spectral embedding is graph-based and focuses on connectivity. t-SNE focuses on local neighbor probabilities. UMAP focuses on a weighted nearest-neighbor graph.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -1660,185 +1788,84 @@ D:\Codes\Notes\su26\.venv\Lib\site-packages\umap\umap_.py:1952: UserWarning: n_j
 <tbody>
 <tr class="odd">
 <td>PCA</td>
-<td>linear variance, linear reconstruction, large-scale linear directions</td>
-<td>nonlinear neighborhoods; curved manifolds; arbitrary cluster shape</td>
-<td>whether a simple linear projection already explains the main variation; which feature combinations matter</td>
+<td>linear variance and large-scale linear directions</td>
+<td>nonlinear neighborhoods and curved manifolds</td>
+<td>whether a simple linear projection already explains the main variation</td>
 </tr>
 <tr class="even">
 <td>Spectral embedding</td>
-<td>graph connectivity from the chosen similarity graph</td>
-<td>original feature axes; Euclidean distances not encoded by the graph; structure lost by a poor graph choice</td>
-<td>whether clusters are connected through a graph or nearest-neighbor structure</td>
+<td>connectivity in a chosen graph</td>
+<td>original feature axes and exact Euclidean distances</td>
+<td>whether a nearest-neighbor graph separates groups</td>
 </tr>
 <tr class="odd">
 <td>t-SNE</td>
 <td>local neighborhood probabilities</td>
-<td>global distances, island sizes, densities, axis directions, reusable coordinates for new points</td>
-<td>whether local neighborhoods or clustering labels are visually consistent after dimension reduction</td>
+<td>global distances, island sizes, densities, axis directions</td>
+<td>whether local neighborhoods or clustering labels are visually mixed</td>
 </tr>
 <tr class="even">
 <td>UMAP</td>
 <td>local nearest-neighbor graph, with some broader structure depending on <code>n_neighbors</code></td>
-<td>exact distances, densities, and axis meanings; results still depend on tuning</td>
-<td>nonlinear local visualization, and sometimes a reusable embedding for later inspection or modeling</td>
+<td>exact distances, densities, and axis meanings</td>
+<td>nonlinear local visualization and graph-based neighborhood structure</td>
 </tr>
 </tbody>
 </table>
-<section id="digits-comparison-example" class="level3" data-number="14.4.1">
-<h3 data-number="14.4.1" class="anchored" data-anchor-id="digits-comparison-example"><span class="header-section-number">14.4.1</span> Digits comparison example</h3>
-<p>We can compare UMAP with a two-dimensional PCA baseline on the same digits data. PCA is the simple linear reference point. UMAP is the nonlinear neighborhood-based display.</p>
-<div id="9ad39531" class="cell" data-execution_count="11">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.manifold <span class="im">import</span> trustworthiness</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> adjusted_rand_score</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>Z_pca2 <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>, random_state<span class="op">=</span><span class="dv">1</span>).fit_transform(X_digits)</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="fl">4.5</span>))</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>scatter0 <span class="op">=</span> axs[<span class="dv">0</span>].scatter(</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    Z_pca2[:, <span class="dv">0</span>],</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    Z_pca2[:, <span class="dv">1</span>],</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    c<span class="op">=</span>y_digits,</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">"tab10"</span>,</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    s<span class="op">=</span><span class="dv">10</span>,</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_title(<span class="st">"PCA Baseline"</span>)</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_xlabel(<span class="st">"PC1"</span>)</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_ylabel(<span class="st">"PC2"</span>)</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>scatter1 <span class="op">=</span> axs[<span class="dv">1</span>].scatter(</span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    Z_umap[:, <span class="dv">0</span>],</span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    Z_umap[:, <span class="dv">1</span>],</span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>    c<span class="op">=</span>y_digits,</span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">"tab10"</span>,</span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    s<span class="op">=</span><span class="dv">10</span>,</span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].set_title(<span class="st">"UMAP Embedding"</span>)</span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].set_xlabel(<span class="st">"UMAP1"</span>)</span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].set_ylabel(<span class="st">"UMAP2"</span>)</span>
-<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].legend(<span class="op">*</span>scatter1.legend_elements(), title<span class="op">=</span><span class="st">"digit"</span>, ncol<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>We now apply all four methods to the same swiss roll data.</p>
+<div id="a5f474bf" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.manifold <span class="im">import</span> SpectralEmbedding</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>Z_pca2 <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>, random_state<span class="op">=</span><span class="dv">1</span>).fit_transform(X_swiss)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>Z_spectral_swiss <span class="op">=</span> SpectralEmbedding(</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    n_components<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    affinity<span class="op">=</span><span class="st">"nearest_neighbors"</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    n_neighbors<span class="op">=</span><span class="dv">12</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>).fit_transform(X_swiss)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>embeddings <span class="op">=</span> {</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"PCA"</span>: (Z_pca2, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>),</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Spectral embedding"</span>: (Z_spectral_swiss, <span class="st">"SE1"</span>, <span class="st">"SE2"</span>),</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"t-SNE"</span>: (Z_tsne_compare, <span class="st">"t-SNE1"</span>, <span class="st">"t-SNE2"</span>),</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"UMAP"</span>: (Z_umap_compare, <span class="st">"UMAP1"</span>, <span class="st">"UMAP2"</span>),</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="bd1ac98a" class="cell" data-execution_count="14">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">9</span>), constrained_layout<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>scatter <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, (name, (Z_method, xlabel, ylabel)) <span class="kw">in</span> <span class="bu">zip</span>(axs.ravel(), embeddings.items()):</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    scatter <span class="op">=</span> ax.scatter(</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>        Z_method[:, <span class="dv">0</span>],</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>        Z_method[:, <span class="dv">1</span>],</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>        c<span class="op">=</span>swiss_position,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>        cmap<span class="op">=</span><span class="st">"viridis"</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>        s<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    ax.set_title(name)</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(xlabel)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(ylabel)</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    ax.set_xticks([])</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    ax.set_yticks([])</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>fig.colorbar(scatter, ax<span class="op">=</span>axs, label<span class="op">=</span><span class="st">"position along roll"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="embedding_files/figure-html/cell-12-output-1.png" width="1142" height="422" class="figure-img"></p>
+<p><img src="embedding_files/figure-html/cell-15-output-1.png" width="1065" height="875" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>A plot is only the first check. We can also ask whether local neighborhoods from the input representation are still visible in the embedding. The <code>trustworthiness</code> score is closer to 1 when low-dimensional neighbors are mostly true neighbors in the input space.</p>
-<div id="a056bdc1" class="cell" data-execution_count="12">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    {</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">"trustworthiness"</span>: [</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>            trustworthiness(X_digits_pca, Z_pca2, n_neighbors<span class="op">=</span><span class="dv">10</span>),</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>            trustworthiness(X_digits_pca, Z_umap, n_neighbors<span class="op">=</span><span class="dv">10</span>),</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>        ]</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    index<span class="op">=</span>[<span class="st">"PCA 2D"</span>, <span class="st">"UMAP 2D"</span>],</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<div>
-
-
-<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">trustworthiness</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">PCA 2D</th>
-<td>0.821021</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">UMAP 2D</th>
-<td>0.979510</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<p>If we want to use the embedding before clustering, we should check the clustering result rather than relying only on the plot. Since this dataset has known labels, we can use the adjusted Rand index for illustration.</p>
-<div id="657c91e4" class="cell" data-execution_count="13">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>labels_pca <span class="op">=</span> KMeans(n_clusters<span class="op">=</span><span class="dv">10</span>, n_init<span class="op">=</span><span class="dv">20</span>, random_state<span class="op">=</span><span class="dv">1</span>).fit_predict(Z_pca2)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>labels_umap <span class="op">=</span> KMeans(n_clusters<span class="op">=</span><span class="dv">10</span>, n_init<span class="op">=</span><span class="dv">20</span>, random_state<span class="op">=</span><span class="dv">1</span>).fit_predict(Z_umap)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    {</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">"adjusted Rand index"</span>: [</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>            adjusted_rand_score(y_digits, labels_pca),</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>            adjusted_rand_score(y_digits, labels_umap),</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>        ]</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    index<span class="op">=</span>[<span class="st">"K-means on PCA 2D"</span>, <span class="st">"K-means on UMAP 2D"</span>],</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-<div>
-
-
-<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">adjusted Rand index</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">K-means on PCA 2D</th>
-<td>0.322067</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">K-means on UMAP 2D</th>
-<td>0.797571</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-</section>
-<section id="t-sne-vs-umap" class="level3" data-number="14.4.2">
-<h3 data-number="14.4.2" class="anchored" data-anchor-id="t-sne-vs-umap"><span class="header-section-number">14.4.2</span> t-SNE vs UMAP</h3>
-<p>t-SNE and UMAP are both local nonlinear visualization methods, but they define “local structure” differently.</p>
-<p>t-SNE defines local structure through neighbor probabilities. For each point <span class="math inline">\(x_i\)</span>, t-SNE asks: if <span class="math inline">\(x_i\)</span> randomly chooses a neighbor, how likely is it to choose <span class="math inline">\(x_j\)</span>? The high-dimensional probabilities form <span class="math inline">\(P\)</span>, the low-dimensional probabilities form <span class="math inline">\(Q\)</span>, and t-SNE moves the plotted points so that <span class="math inline">\(Q\)</span> matches <span class="math inline">\(P\)</span> as well as possible. The parameter <code>perplexity</code> controls how wide these local probability distributions are.</p>
-<p>UMAP defines local structure through a weighted nearest-neighbor graph. It asks: are <span class="math inline">\(x_i\)</span> and <span class="math inline">\(x_j\)</span> connected in the original nearest-neighbor graph, and how strong is that connection? The parameters <code>n_neighbors</code> and <code>metric</code> affect how this graph is built, while <code>min_dist</code> mainly affects how tightly connected points are allowed to pack in the final display. UMAP then moves the plotted points so that the low-dimensional graph resembles the original graph.</p>
-<p>In practice, t-SNE is especially useful as a diagnostic plot for local label mixing or cluster separation. If points with the same label form coherent local patches in a t-SNE plot, then the labels agree with the local neighbor probabilities. If labels are heavily mixed, that suggests overlap, weak separation, or a clustering result that does not match local structure. The tradeoff is that t-SNE should not be used to interpret global distances, island sizes, or densities, and standard <code>sklearn</code> t-SNE does not naturally transform new observations.</p>
-<p>UMAP is useful when we want a graph-based local visualization that is easier to connect to a workflow. It is natural when we want to compare different neighborhood scales through <code>n_neighbors</code>, change the original-space notion of distance through <code>metric</code>, or reuse a fitted embedding to transform new observations. UMAP often preserves somewhat more broad structure than t-SNE, but this is not guaranteed and still depends on tuning.</p>
-<p>For the digits example above, a reasonable conclusion is not that one plot is simply prettier. PCA is the linear baseline; t-SNE and UMAP both reveal stronger nonlinear local digit neighborhoods; UMAP additionally gives a graph-based representation that can be checked with neighborhood metrics or clustering metrics. None of these plots alone proves true cluster separation.</p>
-<p>As a practical rule: use t-SNE when the main goal is to inspect local label mixing or cluster separation; use UMAP when the goal is to visualize nearest-neighbor graph structure, compare neighborhood scales, or build an embedding that may be reused later. Neither method should be used to make strict claims about global distances, cluster sizes, densities, or axis meanings.</p>
-<p>PCA should usually be the first plot because it is fast, stable, and interpretable. If PCA already separates the main patterns, a nonlinear embedding may not be necessary. If PCA mixes points that should be locally similar, t-SNE or UMAP can reveal nonlinear neighborhood structure. Spectral embedding is most useful when the analysis is naturally graph-based, especially before clustering.</p>
-<p>Use the method according to the diagnostic question:</p>
-<ul>
-<li>To check whether the data have a strong linear low-dimensional structure, start with PCA.</li>
-<li>To check whether graph connectivity separates groups, use spectral embedding.</li>
-<li>To inspect very local neighborhood structure or diagnose clustering labels, use t-SNE.</li>
-<li>To inspect nonlinear neighborhoods while keeping a method that can sometimes transform new observations, use UMAP.</li>
-</ul>
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Caution</span>Apparent clusters are not proof of clusters
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>t-SNE and UMAP can make continuous structure look separated, and spectral embedding depends on the chosen graph. A visible gap is a hypothesis to investigate, not a cluster definition by itself.</p>
-</div>
-</div>
+<p>The PCA plot is the baseline. It projects the three-dimensional roll onto two linear directions, so different layers of the roll can overlap even though they are far apart along the surface.</p>
+<p>The spectral embedding plot should be read as a graph-connectivity display. It uses a nearest-neighbor graph, so it can follow the curved surface better than PCA when the graph is well chosen. Its result depends strongly on the neighborhood graph.</p>
+<p>The t-SNE and UMAP plots reveal stronger nonlinear local structure than PCA. They are better for checking whether nearby points along the surface remain nearby after embedding. The key difference is that t-SNE emphasizes local neighbor probabilities, while UMAP emphasizes a weighted nearest-neighbor graph. Therefore, their plots can agree about local neighborhoods while disagreeing about the global arrangement of the roll.</p>
 
 
 </section>

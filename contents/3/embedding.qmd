@@ -728,6 +728,7 @@ The plots below use the same preprocessed digits data and the same random seed, 
 perplexities = [5, 10, 30, 50]
 
 fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+scatter = None
 
 for ax, perplexity in zip(axs.ravel(), perplexities):
     model = TSNE(
@@ -738,19 +739,37 @@ for ax, perplexity in zip(axs.ravel(), perplexities):
         random_state=1,
     )
     Z = model.fit_transform(X_digits_pca)
-    ax.scatter(Z[:, 0], Z[:, 1], c=y_digits, cmap="tab10", s=8)
+    scatter = ax.scatter(Z[:, 0], Z[:, 1], c=y_digits, cmap="tab10", s=8)
     ax.set_title(f"perplexity = {perplexity}")
     ax.set_xticks([])
     ax.set_yticks([])
+
+fig.legend(
+    *scatter.legend_elements(),
+    title="digit",
+    loc="center right",
+)
+fig.tight_layout(rect=[0, 0, 0.9, 1]);
 ```
 
 The figure illustrates how `perplexity` changes the neighborhood scale used by t-SNE. Smaller values emphasize fine local structure, so the display may form many tight or fragmented patches. Larger values use broader neighborhoods, so the display often looks smoother and less sensitive to very small local fluctuations.
 
+There are some findings based on the plots.
+
+
+- All `perplexity` values successfully separate most digit classes, indicating that the handwritten digits have a meaningful local neighborhood structure in the original high-dimensional space.
+- With small `perplexity` (5–10), the embedding emphasizes very local neighborhoods. Clusters tend to be more fragmented, and several classes are split into multiple disconnected groups.
+- Increasing `perplexity` (30–50) produces more compact and stable clusters. Samples from the same digit are grouped more consistently, resulting in a cleaner global layout.
+- The relative arrangement of clusters changes across perplexity values. This illustrates that the global positions and distances between clusters in t-SNE should not be interpreted as reflecting the true geometry of the original high-dimensional data.
+- Some overlap between visually similar digits remains under all settings. These mixed regions likely correspond to ambiguous handwriting rather than an inappropriate choice of `perplexity`.
+- The overall visualization is relatively robust once `perplexity` reaches around 30. The embeddings for `perplexity` 30 and 50 are visually similar, suggesting that the discovered local structure is stable over this parameter range.
+
+Overall, `perplexity` mainly affects the balance between preserving fine local detail and producing a smoother global organization, rather than changing the underlying cluster identities.
+
+
 The parameter does not specify the number of clusters. In the digits example, several label groups remain visible across multiple `perplexity` values, which makes those local patterns more credible. However, the relative positions, sizes, and distances between the visual groups should still not be interpreted quantitatively.
 
 There is no single "best" t-SNE plot based only on appearance. A useful setting should preserve local neighborhoods relevant to the analysis. If class labels or other external information are available, use them only after fitting to check whether nearby plotted points have similar labels or similar original features. Without labels, compare several settings and look for stable local patterns rather than choosing the plot with the cleanest-looking islands. A setting is suspicious if small changes in `perplexity` or random seed create completely different groups.
-
-
 
 
 
@@ -809,7 +828,7 @@ Thus UMAP does not try to reconstruct the original features. It tries to preserv
 
 UMAP first finds the nearest neighbors of each observation according to the chosen distance metric. The parameter `n_neighbors` controls the size of these local neighborhoods. For each point $x_i$, UMAP uses only its selected nearest neighbors as candidate directed edges from $i$. Points outside this selected neighbor set usually have directed weight $a_{ij}=0$ from the point of view of $i$.
 
-After the candidate neighbors are selected, UMAP assigns a local distance offset $\rho_i$ and a local scale $\sigma_i$ for each point. The offset $\rho_i$ is usually the distance from $x_i$ to its nearest neighbor. This makes the nearest neighbor receive weight $1$. The scale $\sigma_i$ controls how quickly the remaining selected neighbors lose weight as distance increases.
+After the candidate neighbors are selected, UMAP assigns a local distance offset $\rho_i$ and a local scale $\sigma_i$ for each point. The offset $\rho_i$ is usually the distance from $x_i$ to its nearest neighbor. This makes the nearest neighbor receive weight $1$. The scale $\sigma_i$ controls how quickly the remaining selected neighbors lose weight as distance increases. Both $\rho_i$ and $\sigma_i$ are chosen automatically by the algorithm for each point; they are not tuning parameters set by the user.
 
 A simplified version of the directed neighbor weight from $i$ to $j$ is
 
@@ -880,7 +899,7 @@ r_{ij}
 \frac{1}{1+\alpha\norm{z_i-z_j}^{2\beta}},
 $$
 
-Here $\alpha$ and $\beta$ are not usually chosen directly by the user. They are fitted internally from UMAP's display parameters, especially `min_dist` and `spread`. If two plotted points are close, $r_{ij}$ is large; if they are far apart, $r_{ij}$ is small.
+Here $\alpha$ and $\beta$ are not usually chosen directly by the user. They are fitted internally from UMAP's display parameters, especially `min_dist`. If two plotted points are close, $r_{ij}$ is large; if they are far apart, $r_{ij}$ is small.
 
 UMAP then moves the coordinates so that $R(Z)$ resembles $W$. This is done by minimizing a cross-entropy loss of the form
 
@@ -895,7 +914,7 @@ w_{ij}\log r_{ij}
 \right].
 $$
 
-The first term encourages pairs with large $w_{ij}$ to stay close in the plot. The second term discourages weakly connected pairs from all collapsing into the same place. In practice, UMAP optimizes this objective approximately, using stochastic optimization and negative sampling.
+The first term encourages pairs with large $w_{ij}$ to stay close in the plot. The second term discourages weakly connected pairs from all collapsing into the same place. In practice, UMAP optimizes the low-dimensional coordinates by stochastic gradient descent: sampled edges from $W$ pull connected points together, while randomly sampled non-edges push unrelated points apart.
 :::
 
 ::: {.callout-note}
@@ -903,7 +922,7 @@ The first term encourages pairs with large $w_{ij}$ to stay close in the plot. T
 
 The parameter `min_dist` is the effective minimum distance between nearby points in the low-dimensional embedding. It is not a hard constraint that all plotted points must be at least this far apart. Instead, it defines the distance scale at which the low-dimensional similarity should begin to decay.
 
-UMAP does not usually ask the user to choose $\alpha$ and $\beta$ directly. Instead, it fits $\alpha$ and $\beta$ from `min_dist` and `spread` so that
+UMAP does not usually ask the user to choose $\alpha$ and $\beta$ directly. Instead, it fits $\alpha$ and $\beta$ from `min_dist` so that
 
 $$
 \frac{1}{1+\alpha d^{2\beta}}
@@ -923,44 +942,32 @@ r_{ij}
 R(Z).
 $$
 
-A smaller `min_dist`, such as `0.0` or `0.1`, allows strongly connected points to remain highly similar even when they are packed very close together. This produces tighter visual clusters, but it can also exaggerate apparent gaps between groups. A larger `min_dist`, such as `0.5`, makes the similarity curve decay only after a larger separation scale, so the optimization tends to keep connected points more spread out. This can make continuous structure and within-group variation easier to see, but the plot may look less clustered.
+The practical interpretation is:
 
-So `min_dist` does not define the original nearest-neighbor graph $W$. That graph is mainly determined by `metric` and `n_neighbors`. Instead, `min_dist` affects the low-dimensional graph $R(Z)$: it says how close strongly connected points are allowed to appear in the display before UMAP stops gaining much by making them even closer. A tight island in a UMAP plot does not automatically mean that the original data have high density there; it may simply reflect a small `min_dist`.
+- `min_dist` does not define the original nearest-neighbor graph $W$. That graph is mainly determined by `metric` and `n_neighbors`.
+- `min_dist` affects the low-dimensional graph $R(Z)$ through the fitted values of $\alpha$ and $\beta$.
+- Smaller `min_dist` allows points that are strongly connected in $W$ to be placed closer together in the low-dimensional embedding. This usually produces tighter visual clusters.
+- Larger `min_dist` keeps strongly connected points more spread out. This can make continuous structure and within-group variation easier to see, but the plot may look less clustered.
+- A tight island in a UMAP plot does not automatically mean that the original data have high density there. It may simply reflect a small `min_dist`.
 :::
 
 ### What structure does UMAP preserve?
 
-UMAP preserves local nearest-neighbor graph structure, not the original
-coordinates, not the original feature meanings, and not exact Euclidean
-distances. The input graph depends on the chosen distance metric and on the
-neighborhood size `n_neighbors`.
+UMAP preserves local nearest-neighbor graph structure, not the original coordinates, not the original feature meanings, and not exact Euclidean distances. The input graph depends on the chosen distance metric and on the neighborhood size `n_neighbors`. These determine the original graph $W$ that UMAP tries to preserve. The parameter `min_dist` does not change $W$; it changes how tightly connected points may be packed in the low-dimensional display.
 
 In plain language:
 
-- If two observations are nearest neighbors in the original representation,
-  UMAP tries to keep them close or connected in the plot.
-- If two groups are connected by many nearest-neighbor edges, UMAP may place
-  them near each other even if the original geometry is curved or nonlinear.
-- Distances between faraway islands, island sizes, axis directions, and visual
-  densities should not be treated as exact quantitative information.
-- Compared with t-SNE, UMAP often keeps a little more broad structure, but this
-  depends strongly on `n_neighbors` and should still be checked.
+- If two observations are nearest neighbors in the original representation, UMAP tries to keep them close or connected in the plot.
+- If two groups are connected by many nearest-neighbor edges, UMAP may place them near each other even if the original geometry is curved or nonlinear.
+- Distances between faraway islands, island sizes, axis directions, and visual densities should not be treated as exact quantitative information.
+- Compared with t-SNE, UMAP often keeps a little more broad structure, but this depends strongly on `n_neighbors` and should still be checked.
 
 ::: {.callout-note}
 ## UMAP as a diagnostic plot
 
-UMAP is useful when we want to inspect whether local nearest-neighbor
-relationships reveal structure that a linear plot such as PCA misses. Like
-t-SNE, it is mainly a visualization and diagnostic tool: visible groups are
-hypotheses to investigate, not automatic cluster definitions.
+UMAP is useful when we want to inspect whether local nearest-neighbor relationships reveal structure that a linear plot such as PCA misses. Like t-SNE, it is mainly a visualization and diagnostic tool: visible groups are hypotheses to investigate, not automatic cluster definitions.
 
-UMAP can also be useful after clustering. If cluster labels form coherent
-local regions in a UMAP plot, then the clustering is consistent with the
-nearest-neighbor graph shown by UMAP. If labels are heavily mixed, the
-clustering may not match local structure, or the data may not contain clearly
-separated groups. Formal evaluation should still use criteria tied to the
-analysis goal, such as trustworthiness, nearest-neighbor overlap, silhouette
-score, or adjusted Rand index when labels are available.
+UMAP can also be useful after clustering. If cluster labels form coherent local regions in a UMAP plot, then the clustering is consistent with the nearest-neighbor graph shown by UMAP. If labels are heavily mixed, the clustering may not match local structure, or the data may not contain clearly separated groups. Formal evaluation should still use criteria tied to the analysis goal, such as nearest-neighbor overlap, silhouette score, or adjusted Rand index when labels are available.
 :::
 
 
@@ -991,13 +998,19 @@ Z_umap = umap_model.fit_transform(X_digits_pca)
 
 In this example, `n_neighbors=15` sets a moderate local neighborhood size, and `min_dist=0.1` allows fairly compact visual groups. These are tuning choices, not universal defaults.
 
-The parameter `n_neighbors` controls the construction of the high-dimensional graph $W$: it determines how many nearby observations each point uses when UMAP builds the weighted nearest-neighbor graph. A small value, such as `5` or `10`, makes UMAP focus on very local neighborhoods. This can reveal fine structure, but it can also break continuous structure into many small islands. A larger value, such as `30` or `50`, asks UMAP to use broader neighborhoods. This often gives a smoother layout and may preserve more large-scale relationships, but it can hide small local differences.
+- The parameter `n_neighbors` controls the construction of the high-dimensional graph $W$: it determines how many nearby observations each point uses when UMAP builds the weighted nearest-neighbor graph. A small value, such as `5` or `10`, makes UMAP focus on very local neighborhoods. This can reveal fine structure, but it can also break continuous structure into many small islands. A larger value, such as `30` or `50`, asks UMAP to use broader neighborhoods. This often gives a smoother layout and may preserve more large-scale relationships, but it can hide small local differences.
+- The parameter `metric` defines distance in the original feature space, so it determines which observations count as nearest neighbors before UMAP does any embedding. For standardized numeric features, `"euclidean"` is a common starting point. For sparse counts or text-like features, cosine distance is often more appropriate. Changing `metric` can change the graph $W$ itself, so it can change the embedding more fundamentally than changing only the visual display parameters.
+- The parameter `min_dist` affects the low-dimensional graph $R(Z)$ rather than the original graph $W$. Smaller values allow tighter visual groups, while larger values keep connected points more spread out. In practice, try several combinations of `n_neighbors` and `min_dist`. Patterns that remain visible across reasonable settings are more credible than patterns that appear only under one parameter choice.
 
-The parameter `metric` defines distance in the original feature space, so it determines which observations count as nearest neighbors before UMAP does any embedding. For standardized numeric features, `"euclidean"` is a common starting point. For sparse counts or text-like features, cosine distance is often more appropriate. Changing `metric` can change the graph $W$ itself, so it can change the embedding more fundamentally than changing only the visual display parameters.
+::: {.callout-note}
+## Initialization in UMAP
 
-The parameter `min_dist` affects the low-dimensional graph $R(Z)$ rather than the original graph $W$. Smaller values allow tighter visual groups, while larger values keep connected points more spread out. In practice, compare several values of `n_neighbors` and `min_dist`. Stable local patterns are more credible than structures that appear under only one setting.
+UMAP can use PCA initialization, but it usually does not rely on it. Since UMAP first builds a nearest-neighbor graph $W$, the default initialization is typically graph-based, using spectral initialization from that graph. PCA initialization is possible, but it is not the central idea.
+:::
 
+We plot the result from the above code.
 ```{python}
+#| code-fold: true
 fig, ax = plt.subplots(figsize=(8, 6))
 scatter = ax.scatter(
     Z_umap[:, 0],
@@ -1013,149 +1026,93 @@ ax.set_title("Digits UMAP")
 ax.legend(*scatter.legend_elements(), title="digit", ncol=2);
 ```
 
+We will try different combinations of `n_neighbors` and `min_dist`.
+
 
 ```{python}
 #| code-fold: true
-settings = [
-    (5, 0.05),
-    (15, 0.10),
-    (50, 0.10),
-    (50, 0.50),
-]
+#| warning: false
+n_neighbors_values = [5, 15, 50]
+min_dist_values = [0.05, 0.10, 0.50]
 
-fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+fig, axs = plt.subplots(3, 3, figsize=(12, 10))
+scatter = None
 
-for ax, (n_neighbors, min_dist) in zip(axs.ravel(), settings):
-    model = umap.UMAP(
-        n_neighbors=n_neighbors,
-        min_dist=min_dist,
-        random_state=1,
-    )
-    embedding = model.fit_transform(X_digits_pca)
-    ax.scatter(
-        embedding[:, 0],
-        embedding[:, 1],
-        c=y_digits,
-        cmap="tab10",
-        s=6,
-    )
-    ax.set_title(f"n_neighbors={n_neighbors}, min_dist={min_dist}")
+for row, n_neighbors in enumerate(n_neighbors_values):
+    for col, min_dist in enumerate(min_dist_values):
+        ax = axs[row, col]
+        model = umap.UMAP(
+            n_neighbors=n_neighbors,
+            min_dist=min_dist,
+            random_state=1,
+        )
+        embedding = model.fit_transform(X_digits_pca)
+        scatter = ax.scatter(
+            embedding[:, 0],
+            embedding[:, 1],
+            c=y_digits,
+            cmap="tab10",
+            s=6,
+        )
+        ax.set_title(f"n_neighbors={n_neighbors}, min_dist={min_dist}")
+        ax.set_xticks([])
+        ax.set_yticks([])
 
-plt.tight_layout();
+fig.legend(
+    *scatter.legend_elements(),
+    title="digit",
+    loc="center right",
+)
+fig.tight_layout(rect=[0, 0, 0.9, 1]);
 ```
 
-Structures that persist across reasonable values of `n_neighbors`,
-`min_dist`, preprocessing choices, and random seeds are more credible than
-structures visible in only one plot.
+There are some findings from the plots. You are welcome to find more.
+
+- The overall class structure is stable across all parameter settings. Most digit classes remain well separated, indicating that the underlying neighborhood relationships are largely preserved.
+- Digits `0` and `6` remain isolated in every embedding, suggesting that these classes are intrinsically distinct from the others.
+- Some groups of digits consistently appear close together, such as `1`, `2`, `3`, `8`, and `9`, although their relative arrangement changes across different parameter settings.
+- Increasing `min_dist` mainly changes the compactness of the clusters. Small values produce dense, compact clusters, while larger values result in more diffuse clusters that occupy a larger area.
+- Increasing `n_neighbors` changes the global organization of the embedding. Small values produce many isolated clusters, whereas larger values arrange nearby clusters into a more coherent overall structure.
+- Although the overall geometry varies considerably with the choice of hyperparameters, the major clusters remain identifiable and their local neighborhood relationships are largely consistent.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Comparing the Methods
 
-PCA, spectral embedding, t-SNE, and UMAP all create lower-dimensional coordinates, but they preserve different relationships. The right method depends on what property we want to inspect.
-
-| Method | Mainly preserves | Does not preserve well | Best for checking |
-|---|---|---|---|
-| PCA | linear variance, linear reconstruction, large-scale linear directions | nonlinear neighborhoods; curved manifolds; arbitrary cluster shape | whether a simple linear projection already explains the main variation; which feature combinations matter |
-| Spectral embedding | graph connectivity from the chosen similarity graph | original feature axes; Euclidean distances not encoded by the graph; structure lost by a poor graph choice | whether clusters are connected through a graph or nearest-neighbor structure |
-| t-SNE | local neighborhood probabilities | global distances, island sizes, densities, axis directions, reusable coordinates for new points | whether local neighborhoods or clustering labels are visually consistent after dimension reduction |
-| UMAP | local nearest-neighbor graph, with some broader structure depending on `n_neighbors` | exact distances, densities, and axis meanings; results still depend on tuning | nonlinear local visualization, and sometimes a reusable embedding for later inspection or modeling |
-
-### Digits comparison example
-
-We can compare UMAP with a two-dimensional PCA baseline on the same digits data. PCA is the simple linear reference point. UMAP is the nonlinear neighborhood-based display.
-
-```{python}
-from sklearn.cluster import KMeans
-from sklearn.manifold import trustworthiness
-from sklearn.metrics import adjusted_rand_score
-import pandas as pd
-
-Z_pca2 = PCA(n_components=2, random_state=1).fit_transform(X_digits)
-
-fig, axs = plt.subplots(1, 2, figsize=(12, 4.5))
-
-scatter0 = axs[0].scatter(
-    Z_pca2[:, 0],
-    Z_pca2[:, 1],
-    c=y_digits,
-    cmap="tab10",
-    s=10,
-    alpha=0.75,
-)
-axs[0].set_title("PCA Baseline")
-axs[0].set_xlabel("PC1")
-axs[0].set_ylabel("PC2")
-
-scatter1 = axs[1].scatter(
-    Z_umap[:, 0],
-    Z_umap[:, 1],
-    c=y_digits,
-    cmap="tab10",
-    s=10,
-    alpha=0.75,
-)
-axs[1].set_title("UMAP Embedding")
-axs[1].set_xlabel("UMAP1")
-axs[1].set_ylabel("UMAP2")
-axs[1].legend(*scatter1.legend_elements(), title="digit", ncol=2)
-
-plt.tight_layout();
-```
-
-A plot is only the first check. We can also ask whether local neighborhoods from the input representation are still visible in the embedding. The `trustworthiness` score is closer to 1 when low-dimensional neighbors are mostly true neighbors in the input space.
-
-```{python}
-pd.DataFrame(
-    {
-        "trustworthiness": [
-            trustworthiness(X_digits_pca, Z_pca2, n_neighbors=10),
-            trustworthiness(X_digits_pca, Z_umap, n_neighbors=10),
-        ]
-    },
-    index=["PCA 2D", "UMAP 2D"],
-)
-```
-
-If we want to use the embedding before clustering, we should check the clustering result rather than relying only on the plot. Since this dataset has known labels, we can use the adjusted Rand index for illustration.
-
-```{python}
-labels_pca = KMeans(n_clusters=10, n_init=20, random_state=1).fit_predict(Z_pca2)
-labels_umap = KMeans(n_clusters=10, n_init=20, random_state=1).fit_predict(Z_umap)
-
-pd.DataFrame(
-    {
-        "adjusted Rand index": [
-            adjusted_rand_score(y_digits, labels_pca),
-            adjusted_rand_score(y_digits, labels_umap),
-        ]
-    },
-    index=["K-means on PCA 2D", "K-means on UMAP 2D"],
-)
-```
-
 ### t-SNE vs UMAP
 
-t-SNE and UMAP are both local nonlinear visualization methods, but they define "local structure" differently.
+t-SNE and UMAP are both nonlinear visualization methods based on local relationships. They both start from high-dimensional distances, but they preserve different objects.
 
-t-SNE defines local structure through neighbor probabilities. For each point $x_i$, t-SNE asks: if $x_i$ randomly chooses a neighbor, how likely is it to choose $x_j$? The high-dimensional probabilities form $P$, the low-dimensional probabilities form $Q$, and t-SNE moves the plotted points so that $Q$ matches $P$ as well as possible. The parameter `perplexity` controls how wide these local probability distributions are.
+For t-SNE, distances are converted into neighbor probabilities. The high-dimensional probabilities form $P=(p_{ij})$, the low-dimensional probabilities form $Q=(q_{ij})$, and t-SNE moves the plotted points so that $Q$ matches $P$. The main tuning parameter is `perplexity`, which controls the effective neighborhood size in $P$.
 
-UMAP defines local structure through a weighted nearest-neighbor graph. It asks: are $x_i$ and $x_j$ connected in the original nearest-neighbor graph, and how strong is that connection? The parameters `n_neighbors` and `metric` affect how this graph is built, while `min_dist` mainly affects how tightly connected points are allowed to pack in the final display. UMAP then moves the plotted points so that the low-dimensional graph resembles the original graph.
+For UMAP, distances are converted into a weighted nearest-neighbor graph. The high-dimensional graph is $W=(w_{ij})$, the low-dimensional graph is $R(Z)=(r_{ij})$, and UMAP moves the plotted points so that $R(Z)$ resembles $W$. The parameter `n_neighbors` controls the neighborhood scale used to build $W$, while `min_dist` controls how tightly connected points may be packed in the display.
 
-In practice, t-SNE is especially useful as a diagnostic plot for local label mixing or cluster separation. If points with the same label form coherent local patches in a t-SNE plot, then the labels agree with the local neighbor probabilities. If labels are heavily mixed, that suggests overlap, weak separation, or a clustering result that does not match local structure. The tradeoff is that t-SNE should not be used to interpret global distances, island sizes, or densities, and standard `sklearn` t-SNE does not naturally transform new observations.
 
-UMAP is useful when we want a graph-based local visualization that is easier to connect to a workflow. It is natural when we want to compare different neighborhood scales through `n_neighbors`, change the original-space notion of distance through `metric`, or reuse a fitted embedding to transform new observations. UMAP often preserves somewhat more broad structure than t-SNE, but this is not guaranteed and still depends on tuning.
+So t-SNE is especially useful for inspecting very local neighborhoods. UMAP is especially useful for inspecting nearest-neighbor graph structure, comparing neighborhood scales, and sometimes reusing a fitted embedding for new observations. Neither method should be used to make strict claims about global distances, island sizes, densities, or axis meanings.
 
-For the digits example above, a reasonable conclusion is not that one plot is simply prettier. PCA is the linear baseline; t-SNE and UMAP both reveal stronger nonlinear local digit neighborhoods; UMAP additionally gives a graph-based representation that can be checked with neighborhood metrics or clustering metrics. None of these plots alone proves true cluster separation.
-
-As a practical rule: use t-SNE when the main goal is to inspect local label mixing or cluster separation; use UMAP when the goal is to visualize nearest-neighbor graph structure, compare neighborhood scales, or build an embedding that may be reused later. Neither method should be used to make strict claims about global distances, cluster sizes, densities, or axis meanings.
-
-PCA should usually be the first plot because it is fast, stable, and interpretable. If PCA already separates the main patterns, a nonlinear embedding may not be necessary. If PCA mixes points that should be locally similar, t-SNE or UMAP can reveal nonlinear neighborhood structure. Spectral embedding is most useful when the analysis is naturally graph-based, especially before clustering.
-
-Use the method according to the diagnostic question:
-
-- To check whether the data have a strong linear low-dimensional structure, start with PCA.
-- To check whether graph connectivity separates groups, use spectral embedding.
-- To inspect very local neighborhood structure or diagnose clustering labels, use t-SNE.
-- To inspect nonlinear neighborhoods while keeping a method that can sometimes transform new observations, use UMAP.
 
 ::: {.callout-caution}
 ## Apparent clusters are not proof of clusters
@@ -1164,3 +1121,140 @@ t-SNE and UMAP can make continuous structure look separated, and spectral
 embedding depends on the chosen graph. A visible gap is a hypothesis to
 investigate, not a cluster definition by itself.
 :::
+
+
+
+
+We compare them on a swiss roll dataset. This dataset is useful here because the data lie on a curved two-dimensional surface embedded in three dimensions. The color records the position along the roll, so a good nonlinear visualization should show a smooth color progression.
+
+```{python}
+#| warning: false
+#| code-fold: true
+from sklearn.datasets import make_swiss_roll
+
+X_swiss_raw, swiss_position = make_swiss_roll(
+    n_samples=1500,
+    noise=0.05,
+    random_state=1,
+)
+X_swiss = StandardScaler().fit_transform(X_swiss_raw)
+
+Z_tsne_compare = TSNE(
+    n_components=2,
+    perplexity=30,
+    init="pca",
+    learning_rate="auto",
+    random_state=1,
+).fit_transform(X_swiss)
+
+Z_umap_compare = umap.UMAP(
+    n_components=2,
+    n_neighbors=20,
+    min_dist=0.1,
+    metric="euclidean",
+    random_state=1,
+).fit_transform(X_swiss)
+
+fig, axs = plt.subplots(1, 2, figsize=(12, 4.8), constrained_layout=True)
+
+scatter0 = axs[0].scatter(
+    Z_tsne_compare[:, 0],
+    Z_tsne_compare[:, 1],
+    c=swiss_position,
+    cmap="viridis",
+    s=10,
+    alpha=0.75,
+)
+axs[0].set_title("t-SNE")
+axs[0].set_xlabel("t-SNE1")
+axs[0].set_ylabel("t-SNE2")
+axs[0].set_xticks([])
+axs[0].set_yticks([])
+
+scatter1 = axs[1].scatter(
+    Z_umap_compare[:, 0],
+    Z_umap_compare[:, 1],
+    c=swiss_position,
+    cmap="viridis",
+    s=10,
+    alpha=0.75,
+)
+axs[1].set_title("UMAP")
+axs[1].set_xlabel("UMAP1")
+axs[1].set_ylabel("UMAP2")
+axs[1].set_xticks([])
+axs[1].set_yticks([])
+
+fig.colorbar(scatter1, ax=axs, label="position along roll")
+```
+
+Both plots reveal the curved local structure that PCA would have difficulty showing directly. Nearby colors tend to remain near each other, which means both methods are preserving local neighborhoods along the roll.
+
+The t-SNE plot is best read locally. It usually keeps nearby pieces of the roll close, but it may break the continuous surface into visually separated patches. Those gaps should not be interpreted as real gaps in the original data.
+
+The UMAP plot is also local, but its interpretation is graph-based. It often gives a smoother sense of how neighboring parts of the roll connect, especially when `n_neighbors` is not too small. The compactness of the display is partly controlled by `min_dist`, so visual density should still be interpreted carefully.
+
+
+
+### Four-method comparison
+
+PCA, spectral embedding, t-SNE, and UMAP all create low-dimensional coordinates, but they answer different diagnostic questions. PCA is the linear baseline. Spectral embedding is graph-based and focuses on connectivity. t-SNE focuses on local neighbor probabilities. UMAP focuses on a weighted nearest-neighbor graph.
+
+| Method | Mainly preserves | Does not preserve well | Best for checking |
+|---|---|---|---|
+| PCA | linear variance and large-scale linear directions | nonlinear neighborhoods and curved manifolds | whether a simple linear projection already explains the main variation |
+| Spectral embedding | connectivity in a chosen graph | original feature axes and exact Euclidean distances | whether a nearest-neighbor graph separates groups |
+| t-SNE | local neighborhood probabilities | global distances, island sizes, densities, axis directions | whether local neighborhoods or clustering labels are visually mixed |
+| UMAP | local nearest-neighbor graph, with some broader structure depending on `n_neighbors` | exact distances, densities, and axis meanings | nonlinear local visualization and graph-based neighborhood structure |
+
+We now apply all four methods to the same swiss roll data.
+
+```{python}
+#| warning: false
+from sklearn.manifold import SpectralEmbedding
+
+Z_pca2 = PCA(n_components=2, random_state=1).fit_transform(X_swiss)
+
+Z_spectral_swiss = SpectralEmbedding(
+    n_components=2,
+    affinity="nearest_neighbors",
+    n_neighbors=12,
+    random_state=1,
+).fit_transform(X_swiss)
+
+embeddings = {
+    "PCA": (Z_pca2, "PC1", "PC2"),
+    "Spectral embedding": (Z_spectral_swiss, "SE1", "SE2"),
+    "t-SNE": (Z_tsne_compare, "t-SNE1", "t-SNE2"),
+    "UMAP": (Z_umap_compare, "UMAP1", "UMAP2"),
+}
+```
+
+```{python}
+#| code-fold: true
+fig, axs = plt.subplots(2, 2, figsize=(11, 9), constrained_layout=True)
+
+scatter = None
+for ax, (name, (Z_method, xlabel, ylabel)) in zip(axs.ravel(), embeddings.items()):
+    scatter = ax.scatter(
+        Z_method[:, 0],
+        Z_method[:, 1],
+        c=swiss_position,
+        cmap="viridis",
+        s=10,
+        alpha=0.75,
+    )
+    ax.set_title(name)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+fig.colorbar(scatter, ax=axs, label="position along roll")
+```
+
+The PCA plot is the baseline. It projects the three-dimensional roll onto two linear directions, so different layers of the roll can overlap even though they are far apart along the surface.
+
+The spectral embedding plot should be read as a graph-connectivity display. It uses a nearest-neighbor graph, so it can follow the curved surface better than PCA when the graph is well chosen. Its result depends strongly on the neighborhood graph.
+
+The t-SNE and UMAP plots reveal stronger nonlinear local structure than PCA. They are better for checking whether nearby points along the surface remain nearby after embedding. The key difference is that t-SNE emphasizes local neighbor probabilities, while UMAP emphasizes a weighted nearest-neighbor graph. Therefore, their plots can agree about local neighborhoods while disagreeing about the global arrangement of the roll.
