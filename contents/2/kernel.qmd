@@ -902,11 +902,10 @@ h = 0.25
 raw_weights = np.exp(-0.5 * ((x0 - X) / h) ** 2)
 fhat_x0 = np.sum(raw_weights * y) / np.sum(raw_weights)
 ```
-We then use the weights to determine the size of each plotted point, so that larger circles correspond to larger kernel weights. The factor 200 is chosen only for visualization.
+We then use the weights to determine the size of each plotted point, so that larger circles correspond to larger kernel weights. The factor 1200 is chosen only for visualization.
 
-<!-- We then use the weights to determine the size of each plotted point so that larger points correspond to larger kernel weights. 200 is chosen for better visualization. -->
 ``` {python}
-point_sizes = 200 * raw_weights / raw_weights.max()
+point_sizes = 1200 * raw_weights / raw_weights.sum()
 ```
 We can now plot the data together with the fitted curve, using the assigned point sizes to represent the kernel weights.
 
@@ -946,7 +945,7 @@ axes = axes.ravel() # <1>
 
 for ax, x0 in zip(axes, x0_values):
     raw_weights = np.exp(-0.5 * ((x0 - X) / h) ** 2)
-    point_sizes = 200 * raw_weights / raw_weights.max()
+    point_sizes = 1200 * raw_weights / raw_weights.sum()
     fhat_x0 = np.sum(raw_weights * y) / np.sum(raw_weights)
 
     ax.scatter(X, y, s=point_sizes, facecolors="none", edgecolors="black")
