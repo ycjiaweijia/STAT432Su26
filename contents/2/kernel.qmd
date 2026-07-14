@@ -1241,29 +1241,93 @@ Although `it` can take any nonnegative integer value, most applications use eith
 So usually we start from setting `it=0`, and then try `it=3` to see whether it is better.
 
 
-Here is an example that we extract `x_lowess` and `y_lowess` from sorted results.
+We fit both ordinary LOWESS (`it=0`) and robust LOWESS (`it=3`) using the same value of `frac`. Because `return_sorted=True`, each result contains the sorted predictor values in the first column and the corresponding fitted values in the second column.
 
 ```{python}
 from statsmodels.nonparametric.smoothers_lowess import lowess
 
-lowess_result = lowess(endog=y, exog=X, frac=0.25, it=0, return_sorted=True)
+lowess_standard = lowess(
+    endog=y, exog=X, frac=0.25, it=0, return_sorted=True
+)
 
-x_lowess = lowess_result[:, 0]
-y_lowess = lowess_result[:, 1]
-
+lowess_robust = lowess(
+    endog=y, exog=X, frac=0.25, it=3, return_sorted=True
+)
 ```
 
-We then plot the fitted curve.
+We then plot the two fitted curves together for comparison.
 
 ```{python}
+#| code-fold: true
 import matplotlib.pyplot as plt
 
 plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
 plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
-plt.plot(x_lowess, y_lowess, color="C3", label="LOWESS")
+plt.plot(
+    lowess_standard[:, 0],
+    lowess_standard[:, 1],
+    color="C3",
+    label="LOWESS ($it=0$)"
+)
+plt.plot(
+    lowess_robust[:, 0],
+    lowess_robust[:, 1],
+    color="C2",
+    linestyle="--",
+    label="robust LOWESS ($it=3$)"
+)
 plt.xlabel("x")
 plt.ylabel("y")
-plt.title("LOWESS Smoothing")
+plt.title("Ordinary versus Robust LOWESS")
+plt.legend();
+```
+
+The two fitted curves are quite similar because this dataset does not contain any strong outliers. To make the effect of robustification easier to see, we manually add a few outliers to a copy of the response values.
+
+```{python}
+y_outlier = y.copy()
+outlier_indices = np.argsort(X)[[8, 20, 32]]
+y_outlier[outlier_indices] += [5, -6, 5]
+
+lowess_standard_outlier = lowess(
+    endog=y_outlier, exog=X, frac=0.25, it=0, return_sorted=True
+)
+
+lowess_robust_outlier = lowess(
+    endog=y_outlier, exog=X, frac=0.25, it=3, return_sorted=True
+)
+```
+
+We now compare ordinary and robust LOWESS on the data with outliers.
+
+```{python}
+#| code-fold: true
+plt.scatter(X, y_outlier, s=35, facecolors="none", edgecolors="black")
+plt.scatter(
+    X[outlier_indices],
+    y_outlier[outlier_indices],
+    s=55,
+    color="C1",
+    label="added outliers",
+    zorder=3,
+)
+plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(
+    lowess_standard_outlier[:, 0],
+    lowess_standard_outlier[:, 1],
+    color="C3",
+    label="LOWESS ($it=0$)",
+)
+plt.plot(
+    lowess_robust_outlier[:, 0],
+    lowess_robust_outlier[:, 1],
+    color="C2",
+    linestyle="--",
+    label="robust LOWESS ($it=3$)",
+)
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Ordinary versus Robust LOWESS with Outliers")
 plt.legend();
 ```
 
