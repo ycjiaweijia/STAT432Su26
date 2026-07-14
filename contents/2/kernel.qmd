@@ -1262,24 +1262,22 @@ We then plot the two fitted curves together for comparison.
 import matplotlib.pyplot as plt
 
 plt.scatter(X, y, s=35, facecolors="none", edgecolors="black")
-plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(X_grid, 2 * np.sin(X_grid), label="true function")
 plt.plot(
     lowess_standard[:, 0],
     lowess_standard[:, 1],
-    color="C3",
-    label="LOWESS ($it=0$)"
+    label="LOWESS ($it=0$)",
 )
 plt.plot(
     lowess_robust[:, 0],
     lowess_robust[:, 1],
-    color="C2",
     linestyle="--",
-    label="robust LOWESS ($it=3$)"
+    label="robust LOWESS ($it=3$)",
 )
 plt.xlabel("x")
 plt.ylabel("y")
 plt.title("Ordinary versus Robust LOWESS")
-plt.legend();
+plt.legend()
 ```
 
 The two fitted curves are quite similar because this dataset does not contain any strong outliers. To make the effect of robustification easier to see, we manually add a few outliers to a copy of the response values.
@@ -1311,17 +1309,15 @@ plt.scatter(
     label="added outliers",
     zorder=3,
 )
-plt.plot(X_grid, 2 * np.sin(X_grid), color="C0", label="true function")
+plt.plot(X_grid, 2 * np.sin(X_grid), label="true function")
 plt.plot(
     lowess_standard_outlier[:, 0],
     lowess_standard_outlier[:, 1],
-    color="C3",
     label="LOWESS ($it=0$)",
 )
 plt.plot(
     lowess_robust_outlier[:, 0],
     lowess_robust_outlier[:, 1],
-    color="C2",
     linestyle="--",
     label="robust LOWESS ($it=3$)",
 )
