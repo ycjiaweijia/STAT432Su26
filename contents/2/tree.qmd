@@ -14,6 +14,22 @@ The basic idea is:
 2. Continue splitting each region into smaller regions.
 3. Use the observations inside each final region to make predictions.
 
+## Basic Tree Terminology
+
+A decision tree recursively divides the training observations into smaller groups. Each node is a position in the tree together with the observations assigned to it.
+
+- A node is a position in the tree. We use $G$ to denote the set of training observations in a node, and $|G|$ denotes the number of observations in that set. Equivalently, $G$ identifies a subset of the rows of $X$.
+- The root node is the node at the top of the tree. It contains all training observations.
+- A split applies a rule such as $x_j\leq c$ to a node and divides it into two child nodes. The original node is their parent node.
+- An internal node, also called a decision node, is a node that has been split.
+- A leaf node, also called a terminal node, is a node that is not split further. Each leaf contains a final group of observations used to make a prediction.
+- The depth of a node is the number of parent-child connections traversed when moving from the root to that node. The root has depth 0.
+- The depth of a tree is the largest depth among all nodes in the tree. Equivalently, it is the largest number of edges on any path from the root to a leaf.
+- A subtree consists of a node and all of its descendants. Pruning replaces a larger subtree with a leaf.
+- A binary tree is a tree in which each internal node has two children. CART constructs binary trees. Note that there are other algorithms that can build trees, and they may not create binary trees.
+
+For classification, a leaf usually predicts the most common class or the class proportions among its observations. For regression, a leaf usually predicts the mean response among its observations. A classification node is pure when all its observations belong to the same class.
+
 ::: {#exm-}
 ## Example: A Classification Tree
 
@@ -84,6 +100,23 @@ ax.set_xlim(xmin, xmax)
 ax.set_ylim(ymin, ymax);
 ```
 <!-- fmt: on -->
+
+We could also go over all basic terminologies in this example.
+
+- Node #0 is the root node. It contains all 150 observations in the dataset and has depth 0.
+- Node #0 is an internal node. Its split sends observations to node #1 or node #2, which are its child nodes.
+- Node #2 is also an internal node. It is a child of node #0 and the parent of nodes #3 and #4.
+- Nodes #1, #3, and #4 are leaf nodes because they are not split further. Their depths are 1, 2, and 2, respectively.
+- The depth of this tree is 2, which is the largest depth among its nodes.
+- This is a binary tree because every internal node has exactly two children.
+- A branch connects two nodes. For example, the branch from node #0 to node #1 corresponds to the outcome $x_0\leq 2.45$.
+- One example of subtree: the subtree rooted at node #2 consists of nodes #2, #3, and #4.
+- Each leaf makes a prediction using the observations it contains. For example, node #1 predicts class 0, the most common class among its observations.
+- Node #1 is pure because all observations in it belong to class 0. Its Gini impurity is therefore 0.
+
+
+
+
 :::
 
 
@@ -102,7 +135,7 @@ As a result, we should expect that a tree is:
 
 ## CART: Classification and Regression Trees
 
-There are many algorithms for constructing decision trees. The most common one is called CART (Classification and Regression Trees).
+There are many algorithms for constructing decision trees. The most common one is called CART (Classification and Regression Trees) @Breiman1984.
 
 CART has the following properties:
 
@@ -153,7 +186,7 @@ The splitting algorithm is applied recursively.
    2. Split the node into: $G_l$ and $G_r$
    3. Apply the same procedure recursively to both child nodes
 3. Stop when:
-   - the maximal depth is reached, or
+   - the maximal tree depth is reached, or
    - the node becomes pure, or
    - further splitting is impossible
 :::
@@ -272,7 +305,11 @@ J
 +\frac{|G_r|}{|G|}\gini(G_r).
 $$
 
+
+
 A good split produces child nodes with low impurity, ideally creating nodes that are close to pure.
+
+The cost of a tree is obtained by applying this weighting recursively down to the leaves. It is therefore a weighted sum of the Gini impurity of each leaf, with weights given by the proportion of samples falling into that leaf.
 
 ::: {.callout-note}
 # Entropy
@@ -296,7 +333,7 @@ Because Gini impurity is slightly simpler computationally and conceptually, we m
 
 Regression trees are used when the response variable is quantitative. Instead of predicting a class label, they predict numerical values.
 
-Suppose a terminal node contains responses $y_1$, $y_2$, $\ldots$, $y_n$. The prediction for that region is usually the sample mean:
+Suppose a leaf node contains responses $y_1$, $y_2$, $\ldots$, $y_n$. The prediction for that region is usually the sample mean:
 $$
 \hat y
 =\frac{1}{n}\sum_{i=1}^n y_i.
@@ -416,17 +453,17 @@ Thus a regression tree approximates a complicated nonlinear function using many 
 ## Tuning hyperparameters
 
 
-Building a decision tree is the same as splitting the training dataset. If we are alllowed to keep splitting it, it is possible to get to a case that each end node is pure: the Gini impurity is 0, or every element has the same response variable locally. 
+Building a decision tree is the same as recursively splitting the training dataset. If we are allowed to keep splitting it, almost every leaf may become pure: its Gini impurity is 0 for classification, or all observations in the leaf have the same response value for regression.
 
 
 ::: {#exm-}
-# ALMOST all end nodes are pure
+# ALMOST all leaves are pure
 
 
 <details>
 <summary><strong>Click to expand.</strong></summary>
 
-In this example, we let the tree grow as further as possible. It only stops when (almost) all end nodes are pure, even if the end nodes only contain ONE element (like #6 and #11).
+In this example, we let the tree grow as far as possible. It only stops when (almost) all leaves are pure, even if a leaf contains only ONE observation (like #6 and #11).
 
 <!-- fmt: off -->
 ```{python}
@@ -467,30 +504,69 @@ There are two common ways to control a single tree growth:
 2. Pre-pruning: stop the tree early by imposing restrictions during training.
    
 
+
 ### Pruning
 
-Pruning means removing branches from a tree. The pruning method introduced in CART is called Minimal Cost-Complexity Pruning (MCCP).
+Pruning removes a subtree by replacing its root with a leaf node. The pruning method introduced in CART is called Minimal Cost-Complexity Pruning (MCCP).
 
-The idea is very similar to regularization in ridge or lasso regression: we balance goodness of fit against model complexity by adding a penalty term. In MCCP, the penalty is proportional to the number of terminal nodes (leaves) in the tree.
-
-More specifically, the cost function is modified by adding a complexity penalty controlled by the parameter `ccp_alpha`. The parameter `ccp_alpha` is called the complexity parameter and is always $\geq0$. Let $T$ be a subtree, and let $|T|$ denote the number of terminal nodes. The cost-complexity criterion is
+More specifically, the cost function is modified by adding a complexity penalty controlled by the parameter `ccp_alpha`. The parameter `ccp_alpha` is called the complexity parameter and is always $\geq 0$. Let $T$ be a subtree, and let $|L(T)|$ denote the number of leaves in $T$. The cost-complexity criterion is
 $$
-C_\alpha(T)=J(T)+\alpha |T|,
+C_\alpha(T) = J(T) + \alpha |L(T)|,
 $$
 where:
 
-- $J(T)$ measures the training error,
-- $|T|$ measures tree complexity through the number of terminal nodes,
-- $\alpha$ is corresponding to `ccp_alpha` in the notes.
+- $J(T)$ is the total training cost of $T$, based on weighted Gini impurity for classification and RSS for regression,
+- $\alpha$ corresponds to `ccp_alpha` in the code.
 
+The idea is to find a tree who has the smallest cost-complexity criterion for a certain $\alpha$.
+<!-- This has the same general structure as regularized regression: $\text{loss} + \text{penalty}$. -->
 
-This has the same general structure as regularized regression: $\text{loss}+\text{penalty}$.
+::: {#exm-}
+## The split cost
+The cost comparison can be understood by considering whether a subtree should be retained or pruned. Let $T_t$ be the subtree of $T$ rooted at an internal node $t$, and let $T^{(-t)}$ be the tree obtained by replacing $T_t$ with a single leaf $t$.
 
-The tuning parameter $\alpha$ controls how expensive it is to add another leaf. If a split reduces the training error by only a small amount, it may not be worth keeping when $\alpha$ is large. When $\alpha = 0$, there is no complexity penalty, so the procedure behaves like an ordinary decision tree and larger trees are generally preferred.
+```{mermaid}
+flowchart TB
+    subgraph Before["Before pruning: T"]
+        direction TB
+        A[unchanged part] --> S((T_t))
+    end
 
-When applying MCCP, we typically begin with a large tree and then compute the `ccp_alpha` path, which contains the critical values where the tree structure changes. Each critical value corresponds to a different subtree produced by pruning. We then use validation or cross-validation to compare these candidate subtrees and choose the best value of `ccp_alpha`.
+    subgraph After["After pruning: T^(-t)"]
+        direction TB
+        B[same unchanged part] --> L((leaf t))
+    end
 
-If several values of `ccp_alpha` achieve similar validation performance, we usually prefer the simpler tree. Therefore, among models with similar test or validation scores, a larger `ccp_alpha` is often preferred because it produces a smaller and more stable tree.
+    S -. prune .-> L
+```
+
+The leaf $t$ is already counted in $T^{(-t)}$. Expanding it into $T_t$ therefore adds $|L(T_t)|-1$ leaves, so
+$$
+|L(T)|=|L(T^{(-t)})|+|L(T_t)|-1.
+$$
+
+The reduction in cost from retaining $T_t$ is
+$$
+\begin{split}
+C_{\alpha}(T^{(-t)})- C_{\alpha}(T)
+&=\qty(J(T^{(-t)})+\alpha|L(T^{(-t)})|)-\qty(J(T)+\alpha|L(T)|)\\
+&=\qty(J(T^{(-t)})-J(T))-\alpha(|L(T_t)|-1).
+\end{split}
+$$
+The subtree is worth retaining only when the cost is reduced $C_{\alpha}(T)<C_{\alpha}(T^{(-t)})$, which means that
+$$
+J(T^{(-t)})-J(T)
+>
+\alpha\bigl(|L(T_t)|-1\bigr).
+$$
+
+Thus, the reduction in training cost must exceed the complexity penalty for the additional leaves. When $\alpha = 0$, there is no complexity penalty, so the procedure behaves like an ordinary decision tree and larger trees are generally preferred.
+
+:::
+
+If the optimization problem were solved independently for each value of $\alpha$, there would be no obvious reason to expect the resulting optimal subtrees to be related. However @Breiman1984 proved that if $\alpha_1>\alpha_2$, then the optimal subtree for $\alpha_1$ can always be obtained by pruning subtrees from the optimal subtree for $\alpha_2$. Therefore, the MCCP algorithm views pruning as gradually increasing `ccp_alpha` from 0 to larger values, generating a nested sequence of subtrees from the fully grown tree. The goal is to find a tree that balances predictive performance and model complexity.
+
+In practice, we first compute the `ccp_alpha` path, which contains the values of `ccp_alpha` at which the optimal subtree changes. We then use a validation set or cross-validation to evaluate the subtrees along this path and select an appropriate value of `ccp_alpha`. If several candidate trees achieve similar predictive performance, we usually prefer the simpler tree, corresponding to a larger `ccp_alpha`, because it is often more stable and easier to interpret.
 
 
 ### Pre-pruning
@@ -499,7 +575,7 @@ We often impose some early stopping conditions to limit the growth of a tree. Th
 
 - `max_depth`: maximum tree depth
 - `min_samples_split`: minimum number of observations required to split a node
-- `min_samples_leaf`: minimum number of observations in a terminal node
+- `min_samples_leaf`: minimum number of observations in a leaf node
 - `max_leaf_nodes`: maximum number of leaves
 
 Smaller trees are usually more stable but may underfit. Larger trees are more flexible but may overfit. A larger tree is not automatically better, even if it achieves lower training error.
@@ -617,7 +693,7 @@ train_acc = [clf.score(X_train, y_train) for clf in clfs]
 test_acc = [clf.score(X_test, y_test) for clf in clfs]
 ```
 
-Here we use a single train/test split. This is a simple validation strategy: the model is fitted on the training set and evaluated on the test set. In addition to accuracy, we also record the number of nodes because it is a useful measure of tree complexity.
+Here we use a single train/test split for simplicity (by abusing notations since we actually use test set as validation set). In addition to accuracy, we also record the number of nodes because it is a useful measure of tree complexity.
 
 A larger tree usually has lower bias but higher variance. A smaller tree is often more interpretable and more stable.
 
@@ -628,7 +704,7 @@ The results are easier to compare visually.
 ```{python}
 import matplotlib.pyplot as plt
 
-best_alpha = 0.05
+best_alpha = 0.02
 
 fig, ax = plt.subplots(2, 1, figsize=(7, 7), sharex=True)
 
@@ -649,7 +725,7 @@ ax[1].legend(loc="lower left")
 1. For pruning-related plots, `drawstyle="steps-post"` is important because the tree structure stays the same within each interval of `ccp_alpha` values. The tree only changes after reaching the next pruning threshold. Each critical `ccp_alpha` corresponds to pruning one or more weak internal nodes, so the pruning path is piecewise constant.
 
 
-Based on the plot, from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`, the test accuracy stay the same. Therefore we choose the model with the least number of nodes. So we could choose any `ccp_alpha` from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`. Therefore we would like to choose the one with the least number of nodes, which is `{python} ccp_alphas[-3].item()`. Since all values in the range is the same, we hand pick `ccp_alpha=0.05` for simplicity.
+Based on the plot, from `{python} ccp_alphas[0].item()` $\leq$ `ccp_alpha` $<$ `{python} ccp_alphas[-2].item()`, the test accuracy stay the same. Therefore we would like to choose the one with the least number of nodes, which is `{python} ccp_alphas[-3].item()`. Since all $\alpha$ values in the range give the same tree, we hand pick `ccp_alpha=0.02` for simplicity.
 
 
 We can now build the final tree and display it.

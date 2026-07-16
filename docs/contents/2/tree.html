@@ -58,7 +58,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -148,7 +167,10 @@ window.MathJax = {
 
 };
 
-</script><script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+</script><meta name="mermaid-theme" content="default">
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
 
 
@@ -622,24 +644,25 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#cart-classification-and-regression-trees" id="toc-cart-classification-and-regression-trees" class="nav-link active" data-scroll-target="#cart-classification-and-regression-trees"><span class="header-section-number">9.1</span> CART: Classification and Regression Trees</a>
+  <li><a href="#basic-tree-terminology" id="toc-basic-tree-terminology" class="nav-link active" data-scroll-target="#basic-tree-terminology"><span class="header-section-number">9.1</span> Basic Tree Terminology</a></li>
+  <li><a href="#cart-classification-and-regression-trees" id="toc-cart-classification-and-regression-trees" class="nav-link" data-scroll-target="#cart-classification-and-regression-trees"><span class="header-section-number">9.2</span> CART: Classification and Regression Trees</a>
   <ul class="collapse">
-  <li><a href="#splitting-a-dataset" id="toc-splitting-a-dataset" class="nav-link" data-scroll-target="#splitting-a-dataset"><span class="header-section-number">9.1.1</span> Splitting a Dataset</a></li>
-  <li><a href="#classification-trees-gini-impurity" id="toc-classification-trees-gini-impurity" class="nav-link" data-scroll-target="#classification-trees-gini-impurity"><span class="header-section-number">9.1.2</span> Classification Trees: Gini Impurity</a></li>
-  <li><a href="#regression-trees-rss" id="toc-regression-trees-rss" class="nav-link" data-scroll-target="#regression-trees-rss"><span class="header-section-number">9.1.3</span> Regression Trees: RSS</a></li>
-  <li><a href="#trees-are-local" id="toc-trees-are-local" class="nav-link" data-scroll-target="#trees-are-local"><span class="header-section-number">9.1.4</span> Trees are local</a></li>
-  <li><a href="#trees-are-nonlinear" id="toc-trees-are-nonlinear" class="nav-link" data-scroll-target="#trees-are-nonlinear"><span class="header-section-number">9.1.5</span> Trees are nonlinear</a></li>
-  <li><a href="#automatic-interaction-effects" id="toc-automatic-interaction-effects" class="nav-link" data-scroll-target="#automatic-interaction-effects"><span class="header-section-number">9.1.6</span> Automatic interaction effects</a></li>
+  <li><a href="#splitting-a-dataset" id="toc-splitting-a-dataset" class="nav-link" data-scroll-target="#splitting-a-dataset"><span class="header-section-number">9.2.1</span> Splitting a Dataset</a></li>
+  <li><a href="#classification-trees-gini-impurity" id="toc-classification-trees-gini-impurity" class="nav-link" data-scroll-target="#classification-trees-gini-impurity"><span class="header-section-number">9.2.2</span> Classification Trees: Gini Impurity</a></li>
+  <li><a href="#regression-trees-rss" id="toc-regression-trees-rss" class="nav-link" data-scroll-target="#regression-trees-rss"><span class="header-section-number">9.2.3</span> Regression Trees: RSS</a></li>
+  <li><a href="#trees-are-local" id="toc-trees-are-local" class="nav-link" data-scroll-target="#trees-are-local"><span class="header-section-number">9.2.4</span> Trees are local</a></li>
+  <li><a href="#trees-are-nonlinear" id="toc-trees-are-nonlinear" class="nav-link" data-scroll-target="#trees-are-nonlinear"><span class="header-section-number">9.2.5</span> Trees are nonlinear</a></li>
+  <li><a href="#automatic-interaction-effects" id="toc-automatic-interaction-effects" class="nav-link" data-scroll-target="#automatic-interaction-effects"><span class="header-section-number">9.2.6</span> Automatic interaction effects</a></li>
   </ul></li>
-  <li><a href="#tuning-hyperparameters" id="toc-tuning-hyperparameters" class="nav-link" data-scroll-target="#tuning-hyperparameters"><span class="header-section-number">9.2</span> Tuning hyperparameters</a>
+  <li><a href="#tuning-hyperparameters" id="toc-tuning-hyperparameters" class="nav-link" data-scroll-target="#tuning-hyperparameters"><span class="header-section-number">9.3</span> Tuning hyperparameters</a>
   <ul class="collapse">
-  <li><a href="#pruning" id="toc-pruning" class="nav-link" data-scroll-target="#pruning"><span class="header-section-number">9.2.1</span> Pruning</a></li>
-  <li><a href="#pre-pruning" id="toc-pre-pruning" class="nav-link" data-scroll-target="#pre-pruning"><span class="header-section-number">9.2.2</span> Pre-pruning</a></li>
+  <li><a href="#pruning" id="toc-pruning" class="nav-link" data-scroll-target="#pruning"><span class="header-section-number">9.3.1</span> Pruning</a></li>
+  <li><a href="#pre-pruning" id="toc-pre-pruning" class="nav-link" data-scroll-target="#pre-pruning"><span class="header-section-number">9.3.2</span> Pre-pruning</a></li>
   </ul></li>
-  <li><a href="#trees-in-python" id="toc-trees-in-python" class="nav-link" data-scroll-target="#trees-in-python"><span class="header-section-number">9.3</span> Trees in Python</a>
+  <li><a href="#trees-in-python" id="toc-trees-in-python" class="nav-link" data-scroll-target="#trees-in-python"><span class="header-section-number">9.4</span> Trees in Python</a>
   <ul class="collapse">
-  <li><a href="#example-1-classify-iris-dataset" id="toc-example-1-classify-iris-dataset" class="nav-link" data-scroll-target="#example-1-classify-iris-dataset"><span class="header-section-number">9.3.1</span> Example 1: Classify <code>iris</code> dataset</a></li>
-  <li><a href="#example-2-regression-with-the-diabetes-dataset" id="toc-example-2-regression-with-the-diabetes-dataset" class="nav-link" data-scroll-target="#example-2-regression-with-the-diabetes-dataset"><span class="header-section-number">9.3.2</span> Example 2: Regression with the <code>diabetes</code> dataset</a></li>
+  <li><a href="#example-1-classify-iris-dataset" id="toc-example-1-classify-iris-dataset" class="nav-link" data-scroll-target="#example-1-classify-iris-dataset"><span class="header-section-number">9.4.1</span> Example 1: Classify <code>iris</code> dataset</a></li>
+  <li><a href="#example-2-regression-with-the-diabetes-dataset" id="toc-example-2-regression-with-the-diabetes-dataset" class="nav-link" data-scroll-target="#example-2-regression-with-the-diabetes-dataset"><span class="header-section-number">9.4.2</span> Example 2: Regression with the <code>diabetes</code> dataset</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -675,10 +698,25 @@ window.Quarto = {
 <li>Continue splitting each region into smaller regions.</li>
 <li>Use the observations inside each final region to make predictions.</li>
 </ol>
+<section id="basic-tree-terminology" class="level2" data-number="9.1">
+<h2 data-number="9.1" class="anchored" data-anchor-id="basic-tree-terminology"><span class="header-section-number">9.1</span> Basic Tree Terminology</h2>
+<p>A decision tree recursively divides the training observations into smaller groups. Each node is a position in the tree together with the observations assigned to it.</p>
+<ul>
+<li>A node is a position in the tree. We use <span class="math inline">\(G\)</span> to denote the set of training observations in a node, and <span class="math inline">\(|G|\)</span> denotes the number of observations in that set. Equivalently, <span class="math inline">\(G\)</span> identifies a subset of the rows of <span class="math inline">\(X\)</span>.</li>
+<li>The root node is the node at the top of the tree. It contains all training observations.</li>
+<li>A split applies a rule such as <span class="math inline">\(x_j\leq c\)</span> to a node and divides it into two child nodes. The original node is their parent node.</li>
+<li>An internal node, also called a decision node, is a node that has been split.</li>
+<li>A leaf node, also called a terminal node, is a node that is not split further. Each leaf contains a final group of observations used to make a prediction.</li>
+<li>The depth of a node is the number of parent-child connections traversed when moving from the root to that node. The root has depth 0.</li>
+<li>The depth of a tree is the largest depth among all nodes in the tree. Equivalently, it is the largest number of edges on any path from the root to a leaf.</li>
+<li>A subtree consists of a node and all of its descendants. Pruning replaces a larger subtree with a leaf.</li>
+<li>A binary tree is a tree in which each internal node has two children. CART constructs binary trees. Note that there are other algorithms that can build trees, and they may not create binary trees.</li>
+</ul>
+<p>For classification, a leaf usually predicts the most common class or the class proportions among its observations. For regression, a leaf usually predicts the mean response among its observations. A classification node is pure when all its observations belong to the same class.</p>
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 9.1 (Example: A Classification Tree)</strong></span> &nbsp;</p>
 <!-- fmt: off -->
-<div id="7500e3e5" class="cell" data-execution_count="1">
+<div id="022625ec" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -696,7 +734,7 @@ window.Quarto = {
 <p>Each split divides the feature space into smaller regions.</p>
 <p>This tree actually create the following splits in the feature space.</p>
 <!-- fmt: off -->
-<div id="97e87835" class="cell" data-execution_count="2">
+<div id="9637cd52" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -706,6 +744,19 @@ window.Quarto = {
 </div>
 </div>
 <!-- fmt: on -->
+<p>We could also go over all basic terminologies in this example.</p>
+<ul>
+<li>Node #0 is the root node. It contains all 150 observations in the dataset and has depth 0.</li>
+<li>Node #0 is an internal node. Its split sends observations to node #1 or node #2, which are its child nodes.</li>
+<li>Node #2 is also an internal node. It is a child of node #0 and the parent of nodes #3 and #4.</li>
+<li>Nodes #1, #3, and #4 are leaf nodes because they are not split further. Their depths are 1, 2, and 2, respectively.</li>
+<li>The depth of this tree is 2, which is the largest depth among its nodes.</li>
+<li>This is a binary tree because every internal node has exactly two children.</li>
+<li>A branch connects two nodes. For example, the branch from node #0 to node #1 corresponds to the outcome <span class="math inline">\(x_0\leq 2.45\)</span>.</li>
+<li>One example of subtree: the subtree rooted at node #2 consists of nodes #2, #3, and #4.</li>
+<li>Each leaf makes a prediction using the observations it contains. For example, node #1 predicts class 0, the most common class among its observations.</li>
+<li>Node #1 is pure because all observations in it belong to class 0. Its Gini impurity is therefore 0.</li>
+</ul>
 </div>
 <p>Based on the idea of a decision tree, a tree makes decisions by repeatedly asking questions of the form <span class="math inline">\(x_j \leq c\)</span>. Therefore, a tree has two important properties:</p>
 <ul>
@@ -717,9 +768,10 @@ window.Quarto = {
 <li>sensitive to feature construction or feature combinations: A tree can only split on the features that are provided. If the useful signal is hidden in a combination such as <span class="math inline">\(x_1+x_2\)</span> or <span class="math inline">\(x_1x_2\)</span>, a tree may need many splits to approximate that relationship.</li>
 <li>not sensitive to monotone transformations of a feature: For example, replacing <span class="math inline">\(x\)</span> by <span class="math inline">\(\log(x)\)</span> or <span class="math inline">\(2x+5\)</span> does not change the ordering of the observations. Since tree splits mainly depend on ordering, the tree can usually produce an equivalent split after the transformation.</li>
 </ul>
-<section id="cart-classification-and-regression-trees" class="level2" data-number="9.1">
-<h2 data-number="9.1" class="anchored" data-anchor-id="cart-classification-and-regression-trees"><span class="header-section-number">9.1</span> CART: Classification and Regression Trees</h2>
-<p>There are many algorithms for constructing decision trees. The most common one is called CART (Classification and Regression Trees).</p>
+</section>
+<section id="cart-classification-and-regression-trees" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="cart-classification-and-regression-trees"><span class="header-section-number">9.2</span> CART: Classification and Regression Trees</h2>
+<p>There are many algorithms for constructing decision trees. The most common one is called CART (Classification and Regression Trees) <span class="citation" data-cites="Breiman1984">[<a href="../../index.html#ref-Breiman1984" role="doc-biblioref">1</a>]</span>.</p>
 <p>CART has the following properties:</p>
 <ul>
 <li>It creates only binary splits;</li>
@@ -729,8 +781,8 @@ window.Quarto = {
 <li>For regression, common splitting criteria include residual sum of squares (RSS) and mean squared error (MSE).</li>
 </ul></li>
 </ul>
-<section id="splitting-a-dataset" class="level3" data-number="9.1.1">
-<h3 data-number="9.1.1" class="anchored" data-anchor-id="splitting-a-dataset"><span class="header-section-number">9.1.1</span> Splitting a Dataset</h3>
+<section id="splitting-a-dataset" class="level3" data-number="9.2.1">
+<h3 data-number="9.2.1" class="anchored" data-anchor-id="splitting-a-dataset"><span class="header-section-number">9.2.1</span> Splitting a Dataset</h3>
 <p>At each step, CART searches over possible splits and chooses the split that produces the largest reduction in impurity (or prediction error).</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -781,7 +833,7 @@ window.Quarto = {
 </ol></li>
 <li>Stop when:
 <ul>
-<li>the maximal depth is reached, or</li>
+<li>the maximal tree depth is reached, or</li>
 <li>the node becomes pure, or</li>
 <li>further splitting is impossible</li>
 </ul></li>
@@ -790,8 +842,8 @@ window.Quarto = {
 </div>
 <p>When making predictions, a classification tree uses the most common class label in a region as the predicted value, while a regression tree uses the mean of the response values in the region as the predicted value.</p>
 </section>
-<section id="classification-trees-gini-impurity" class="level3" data-number="9.1.2">
-<h3 data-number="9.1.2" class="anchored" data-anchor-id="classification-trees-gini-impurity"><span class="header-section-number">9.1.2</span> Classification Trees: Gini Impurity</h3>
+<section id="classification-trees-gini-impurity" class="level3" data-number="9.2.2">
+<h3 data-number="9.2.2" class="anchored" data-anchor-id="classification-trees-gini-impurity"><span class="header-section-number">9.2.2</span> Classification Trees: Gini Impurity</h3>
 <p>Classification trees are used when the response variable is categorical. A classification tree partitions the feature space into piecewise constant regions, where each region predicts either a class label or class probabilities.</p>
 <p>In these notes, we use Gini impurity to measure the quality of a split.</p>
 <p>Assume that a node contains <span class="math inline">\(n\)</span> observations divided into <span class="math inline">\(K\)</span> classes. Let <span class="math inline">\(p_i=\frac{n_i}{n}\)</span> be the proportion of class <span class="math inline">\(i\)</span>. If we classify observations according to the class proportions:</p>
@@ -862,6 +914,7 @@ J
 +\frac{|G_r|}{|G|}\gini(G_r).
 \]</span></p>
 <p>A good split produces child nodes with low impurity, ideally creating nodes that are close to pure.</p>
+<p>The cost of a tree is obtained by applying this weighting recursively down to the leaves. It is therefore a weighted sum of the Gini impurity of each leaf, with weights given by the proportion of samples falling into that leaf.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -882,10 +935,10 @@ J
 </div>
 </div>
 </section>
-<section id="regression-trees-rss" class="level3" data-number="9.1.3">
-<h3 data-number="9.1.3" class="anchored" data-anchor-id="regression-trees-rss"><span class="header-section-number">9.1.3</span> Regression Trees: RSS</h3>
+<section id="regression-trees-rss" class="level3" data-number="9.2.3">
+<h3 data-number="9.2.3" class="anchored" data-anchor-id="regression-trees-rss"><span class="header-section-number">9.2.3</span> Regression Trees: RSS</h3>
 <p>Regression trees are used when the response variable is quantitative. Instead of predicting a class label, they predict numerical values.</p>
-<p>Suppose a terminal node contains responses <span class="math inline">\(y_1\)</span>, <span class="math inline">\(y_2\)</span>, <span class="math inline">\(\ldots\)</span>, <span class="math inline">\(y_n\)</span>. The prediction for that region is usually the sample mean: <span class="math display">\[
+<p>Suppose a leaf node contains responses <span class="math inline">\(y_1\)</span>, <span class="math inline">\(y_2\)</span>, <span class="math inline">\(\ldots\)</span>, <span class="math inline">\(y_n\)</span>. The prediction for that region is usually the sample mean: <span class="math display">\[
 \hat y
 =\frac{1}{n}\sum_{i=1}^n y_i.
 \]</span></p>
@@ -902,8 +955,8 @@ J
 <p>where <span class="math inline">\(\bar y_l\)</span> and <span class="math inline">\(\bar y_r\)</span> are the mean responses within the two regions. The best split is the one that minimizes this quantity.</p>
 <!-- ## Important Properties of Trees -->
 </section>
-<section id="trees-are-local" class="level3" data-number="9.1.4">
-<h3 data-number="9.1.4" class="anchored" data-anchor-id="trees-are-local"><span class="header-section-number">9.1.4</span> Trees are local</h3>
+<section id="trees-are-local" class="level3" data-number="9.2.4">
+<h3 data-number="9.2.4" class="anchored" data-anchor-id="trees-are-local"><span class="header-section-number">9.2.4</span> Trees are local</h3>
 <p>A tree makes predictions using only observations inside a small region of the feature space. Suppose a tree partitions the feature space into regions. The prediction at a point <span class="math inline">\(x\)</span> depends only on the region containing <span class="math inline">\(x\)</span>. As a result, tree predictions are local:</p>
 <ul>
 <li>nearby regions may have very different predictions</li>
@@ -912,8 +965,8 @@ J
 </ul>
 <p>This is similar in spirit to KNN, where prediction also depends primarily on nearby observations.</p>
 </section>
-<section id="trees-are-nonlinear" class="level3" data-number="9.1.5">
-<h3 data-number="9.1.5" class="anchored" data-anchor-id="trees-are-nonlinear"><span class="header-section-number">9.1.5</span> Trees are nonlinear</h3>
+<section id="trees-are-nonlinear" class="level3" data-number="9.2.5">
+<h3 data-number="9.2.5" class="anchored" data-anchor-id="trees-are-nonlinear"><span class="header-section-number">9.2.5</span> Trees are nonlinear</h3>
 <p>A tree creates many if-then rules. Because of these recursive splits:</p>
 <ul>
 <li>the prediction function can change abruptly</li>
@@ -922,8 +975,8 @@ J
 </ul>
 <p>The prediction surface is therefore discontinuous and piecewise constant. Therefore, trees are nonlinear models.</p>
 </section>
-<section id="automatic-interaction-effects" class="level3" data-number="9.1.6">
-<h3 data-number="9.1.6" class="anchored" data-anchor-id="automatic-interaction-effects"><span class="header-section-number">9.1.6</span> Automatic interaction effects</h3>
+<section id="automatic-interaction-effects" class="level3" data-number="9.2.6">
+<h3 data-number="9.2.6" class="anchored" data-anchor-id="automatic-interaction-effects"><span class="header-section-number">9.2.6</span> Automatic interaction effects</h3>
 <p>One important property of trees is that they automatically create interaction effects.</p>
 <p>For example, consider a tree with depth 3. One path through the tree may look like:</p>
 <ul>
@@ -975,18 +1028,18 @@ For example:
 Thus a regression tree approximates a complicated nonlinear function using many simple local averages. -->
 </section>
 </section>
-<section id="tuning-hyperparameters" class="level2" data-number="9.2">
-<h2 data-number="9.2" class="anchored" data-anchor-id="tuning-hyperparameters"><span class="header-section-number">9.2</span> Tuning hyperparameters</h2>
-<p>Building a decision tree is the same as splitting the training dataset. If we are alllowed to keep splitting it, it is possible to get to a case that each end node is pure: the Gini impurity is 0, or every element has the same response variable locally.</p>
+<section id="tuning-hyperparameters" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="tuning-hyperparameters"><span class="header-section-number">9.3</span> Tuning hyperparameters</h2>
+<p>Building a decision tree is the same as recursively splitting the training dataset. If we are allowed to keep splitting it, almost every leaf may become pure: its Gini impurity is 0 for classification, or all observations in the leaf have the same response value for regression.</p>
 <div id="exm-" class="theorem example">
-<p><span class="theorem-title"><strong>Example 9.4 (ALMOST all end nodes are pure)</strong></span> &nbsp;</p>
+<p><span class="theorem-title"><strong>Example 9.4 (ALMOST all leaves are pure)</strong></span> &nbsp;</p>
 <details>
 <summary>
 <strong>Click to expand.</strong>
 </summary>
-<p>In this example, we let the tree grow as further as possible. It only stops when (almost) all end nodes are pure, even if the end nodes only contain ONE element (like #6 and #11).</p>
+<p>In this example, we let the tree grow as far as possible. It only stops when (almost) all leaves are pure, even if a leaf contains only ONE observation (like #6 and #11).</p>
 <!-- fmt: off -->
-<div id="606455ac" class="cell" data-execution_count="3">
+<div id="96ee767c" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -997,8 +1050,8 @@ Thus a regression tree approximates a complicated nonlinear function using many 
 </div>
 <!-- fmt: on -->
 <p>In this example there is one exception. #13 node is not pure. We could list all data in node #13.</p>
-<div id="d3cbd934" class="cell" data-execution_count="4">
-<div class="cell-output cell-output-display" data-execution_count="4">
+<div id="5f487f2c" class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="104">
 <div>
 
 
@@ -1045,30 +1098,68 @@ Thus a regression tree approximates a complicated nonlinear function using many 
 <li>Pruning: first grow a large tree, then remove unnecessary branches afterward.</li>
 <li>Pre-pruning: stop the tree early by imposing restrictions during training.</li>
 </ol>
-<section id="pruning" class="level3" data-number="9.2.1">
-<h3 data-number="9.2.1" class="anchored" data-anchor-id="pruning"><span class="header-section-number">9.2.1</span> Pruning</h3>
-<p>Pruning means removing branches from a tree. The pruning method introduced in CART is called Minimal Cost-Complexity Pruning (MCCP).</p>
-<p>The idea is very similar to regularization in ridge or lasso regression: we balance goodness of fit against model complexity by adding a penalty term. In MCCP, the penalty is proportional to the number of terminal nodes (leaves) in the tree.</p>
-<p>More specifically, the cost function is modified by adding a complexity penalty controlled by the parameter <code>ccp_alpha</code>. The parameter <code>ccp_alpha</code> is called the complexity parameter and is always <span class="math inline">\(\geq0\)</span>. Let <span class="math inline">\(T\)</span> be a subtree, and let <span class="math inline">\(|T|\)</span> denote the number of terminal nodes. The cost-complexity criterion is <span class="math display">\[
-C_\alpha(T)=J(T)+\alpha |T|,
+<section id="pruning" class="level3" data-number="9.3.1">
+<h3 data-number="9.3.1" class="anchored" data-anchor-id="pruning"><span class="header-section-number">9.3.1</span> Pruning</h3>
+<p>Pruning removes a subtree by replacing its root with a leaf node. The pruning method introduced in CART is called Minimal Cost-Complexity Pruning (MCCP).</p>
+<p>More specifically, the cost function is modified by adding a complexity penalty controlled by the parameter <code>ccp_alpha</code>. The parameter <code>ccp_alpha</code> is called the complexity parameter and is always <span class="math inline">\(\geq 0\)</span>. Let <span class="math inline">\(T\)</span> be a subtree, and let <span class="math inline">\(|L(T)|\)</span> denote the number of leaves in <span class="math inline">\(T\)</span>. The cost-complexity criterion is <span class="math display">\[
+C_\alpha(T) = J(T) + \alpha |L(T)|,
 \]</span> where:</p>
 <ul>
-<li><span class="math inline">\(J(T)\)</span> measures the training error,</li>
-<li><span class="math inline">\(|T|\)</span> measures tree complexity through the number of terminal nodes,</li>
-<li><span class="math inline">\(\alpha\)</span> is corresponding to <code>ccp_alpha</code> in the notes.</li>
+<li><span class="math inline">\(J(T)\)</span> is the total training cost of <span class="math inline">\(T\)</span>, based on weighted Gini impurity for classification and RSS for regression,</li>
+<li><span class="math inline">\(\alpha\)</span> corresponds to <code>ccp_alpha</code> in the code.</li>
 </ul>
-<p>This has the same general structure as regularized regression: <span class="math inline">\(\text{loss}+\text{penalty}\)</span>.</p>
-<p>The tuning parameter <span class="math inline">\(\alpha\)</span> controls how expensive it is to add another leaf. If a split reduces the training error by only a small amount, it may not be worth keeping when <span class="math inline">\(\alpha\)</span> is large. When <span class="math inline">\(\alpha = 0\)</span>, there is no complexity penalty, so the procedure behaves like an ordinary decision tree and larger trees are generally preferred.</p>
-<p>When applying MCCP, we typically begin with a large tree and then compute the <code>ccp_alpha</code> path, which contains the critical values where the tree structure changes. Each critical value corresponds to a different subtree produced by pruning. We then use validation or cross-validation to compare these candidate subtrees and choose the best value of <code>ccp_alpha</code>.</p>
-<p>If several values of <code>ccp_alpha</code> achieve similar validation performance, we usually prefer the simpler tree. Therefore, among models with similar test or validation scores, a larger <code>ccp_alpha</code> is often preferred because it produces a smaller and more stable tree.</p>
+<p>The idea is to find a tree who has the smallest cost-complexity criterion for a certain <span class="math inline">\(\alpha\)</span>. <!-- This has the same general structure as regularized regression: $\text{loss} + \text{penalty}$. --></p>
+<div id="exm-" class="theorem example">
+<p><span class="theorem-title"><strong>Example 9.5 (The split cost)</strong></span> The cost comparison can be understood by considering whether a subtree should be retained or pruned. Let <span class="math inline">\(T_t\)</span> be the subtree of <span class="math inline">\(T\)</span> rooted at an internal node <span class="math inline">\(t\)</span>, and let <span class="math inline">\(T^{(-t)}\)</span> be the tree obtained by replacing <span class="math inline">\(T_t\)</span> with a single leaf <span class="math inline">\(t\)</span>.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TB
+    subgraph Before["Before pruning: T"]
+        direction TB
+        A[unchanged part] --&gt; S((T_t))
+    end
+
+    subgraph After["After pruning: T^(-t)"]
+        direction TB
+        B[same unchanged part] --&gt; L((leaf t))
+    end
+
+    S -. prune .-&gt; L
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>The leaf <span class="math inline">\(t\)</span> is already counted in <span class="math inline">\(T^{(-t)}\)</span>. Expanding it into <span class="math inline">\(T_t\)</span> therefore adds <span class="math inline">\(|L(T_t)|-1\)</span> leaves, so <span class="math display">\[
+|L(T)|=|L(T^{(-t)})|+|L(T_t)|-1.
+\]</span></p>
+<p>The reduction in cost from retaining <span class="math inline">\(T_t\)</span> is <span class="math display">\[
+\begin{split}
+C_{\alpha}(T^{(-t)})- C_{\alpha}(T)
+&amp;=\qty(J(T^{(-t)})+\alpha|L(T^{(-t)})|)-\qty(J(T)+\alpha|L(T)|)\\
+&amp;=\qty(J(T^{(-t)})-J(T))-\alpha(|L(T_t)|-1).
+\end{split}
+\]</span> The subtree is worth retaining only when the cost is reduced <span class="math inline">\(C_{\alpha}(T)&lt;C_{\alpha}(T^{(-t)})\)</span>, which means that <span class="math display">\[
+J(T^{(-t)})-J(T)
+&gt;
+\alpha\bigl(|L(T_t)|-1\bigr).
+\]</span></p>
+<p>Thus, the reduction in training cost must exceed the complexity penalty for the additional leaves. When <span class="math inline">\(\alpha = 0\)</span>, there is no complexity penalty, so the procedure behaves like an ordinary decision tree and larger trees are generally preferred.</p>
+</div>
+<p>If the optimization problem were solved independently for each value of <span class="math inline">\(\alpha\)</span>, there would be no obvious reason to expect the resulting optimal subtrees to be related. However <span class="citation" data-cites="Breiman1984">[<a href="../../index.html#ref-Breiman1984" role="doc-biblioref">1</a>]</span> proved that if <span class="math inline">\(\alpha_1&gt;\alpha_2\)</span>, then the optimal subtree for <span class="math inline">\(\alpha_1\)</span> can always be obtained by pruning subtrees from the optimal subtree for <span class="math inline">\(\alpha_2\)</span>. Therefore, the MCCP algorithm views pruning as gradually increasing <code>ccp_alpha</code> from 0 to larger values, generating a nested sequence of subtrees from the fully grown tree. The goal is to find a tree that balances predictive performance and model complexity.</p>
+<p>In practice, we first compute the <code>ccp_alpha</code> path, which contains the values of <code>ccp_alpha</code> at which the optimal subtree changes. We then use a validation set or cross-validation to evaluate the subtrees along this path and select an appropriate value of <code>ccp_alpha</code>. If several candidate trees achieve similar predictive performance, we usually prefer the simpler tree, corresponding to a larger <code>ccp_alpha</code>, because it is often more stable and easier to interpret.</p>
 </section>
-<section id="pre-pruning" class="level3" data-number="9.2.2">
-<h3 data-number="9.2.2" class="anchored" data-anchor-id="pre-pruning"><span class="header-section-number">9.2.2</span> Pre-pruning</h3>
+<section id="pre-pruning" class="level3" data-number="9.3.2">
+<h3 data-number="9.3.2" class="anchored" data-anchor-id="pre-pruning"><span class="header-section-number">9.3.2</span> Pre-pruning</h3>
 <p>We often impose some early stopping conditions to limit the growth of a tree. This strategy is called pre-pruning. Some common early stopping conditions are:</p>
 <ul>
 <li><code>max_depth</code>: maximum tree depth</li>
 <li><code>min_samples_split</code>: minimum number of observations required to split a node</li>
-<li><code>min_samples_leaf</code>: minimum number of observations in a terminal node</li>
+<li><code>min_samples_leaf</code>: minimum number of observations in a leaf node</li>
 <li><code>max_leaf_nodes</code>: maximum number of leaves</li>
 </ul>
 <p>Smaller trees are usually more stable but may underfit. Larger trees are more flexible but may overfit. A larger tree is not automatically better, even if it achieves lower training error.</p>
@@ -1091,8 +1182,8 @@ C_\alpha(T)=J(T)+\alpha |T|,
 </div>
 </section>
 </section>
-<section id="trees-in-python" class="level2" data-number="9.3">
-<h2 data-number="9.3" class="anchored" data-anchor-id="trees-in-python"><span class="header-section-number">9.3</span> Trees in Python</h2>
+<section id="trees-in-python" class="level2" data-number="9.4">
+<h2 data-number="9.4" class="anchored" data-anchor-id="trees-in-python"><span class="header-section-number">9.4</span> Trees in Python</h2>
 <p>We use <code>DecisionTreeClassifier</code> and <code>DecisionTreeRegressor</code> from <code>sklearn.tree</code> to implement decision tree models. The API is almost identical to other <code>sklearn</code> models: <code>.fit()</code>, <code>.predict()</code>, <code>.score()</code>, and other familiar methods are used in the same way.</p>
 <ol type="1">
 <li>We could set <code>max_depth</code>, <code>min_samples_leaf</code>, <code>ccp_alpha</code>, etc. for the tree model where their meaning is straightforward.</li>
@@ -1113,10 +1204,10 @@ Note
 <p>However, one-hot encoding for the target variable is not necessary because <code>sklearn</code> classifiers can directly work with class labels.</p>
 </div>
 </div>
-<section id="example-1-classify-iris-dataset" class="level3" data-number="9.3.1">
-<h3 data-number="9.3.1" class="anchored" data-anchor-id="example-1-classify-iris-dataset"><span class="header-section-number">9.3.1</span> Example 1: Classify <code>iris</code> dataset</h3>
+<section id="example-1-classify-iris-dataset" class="level3" data-number="9.4.1">
+<h3 data-number="9.4.1" class="anchored" data-anchor-id="example-1-classify-iris-dataset"><span class="header-section-number">9.4.1</span> Example 1: Classify <code>iris</code> dataset</h3>
 <p>The <code>iris</code> dataset is a classic classification dataset. The goal is to use four numeric flower measurements to classify the species of iris. The dataset contains 150 observations and 3 classes. More information can be found in the <code>sklearn</code> <a href="(https://scikit-learn.org/stable/datasets/toy_dataset.html#iris-dataset)">documentation</a> for datasets.</p>
-<div id="b8319232" class="cell" data-execution_count="5">
+<div id="18e1b9ad" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_iris</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1130,19 +1221,19 @@ Note
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The following code shows the basic <code>sklearn</code> API.</p>
-<div id="73aaa71a" class="cell" data-execution_count="6">
+<div id="0d804a22" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">2</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>clf.fit(X_train, y_train)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>clf.score(X_test, y_test)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="106">
 <pre><code>0.9666666666666667</code></pre>
 </div>
 </div>
 <p>After fitting the model, we can display the tree using <code>plot_tree()</code>. In many real examples, the tree may be too large to read clearly, so we use <code>matplotlib</code> to control the size and resolution of the plot.</p>
 <!-- fmt: off -->
-<div id="87824f60" class="cell" data-execution_count="7">
+<div id="0eb2aecf" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-3"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-3-1"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> plot_tree</span>
 <span id="annotated-cell-3-2"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="annotated-cell-3-3"><a href="#annotated-cell-3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1165,13 +1256,13 @@ Note
 </div>
 </div>
 <p>Now we prune the tree. We first find all critical <code>ccp_alpha</code> values.</p>
-<div id="97c3d227" class="cell" data-execution_count="8">
+<div id="40c53bd1" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ccp_path <span class="op">=</span> clf.cost_complexity_pruning_path(X_train, y_train)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ccp_alphas <span class="op">=</span> ccp_path.ccp_alphas[:<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The last <code>ccp_alpha</code> is usually removed because it is large enough to prune the tree down to a single root node. In most applications, that model is too simple to be useful.</p>
 <p>We then train one model for each effective <code>ccp_alpha</code>. After fitting the trees, we record both predictive performance and model complexity. Here we use <code>accuracy</code> as our metric, which comes automatically from <code>clf.score()</code>.</p>
-<div id="c70efe27" class="cell" data-execution_count="9">
+<div id="0f8255ae" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> accuracy_score</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>clfs <span class="op">=</span> []</span>
@@ -1185,13 +1276,13 @@ Note
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>train_acc <span class="op">=</span> [clf.score(X_train, y_train) <span class="cf">for</span> clf <span class="kw">in</span> clfs]</span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>test_acc <span class="op">=</span> [clf.score(X_test, y_test) <span class="cf">for</span> clf <span class="kw">in</span> clfs]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Here we use a single train/test split. This is a simple validation strategy: the model is fitted on the training set and evaluated on the test set. In addition to accuracy, we also record the number of nodes because it is a useful measure of tree complexity.</p>
+<p>Here we use a single train/test split for simplicity (by abusing notations since we actually use test set as validation set). In addition to accuracy, we also record the number of nodes because it is a useful measure of tree complexity.</p>
 <p>A larger tree usually has lower bias but higher variance. A smaller tree is often more interpretable and more stable.</p>
 <p>The results are easier to compare visually.</p>
-<div id="306754fb" class="cell" data-execution_count="10">
+<div id="3a851463" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-6"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-6-1"><a href="#annotated-cell-6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="annotated-cell-6-2"><a href="#annotated-cell-6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="annotated-cell-6-3"><a href="#annotated-cell-6-3" aria-hidden="true" tabindex="-1"></a>best_alpha <span class="op">=</span> <span class="fl">0.05</span></span>
+<span id="annotated-cell-6-3"><a href="#annotated-cell-6-3" aria-hidden="true" tabindex="-1"></a>best_alpha <span class="op">=</span> <span class="fl">0.02</span></span>
 <span id="annotated-cell-6-4"><a href="#annotated-cell-6-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="annotated-cell-6-5"><a href="#annotated-cell-6-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">7</span>), sharex<span class="op">=</span><span class="va">True</span>)</span>
 <span id="annotated-cell-6-6"><a href="#annotated-cell-6-6" aria-hidden="true" tabindex="-1"></a></span>
@@ -1224,10 +1315,10 @@ Note
 </div>
 </div>
 </div>
-<p>Based on the plot, from 0.0 <span class="math inline">\(\leq\)</span> <code>ccp_alpha</code> <span class="math inline">\(&lt;\)</span> 0.02452452452452452, the test accuracy stay the same. Therefore we choose the model with the least number of nodes. So we could choose any <code>ccp_alpha</code> from 0.0 <span class="math inline">\(\leq\)</span> <code>ccp_alpha</code> <span class="math inline">\(&lt;\)</span> 0.02452452452452452. Therefore we would like to choose the one with the least number of nodes, which is 0.011111111111111113. Since all values in the range is the same, we hand pick <code>ccp_alpha=0.05</code> for simplicity.</p>
+<p>Based on the plot, from 0.0 <span class="math inline">\(\leq\)</span> <code>ccp_alpha</code> <span class="math inline">\(&lt;\)</span> 0.02452452452452452, the test accuracy stay the same. Therefore we would like to choose the one with the least number of nodes, which is 0.011111111111111113. Since all <span class="math inline">\(\alpha\)</span> values in the range give the same tree, we hand pick <code>ccp_alpha=0.02</code> for simplicity.</p>
 <p>We can now build the final tree and display it.</p>
 <!-- fmt:off -->
-<div id="c58269f3" class="cell" data-execution_count="11">
+<div id="ded5c8b7" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> DecisionTreeClassifier(random_state<span class="op">=</span><span class="dv">42</span>, ccp_alpha<span class="op">=</span>best_alpha)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>clf.fit(X_train, y_train)</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plot_tree(clf, filled<span class="op">=</span><span class="va">True</span>, impurity<span class="op">=</span><span class="va">True</span>, node_ids<span class="op">=</span><span class="va">True</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1256,10 +1347,10 @@ Note
 </div>
 </div>
 </section>
-<section id="example-2-regression-with-the-diabetes-dataset" class="level3" data-number="9.3.2">
-<h3 data-number="9.3.2" class="anchored" data-anchor-id="example-2-regression-with-the-diabetes-dataset"><span class="header-section-number">9.3.2</span> Example 2: Regression with the <code>diabetes</code> dataset</h3>
+<section id="example-2-regression-with-the-diabetes-dataset" class="level3" data-number="9.4.2">
+<h3 data-number="9.4.2" class="anchored" data-anchor-id="example-2-regression-with-the-diabetes-dataset"><span class="header-section-number">9.4.2</span> Example 2: Regression with the <code>diabetes</code> dataset</h3>
 <p>We now look at a regression example. The <code>diabetes</code> dataset uses 10 baseline variables to predict a quantitative measure of disease progression one year after baseline. More information can be found in the <code>sklearn</code> <a href="(https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset)">documentation</a> and the original diabetes dataset <a href="(https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html)">description</a>.</p>
-<div id="17b21038" class="cell" data-execution_count="12">
+<div id="d070bff6" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_diabetes</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1268,7 +1359,7 @@ Note
 </div>
 <p>The overall workflow is similar to the <code>iris</code> example. In this example, we choose to use cross-validation instead of a single validation split in order to obtain a more stable estimate of model performance. This is not specific to regression trees; either approach can be used for both classification and regression problems.</p>
 <p>We first create a temporary tree to compute the critical <code>ccp_alpha</code> values. The method <code>cost_complexity_pruning_path()</code> internally grows a tree in order to compute the effective pruning path, although the estimator itself is not stored as a fitted model.</p>
-<div id="00b946f5" class="cell" data-execution_count="13">
+<div id="d495cd37" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeRegressor</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>base_tree <span class="op">=</span> DecisionTreeRegressor(random_state<span class="op">=</span><span class="dv">1</span>)</span>
@@ -1282,7 +1373,7 @@ Note
 <li>Use validation or cross-validation to select the final subtree.</li>
 </ol>
 <p>Now we run <code>GridSearchCV</code> over these <code>ccp_alpha</code> values. We use <span class="math inline">\(R^2\)</span> as the model metric in this example.</p>
-<div id="1e75ce71" class="cell" data-execution_count="14">
+<div id="7d149836" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> r2_score</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1308,7 +1399,7 @@ Testing R^2: 0.1922738375305083</code></pre>
 </div>
 </div>
 <p>We can visualize the cross-validation curve. <code>GridSearchCV</code> records validation scores, but it does not automatically record tree complexity measures such as the number of nodes. Therefore, if we want to display the complexity curve, we need to refit the models for the same <code>ccp_alpha</code> values and record their node counts.</p>
-<div id="f0da037a" class="cell" data-execution_count="15">
+<div id="f63dac40" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>cv_score <span class="op">=</span> grid.cv_results_[<span class="st">"mean_test_score"</span>]</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>node_counts <span class="op">=</span> []</span>
@@ -1415,6 +1506,11 @@ For more reliable importance measures, ensembles and permutation importance are 
  -->
 
 
+<div id="refs" class="references csl-bib-body" role="list" style="display: none">
+<div id="ref-Breiman1984" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Breiman</span>, L., <span class="smallcaps">Friedman</span>, J. H., <span class="smallcaps">Olshen</span>, R. A. and <span class="smallcaps">Stone</span>, C. J. (1984). <em><a href="https://doi.org/10.1201/9781315139470">Classification and regression trees</a></em>. L. Breiman, ed Chapman &amp; Hall/CRC, Boca Raton, Fla. [u.a.].</div>
+</div>
+</div>
 </section>
 </section>
 
