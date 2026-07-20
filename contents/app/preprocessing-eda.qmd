@@ -1,0 +1,204 @@
+---
+jupyter: stats
+---
+
+# Data Processing and EDA
+
+This note uses the synthetic [dataset `minidataset.csv`](minidataset.csv) to demonstrate essential data-processing and EDA operations. The dataset contains repeated measurements from several individuals, each with up to three visits. Each row represents one visit for one individual.
+
+This note provides brief examples rather than comprehensive instructions for each command. If you choose to use a command in your project, consult its documentation and make sure you apply it appropriately to your data and analysis.
+
+## Load and inspect the data
+
+```{python}
+import pandas as pd
+
+df = pd.read_csv("minidataset.csv")
+df.head()
+```
+
+The variable `id` identifies the individual, `visit` records the visit number, and `time` records the number of days since baseline.
+
+```{python}
+print(f"Rows, Columns: {df.shape}")
+print(f"Individuals: {df['id'].nunique()}")
+```
+
+Count the number of visits recorded for each individual:
+
+```{python}
+visits_per_id = df.groupby("id").size()
+visits_per_id.head()
+```
+
+Each value is the number of rows, or visits, available for one `id`.
+
+## Merge visits into one row per individual
+
+
+Use `pivot()` to place different visits from the same `id` on one row. To keep the example concise, we select only `num_1` and `num_2`.
+
+
+
+```{python}
+wide = df.pivot(index="id", columns="visit", values=["num_1", "num_2"])
+wide.head()
+```
+
+Reset the index and assign simple column names to make the resulting DataFrame easier to use:
+
+```{python}
+wide.columns = [f"{variable}_v{visit}" for variable, visit in wide.columns]
+wide = wide.reset_index()
+wide.head()
+```
+
+The result contains one row per individual.
+
+## Avoid data leakage
+
+To keep all visits from the same individual together, there are at least two different methods:
+
+1. Reshape the data so that all visits from the same individual appear in one row (using the method mentioned above), and then split by rows.
+2. Split the unique IDs and then select their rows.
+
+```{python}
+from sklearn.model_selection import train_test_split
+
+ids = df["id"].drop_duplicates()
+
+train_ids, remaining_ids = train_test_split(ids, test_size=0.40, random_state=1)
+val_ids, test_ids = train_test_split(remaining_ids, test_size=0.50, random_state=1)
+
+train_df = df.loc[df["id"].isin(train_ids)].copy()
+val_df = df.loc[df["id"].isin(val_ids)].copy()
+test_df = df.loc[df["id"].isin(test_ids)].copy()
+```
+
+
+## Summarize and handle missing values
+
+Use `info()` to inspect the data types and non-null count for each column. A non-null count below the total number of rows indicates missing values:
+
+```{python}
+df.info()
+```
+
+For missing values, we could either drop them
+
+```{python}
+df_dropped = df.dropna()
+```
+
+
+::: {.callout-caution}
+Be careful: `dropna()` removes every row that contains at least one missing value.
+:::
+
+Alternatively, we could use `fillna()` to replace missing values with a specified value, such as $0$:
+
+```{python}
+df_filled_0 = df.fillna(0)
+```
+
+or we could use `fillna()` to replace missing values with the column mean:
+
+```{python}
+df_filled = df.copy()
+df_filled["num_3"] = df_filled["num_3"].fillna(df_filled["num_3"].mean())
+```
+
+Missing values can also be filled with the mean of each group. This example uses the mean within each `cat_1` group:
+
+```{python}
+df_group_filled = df.copy()
+group_mean = df.groupby("cat_1")["num_3"].transform("mean")
+df_group_filled["num_3"] = df_group_filled["num_3"].fillna(group_mean)
+```
+
+::: {.callout-note}
+## Imputer
+The examples above show simple approaches to missing-value imputation. A more complete, cross-validation-safe approach typically combines a `sklearn` imputer with `ColumnTransformer` and `Pipeline`, so that imputation is fitted separately within each training fold and applied consistently to other data. The details of this approach are beyond the scope of this note. 
+
+:::
+
+## Construct features
+
+Sort by individual and time before calculating within-person differences:
+
+```{python}
+df_sort = df.sort_values(["id", "time"]).copy()
+
+df_sort["time_change"] = df_sort.groupby("id")["time"].diff()
+df_sort["num_2_change"] = df_sort.groupby("id")["num_2"].diff()
+df_sort["num_2_change_per_day"] = df_sort["num_2_change"] / (df_sort["time_change"])
+
+df_sort.head()
+```
+
+Only information observed before the prediction time may be used to construct predictors.
+
+## Combine numerical values into groups
+
+Use `pd.cut()` when predefined, ordered intervals have a meaningful interpretation:
+
+```{python}
+df["num_1_group"] = pd.cut(
+    df["num_1"],
+    bins=[float("-inf"), 45, 55, 65, float("inf")],
+    labels=["below_45", "45-54", "55-64", "65_or_above"],
+    right=False,
+    ordered=True,
+)
+
+df["num_1_group"].head(9)
+```
+
+Choose cut points using subject-matter knowledge or the training data only, not the validation or test set.
+
+<!-- 
+## Key takeaways
+
+- Treat the individual ID as the independent sampling unit.
+- Split by ID before performing outcome-related EDA or data-dependent preprocessing.
+- Estimate imputation values and data-dependent cut points from training data only.
+- Sort longitudinal observations before using `groupby().diff()`.
+- Use only information available before the target visit.
+- Use `pivot()` when a clear one-row-per-individual representation supports the narrative. -->
+
+
+
+## Perform concise EDA
+
+
+### Summary statistics
+
+```{python}
+df.describe()
+```
+
+### Outcome class balance
+
+```{python}
+df["target"].value_counts(normalize=True, dropna=False)
+```
+
+
+### Comparison between outcome groups
+
+```{python}
+important_num = ["num_1", "num_2", "num_3", "num_4"]
+df.groupby("target", dropna=False)[important_num].mean().T
+```
+
+### Correlation heatmap
+
+```{python}
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.heatmap(df[important_num].corr(), annot=True, cmap="coolwarm", vmin=-1, vmax=1)
+plt.title("Correlations among Important Variables");
+```
+
+Choose only the summaries and plots that support the project narrative or motivate later modeling decisions.
