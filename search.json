@@ -1195,5 +1195,82 @@
       "Appendices",
       "<span class='chapter-number'>D</span>  <span class='chapter-title'>Some Python concepts</span>"
     ]
+  },
+  {
+    "objectID": "contents/app/preprocessing-eda.html",
+    "href": "contents/app/preprocessing-eda.html",
+    "title": "Appendix E — Data Processing and EDA",
+    "section": "",
+    "text": "E.1 Load and inspect the data\nThis note uses the synthetic dataset minidataset.csv to demonstrate essential data-processing and EDA operations. The dataset contains repeated measurements from several individuals, each with up to three visits. Each row represents one visit for one individual.\nThis note provides brief examples rather than comprehensive instructions for each command. If you choose to use a command in your project, consult its documentation and make sure you apply it appropriately to your data and analysis.\nimport pandas as pd\n\ndf = pd.read_csv(\"minidataset.csv\")\ndf.head()\n\n\n\n\n\n\n\n\nid\nvisit\ntime\nnum_1\ncat_1\nnum_2\nnum_3\nnum_4\ncat_2\nnum_5\ncat_3\ntarget\n\n\n\n\n0\n1001\n1\n0\n45\nF\n118\n23.8\n188.0\n0\n0\n0\n0\n\n\n1\n1001\n2\n2130\n51\nF\n122\n24.1\n194.0\n0\n0\n0\n0\n\n\n2\n1001\n3\n4280\n57\nF\n126\n24.5\n201.0\n0\n0\n0\n0\n\n\n3\n1002\n1\n0\n52\nM\n132\n27.4\n221.0\n1\n15\n0\n0\n\n\n4\n1002\n2\n2085\n58\nM\n138\n28.0\n229.0\n1\n12\n0\n0\nThe variable id identifies the individual, visit records the visit number, and time records the number of days since baseline.\nprint(f\"Rows, Columns: {df.shape}\")\nprint(f\"Individuals: {df['id'].nunique()}\")\n\nRows, Columns: (32, 12)\nIndividuals: 12\nCount the number of visits recorded for each individual:\nvisits_per_id = df.groupby(\"id\").size()\nvisits_per_id.head()\n\nid\n1001    3\n1002    3\n1003    2\n1004    3\n1005    3\ndtype: int64\nEach value is the number of rows, or visits, available for one id.",
+    "crumbs": [
+      "Appendices",
+      "<span class='chapter-number'>E</span>  <span class='chapter-title'>Data Processing and EDA</span>"
+    ]
+  },
+  {
+    "objectID": "contents/app/preprocessing-eda.html#merge-visits-into-one-row-per-individual",
+    "href": "contents/app/preprocessing-eda.html#merge-visits-into-one-row-per-individual",
+    "title": "Appendix E — Data Processing and EDA",
+    "section": "E.2 Merge visits into one row per individual",
+    "text": "E.2 Merge visits into one row per individual\nUse pivot() to place different visits from the same id on one row. To keep the example concise, we select only num_1 and num_2.\n\nwide = df.pivot(index=\"id\", columns=\"visit\", values=[\"num_1\", \"num_2\"])\nwide.head()\n\n\n\n\n\n\n\n\nnum_1\nnum_2\n\n\nvisit\n1\n2\n3\n1\n2\n3\n\n\nid\n\n\n\n\n\n\n\n\n\n\n1001\n45.0\n51.0\n57.0\n118.0\n122.0\n126.0\n\n\n1002\n52.0\n58.0\n64.0\n132.0\n138.0\n146.0\n\n\n1003\n39.0\n45.0\nNaN\n110.0\n112.0\nNaN\n\n\n1004\n60.0\n66.0\n72.0\n148.0\n156.0\n164.0\n\n\n1005\n48.0\n54.0\n60.0\n124.0\n128.0\n134.0\n\n\n\n\n\n\n\nReset the index and assign simple column names to make the resulting DataFrame easier to use:\n\nwide.columns = [f\"{variable}_v{visit}\" for variable, visit in wide.columns]\nwide = wide.reset_index()\nwide.head()\n\n\n\n\n\n\n\n\nid\nnum_1_v1\nnum_1_v2\nnum_1_v3\nnum_2_v1\nnum_2_v2\nnum_2_v3\n\n\n\n\n0\n1001\n45.0\n51.0\n57.0\n118.0\n122.0\n126.0\n\n\n1\n1002\n52.0\n58.0\n64.0\n132.0\n138.0\n146.0\n\n\n2\n1003\n39.0\n45.0\nNaN\n110.0\n112.0\nNaN\n\n\n3\n1004\n60.0\n66.0\n72.0\n148.0\n156.0\n164.0\n\n\n4\n1005\n48.0\n54.0\n60.0\n124.0\n128.0\n134.0\n\n\n\n\n\n\n\nThe result contains one row per individual.",
+    "crumbs": [
+      "Appendices",
+      "<span class='chapter-number'>E</span>  <span class='chapter-title'>Data Processing and EDA</span>"
+    ]
+  },
+  {
+    "objectID": "contents/app/preprocessing-eda.html#avoid-data-leakage",
+    "href": "contents/app/preprocessing-eda.html#avoid-data-leakage",
+    "title": "Appendix E — Data Processing and EDA",
+    "section": "E.3 Avoid data leakage",
+    "text": "E.3 Avoid data leakage\nTo keep all visits from the same individual together, there are at least two different methods:\n\nReshape the data so that all visits from the same individual appear in one row (using the method mentioned above), and then split by rows.\nSplit the unique IDs and then select their rows.\n\n\nfrom sklearn.model_selection import train_test_split\n\nids = df[\"id\"].drop_duplicates()\n\ntrain_ids, remaining_ids = train_test_split(ids, test_size=0.40, random_state=1)\nval_ids, test_ids = train_test_split(remaining_ids, test_size=0.50, random_state=1)\n\ntrain_df = df.loc[df[\"id\"].isin(train_ids)].copy()\nval_df = df.loc[df[\"id\"].isin(val_ids)].copy()\ntest_df = df.loc[df[\"id\"].isin(test_ids)].copy()",
+    "crumbs": [
+      "Appendices",
+      "<span class='chapter-number'>E</span>  <span class='chapter-title'>Data Processing and EDA</span>"
+    ]
+  },
+  {
+    "objectID": "contents/app/preprocessing-eda.html#summarize-and-handle-missing-values",
+    "href": "contents/app/preprocessing-eda.html#summarize-and-handle-missing-values",
+    "title": "Appendix E — Data Processing and EDA",
+    "section": "E.4 Summarize and handle missing values",
+    "text": "E.4 Summarize and handle missing values\nUse info() to inspect the data types and non-null count for each column. A non-null count below the total number of rows indicates missing values:\n\ndf.info()\n\n&lt;class 'pandas.DataFrame'&gt;\nRangeIndex: 32 entries, 0 to 31\nData columns (total 12 columns):\n #   Column  Non-Null Count  Dtype  \n---  ------  --------------  -----  \n 0   id      32 non-null     int64  \n 1   visit   32 non-null     int64  \n 2   time    32 non-null     int64  \n 3   num_1   32 non-null     int64  \n 4   cat_1   32 non-null     str    \n 5   num_2   32 non-null     int64  \n 6   num_3   31 non-null     float64\n 7   num_4   31 non-null     float64\n 8   cat_2   32 non-null     int64  \n 9   num_5   32 non-null     int64  \n 10  cat_3   32 non-null     int64  \n 11  target  32 non-null     int64  \ndtypes: float64(2), int64(9), str(1)\nmemory usage: 3.1 KB\n\n\nFor missing values, we could either drop them\n\ndf_dropped = df.dropna()\n\n\n\n\n\n\n\nCaution\n\n\n\nBe careful: dropna() removes every row that contains at least one missing value.\n\n\nAlternatively, we could use fillna() to replace missing values with a specified value, such as \\(0\\):\n\ndf_filled_0 = df.fillna(0)\n\nor we could use fillna() to replace missing values with the column mean:\n\ndf_filled = df.copy()\ndf_filled[\"num_3\"] = df_filled[\"num_3\"].fillna(df_filled[\"num_3\"].mean())\n\nMissing values can also be filled with the mean of each group. This example uses the mean within each cat_1 group:\n\ndf_group_filled = df.copy()\ngroup_mean = df.groupby(\"cat_1\")[\"num_3\"].transform(\"mean\")\ndf_group_filled[\"num_3\"] = df_group_filled[\"num_3\"].fillna(group_mean)\n\n\n\n\n\n\n\nNoteImputer\n\n\n\nThe examples above show simple approaches to missing-value imputation. A more complete, cross-validation-safe approach typically combines a sklearn imputer with ColumnTransformer and Pipeline, so that imputation is fitted separately within each training fold and applied consistently to other data. The details of this approach are beyond the scope of this note.",
+    "crumbs": [
+      "Appendices",
+      "<span class='chapter-number'>E</span>  <span class='chapter-title'>Data Processing and EDA</span>"
+    ]
+  },
+  {
+    "objectID": "contents/app/preprocessing-eda.html#construct-features",
+    "href": "contents/app/preprocessing-eda.html#construct-features",
+    "title": "Appendix E — Data Processing and EDA",
+    "section": "E.5 Construct features",
+    "text": "E.5 Construct features\nSort by individual and time before calculating within-person differences:\n\ndf_sort = df.sort_values([\"id\", \"time\"]).copy()\n\ndf_sort[\"time_change\"] = df_sort.groupby(\"id\")[\"time\"].diff()\ndf_sort[\"num_2_change\"] = df_sort.groupby(\"id\")[\"num_2\"].diff()\ndf_sort[\"num_2_change_per_day\"] = df_sort[\"num_2_change\"] / (df_sort[\"time_change\"])\n\ndf_sort.head()\n\n\n\n\n\n\n\n\nid\nvisit\ntime\nnum_1\ncat_1\nnum_2\nnum_3\nnum_4\ncat_2\nnum_5\ncat_3\ntarget\ntime_change\nnum_2_change\nnum_2_change_per_day\n\n\n\n\n0\n1001\n1\n0\n45\nF\n118\n23.8\n188.0\n0\n0\n0\n0\nNaN\nNaN\nNaN\n\n\n1\n1001\n2\n2130\n51\nF\n122\n24.1\n194.0\n0\n0\n0\n0\n2130.0\n4.0\n0.001878\n\n\n2\n1001\n3\n4280\n57\nF\n126\n24.5\n201.0\n0\n0\n0\n0\n2150.0\n4.0\n0.001860\n\n\n3\n1002\n1\n0\n52\nM\n132\n27.4\n221.0\n1\n15\n0\n0\nNaN\nNaN\nNaN\n\n\n4\n1002\n2\n2085\n58\nM\n138\n28.0\n229.0\n1\n12\n0\n0\n2085.0\n6.0\n0.002878\n\n\n\n\n\n\n\nOnly information observed before the prediction time may be used to construct predictors.",
+    "crumbs": [
+      "Appendices",
+      "<span class='chapter-number'>E</span>  <span class='chapter-title'>Data Processing and EDA</span>"
+    ]
+  },
+  {
+    "objectID": "contents/app/preprocessing-eda.html#combine-numerical-values-into-groups",
+    "href": "contents/app/preprocessing-eda.html#combine-numerical-values-into-groups",
+    "title": "Appendix E — Data Processing and EDA",
+    "section": "E.6 Combine numerical values into groups",
+    "text": "E.6 Combine numerical values into groups\nUse pd.cut() when predefined, ordered intervals have a meaningful interpretation:\n\ndf[\"num_1_group\"] = pd.cut(\n    df[\"num_1\"],\n    bins=[float(\"-inf\"), 45, 55, 65, float(\"inf\")],\n    labels=[\"below_45\", \"45-54\", \"55-64\", \"65_or_above\"],\n    right=False,\n    ordered=True,\n)\n\ndf[\"num_1_group\"].head(9)\n\n0       45-54\n1       45-54\n2       55-64\n3       45-54\n4       55-64\n5       55-64\n6    below_45\n7       45-54\n8       55-64\nName: num_1_group, dtype: category\nCategories (4, str): ['below_45' &lt; '45-54' &lt; '55-64' &lt; '65_or_above']\n\n\nChoose cut points using subject-matter knowledge or the training data only, not the validation or test set.",
+    "crumbs": [
+      "Appendices",
+      "<span class='chapter-number'>E</span>  <span class='chapter-title'>Data Processing and EDA</span>"
+    ]
+  },
+  {
+    "objectID": "contents/app/preprocessing-eda.html#perform-concise-eda",
+    "href": "contents/app/preprocessing-eda.html#perform-concise-eda",
+    "title": "Appendix E — Data Processing and EDA",
+    "section": "E.7 Perform concise EDA",
+    "text": "E.7 Perform concise EDA\n\nE.7.1 Summary statistics\n\ndf.describe()\n\n\n\n\n\n\n\n\nid\nvisit\ntime\nnum_1\nnum_2\nnum_3\nnum_4\ncat_2\nnum_5\ncat_3\ntarget\n\n\n\n\ncount\n32.000000\n32.000000\n32.000000\n32.000000\n32.000000\n31.000000\n31.000000\n32.000000\n32.00000\n32.000000\n32.000000\n\n\nmean\n1006.156250\n1.906250\n1917.656250\n55.468750\n135.125000\n27.403226\n219.967742\n0.437500\n5.96875\n0.250000\n0.218750\n\n\nstd\n3.322546\n0.817525\n1733.112985\n8.481419\n15.009137\n2.892114\n24.895092\n0.504016\n7.70205\n0.439941\n0.420013\n\n\nmin\n1001.000000\n1.000000\n0.000000\n39.000000\n110.000000\n21.900000\n174.000000\n0.000000\n0.00000\n0.000000\n0.000000\n\n\n25%\n1003.750000\n1.000000\n0.000000\n49.500000\n123.500000\n25.150000\n200.000000\n0.000000\n0.00000\n0.000000\n0.000000\n\n\n50%\n1006.000000\n2.000000\n2077.500000\n56.500000\n135.000000\n27.900000\n221.000000\n0.000000\n0.00000\n0.000000\n0.000000\n\n\n75%\n1009.000000\n3.000000\n4128.750000\n61.250000\n146.500000\n29.800000\n240.500000\n1.000000\n10.50000\n0.250000\n0.000000\n\n\nmax\n1012.000000\n3.000000\n4375.000000\n72.000000\n164.000000\n32.000000\n260.000000\n1.000000\n25.00000\n1.000000\n1.000000\n\n\n\n\n\n\n\n\n\nE.7.2 Outcome class balance\n\ndf[\"target\"].value_counts(normalize=True, dropna=False)\n\ntarget\n0    0.78125\n1    0.21875\nName: proportion, dtype: float64\n\n\n\n\nE.7.3 Comparison between outcome groups\n\nimportant_num = [\"num_1\", \"num_2\", \"num_3\", \"num_4\"]\ndf.groupby(\"target\", dropna=False)[important_num].mean().T\n\n\n\n\n\n\n\ntarget\n0\n1\n\n\n\n\nnum_1\n52.440000\n66.285714\n\n\nnum_2\n129.760000\n154.285714\n\n\nnum_3\n26.583333\n30.214286\n\n\nnum_4\n211.625000\n248.571429\n\n\n\n\n\n\n\n\n\nE.7.4 Correlation heatmap\n\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\nsns.heatmap(df[important_num].corr(), annot=True, cmap=\"coolwarm\", vmin=-1, vmax=1)\nplt.title(\"Correlations among Important Variables\");\n\n\n\n\n\n\n\n\nChoose only the summaries and plots that support the project narrative or motivate later modeling decisions.",
+    "crumbs": [
+      "Appendices",
+      "<span class='chapter-number'>E</span>  <span class='chapter-title'>Data Processing and EDA</span>"
+    ]
   }
 ]

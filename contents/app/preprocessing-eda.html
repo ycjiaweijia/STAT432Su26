@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Appendix D — Some Python concepts – Basics of Statistical Learning</title>
+<title>Appendix E — Data Processing and EDA – Basics of Statistical Learning</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -61,15 +61,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../contents/app/preprocessing-eda.html" rel="next">
-<link href="../../contents/app/python.html" rel="prev">
+<link href="../../contents/app/concept.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -148,7 +147,12 @@ window.MathJax = {
 
 };
 
-</script><script src="../../styles/pronunciation.js"></script>
+</script><script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script src="../../styles/pronunciation.js"></script>
 <script>
 window.MathJax = {
   loader: {
@@ -199,6 +203,35 @@ window.MathJax = {
 };
 </script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles/fonts.css">
 <link rel="stylesheet" href="../../styles/blocks.css">
@@ -376,7 +409,7 @@ window.MathJax = {
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-          <h1 class="quarto-secondary-nav-title">Appendix D — Some Python concepts</h1>
+          <h1 class="quarto-secondary-nav-title">Appendix E — Data Processing and EDA</h1>
         </a>     
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
@@ -572,13 +605,13 @@ window.MathJax = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../contents/app/concept.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../contents/app/concept.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Some Python concepts</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../contents/app/preprocessing-eda.html" class="sidebar-item-text sidebar-link">
+  <a href="../../contents/app/preprocessing-eda.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Data Processing and EDA</span></span></a>
   </div>
 </li>
@@ -594,13 +627,18 @@ window.MathJax = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#language" id="toc-language" class="nav-link active" data-scroll-target="#language"><span class="header-section-number">D.1</span> Language</a></li>
-  <li><a href="#interpreters" id="toc-interpreters" class="nav-link" data-scroll-target="#interpreters"><span class="header-section-number">D.2</span> Interpreters</a></li>
-  <li><a href="#repl" id="toc-repl" class="nav-link" data-scroll-target="#repl"><span class="header-section-number">D.3</span> REPL</a></li>
-  <li><a href="#ipython" id="toc-ipython" class="nav-link" data-scroll-target="#ipython"><span class="header-section-number">D.4</span> <code>IPython</code></a></li>
-  <li><a href="#jupyter" id="toc-jupyter" class="nav-link" data-scroll-target="#jupyter"><span class="header-section-number">D.5</span> <code>Jupyter</code></a>
+  <li><a href="#load-and-inspect-the-data" id="toc-load-and-inspect-the-data" class="nav-link active" data-scroll-target="#load-and-inspect-the-data"><span class="header-section-number">E.1</span> Load and inspect the data</a></li>
+  <li><a href="#merge-visits-into-one-row-per-individual" id="toc-merge-visits-into-one-row-per-individual" class="nav-link" data-scroll-target="#merge-visits-into-one-row-per-individual"><span class="header-section-number">E.2</span> Merge visits into one row per individual</a></li>
+  <li><a href="#avoid-data-leakage" id="toc-avoid-data-leakage" class="nav-link" data-scroll-target="#avoid-data-leakage"><span class="header-section-number">E.3</span> Avoid data leakage</a></li>
+  <li><a href="#summarize-and-handle-missing-values" id="toc-summarize-and-handle-missing-values" class="nav-link" data-scroll-target="#summarize-and-handle-missing-values"><span class="header-section-number">E.4</span> Summarize and handle missing values</a></li>
+  <li><a href="#construct-features" id="toc-construct-features" class="nav-link" data-scroll-target="#construct-features"><span class="header-section-number">E.5</span> Construct features</a></li>
+  <li><a href="#combine-numerical-values-into-groups" id="toc-combine-numerical-values-into-groups" class="nav-link" data-scroll-target="#combine-numerical-values-into-groups"><span class="header-section-number">E.6</span> Combine numerical values into groups</a></li>
+  <li><a href="#perform-concise-eda" id="toc-perform-concise-eda" class="nav-link" data-scroll-target="#perform-concise-eda"><span class="header-section-number">E.7</span> Perform concise EDA</a>
   <ul class="collapse">
-  <li><a href="#multi-kernels-setup" id="toc-multi-kernels-setup" class="nav-link" data-scroll-target="#multi-kernels-setup"><span class="header-section-number">D.5.1</span> Multi-kernels setup</a></li>
+  <li><a href="#summary-statistics" id="toc-summary-statistics" class="nav-link" data-scroll-target="#summary-statistics"><span class="header-section-number">E.7.1</span> Summary statistics</a></li>
+  <li><a href="#outcome-class-balance" id="toc-outcome-class-balance" class="nav-link" data-scroll-target="#outcome-class-balance"><span class="header-section-number">E.7.2</span> Outcome class balance</a></li>
+  <li><a href="#comparison-between-outcome-groups" id="toc-comparison-between-outcome-groups" class="nav-link" data-scroll-target="#comparison-between-outcome-groups"><span class="header-section-number">E.7.3</span> Comparison between outcome groups</a></li>
+  <li><a href="#correlation-heatmap" id="toc-correlation-heatmap" class="nav-link" data-scroll-target="#correlation-heatmap"><span class="header-section-number">E.7.4</span> Correlation heatmap</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -611,7 +649,7 @@ window.MathJax = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block">Appendix D — Some Python concepts</h1>
+<h1 class="title d-none d-lg-block">Appendix E — Data Processing and EDA</h1>
 </div>
 
 
@@ -628,136 +666,800 @@ window.MathJax = {
 </header>
 
 
-<section id="language" class="level2" data-number="D.1">
-<h2 data-number="D.1" class="anchored" data-anchor-id="language"><span class="header-section-number">D.1</span> Language</h2>
-<p>Python is a programming language. In other words, it is a collection of syntaxes.</p>
+<p>This note uses the synthetic <a href="minidataset.csv">dataset <code>minidataset.csv</code></a> to demonstrate essential data-processing and EDA operations. The dataset contains repeated measurements from several individuals, each with up to three visits. Each row represents one visit for one individual.</p>
+<p>This note provides brief examples rather than comprehensive instructions for each command. If you choose to use a command in your project, consult its documentation and make sure you apply it appropriately to your data and analysis.</p>
+<section id="load-and-inspect-the-data" class="level2" data-number="E.1">
+<h2 data-number="E.1" class="anchored" data-anchor-id="load-and-inspect-the-data"><span class="header-section-number">E.1</span> Load and inspect the data</h2>
+<div id="0e9a01ac" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="st">"minidataset.csv"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>df.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="120">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">visit</th>
+<th data-quarto-table-cell-role="th">time</th>
+<th data-quarto-table-cell-role="th">num_1</th>
+<th data-quarto-table-cell-role="th">cat_1</th>
+<th data-quarto-table-cell-role="th">num_2</th>
+<th data-quarto-table-cell-role="th">num_3</th>
+<th data-quarto-table-cell-role="th">num_4</th>
+<th data-quarto-table-cell-role="th">cat_2</th>
+<th data-quarto-table-cell-role="th">num_5</th>
+<th data-quarto-table-cell-role="th">cat_3</th>
+<th data-quarto-table-cell-role="th">target</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1001</td>
+<td>1</td>
+<td>0</td>
+<td>45</td>
+<td>F</td>
+<td>118</td>
+<td>23.8</td>
+<td>188.0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1001</td>
+<td>2</td>
+<td>2130</td>
+<td>51</td>
+<td>F</td>
+<td>122</td>
+<td>24.1</td>
+<td>194.0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1001</td>
+<td>3</td>
+<td>4280</td>
+<td>57</td>
+<td>F</td>
+<td>126</td>
+<td>24.5</td>
+<td>201.0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1002</td>
+<td>1</td>
+<td>0</td>
+<td>52</td>
+<td>M</td>
+<td>132</td>
+<td>27.4</td>
+<td>221.0</td>
+<td>1</td>
+<td>15</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>1002</td>
+<td>2</td>
+<td>2085</td>
+<td>58</td>
+<td>M</td>
+<td>138</td>
+<td>28.0</td>
+<td>229.0</td>
+<td>1</td>
+<td>12</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The variable <code>id</code> identifies the individual, <code>visit</code> records the visit number, and <code>time</code> records the number of days since baseline.</p>
+<div id="f8ecbc77" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Rows, Columns: </span><span class="sc">{</span>df<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Individuals: </span><span class="sc">{</span>df[<span class="st">'id'</span>]<span class="sc">.</span>nunique()<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows, Columns: (32, 12)
+Individuals: 12</code></pre>
+</div>
+</div>
+<p>Count the number of visits recorded for each individual:</p>
+<div id="4915714b" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>visits_per_id <span class="op">=</span> df.groupby(<span class="st">"id"</span>).size()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>visits_per_id.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="122">
+<pre><code>id
+1001    3
+1002    3
+1003    2
+1004    3
+1005    3
+dtype: int64</code></pre>
+</div>
+</div>
+<p>Each value is the number of rows, or visits, available for one <code>id</code>.</p>
 </section>
-<section id="interpreters" class="level2" data-number="D.2">
-<h2 data-number="D.2" class="anchored" data-anchor-id="interpreters"><span class="header-section-number">D.2</span> Interpreters</h2>
-<p>Python needs to be interpreted into codes that computers can understand. Therefore there should be some programs that translate Python scripts. These programs are called <em>interpreters</em>.</p>
-<p><code>CPython</code> is the reference implementation of Python and the implementation most people use. It is written mainly in C and Python. New Python language features are normally developed and tested first in CPython.</p>
-<p>Other implementations include <a href="https://www.pypy.org/"><code>PyPy</code></a>, <a href="https://www.jython.org/"><code>Jython</code></a> and <a href="https://ironpython.net/"><code>IronPython</code></a>. They are useful in specific contexts, but they do not always support the same Python versions or the same package ecosystem as CPython. For example, PyPy focuses on speed through a JIT compiler, Jython integrates with the JVM but its current stable release is Python 2.7-based, and IronPython integrates with .NET but lags behind modern CPython versions.</p>
-<p>Since <code>CPython</code> is the most widely used and best-supported implementation, it is the best choice, at least for beginners. And actually, if you have no idea about this topic, but you use Python, it is highly possible that you are using <code>CPython</code>.</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<section id="merge-visits-into-one-row-per-individual" class="level2" data-number="E.2">
+<h2 data-number="E.2" class="anchored" data-anchor-id="merge-visits-into-one-row-per-individual"><span class="header-section-number">E.2</span> Merge visits into one row per individual</h2>
+<p>Use <code>pivot()</code> to place different visits from the same <code>id</code> on one row. To keep the example concise, we select only <code>num_1</code> and <code>num_2</code>.</p>
+<div id="0b2ab609" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>wide <span class="op">=</span> df.pivot(index<span class="op">=</span><span class="st">"id"</span>, columns<span class="op">=</span><span class="st">"visit"</span>, values<span class="op">=</span>[<span class="st">"num_1"</span>, <span class="st">"num_2"</span>])</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>wide.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="123">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="3" data-quarto-table-cell-role="th" data-halign="left">num_1</th>
+<th colspan="3" data-quarto-table-cell-role="th" data-halign="left">num_2</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">visit</th>
+<th data-quarto-table-cell-role="th">1</th>
+<th data-quarto-table-cell-role="th">2</th>
+<th data-quarto-table-cell-role="th">3</th>
+<th data-quarto-table-cell-role="th">1</th>
+<th data-quarto-table-cell-role="th">2</th>
+<th data-quarto-table-cell-role="th">3</th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1001</th>
+<td>45.0</td>
+<td>51.0</td>
+<td>57.0</td>
+<td>118.0</td>
+<td>122.0</td>
+<td>126.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1002</th>
+<td>52.0</td>
+<td>58.0</td>
+<td>64.0</td>
+<td>132.0</td>
+<td>138.0</td>
+<td>146.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1003</th>
+<td>39.0</td>
+<td>45.0</td>
+<td>NaN</td>
+<td>110.0</td>
+<td>112.0</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1004</th>
+<td>60.0</td>
+<td>66.0</td>
+<td>72.0</td>
+<td>148.0</td>
+<td>156.0</td>
+<td>164.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1005</th>
+<td>48.0</td>
+<td>54.0</td>
+<td>60.0</td>
+<td>124.0</td>
+<td>128.0</td>
+<td>134.0</td>
+</tr>
+</tbody>
+</table>
+
 </div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>We mentioned “interpreter” here. There are mainly two types of implimentations of programming langauges: interpreters and compilers. There are also some additional types like just-in-time compilers which can be treated as combinations of the two.</p>
-<p>Python is often described as an <em>interpreted</em> language, but <code>CPython</code> first compiles source code to bytecode and then executes that bytecode in the Python virtual machine. For beginners, the practical point is that Python supports an interactive workflow and does not require a separate manual compile step.</p>
 </div>
 </div>
+<p>Reset the index and assign simple column names to make the resulting DataFrame easier to use:</p>
+<div id="b17a43a1" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wide.columns <span class="op">=</span> [<span class="ss">f"</span><span class="sc">{</span>variable<span class="sc">}</span><span class="ss">_v</span><span class="sc">{</span>visit<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> variable, visit <span class="kw">in</span> wide.columns]</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>wide <span class="op">=</span> wide.reset_index()</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>wide.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="124">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">num_1_v1</th>
+<th data-quarto-table-cell-role="th">num_1_v2</th>
+<th data-quarto-table-cell-role="th">num_1_v3</th>
+<th data-quarto-table-cell-role="th">num_2_v1</th>
+<th data-quarto-table-cell-role="th">num_2_v2</th>
+<th data-quarto-table-cell-role="th">num_2_v3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1001</td>
+<td>45.0</td>
+<td>51.0</td>
+<td>57.0</td>
+<td>118.0</td>
+<td>122.0</td>
+<td>126.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1002</td>
+<td>52.0</td>
+<td>58.0</td>
+<td>64.0</td>
+<td>132.0</td>
+<td>138.0</td>
+<td>146.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1003</td>
+<td>39.0</td>
+<td>45.0</td>
+<td>NaN</td>
+<td>110.0</td>
+<td>112.0</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1004</td>
+<td>60.0</td>
+<td>66.0</td>
+<td>72.0</td>
+<td>148.0</td>
+<td>156.0</td>
+<td>164.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>1005</td>
+<td>48.0</td>
+<td>54.0</td>
+<td>60.0</td>
+<td>124.0</td>
+<td>128.0</td>
+<td>134.0</td>
+</tr>
+</tbody>
+</table>
+
 </div>
+</div>
+</div>
+<p>The result contains one row per individual.</p>
 </section>
-<section id="repl" class="level2" data-number="D.3">
-<h2 data-number="D.3" class="anchored" data-anchor-id="repl"><span class="header-section-number">D.3</span> REPL</h2>
-<p>There are two ways to use Python interpreter. One way is to execute a Python script stored in a file. The second way is called <em>the intereactive shell</em>, that Python interpreter read the input from user directly, and print the result immediately. The model is like code example: prompt the user for some code, and when they’ve entered it, execute it in the same process. This model is often called a <a href="https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop">REPL</a>, or <em>Read-Eval-Print-Loop</em>.</p>
-<p><em>Shell</em>, <em>terminal</em>, <em>console</em> have different meanings in their original contexts. However, nowadays, especially when talking about Python intereactive shell, these terminologies are used interchangeably. They are referred to the frontend of the system. In other words, the main task for the Python intereactive shell is to handle the user inputs and communicate with the backend, which is also called a <em>kernel</em>. We won’t distinguish the real differences between these terminologies. The kernel will be discussed in the next section.</p>
-<p>The standard Python REPL can usually be started with <code>python</code> or <code>python3</code>. On Windows, <code>py</code> may also be available. To quit, use <code>quit()</code>, <code>exit()</code>, <code>Ctrl+D</code> on macOS/Linux, or <code>Ctrl+Z</code> then <code>Enter</code> on Windows.</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>In the REPL model, the backend (evaluation) is basically handled by the Python interpreter. The frontend is dealing with the user interface. Some typically tasks include the <em>primary/secondary prompt</em> and multi-line commands. The original REPL is very limited.</p>
-</div>
-</div>
-</section>
-<section id="ipython" class="level2" data-number="D.4">
-<h2 data-number="D.4" class="anchored" data-anchor-id="ipython"><span class="header-section-number">D.4</span> <code>IPython</code></h2>
-<p><code>IPython</code> was initially designed as an Enhanced interactive Python shell. However after many year’s development, the whole <code>IPython</code> project becomes too big to maintain as one single project. Therefore it is now split into many smaller projects. The two most popular projects are <code>IPython</code> and <code>Jupyter</code>. This is called <a href="https://blog.jupyter.org/the-big-split-9d7b88a031a7">the Big Split</a>.</p>
-<p>The current <a href="https://ipython.readthedocs.io/en/stable/overview.html"><code>IPython</code></a> play two fundamental roles:</p>
-<ul>
-<li>Terminal <code>IPython</code> as the familiar REPL;</li>
-<li>The <code>IPython</code> kernel (which is defined below) that provides computation and communication with the frontend interfaces, like the notebook.</li>
-</ul>
-<p>The core idea in the design of <code>IPython</code> is to abstract and extend the notion of a traditional REPL environment by decoupling the evaluation into its own process. We call this process a <em>kernel</em>: it receives execution instructions from clients and communicates the results back to them.</p>
-<p>This decoupling allows us to have several clients connected to the same kernel, and even allows clients and kernels to live on different machines. This two-process model is now used by most of the <code>Jupyter</code> project.</p>
-<p>You can launch the <code>IPython</code> shell on the command line with the <code>ipython</code> command (which similar to <code>python</code> case requires <code>PATH</code> configuration), and quit the shell with <code>exit</code>/<code>exit()</code>/<code>quit</code>/<code>quit()</code> commands.</p>
-<p>The reference Python kernel provided by <code>IPython</code> is called <code>ipykernel</code>. With <code>ipykernel</code> you may create and maintain multiple kernels.</p>
-</section>
-<section id="jupyter" class="level2" data-number="D.5">
-<h2 data-number="D.5" class="anchored" data-anchor-id="jupyter"><span class="header-section-number">D.5</span> <code>Jupyter</code></h2>
-<p><a href="https://docs.jupyter.org/en/latest/projects/architecture/content-architecture.html"><code>Jupyter</code></a> is an ecosystem for interactive computing. It originated from the IPython Notebook project and later evolved into a language-independent platform supporting many programming languages. The name <strong>Jupyter</strong> is inspired by <strong>Julia</strong>, <strong>Python</strong>, and <strong>R</strong>, the three languages that were central to many early data science workflows.</p>
-<p>Today, Jupyter includes several user interfaces, such as JupyterLab, Jupyter Notebook, Jupyter Console, and QtConsole. In this course, however, the important idea is not a particular interface, but the relationship among a notebook frontend, a kernel, and the notebook file stored on disk.</p>
-<p>A Jupyter notebook is saved as a file with extension <code>.ipynb</code>. Internally, the file uses a structured <code>JSON</code> format that stores:</p>
-<ul>
-<li>code cells;</li>
-<li>Markdown cells;</li>
-<li>outputs;</li>
-<li>notebook metadata.</li>
-</ul>
-<p>When you run code in a notebook, the frontend sends the code to a kernel, which executes the code and returns the results. In a Python notebook, a kernel can be viewed as a Python process running in the background. It executes code, stores variables, and communicates with the notebook interface.</p>
-<p>Different programming languages can be supported by different kernels. For example:</p>
-<ul>
-<li><code>ipykernel</code> for Python;</li>
-<li><code>IRkernel</code> for R;</li>
-<li><code>IJulia</code> for Julia.</li>
-</ul>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Kernel
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>A kernel is associated with a particular Python environment, but it is not the environment itself. For example, multiple kernels may use the same Python environment while maintaining completely separate variables and memory. Conversely, multiple notebook windows may connect to the same kernel and therefore share the same variables and computational state.</p>
-<p>For this course, you can think of the notebook as the user interface, the kernel as the Python process that runs your code, and the <code>.ipynb</code> file as the notebook document saved on disk.</p>
-</div>
-</div>
-<section id="multi-kernels-setup" class="level3" data-number="D.5.1">
-<h3 data-number="D.5.1" class="anchored" data-anchor-id="multi-kernels-setup"><span class="header-section-number">D.5.1</span> Multi-kernels setup</h3>
-<p>This section is mainly following the <a href="https://ipython.readthedocs.io/en/stable/install/kernel_install.html">official document</a>.</p>
-<p>To install one <code>IPython</code> kernel, you may install <code>ipykernel</code> in the environment. If you want to have multiple <code>IPython</code> kernels for different venvs, you will need to specify unique names for the kernelspecs.</p>
+<section id="avoid-data-leakage" class="level2" data-number="E.3">
+<h2 data-number="E.3" class="anchored" data-anchor-id="avoid-data-leakage"><span class="header-section-number">E.3</span> Avoid data leakage</h2>
+<p>To keep all visits from the same individual together, there are at least two different methods:</p>
 <ol type="1">
-<li>Activate the environment you want.</li>
-<li>Install the kernel in the environment.</li>
+<li>Reshape the data so that all visits from the same individual appear in one row (using the method mentioned above), and then split by rows.</li>
+<li>Split the unique IDs and then select their rows.</li>
 </ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> add ipykernel</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python <span class="at">-m</span> ipykernel install <span class="at">--user</span> <span class="at">--name</span> myenv <span class="at">--display-name</span> <span class="st">"Python (myenv)"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>--user</code> means that the kernel is installed in the user’s folder instead of a system folder, and it can be removed. The <code>--name</code> value (in this case it is <code>myenv</code>) is used by Jupyter internally. These commands will overwrite any existing kernel with the same name. <code>--display-name</code> is what you see in the notebook menus.</p>
-<ol start="3" type="1">
-<li>You could use the command to find all kernels installed in your system.</li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run jupyter kernelspec list</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Available kernels are shown, as well as the path to the kernel configuration file <code>kernel.json</code>. The most important configuration is the path to the Python interpreter executatable file.</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>kernel.json</strong></pre>
+<div id="f205f3a0" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ids <span class="op">=</span> df[<span class="st">"id"</span>].drop_duplicates()</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>train_ids, remaining_ids <span class="op">=</span> train_test_split(ids, test_size<span class="op">=</span><span class="fl">0.40</span>, random_state<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>val_ids, test_ids <span class="op">=</span> train_test_split(remaining_ids, test_size<span class="op">=</span><span class="fl">0.50</span>, random_state<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>train_df <span class="op">=</span> df.loc[df[<span class="st">"id"</span>].isin(train_ids)].copy()</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>val_df <span class="op">=</span> df.loc[df[<span class="st">"id"</span>].isin(val_ids)].copy()</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>test_df <span class="op">=</span> df.loc[df[<span class="st">"id"</span>].isin(test_ids)].copy()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-filename="kernel.json"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a> <span class="dt">"argv"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"C:</span><span class="ch">\\</span><span class="st">Users</span><span class="ch">\\</span><span class="st">WDAGUtilityAccount</span><span class="ch">\\</span><span class="st">Project</span><span class="ch">\\</span><span class="st">.venv</span><span class="ch">\\</span><span class="st">Scripts</span><span class="ch">\\</span><span class="st">python.exe"</span><span class="ot">,</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"-Xfrozen_modules=off"</span><span class="ot">,</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"-m"</span><span class="ot">,</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ipykernel_launcher"</span><span class="ot">,</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"-f"</span><span class="ot">,</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"{connection_file}"</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a> <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a> <span class="dt">"display_name"</span><span class="fu">:</span> <span class="st">"(myenv)"</span><span class="fu">,</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a> <span class="dt">"language"</span><span class="fu">:</span> <span class="st">"python"</span><span class="fu">,</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a> <span class="dt">"metadata"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"debugger"</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a> <span class="fu">},</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a> <span class="dt">"kernel_protocol_version"</span><span class="fu">:</span> <span class="st">"5.5"</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="summarize-and-handle-missing-values" class="level2" data-number="E.4">
+<h2 data-number="E.4" class="anchored" data-anchor-id="summarize-and-handle-missing-values"><span class="header-section-number">E.4</span> Summarize and handle missing values</h2>
+<p>Use <code>info()</code> to inspect the data types and non-null count for each column. A non-null count below the total number of rows indicates missing values:</p>
+<div id="750e63cb" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>df.info()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;class 'pandas.DataFrame'&gt;
+RangeIndex: 32 entries, 0 to 31
+Data columns (total 12 columns):
+ #   Column  Non-Null Count  Dtype  
+---  ------  --------------  -----  
+ 0   id      32 non-null     int64  
+ 1   visit   32 non-null     int64  
+ 2   time    32 non-null     int64  
+ 3   num_1   32 non-null     int64  
+ 4   cat_1   32 non-null     str    
+ 5   num_2   32 non-null     int64  
+ 6   num_3   31 non-null     float64
+ 7   num_4   31 non-null     float64
+ 8   cat_2   32 non-null     int64  
+ 9   num_5   32 non-null     int64  
+ 10  cat_3   32 non-null     int64  
+ 11  target  32 non-null     int64  
+dtypes: float64(2), int64(9), str(1)
+memory usage: 3.1 KB</code></pre>
 </div>
-<p>Notice that the path in <code>argv</code> points to the Python interpreter used by this kernel. Different kernels may point to different Python environments, or multiple kernels may point to the same environment.</p>
+</div>
+<p>For missing values, we could either drop them</p>
+<div id="d65809e4" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>df_dropped <span class="op">=</span> df.dropna()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Caution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Be careful: <code>dropna()</code> removes every row that contains at least one missing value.</p>
+</div>
+</div>
+<p>Alternatively, we could use <code>fillna()</code> to replace missing values with a specified value, such as <span class="math inline">\(0\)</span>:</p>
+<div id="3d0283bc" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>df_filled_0 <span class="op">=</span> df.fillna(<span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>or we could use <code>fillna()</code> to replace missing values with the column mean:</p>
+<div id="902bf45c" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>df_filled <span class="op">=</span> df.copy()</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>df_filled[<span class="st">"num_3"</span>] <span class="op">=</span> df_filled[<span class="st">"num_3"</span>].fillna(df_filled[<span class="st">"num_3"</span>].mean())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Missing values can also be filled with the mean of each group. This example uses the mean within each <code>cat_1</code> group:</p>
+<div id="e5a3627b" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>df_group_filled <span class="op">=</span> df.copy()</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>group_mean <span class="op">=</span> df.groupby(<span class="st">"cat_1"</span>)[<span class="st">"num_3"</span>].transform(<span class="st">"mean"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>df_group_filled[<span class="st">"num_3"</span>] <span class="op">=</span> df_group_filled[<span class="st">"num_3"</span>].fillna(group_mean)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Imputer
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The examples above show simple approaches to missing-value imputation. A more complete, cross-validation-safe approach typically combines a <code>sklearn</code> imputer with <code>ColumnTransformer</code> and <code>Pipeline</code>, so that imputation is fitted separately within each training fold and applied consistently to other data. The details of this approach are beyond the scope of this note.</p>
+</div>
+</div>
+</section>
+<section id="construct-features" class="level2" data-number="E.5">
+<h2 data-number="E.5" class="anchored" data-anchor-id="construct-features"><span class="header-section-number">E.5</span> Construct features</h2>
+<p>Sort by individual and time before calculating within-person differences:</p>
+<div id="1e725949" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>df_sort <span class="op">=</span> df.sort_values([<span class="st">"id"</span>, <span class="st">"time"</span>]).copy()</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>df_sort[<span class="st">"time_change"</span>] <span class="op">=</span> df_sort.groupby(<span class="st">"id"</span>)[<span class="st">"time"</span>].diff()</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>df_sort[<span class="st">"num_2_change"</span>] <span class="op">=</span> df_sort.groupby(<span class="st">"id"</span>)[<span class="st">"num_2"</span>].diff()</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>df_sort[<span class="st">"num_2_change_per_day"</span>] <span class="op">=</span> df_sort[<span class="st">"num_2_change"</span>] <span class="op">/</span> (df_sort[<span class="st">"time_change"</span>])</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>df_sort.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="131">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">visit</th>
+<th data-quarto-table-cell-role="th">time</th>
+<th data-quarto-table-cell-role="th">num_1</th>
+<th data-quarto-table-cell-role="th">cat_1</th>
+<th data-quarto-table-cell-role="th">num_2</th>
+<th data-quarto-table-cell-role="th">num_3</th>
+<th data-quarto-table-cell-role="th">num_4</th>
+<th data-quarto-table-cell-role="th">cat_2</th>
+<th data-quarto-table-cell-role="th">num_5</th>
+<th data-quarto-table-cell-role="th">cat_3</th>
+<th data-quarto-table-cell-role="th">target</th>
+<th data-quarto-table-cell-role="th">time_change</th>
+<th data-quarto-table-cell-role="th">num_2_change</th>
+<th data-quarto-table-cell-role="th">num_2_change_per_day</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1001</td>
+<td>1</td>
+<td>0</td>
+<td>45</td>
+<td>F</td>
+<td>118</td>
+<td>23.8</td>
+<td>188.0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1001</td>
+<td>2</td>
+<td>2130</td>
+<td>51</td>
+<td>F</td>
+<td>122</td>
+<td>24.1</td>
+<td>194.0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>2130.0</td>
+<td>4.0</td>
+<td>0.001878</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1001</td>
+<td>3</td>
+<td>4280</td>
+<td>57</td>
+<td>F</td>
+<td>126</td>
+<td>24.5</td>
+<td>201.0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>2150.0</td>
+<td>4.0</td>
+<td>0.001860</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1002</td>
+<td>1</td>
+<td>0</td>
+<td>52</td>
+<td>M</td>
+<td>132</td>
+<td>27.4</td>
+<td>221.0</td>
+<td>1</td>
+<td>15</td>
+<td>0</td>
+<td>0</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>1002</td>
+<td>2</td>
+<td>2085</td>
+<td>58</td>
+<td>M</td>
+<td>138</td>
+<td>28.0</td>
+<td>229.0</td>
+<td>1</td>
+<td>12</td>
+<td>0</td>
+<td>0</td>
+<td>2085.0</td>
+<td>6.0</td>
+<td>0.002878</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Only information observed before the prediction time may be used to construct predictors.</p>
+</section>
+<section id="combine-numerical-values-into-groups" class="level2" data-number="E.6">
+<h2 data-number="E.6" class="anchored" data-anchor-id="combine-numerical-values-into-groups"><span class="header-section-number">E.6</span> Combine numerical values into groups</h2>
+<p>Use <code>pd.cut()</code> when predefined, ordered intervals have a meaningful interpretation:</p>
+<div id="081aa6ba" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"num_1_group"</span>] <span class="op">=</span> pd.cut(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">"num_1"</span>],</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    bins<span class="op">=</span>[<span class="bu">float</span>(<span class="st">"-inf"</span>), <span class="dv">45</span>, <span class="dv">55</span>, <span class="dv">65</span>, <span class="bu">float</span>(<span class="st">"inf"</span>)],</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    labels<span class="op">=</span>[<span class="st">"below_45"</span>, <span class="st">"45-54"</span>, <span class="st">"55-64"</span>, <span class="st">"65_or_above"</span>],</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    right<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    ordered<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"num_1_group"</span>].head(<span class="dv">9</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="132">
+<pre><code>0       45-54
+1       45-54
+2       55-64
+3       45-54
+4       55-64
+5       55-64
+6    below_45
+7       45-54
+8       55-64
+Name: num_1_group, dtype: category
+Categories (4, str): ['below_45' &lt; '45-54' &lt; '55-64' &lt; '65_or_above']</code></pre>
+</div>
+</div>
+<p>Choose cut points using subject-matter knowledge or the training data only, not the validation or test set.</p>
+<!-- 
+## Key takeaways
+
+- Treat the individual ID as the independent sampling unit.
+- Split by ID before performing outcome-related EDA or data-dependent preprocessing.
+- Estimate imputation values and data-dependent cut points from training data only.
+- Sort longitudinal observations before using `groupby().diff()`.
+- Use only information available before the target visit.
+- Use `pivot()` when a clear one-row-per-individual representation supports the narrative. -->
+</section>
+<section id="perform-concise-eda" class="level2" data-number="E.7">
+<h2 data-number="E.7" class="anchored" data-anchor-id="perform-concise-eda"><span class="header-section-number">E.7</span> Perform concise EDA</h2>
+<section id="summary-statistics" class="level3" data-number="E.7.1">
+<h3 data-number="E.7.1" class="anchored" data-anchor-id="summary-statistics"><span class="header-section-number">E.7.1</span> Summary statistics</h3>
+<div id="5d148308" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>df.describe()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="133">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">visit</th>
+<th data-quarto-table-cell-role="th">time</th>
+<th data-quarto-table-cell-role="th">num_1</th>
+<th data-quarto-table-cell-role="th">num_2</th>
+<th data-quarto-table-cell-role="th">num_3</th>
+<th data-quarto-table-cell-role="th">num_4</th>
+<th data-quarto-table-cell-role="th">cat_2</th>
+<th data-quarto-table-cell-role="th">num_5</th>
+<th data-quarto-table-cell-role="th">cat_3</th>
+<th data-quarto-table-cell-role="th">target</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">count</th>
+<td>32.000000</td>
+<td>32.000000</td>
+<td>32.000000</td>
+<td>32.000000</td>
+<td>32.000000</td>
+<td>31.000000</td>
+<td>31.000000</td>
+<td>32.000000</td>
+<td>32.00000</td>
+<td>32.000000</td>
+<td>32.000000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">mean</th>
+<td>1006.156250</td>
+<td>1.906250</td>
+<td>1917.656250</td>
+<td>55.468750</td>
+<td>135.125000</td>
+<td>27.403226</td>
+<td>219.967742</td>
+<td>0.437500</td>
+<td>5.96875</td>
+<td>0.250000</td>
+<td>0.218750</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">std</th>
+<td>3.322546</td>
+<td>0.817525</td>
+<td>1733.112985</td>
+<td>8.481419</td>
+<td>15.009137</td>
+<td>2.892114</td>
+<td>24.895092</td>
+<td>0.504016</td>
+<td>7.70205</td>
+<td>0.439941</td>
+<td>0.420013</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">min</th>
+<td>1001.000000</td>
+<td>1.000000</td>
+<td>0.000000</td>
+<td>39.000000</td>
+<td>110.000000</td>
+<td>21.900000</td>
+<td>174.000000</td>
+<td>0.000000</td>
+<td>0.00000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">25%</th>
+<td>1003.750000</td>
+<td>1.000000</td>
+<td>0.000000</td>
+<td>49.500000</td>
+<td>123.500000</td>
+<td>25.150000</td>
+<td>200.000000</td>
+<td>0.000000</td>
+<td>0.00000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">50%</th>
+<td>1006.000000</td>
+<td>2.000000</td>
+<td>2077.500000</td>
+<td>56.500000</td>
+<td>135.000000</td>
+<td>27.900000</td>
+<td>221.000000</td>
+<td>0.000000</td>
+<td>0.00000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">75%</th>
+<td>1009.000000</td>
+<td>3.000000</td>
+<td>4128.750000</td>
+<td>61.250000</td>
+<td>146.500000</td>
+<td>29.800000</td>
+<td>240.500000</td>
+<td>1.000000</td>
+<td>10.50000</td>
+<td>0.250000</td>
+<td>0.000000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">max</th>
+<td>1012.000000</td>
+<td>3.000000</td>
+<td>4375.000000</td>
+<td>72.000000</td>
+<td>164.000000</td>
+<td>32.000000</td>
+<td>260.000000</td>
+<td>1.000000</td>
+<td>25.00000</td>
+<td>1.000000</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="outcome-class-balance" class="level3" data-number="E.7.2">
+<h3 data-number="E.7.2" class="anchored" data-anchor-id="outcome-class-balance"><span class="header-section-number">E.7.2</span> Outcome class balance</h3>
+<div id="0442ec0c" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"target"</span>].value_counts(normalize<span class="op">=</span><span class="va">True</span>, dropna<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="134">
+<pre><code>target
+0    0.78125
+1    0.21875
+Name: proportion, dtype: float64</code></pre>
+</div>
+</div>
+</section>
+<section id="comparison-between-outcome-groups" class="level3" data-number="E.7.3">
+<h3 data-number="E.7.3" class="anchored" data-anchor-id="comparison-between-outcome-groups"><span class="header-section-number">E.7.3</span> Comparison between outcome groups</h3>
+<div id="5f44c863" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>important_num <span class="op">=</span> [<span class="st">"num_1"</span>, <span class="st">"num_2"</span>, <span class="st">"num_3"</span>, <span class="st">"num_4"</span>]</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>df.groupby(<span class="st">"target"</span>, dropna<span class="op">=</span><span class="va">False</span>)[important_num].mean().T</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="135">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">target</th>
+<th data-quarto-table-cell-role="th">0</th>
+<th data-quarto-table-cell-role="th">1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">num_1</th>
+<td>52.440000</td>
+<td>66.285714</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">num_2</th>
+<td>129.760000</td>
+<td>154.285714</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">num_3</th>
+<td>26.583333</td>
+<td>30.214286</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">num_4</th>
+<td>211.625000</td>
+<td>248.571429</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="correlation-heatmap" class="level3" data-number="E.7.4">
+<h3 data-number="E.7.4" class="anchored" data-anchor-id="correlation-heatmap"><span class="header-section-number">E.7.4</span> Correlation heatmap</h3>
+<div id="8a28aac8" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>sns.heatmap(df[important_num].corr(), annot<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span><span class="st">"coolwarm"</span>, vmin<span class="op">=-</span><span class="dv">1</span>, vmax<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Correlations among Important Variables"</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="preprocessing-eda_files/figure-html/cell-18-output-1.png" width="553" height="431" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Choose only the summaries and plots that support the project narrative or motivate later modeling decisions.</p>
 
 
 </section>
@@ -1220,14 +1922,11 @@ Note
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../contents/app/python.html" class="pagination-link" aria-label="Python Basics for `sklearn`">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Python Basics for <code>sklearn</code></span></span>
+      <a href="../../contents/app/concept.html" class="pagination-link" aria-label="Some Python concepts">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Some Python concepts</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../contents/app/preprocessing-eda.html" class="pagination-link" aria-label="Data Processing and EDA">
-        <span class="nav-page-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Data Processing and EDA</span></span> <i class="bi bi-arrow-right-short"></i>
-      </a>
   </div>
 </nav>
 </div> <!-- /content -->
