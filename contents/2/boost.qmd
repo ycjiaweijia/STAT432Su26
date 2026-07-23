@@ -786,39 +786,15 @@ F_{m+1}(x)
 F_m(x)+f_m(x).
 $$
 
-The new tree $f_m(x)$ is chosen to reduce the loss function as much as possible.
-
-
-
-Now consider the first-order Taylor expansion of the loss function:
-
+The new tree $f_m(x)$ is chosen to reduce the loss function. Ideally, we would minimize
 $$
 l(y_i,F_m(x_i)+f_m(x_i))
-\approx
-l(y_i,F_m(x_i))
-+
-g_i f_m(x_i),
 $$
-
-where
-
-$$
-g_i
-=
-\left.
-\frac{\partial l(y_i,F_m(x_i))}
-{\partial F_m(x_i)}
-\right|_{F=F_m}.
-$$
-
-This gives a linear approximation of the loss function in terms of the update $f_m(x_i)$.
-
-Since the first-order Taylor approximation is linear, the negative gradient gives the direction of steepest descent. Therefore we define the pseudo-residual
+for each $f_m(x_i)$. Gradient boosting approximates this optimization using the idea of gradient descent: the predictions $f_m(x_i)$ should approximate the negative gradient, which gives the direction of steepest descent in the loss. We therefore define the pseudo-residual for the observation $x_i$ as
 
 $$
 r_i
-=
--g_i
+=-g_i
 =
 -
 \left.
@@ -826,8 +802,7 @@ r_i
 {\partial F(x_i)}
 \right|_{F=F_m}.
 $$
-
-The pseudo-residual plays the role of the error signal that the next tree should fit.
+The pseudo-residuals $r_i$ are then used as the target values when fitting the new regression tree $f_m$.
 
 
 
@@ -924,7 +899,7 @@ l(y_i,F_m(x_i))
 g_i f_m(x_i)
 +
 \frac12 h_i f_m(x_i)^2,
-$$
+$$ {#eq-xg_loss}
 
 where
 
@@ -955,7 +930,7 @@ Here
 
 Thus, XGBoost uses both gradient and curvature information.
 
-
+<!-- 
 
 ### Intuition of the quadratic approximation
 
@@ -980,7 +955,7 @@ f
 $$
 
 This can be viewed as the approximately optimal update suggested by the local quadratic approximation of the loss function.
-
+ -->
 
 
 ### Tree structure in XGBoost
@@ -997,7 +972,7 @@ $$
 f_m(x_i)=s_j.
 $$
 
-Substituting this into the quadratic approximation gives the approximate objective
+Substituting this into the quadratic approximation @eq-xg_loss and ignoring constant terms gives the approximate objective
 
 $$
 \sum_{j=1}^s
@@ -1102,10 +1077,9 @@ L(F_m+f_m)
 \Omega(f_m).
 $$
 
-Here
 
-- $\gamma T$ penalizes the number of leaves
-- $\frac12 \lambda \sum s_j^2$ penalizes large leaf values
+- $\gamma T$ penalizes the number of leaves. The parameter $\gamma$, called the minimum split loss, specifies the minimum reduction in the objective required for an additional split.
+- $\frac{1}{2}\lambda\sum_{j=1}^{T}s_j^2$ penalizes large leaf weights. The parameter $\lambda$ controls the strength of this $L_2$ regularization.
 
 
 
@@ -1163,6 +1137,34 @@ This quantity is used by XGBoost to evaluate the quality of candidate tree split
 
 Therefore, unlike ordinary CART trees which use RSS or Gini impurity, XGBoost derives its splitting criterion directly from the regularized optimization objective.
 
+
+::: {.callout-note collapse="true"}
+## $L_1$ regularization
+
+XGBoost can also apply an $L_1$ penalty to the leaf weights:
+
+$$
+\alpha\sum_{j=1}^{T}|s_j|.
+$$
+
+Including both $L_1$ and $L_2$ regularization, the full penalty function becomes
+
+$$
+\Omega(f_m)
+=
+\gamma T
++
+\frac{\lambda}{2}\sum_{j=1}^{T}s_j^2
++
+\alpha\sum_{j=1}^{T}|s_j|.
+$$
+
+The $L_1$ penalty can shrink some leaf weights exactly to zero, making the contribution of those leaves vanish. It may improve robustness and reduce overfitting, particularly when the data contain substantial noise.
+
+This penalty is analogous to the $L_1$ penalty used in lasso regression. However, unlike lasso regression, it regularizes leaf values rather than individual feature coefficients, so it does not directly perform feature selection.
+
+We initially omit $L_1$ regularization because its nondifferentiability at zero makes the derivation of the optimal leaf weights and split gains more complicated. Nevertheless, $\alpha$ is a hyperparameter worth considering when tuning an `XGBoost` model.
+:::
 
 ### Learning rate
 
@@ -1354,6 +1356,7 @@ xgb = XGBRegressor(
     max_depth=3,
     subsample=0.8,
     colsample_bytree=0.8,
+    gamma=0.5,
     reg_lambda=1.0,
     random_state=0,
     n_jobs=-1,
@@ -1373,6 +1376,7 @@ The most important hyperparameters are:
 | `max_depth` | Depth of each tree. |
 | `subsample` | Fraction of observations used for each tree. |
 | `colsample_bytree` | Fraction of predictors used for each tree. |
+| `gamma` | Minimum split loss for the tree. |
 | `reg_lambda` | L2 regularization on leaf weights. |
 | `reg_alpha` | L1 regularization on leaf weights. |
 
@@ -1382,7 +1386,7 @@ Most of them are straightforward. I only discuss these since they are not from t
 ::: {.callout-note collapse="true"}
 
 ## `subsample`
-`subsample` controls the fraction of training observations randomly sampled for each boosting round. For example `subsample=0.8` means that each new tree is trained using only 80% of the observations. 
+`subsample` controls the fraction of training observations randomly sampled. For example `subsample=0.8` means that each new tree is trained using only 80% of the observations. Sampling is performed without replacement, and a new sample is drawn for each boosting round.
 
 This introduces additional randomness into boosting, similar to bagging in Random Forests. Smaller values of `subsample` and reduce variance and improve generalization. However, if the value is too small, the model may underfit.
 
@@ -1392,29 +1396,12 @@ This introduces additional randomness into boosting, similar to bagging in Rando
 ::: {.callout-note collapse="true"}
 
 ## `colsample_bytree`
-`colsample_bytree` controls the fraction of predictors randomly sampled for each tree. For example `colsample_bytree=0.7` means that each tree only considers 70% of the predictors.
+`colsample_bytree` controls the fraction of predictors randomly sampled for each tree. For example `colsample_bytree=0.7` means that each tree only considers 70% of the predictors. Sampling is performed without replacement, and a new set of predictors is drawn for each tree.
 
-This idea is similar to feature subsampling in Random Forests. It reduces correlation between trees and can improve robustness and generalization performance.
+This idea is similar to feature subsampling in Random Forests. It reduces correlation between trees and can improve robustness and generalization performance. However, Random Forests commonly sample predictors separately at each split, whereas `colsample_bytree` selects one set of predictors for the entire tree (and therefore its name is `bytree`). 
 
 :::
 
-
-
-::: {.callout-note collapse="true"}
-
-## `reg_alpha`
-
-
-`reg_alpha` is the L1 regularization parameter on leaf weights. Previously we introduced the L2 regularization term $\frac12\lambda\sum s_j^2$, which corresponds to ridge-style regularization. 
-
-XGBoost can also include an L1 penalty 
-$$
-\alpha\sum\abs{s_j},
-$$
-which is controlled by `reg_alpha`. L1 regularization tends to shrink some leaf values exactly to zero, producing sparser models and sometimes improving interpretability and robustness. This corresponds to lasso-style regularization.
-
-We don't introduce L1 regularization in the first place because it might make the math formula too complicated.
-:::
 
 
 Example grid:
@@ -1433,7 +1420,9 @@ param_grid = {
     "max_depth": [2, 3, 4],
     "subsample": [0.7, 0.9, 1.0],
     "colsample_bytree": [0.7, 0.9, 1.0],
+    "gamma": [0, 0.01, 0.1, 0.5, 1, 5],
     "reg_lambda": [1.0, 5.0, 10.0],
+    "reg_alpha": [0, 0.001, 0.01, 0.1, 1, 5, 10],
 }
 
 grid = GridSearchCV(xgb, param_grid=param_grid, cv=5, n_jobs=-1)
@@ -1465,7 +1454,8 @@ Since now we can search in a very large space, usually we make a really large sp
 
 ```{python}
 #| eval: false
-from scipy.stats import randint, uniform
+from scipy.stats import randint, uniform, loguniform
+from sklearn.model_selection import RandomizedSearchCV
 
 param_distributions = {
     "n_estimators": randint(100, 1000),
@@ -1473,7 +1463,9 @@ param_distributions = {
     "learning_rate": uniform(0.01, 0.19),
     "subsample": uniform(0.6, 0.4),
     "colsample_bytree": uniform(0.6, 0.4),
+    "gamma": [0, 0.01, 0.05, 0.1, 0.3, 0.5, 1, 2, 3, 5],
     "reg_lambda": uniform(0, 10),
+    "reg_alpha": [0, 0.01, 0.1, 1, 10]
 }
 
 random_search = RandomizedSearchCV(
@@ -1481,7 +1473,9 @@ random_search = RandomizedSearchCV(
 )
 ```
 
+A common choice for exploring positive values of `gamma` is a log-uniform distribution. However, `gamma=0` is also a plausible and often competitive choice, and a log-uniform distribution cannot include `0`. We therefore use a discrete candidate set containing zero together with positive values spanning several orders of magnitude. If there is a strong reason to exclude `gamma=0`, `loguniform` can be used directly.
 
+Similarly `reg_alpha` has similar issues that `0` (hence no $L_1$ regularization) is usually a competitive choice. Therefore we manually choose a grid including `0`.
 
 ### Workflow
 
@@ -1493,7 +1487,7 @@ Then, based on the best combination found by random search, choose a smaller and
 
 If the refined grid is still too slow, we can tune parameters in smaller batches. A common strategy is:
 
-1. tune model complexity parameters first, such as `max_depth`
+1. tune model complexity parameters first, such as `max_depth` and `gamma`
 2. tune learning rate
 3. tune sampling parameters, such as `subsample` and `colsample_bytree`
 4. tune regularization parameters, such as `reg_lambda` and `reg_alpha`
@@ -1561,6 +1555,17 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 ```
 
 In general you should not touch test sets. However in this example for simplicity we ambuse it by using test sets as validation sets.
+
+
+::: {.callout-caution}
+## The search space is too large
+
+XGBoost has many hyperparameters, so an exhaustive search over all possible combinations can be computationally expensive. One of the main goals of this lecture is to introduce practical strategies for reducing the tuning time.
+
+In this example, in addition to the tuning strategies introduced earlier, we reduce the search space by fixing some lower-priority hyperparameters at their default values. In particular, we do not tune `gamma` or `reg_alpha`. The effect of `gamma` partially overlaps with that of other tree-complexity parameters, such as `max_depth`, while `reg_alpha` and `reg_lambda` both regularize leaf weights.
+
+For a more thorough real-world analysis, `gamma` and `reg_alpha` may also be included in the tuning process when the computational budget allows.
+:::
 
 ### Baseline model
 
