@@ -539,23 +539,189 @@ The formula has three main parts:
 - $\frac{\sum_i {a_i\choose 2}\sum_j {b_j\choose 2}}{{n\choose 2}}$ is the expected number of such agreeing pairs under random labelings with the same class sizes and cluster sizes.
 - $\frac{1}{2}\left[\sum_i {a_i\choose 2}+\sum_j {b_j\choose 2}\right]$ is the average of the largest pair counts implied by the two marginal labelings.
 
-Thus, the adjusted Rand index has the form
+Conceptually, the adjusted Rand index has the form
 
 $$
 \operatorname{ARI}
 =
 \frac{
-\text{observed agreement}
+\text{observed pairwise agreement}
 -
-\text{expected agreement}
+\text{expected pairwise agreement}
 }{
-\text{maximum agreement}
+\text{maximum pairwise agreement}
 -
-\text{expected agreement}
+\text{expected pairwise agreement}
 }.
 $$
 
 The key difference between the Rand index and the adjusted Rand index is that the Rand index measures raw pairwise agreement, while the adjusted Rand index measures pairwise agreement after correcting for chance. This correction matters because many pairs may agree simply because they are separated in both labelings, even when the clustering does not recover the reference groups.
+
+
+
+<details>
+<summary><strong>Click to expand.</strong></summary>
+Let $N$ be the total number of paris. The Rand index is
+
+$$
+\operatorname{RI}=\frac{a+b}{N}.
+$$
+
+Recall that 
+
+- $a$ is the number of pairs together in both labelings
+- $b$ is the number of pairs separated by both labelings
+- $c$ is the number of pairs together in the reference labels but separated by the cluster assignments
+- $d$ is the number of pairs separated by the reference labels but together in the cluster assignments
+
+Then 
+
+- The total number of pairs placed together in the reference labeling is $R=a+c$.
+- The total number of pairs placed together in the cluster assignment is $C=a+d$.
+
+Therefore, $c=R-a$, and $d=C-a$. Because $a+b+c+d=N$,
+
+$$
+\begin{split}
+b
+&=N-a-c-d\\
+&=N-a-(R-a)-(C-a)\\
+&=N-R-C+a.
+\end{split}
+$$
+
+Hence, the observed number of agreeing pairs can be written as
+
+$$
+\begin{split}
+a+b
+&=a+(N-R-C+a)\\
+&=N-R-C+2a.
+\end{split}
+$$
+
+Now we update RI to be ARI by removing expected assignments:
+$$
+\operatorname{ARI}
+=
+\frac{
+\text{observed pairwise agreement}
+-
+\text{expected pairwise agreement}
+}{
+\text{maximum pairwise agreement}
+-
+\text{expected pairwise agreement}
+}=\frac{a+b-\Exp[a+b]}{N-\Exp[a+b]}.
+$$
+
+There are $R$ pairs placed together in the reference labeling, and each such pair has probability $C/N$ of also being placed together in the cluster assignment. Therefore under random labeling with the same reference-class sizes and cluster sizes, the expected number of pairs placed together in both labelings is
+
+$$
+\Exp[a]=\frac{RC}{N}.
+$$
+
+
+Similarly, the expected number of pairs separated in both labelings is
+
+$$
+\Exp[b]=\frac{(N-R)(N-C)}{N}.
+$$
+
+Therefore, the expected total pairwise agreement is
+
+$$
+\begin{split}
+\Exp[a+b]
+&=\frac{RC}{N}+\frac{(N-R)(N-C)}{N}\\
+&=N-R-C+2\frac{RC}{N}.
+\end{split}
+$$
+
+Then
+
+$$
+\operatorname{ARI}
+=\frac{a+b-\Exp[a+b]}{N-\Exp[a+b]}.
+$$
+
+The numerator is
+
+$$
+\begin{split}
+(a+b)-E[a+b]
+&=(N-R-C+2a)
+-\left(N-R-C+2\frac{RC}{N}\right)\\
+&=2\left(a-\frac{RC}{N}\right).
+\end{split}
+$$
+
+The denominator is
+
+$$
+\begin{split}
+N-E[a+b]
+&=N-\left(N-R-C+2\frac{RC}{N}\right)\\
+&=R+C-2\frac{RC}{N}\\
+&=2\left(\frac{R+C}{2}-\frac{RC}{N}\right).
+\end{split}
+$$
+
+Therefore
+
+$$
+\operatorname{ARI}
+=\frac{a-\dfrac{RC}{N}}
+{\dfrac{1}{2}(R+C)-\dfrac{RC}{N}}.
+$$
+
+Finally, substituting
+
+$$
+a=\sum_{i,j}\binom{n_{ij}}{2},
+\qquad
+R=\sum_i\binom{a_i}{2},
+\qquad
+C=\sum_j\binom{b_j}{2},
+\qquad
+N=\binom{n}{2}.
+$$
+
+we obtain
+
+$$
+\operatorname{ARI}
+=
+\frac{
+\sum_{i,j}\binom{n_{ij}}{2}
+-
+\frac{
+\left(\sum_i\binom{a_i}{2}\right)
+\left(\sum_j\binom{b_j}{2}\right)
+}{
+\binom{n}{2}
+}
+}{
+\frac{1}{2}
+\left[
+\sum_i\binom{a_i}{2}
++
+\sum_j\binom{b_j}{2}
+\right]
+-
+\frac{
+\left(\sum_i\binom{a_i}{2}\right)
+\left(\sum_j\binom{b_j}{2}\right)
+}{
+\binom{n}{2}
+}
+}.
+$$
+
+</details>
+
+
+
 
 
 

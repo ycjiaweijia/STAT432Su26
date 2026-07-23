@@ -1435,7 +1435,7 @@ grid.fit(X_train, y_train)
 ## `n_jobs`
 Although for boosting parallel computing is in the nature as in bagging, `XGBoost` successfully support it and offers `n_jobs` to accelerate. The API is similar, so we could use `n_jobs=-1` to indicate using all CPU cores.
 
-Similar to bagging, for a nested struture like `GridSearchCV` with `XGBoost`, we only apply `n_jobs` to one of them. In general, if it is a small dataset, we let `GridSearchCV` use multiple cores. If it is a large dataset, we let `XGBoost` use multiple cores.
+Similar to `bagging`, for a nested structure such as `GridSearchCV` with `XGBoost`, we normally use multiple cores only at the outermost layer, that is, `GridSearchCV`. However, some studies suggest enabling multicore processing in `XGBoost` while using a single core for `GridSearchCV` when the dataset is very large.
 :::
 
 
