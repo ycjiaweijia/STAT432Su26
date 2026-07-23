@@ -670,11 +670,10 @@ window.Quarto = {
   <li><a href="#functional-gradient-viewpoint" id="toc-functional-gradient-viewpoint" class="nav-link" data-scroll-target="#functional-gradient-viewpoint"><span class="header-section-number">11.4.2</span> Functional gradient viewpoint</a></li>
   <li><a href="#regression-tree-fitting" id="toc-regression-tree-fitting" class="nav-link" data-scroll-target="#regression-tree-fitting"><span class="header-section-number">11.4.3</span> Regression tree fitting</a></li>
   <li><a href="#xgboost-initial-idea" id="toc-xgboost-initial-idea" class="nav-link" data-scroll-target="#xgboost-initial-idea"><span class="header-section-number">11.4.4</span> XGBoost: Initial idea</a></li>
-  <li><a href="#intuition-of-the-quadratic-approximation" id="toc-intuition-of-the-quadratic-approximation" class="nav-link" data-scroll-target="#intuition-of-the-quadratic-approximation"><span class="header-section-number">11.4.5</span> Intuition of the quadratic approximation</a></li>
-  <li><a href="#tree-structure-in-xgboost" id="toc-tree-structure-in-xgboost" class="nav-link" data-scroll-target="#tree-structure-in-xgboost"><span class="header-section-number">11.4.6</span> Tree structure in XGBoost</a></li>
-  <li><a href="#regularization" id="toc-regularization" class="nav-link" data-scroll-target="#regularization"><span class="header-section-number">11.4.7</span> Regularization</a></li>
-  <li><a href="#learning-rate" id="toc-learning-rate" class="nav-link" data-scroll-target="#learning-rate"><span class="header-section-number">11.4.8</span> Learning rate</a></li>
-  <li><a href="#gbdt-and-xgboost-for-classification" id="toc-gbdt-and-xgboost-for-classification" class="nav-link" data-scroll-target="#gbdt-and-xgboost-for-classification"><span class="header-section-number">11.4.9</span> GBDT and XGBoost for classification</a></li>
+  <li><a href="#tree-structure-in-xgboost" id="toc-tree-structure-in-xgboost" class="nav-link" data-scroll-target="#tree-structure-in-xgboost"><span class="header-section-number">11.4.5</span> Tree structure in XGBoost</a></li>
+  <li><a href="#regularization" id="toc-regularization" class="nav-link" data-scroll-target="#regularization"><span class="header-section-number">11.4.6</span> Regularization</a></li>
+  <li><a href="#learning-rate" id="toc-learning-rate" class="nav-link" data-scroll-target="#learning-rate"><span class="header-section-number">11.4.7</span> Learning rate</a></li>
+  <li><a href="#gbdt-and-xgboost-for-classification" id="toc-gbdt-and-xgboost-for-classification" class="nav-link" data-scroll-target="#gbdt-and-xgboost-for-classification"><span class="header-section-number">11.4.8</span> GBDT and XGBoost for classification</a></li>
   </ul></li>
   <li><a href="#xgboost-in-python" id="toc-xgboost-in-python" class="nav-link" data-scroll-target="#xgboost-in-python"><span class="header-section-number">11.5</span> XGBoost in Python</a></li>
   <li><a href="#tuning-xgboost" id="toc-tuning-xgboost" class="nav-link" data-scroll-target="#tuning-xgboost"><span class="header-section-number">11.6</span> Tuning XGBoost</a>
@@ -759,7 +758,7 @@ F_M(x)
 <p>AdaBoost is built from weak learners.</p>
 <p>A weak learner is a classifier that is only slightly better than random guessing. In tree-based AdaBoost, the most common weak learner is a decision stump, which is a tree with only one split.</p>
 <p>In <code>sklearn</code>, a decision stump is created by</p>
-<div id="293f4509" class="cell" data-execution_count="1">
+<div id="9a59da62" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>DecisionTreeClassifier(max_depth<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -780,50 +779,50 @@ F_M(x)
 <p>Therefore, training a decision tree on weighted data is conceptually very similar to ordinary tree training. We simply replace ordinary counts by weighted counts throughout the splitting calculations.</p>
 <div id="exm-" class="theorem example">
 <p><span class="theorem-title"><strong>Example 11.1</strong></span> Consider the following data:</p>
-<div id="7aecb677" class="cell" data-execution_count="2">
+<div id="99529289" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="1">
 <style type="text/css">
 </style>
 
-<table id="T_b04eb" class="caption-top table table-sm table-striped small">
+<table id="T_2260a" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_b04eb_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">x0</th>
-<th id="T_b04eb_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">x1</th>
-<th id="T_b04eb_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">y</th>
-<th id="T_b04eb_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">Weight</th>
+<th id="T_2260a_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">x0</th>
+<th id="T_2260a_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">x1</th>
+<th id="T_2260a_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">y</th>
+<th id="T_2260a_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">Weight</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_b04eb_row0_col0" class="data row0 col0">1.0</td>
-<td id="T_b04eb_row0_col1" class="data row0 col1">2.1</td>
-<td id="T_b04eb_row0_col2" class="data row0 col2">+</td>
-<td id="T_b04eb_row0_col3" class="data row0 col3">0.5</td>
+<td id="T_2260a_row0_col0" class="data row0 col0">1.0</td>
+<td id="T_2260a_row0_col1" class="data row0 col1">2.1</td>
+<td id="T_2260a_row0_col2" class="data row0 col2">+</td>
+<td id="T_2260a_row0_col3" class="data row0 col3">0.5</td>
 </tr>
 <tr class="even">
-<td id="T_b04eb_row1_col0" class="data row1 col0">1.0</td>
-<td id="T_b04eb_row1_col1" class="data row1 col1">1.1</td>
-<td id="T_b04eb_row1_col2" class="data row1 col2">+</td>
-<td id="T_b04eb_row1_col3" class="data row1 col3">0.125</td>
+<td id="T_2260a_row1_col0" class="data row1 col0">1.0</td>
+<td id="T_2260a_row1_col1" class="data row1 col1">1.1</td>
+<td id="T_2260a_row1_col2" class="data row1 col2">+</td>
+<td id="T_2260a_row1_col3" class="data row1 col3">0.125</td>
 </tr>
 <tr class="odd">
-<td id="T_b04eb_row2_col0" class="data row2 col0">1.3</td>
-<td id="T_b04eb_row2_col1" class="data row2 col1">1.0</td>
-<td id="T_b04eb_row2_col2" class="data row2 col2">-</td>
-<td id="T_b04eb_row2_col3" class="data row2 col3">0.125</td>
+<td id="T_2260a_row2_col0" class="data row2 col0">1.3</td>
+<td id="T_2260a_row2_col1" class="data row2 col1">1.0</td>
+<td id="T_2260a_row2_col2" class="data row2 col2">-</td>
+<td id="T_2260a_row2_col3" class="data row2 col3">0.125</td>
 </tr>
 <tr class="even">
-<td id="T_b04eb_row3_col0" class="data row3 col0">1.0</td>
-<td id="T_b04eb_row3_col1" class="data row3 col1">1.0</td>
-<td id="T_b04eb_row3_col2" class="data row3 col2">-</td>
-<td id="T_b04eb_row3_col3" class="data row3 col3">0.125</td>
+<td id="T_2260a_row3_col0" class="data row3 col0">1.0</td>
+<td id="T_2260a_row3_col1" class="data row3 col1">1.0</td>
+<td id="T_2260a_row3_col2" class="data row3 col2">-</td>
+<td id="T_2260a_row3_col3" class="data row3 col3">0.125</td>
 </tr>
 <tr class="odd">
-<td id="T_b04eb_row4_col0" class="data row4 col0">2.0</td>
-<td id="T_b04eb_row4_col1" class="data row4 col1">1.0</td>
-<td id="T_b04eb_row4_col2" class="data row4 col2">+</td>
-<td id="T_b04eb_row4_col3" class="data row4 col3">0.125</td>
+<td id="T_2260a_row4_col0" class="data row4 col0">2.0</td>
+<td id="T_2260a_row4_col1" class="data row4 col1">1.0</td>
+<td id="T_2260a_row4_col2" class="data row4 col2">+</td>
+<td id="T_2260a_row4_col3" class="data row4 col3">0.125</td>
 </tr>
 </tbody>
 </table>
@@ -1002,7 +1001,7 @@ w_i^{(m)}
 <section id="adaboost-in-python" class="level2" data-number="11.2">
 <h2 data-number="11.2" class="anchored" data-anchor-id="adaboost-in-python"><span class="header-section-number">11.2</span> AdaBoost in Python</h2>
 <p>The basic APIs are as usual. We use <code>AdaBoostClassifier</code> from <code>sklearn.ensemble</code> to implement AdaBoost. All the regular APIs are the same to other models.</p>
-<div id="47c80be9" class="cell" data-execution_count="3">
+<div id="2d6cd310" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> AdaBoostClassifier</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1074,7 +1073,7 @@ y_iF_M(x_i).
 <section id="margin-study-in-python" class="level3" data-number="11.2.3">
 <h3 data-number="11.2.3" class="anchored" data-anchor-id="margin-study-in-python"><span class="header-section-number">11.2.3</span> Margin study in Python</h3>
 <p>The following example uses a manually crafted dataset. We track training error, test error, and margins as the number of boosting rounds increases.</p>
-<div id="aef46a89" class="cell" data-execution_count="4">
+<div id="93bbed16" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1105,7 +1104,7 @@ y_iF_M(x_i).
 </details>
 </div>
 <p>We first train the model.</p>
-<div id="74c44f68" class="cell" data-execution_count="5">
+<div id="6aa16aec" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> AdaBoostClassifier</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2072,7 +2071,7 @@ forceTheme('sk-container-id-1');</script>
 <li><code>.staged_decision_function()</code>: returns the decision scores after each boosting round.</li>
 </ul>
 <p>We would like to record all the training and test scores.</p>
-<div id="6326033e" class="cell" data-execution_count="6">
+<div id="7a25f213" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> accuracy_score</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>train_acc <span class="op">=</span> []</span>
@@ -2085,7 +2084,7 @@ forceTheme('sk-container-id-1');</script>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    test_acc.append(accuracy_score(y_test, pred_test))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In addition, the 10th-percentile margin is of our interesting, since we treat margin&lt;10% as no confidence.</p>
-<div id="90033f91" class="cell" data-execution_count="7">
+<div id="e8d921c2" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>train_margin_10 <span class="op">=</span> []</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>test_margin_10 <span class="op">=</span> []</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2100,7 +2099,7 @@ forceTheme('sk-container-id-1');</script>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    test_margin_10.append(np.quantile(test_margins, <span class="fl">0.1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We also need to test when the training score becomes <code>1.0</code>, and when the test score is the highest. Then we have the interesting output.</p>
-<div id="40a7a131" class="cell" data-execution_count="8">
+<div id="dfff731a" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>first_full_train <span class="op">=</span> <span class="bu">next</span>((i <span class="op">+</span> <span class="dv">1</span> <span class="cf">for</span> i, s <span class="kw">in</span> <span class="bu">enumerate</span>(train_acc) <span class="cf">if</span> s <span class="op">==</span> <span class="fl">1.0</span>), <span class="va">None</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>best_test_round <span class="op">=</span> np.argmax(test_acc) <span class="op">+</span> <span class="dv">1</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2121,7 +2120,7 @@ Final test accuracy: 0.98</code></pre>
 </div>
 <p>We could plot the curves. From the plot, we can see that after the training score becomes 1.0, the model is still improving and the test score reaches the highest long after.</p>
 <!-- fmt: off -->
-<div id="21a0e167" class="cell" data-execution_count="9">
+<div id="78ebacec" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>plt.plot(train_acc, label<span class="op">=</span><span class="st">"training accuracy"</span>)</span>
@@ -2154,7 +2153,7 @@ Final test accuracy: 0.98</code></pre>
 <li>If the lower-percentile margin continues to increase while test performance remains stable or improves, this suggests that the model is still improving its confidence on difficult cases and is not yet clearly overfitting.</li>
 <li>If the lower-percentile margin decreases together with decreasing validation or test performance, this suggests that the model may be becoming less reliable on difficult cases and may be starting to overfit.</li>
 </ul>
-<div id="dbb16510" class="cell" data-execution_count="10">
+<div id="7aa04673" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>plt.plot(train_margin_10, label<span class="op">=</span><span class="st">"training 10th percentile margin"</span>)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>plt.plot(test_margin_10, label<span class="op">=</span><span class="st">"testing 10th percentile margin"</span>)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2229,7 +2228,7 @@ Final test accuracy: 0.98</code></pre>
 <section id="grid-search-for-adaboost" class="level3" data-number="11.3.3">
 <h3 data-number="11.3.3" class="anchored" data-anchor-id="grid-search-for-adaboost"><span class="header-section-number">11.3.3</span> Grid Search for AdaBoost</h3>
 <p>The following code tunes AdaBoost by grid search cross-validation.</p>
-<div id="0294e864" class="cell" data-execution_count="11">
+<div id="ca87a25f" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> AdaBoostClassifier</span>
@@ -2270,7 +2269,7 @@ Final test accuracy: 0.98</code></pre>
 <section id="example-adaboost-on-a-nonlinear-classification-problem" class="level3" data-number="11.3.4">
 <h3 data-number="11.3.4" class="anchored" data-anchor-id="example-adaboost-on-a-nonlinear-classification-problem"><span class="header-section-number">11.3.4</span> Example: <code>AdaBoost</code> on a Nonlinear Classification Problem</h3>
 <p>We first use a synthetic nonlinear classification problem. This example shows that many weak learners can create a flexible decision boundary.</p>
-<div id="10adc619" class="cell" data-execution_count="12">
+<div id="043eb0d4" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> make_moons</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2281,7 +2280,7 @@ Final test accuracy: 0.98</code></pre>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Fit a baseline stump and an AdaBoost model.</p>
-<div id="0c46cf7b" class="cell" data-execution_count="13">
+<div id="5df8cb3d" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> AdaBoostClassifier</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2305,7 +2304,7 @@ AdaBoost accuracy: 0.9222222222222223</code></pre>
 </div>
 </div>
 <p>Now tune the AdaBoost model.</p>
-<div id="945be2c4" class="cell" data-execution_count="14">
+<div id="9ab8b327" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> accuracy_score</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2404,38 +2403,19 @@ F_{m+1}(x)
 =
 F_m(x)+f_m(x).
 \]</span></p>
-<p>The new tree <span class="math inline">\(f_m(x)\)</span> is chosen to reduce the loss function as much as possible.</p>
-<p>Now consider the first-order Taylor expansion of the loss function:</p>
-<p><span class="math display">\[
+<p>The new tree <span class="math inline">\(f_m(x)\)</span> is chosen to reduce the loss function. Ideally, we would minimize <span class="math display">\[
 l(y_i,F_m(x_i)+f_m(x_i))
-\approx
-l(y_i,F_m(x_i))
-+
-g_i f_m(x_i),
-\]</span></p>
-<p>where</p>
-<p><span class="math display">\[
-g_i
-=
-\left.
-\frac{\partial l(y_i,F_m(x_i))}
-{\partial F_m(x_i)}
-\right|_{F=F_m}.
-\]</span></p>
-<p>This gives a linear approximation of the loss function in terms of the update <span class="math inline">\(f_m(x_i)\)</span>.</p>
-<p>Since the first-order Taylor approximation is linear, the negative gradient gives the direction of steepest descent. Therefore we define the pseudo-residual</p>
+\]</span> for each <span class="math inline">\(f_m(x_i)\)</span>. Gradient boosting approximates this optimization using the idea of gradient descent: the predictions <span class="math inline">\(f_m(x_i)\)</span> should approximate the negative gradient, which gives the direction of steepest descent in the loss. We therefore define the pseudo-residual for the observation <span class="math inline">\(x_i\)</span> as</p>
 <p><span class="math display">\[
 r_i
-=
--g_i
+=-g_i
 =
 -
 \left.
 \frac{\partial l(y_i,F(x_i))}
 {\partial F(x_i)}
 \right|_{F=F_m}.
-\]</span></p>
-<p>The pseudo-residual plays the role of the error signal that the next tree should fit.</p>
+\]</span> The pseudo-residuals <span class="math inline">\(r_i\)</span> are then used as the target values when fitting the new regression tree <span class="math inline">\(f_m\)</span>.</p>
 <p>Assume that the new tree splits the dataset into regions <span class="math inline">\(R_1,\ldots,R_s\)</span>, and for each region <span class="math inline">\(R_j\)</span> a value <span class="math inline">\(s_j\)</span> is assigned. We would like the tree to approximate the pseudo-residuals <span class="math inline">\(r_i\)</span>. Therefore we choose the tree to minimize</p>
 <p><span class="math display">\[
 \sum_{j=1}^s
@@ -2501,7 +2481,7 @@ F_{m+1}(x)
 F_m(x)+f_m(x).
 \]</span></p>
 <p>Instead of using only first-order information as in GBDT, XGBoost uses a local second-order Taylor approximation of the loss function at each boosting iteration:</p>
-<p><span class="math display">\[
+<p><span id="eq-xg_loss"><span class="math display">\[
 l(y_i,F_m(x_i)+f_m(x_i))
 \approx
 l(y_i,F_m(x_i))
@@ -2509,7 +2489,7 @@ l(y_i,F_m(x_i))
 g_i f_m(x_i)
 +
 \frac12 h_i f_m(x_i)^2,
-\]</span></p>
+\tag{11.1}\]</span></span></p>
 <p>where</p>
 <p><span class="math display">\[
 g_i
@@ -2534,27 +2514,35 @@ h_i
 <li><span class="math inline">\(h_i\)</span> measures the curvature of the loss function</li>
 </ul>
 <p>Thus, XGBoost uses both gradient and curvature information.</p>
-</section>
-<section id="intuition-of-the-quadratic-approximation" class="level3" data-number="11.4.5">
-<h3 data-number="11.4.5" class="anchored" data-anchor-id="intuition-of-the-quadratic-approximation"><span class="header-section-number">11.4.5</span> Intuition of the quadratic approximation</h3>
-<p>The first-order Taylor expansion used in GBDT gives only a linear approximation of the loss function. In contrast, the second-order Taylor expansion gives a quadratic approximation:</p>
-<p><span class="math display">\[
+<!-- 
+
+### Intuition of the quadratic approximation
+
+The first-order Taylor expansion used in GBDT gives only a linear approximation of the loss function. In contrast, the second-order Taylor expansion gives a quadratic approximation:
+
+$$
 g_i f+\frac12 h_i f^2.
-\]</span></p>
-<p>As a function of <span class="math inline">\(f\)</span>, its derivative is</p>
-<p><span class="math display">\[
+$$
+
+As a function of $f$, its derivative is
+
+$$
 g_i+h_i f.
-\]</span></p>
-<p>Setting this equal to zero gives the critical point</p>
-<p><span class="math display">\[
+$$
+
+Setting this equal to zero gives the critical point
+
+$$
 f
 =
 -\frac{g_i}{h_i}.
-\]</span></p>
-<p>This can be viewed as the approximately optimal update suggested by the local quadratic approximation of the loss function.</p>
+$$
+
+This can be viewed as the approximately optimal update suggested by the local quadratic approximation of the loss function.
+ -->
 </section>
-<section id="tree-structure-in-xgboost" class="level3" data-number="11.4.6">
-<h3 data-number="11.4.6" class="anchored" data-anchor-id="tree-structure-in-xgboost"><span class="header-section-number">11.4.6</span> Tree structure in XGBoost</h3>
+<section id="tree-structure-in-xgboost" class="level3" data-number="11.4.5">
+<h3 data-number="11.4.5" class="anchored" data-anchor-id="tree-structure-in-xgboost"><span class="header-section-number">11.4.5</span> Tree structure in XGBoost</h3>
 <p>Assume that the new tree splits the dataset into regions</p>
 <p><span class="math display">\[
 R_1,\ldots,R_s,
@@ -2563,7 +2551,7 @@ R_1,\ldots,R_s,
 <p><span class="math display">\[
 f_m(x_i)=s_j.
 \]</span></p>
-<p>Substituting this into the quadratic approximation gives the approximate objective</p>
+<p>Substituting this into the quadratic approximation <a href="#eq-xg_loss" class="quarto-xref">Equation&nbsp;<span>11.1</span></a> and ignoring constant terms gives the approximate objective</p>
 <p><span class="math display">\[
 \sum_{j=1}^s
 \sum_{x_i\in R_j}
@@ -2627,8 +2615,8 @@ s_j
 </div>
 </div>
 </section>
-<section id="regularization" class="level3" data-number="11.4.7">
-<h3 data-number="11.4.7" class="anchored" data-anchor-id="regularization"><span class="header-section-number">11.4.7</span> Regularization</h3>
+<section id="regularization" class="level3" data-number="11.4.6">
+<h3 data-number="11.4.6" class="anchored" data-anchor-id="regularization"><span class="header-section-number">11.4.6</span> Regularization</h3>
 <p>So far we derived the basic XGBoost objective using the second-order Taylor approximation.</p>
 <p>However, minimizing only the training loss may produce overly complex trees and lead to overfitting. Therefore XGBoost introduces an explicit regularization term to control tree complexity.</p>
 <p>Suppose the new tree <span class="math inline">\(f_m(x)\)</span> has</p>
@@ -2695,8 +2683,8 @@ s_j
 <p>This quantity is used by XGBoost to evaluate the quality of candidate tree splits.</p>
 <p>Therefore, unlike ordinary CART trees which use RSS or Gini impurity, XGBoost derives its splitting criterion directly from the regularized optimization objective.</p>
 </section>
-<section id="learning-rate" class="level3" data-number="11.4.8">
-<h3 data-number="11.4.8" class="anchored" data-anchor-id="learning-rate"><span class="header-section-number">11.4.8</span> Learning rate</h3>
+<section id="learning-rate" class="level3" data-number="11.4.7">
+<h3 data-number="11.4.7" class="anchored" data-anchor-id="learning-rate"><span class="header-section-number">11.4.7</span> Learning rate</h3>
 <p>In practice, although XGBoost computes the best update tree <span class="math inline">\(f_m\)</span>, it usually does not add the full tree update directly to the model. Instead, the update is scaled by a learning rate (also called the shrinkage parameter):</p>
 <p><span class="math display">\[
 F_{m+1}(x)
@@ -2750,8 +2738,8 @@ s_j
 </div>
 </div>
 </section>
-<section id="gbdt-and-xgboost-for-classification" class="level3" data-number="11.4.9">
-<h3 data-number="11.4.9" class="anchored" data-anchor-id="gbdt-and-xgboost-for-classification"><span class="header-section-number">11.4.9</span> GBDT and XGBoost for classification</h3>
+<section id="gbdt-and-xgboost-for-classification" class="level3" data-number="11.4.8">
+<h3 data-number="11.4.8" class="anchored" data-anchor-id="gbdt-and-xgboost-for-classification"><span class="header-section-number">11.4.8</span> GBDT and XGBoost for classification</h3>
 <p>Both GBDT and XGBoost can naturally be extended from regression to classification problems. The overall framework remains the same:</p>
 <ul>
 <li>additive tree model</li>
@@ -2844,7 +2832,7 @@ y_i e^{-y_iF(x_i)}.
 <h2 data-number="11.5" class="anchored" data-anchor-id="xgboost-in-python"><span class="header-section-number">11.5</span> XGBoost in Python</h2>
 <p>XGBoost is implemented using the library <code>XGBoost</code>. You may go to the <a href="https://xgboost.ai/">offical website</a> for more information. We will cover the basic usage in this lecture.</p>
 <p>A typical XGBoost regression model looks like this.</p>
-<div id="9e456f5a" class="cell" data-execution_count="16">
+<div id="934e6b76" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> xgboost <span class="im">import</span> XGBRegressor</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>xgb <span class="op">=</span> XGBRegressor(</span>
@@ -2957,7 +2945,7 @@ y_i e^{-y_iF(x_i)}.
 </div>
 </div>
 <p>Example grid:</p>
-<div id="18d3bd9e" class="cell" data-execution_count="17">
+<div id="2d95a516" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> xgboost <span class="im">import</span> XGBRegressor</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2999,7 +2987,7 @@ y_i e^{-y_iF(x_i)}.
 <p>We already show the code of <code>RandomSearchCV</code> before. Here we give more explanations.</p>
 <p><code>RandomSearchCV</code> is to search random combinations of hyperparameters. Therefore it is used to do a rough search in a very large parameter space. Other than the <code>param_grid</code> like <code>GridSearchCV</code>, <code>RandomSearchCV</code> needs <code>n_iter</code> to indicate how many combinations one wants to test.</p>
 <p>Since now we can search in a very large space, usually we make a really large space, by directly choosing hyperparameters based on distributions. We use distributions from the library <code>scipy.stats</code>. Here we give an examples.</p>
-<div id="b122ad37" class="cell" data-execution_count="18">
+<div id="e73048bd" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> randint, uniform</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>param_distributions <span class="op">=</span> {</span>
@@ -3042,7 +3030,7 @@ y_i e^{-y_iF(x_i)}.
 <li>Stop when the validation performance no longer improves.</li>
 </ol>
 <p>In XGBoost, this is commonly implemented using an evaluation set together with <code>early_stopping_rounds</code>. For example, <code>early_stopping_rounds=20</code> means that training stops if the validation score does not improve for 20 consecutive boosting rounds.</p>
-<div id="e180c384" class="cell" data-execution_count="19">
+<div id="d96039b0" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>xgb <span class="op">=</span> XGBRegressor(early_stopping_rounds<span class="op">=</span><span class="dv">20</span>)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>xgb.fit(X_train, y_train, eval_set<span class="op">=</span>[(X_val, y_val)])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -3076,7 +3064,7 @@ y_i e^{-y_iF(x_i)}.
 <section id="example-xgboost-on-the-diabetes-data" class="level2" data-number="11.7">
 <h2 data-number="11.7" class="anchored" data-anchor-id="example-xgboost-on-the-diabetes-data"><span class="header-section-number">11.7</span> Example: XGBoost on the Diabetes Data</h2>
 <p>We now use the diabetes regression dataset from <code>sklearn</code> introduced earlier. The response is a quantitative measure of disease progression one year after baseline.</p>
-<div id="892b5a7e" class="cell" data-execution_count="20">
+<div id="d85ac6d0" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_diabetes</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -3088,7 +3076,7 @@ y_i e^{-y_iF(x_i)}.
 <section id="baseline-model" class="level3" data-number="11.7.1">
 <h3 data-number="11.7.1" class="anchored" data-anchor-id="baseline-model"><span class="header-section-number">11.7.1</span> Baseline model</h3>
 <p>We first build a baseline model, with all default hyperparameters.</p>
-<div id="39ccf685" class="cell" data-execution_count="21">
+<div id="6dface5a" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> xgboost <span class="im">import</span> XGBRegressor</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>xgb_baseline <span class="op">=</span> XGBRegressor(random_state<span class="op">=</span><span class="dv">1</span>, n_jobs<span class="op">=-</span><span class="dv">1</span>)</span>
@@ -3102,7 +3090,7 @@ y_i e^{-y_iF(x_i)}.
 <section id="randomsearchcv-1" class="level3" data-number="11.7.2">
 <h3 data-number="11.7.2" class="anchored" data-anchor-id="randomsearchcv-1"><span class="header-section-number">11.7.2</span> <code>RandomSearchCV</code></h3>
 <p>The first round we use random search to try to find a good enough point. Note that we choose a relatively large <code>n_estimators</code> which we will tune in the next early stopping stage.</p>
-<div id="4183947c" class="cell" data-execution_count="22">
+<div id="173e28de" class="cell" data-execution_count="22">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> randint, uniform</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> RandomizedSearchCV</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -3134,7 +3122,7 @@ y_i e^{-y_iF(x_i)}.
 </div>
 </div>
 <p>The purpose of this random search is to find a rough range of the best combination in order for the refined grid search. According to the result, we may construct a smaller range for refined grid search.</p>
-<div id="016d321e" class="cell" data-execution_count="23">
+<div id="42964047" class="cell" data-execution_count="23">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>param_grid_refined <span class="op">=</span> {</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"learning_rate"</span>: [<span class="fl">0.008</span>, <span class="fl">0.0125</span>, <span class="fl">0.018</span>],</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"max_depth"</span>: [<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>],</span>
@@ -3147,7 +3135,7 @@ y_i e^{-y_iF(x_i)}.
 <section id="early-stopping-1" class="level3" data-number="11.7.3">
 <h3 data-number="11.7.3" class="anchored" data-anchor-id="early-stopping-1"><span class="header-section-number">11.7.3</span> Early stopping</h3>
 <p>Before we run the refined grid search, we need to determine the <code>n_estimators</code> using early stopping.</p>
-<div id="b1e289ec" class="cell" data-execution_count="24">
+<div id="c0c59236" class="cell" data-execution_count="24">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>X_tr, X_val, y_tr, y_val <span class="op">=</span> train_test_split(</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    X_train, y_train, test_size<span class="op">=</span><span class="fl">0.2</span>, random_state<span class="op">=</span><span class="dv">0</span></span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>)</span>
@@ -3169,7 +3157,7 @@ y_i e^{-y_iF(x_i)}.
 <section id="refined-grid-search" class="level3" data-number="11.7.4">
 <h3 data-number="11.7.4" class="anchored" data-anchor-id="refined-grid-search"><span class="header-section-number">11.7.4</span> Refined grid search</h3>
 <p>Now we can run refined grid search using <code>n_estimators=best_round</code> (which is 281 in this example).</p>
-<div id="ba827a73" class="cell" data-execution_count="25">
+<div id="3aacae08" class="cell" data-execution_count="25">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GridSearchCV</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>xgb_base <span class="op">=</span> XGBRegressor(n_estimators<span class="op">=</span>best_round, random_state<span class="op">=</span><span class="dv">0</span>, n_jobs<span class="op">=</span><span class="dv">1</span>)</span>
@@ -3198,7 +3186,7 @@ y_i e^{-y_iF(x_i)}.
 </div>
 <div id="callout-16" class="callout-16-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="7ae251dd" class="cell" data-execution_count="26">
+<div id="51922e6a" class="cell" data-execution_count="26">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>xgb_base <span class="op">=</span> XGBRegressor(n_estimators<span class="op">=</span>best_round, random_state<span class="op">=</span><span class="dv">0</span>, n_jobs<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>param_grid_1 <span class="op">=</span> {<span class="st">"max_depth"</span>: [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>]}</span>
@@ -3226,7 +3214,7 @@ y_i e^{-y_iF(x_i)}.
 </div>
 <div id="callout-17" class="callout-17-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="28a06db7" class="cell" data-execution_count="27">
+<div id="ffe61be1" class="cell" data-execution_count="27">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>xgb_stage2 <span class="op">=</span> XGBRegressor(</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span>best_round, random_state<span class="op">=</span><span class="dv">0</span>, n_jobs<span class="op">=</span><span class="dv">1</span>, <span class="op">**</span>grid_1.best_params_</span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>)</span>
@@ -3256,7 +3244,7 @@ y_i e^{-y_iF(x_i)}.
 </div>
 <div id="callout-18" class="callout-18-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="fa9202eb" class="cell" data-execution_count="28">
+<div id="07dd33ac" class="cell" data-execution_count="28">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>xgb_stage3 <span class="op">=</span> XGBRegressor(</span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span>best_round,</span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">0</span>,</span>
@@ -3290,7 +3278,7 @@ y_i e^{-y_iF(x_i)}.
 </div>
 <div id="callout-19" class="callout-19-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="3e9b4451" class="cell" data-execution_count="29">
+<div id="c8178537" class="cell" data-execution_count="29">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>xgb_stage4 <span class="op">=</span> XGBRegressor(</span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    n_estimators<span class="op">=</span>best_round,</span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">0</span>,</span>
@@ -3314,7 +3302,7 @@ y_i e^{-y_iF(x_i)}.
 </div>
 </div>
 <p>Finally we put all hyperparameters together for a final training.</p>
-<div id="1a835e63" class="cell" data-execution_count="30">
+<div id="18358baa" class="cell" data-execution_count="30">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>best_params <span class="op">=</span> {</span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>grid_1.best_params_,</span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>grid_2.best_params_,</span>
@@ -3339,7 +3327,7 @@ y_i e^{-y_iF(x_i)}.
 <p>XGBoost provides impurity-like feature importance through <code>.feature_importances_</code>. Conceptually, this is similar to MDI in Random Forests since both measure how much a feature improves the training objective during tree construction.</p>
 <p>However, they are not exactly the same. In Random Forests, MDI is based on reductions in RSS or Gini impurity, while in XGBoost the gain is computed from reductions in the regularized boosting objective.</p>
 <!-- fmt: off -->
-<div id="0a65b153" class="cell" data-execution_count="31">
+<div id="9f3dd31b" class="cell" data-execution_count="31">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>importance <span class="op">=</span> pd.Series(final_model.feature_importances_).sort_values(ascending<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
