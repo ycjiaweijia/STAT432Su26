@@ -239,8 +239,25 @@ $$
 
 ### PCA in Python
 
-## TODO
+As mentioned in PCR section, PCA is implemented by `sklearn.decomposition.PCA`. The mathematical objects introduced above correspond to the attributes and methods of a fitted `PCA(n_components=m)` object as follows:
 
+| Mathematical object | `sklearn` attribute or method |
+|---|---|
+| $V_m^\top\in\mathbb R^{m\times p}$ | `pca.components_` |
+| $(d_1,\ldots,d_m)$ | `pca.singular_values_` |
+| $d_j^2/(n-1)$ | `pca.explained_variance_` |
+| $\dfrac{d_j^2}{\sum_{k=1}^r d_k^2}$ | `pca.explained_variance_ratio_` |
+| $Z_m=X_cV_m=U_mD_m$ | `pca.transform(X)` |
+
+In particular, each row of `pca.components_` is one loading vector $v_j^\top$. Thus `pca.components_` corresponds to $V_m^\top$, while `pca.components_.T` corresponds to $V_m$.
+
+::: {.callout-note}
+## Centering notation
+
+`sklearn` accepts a raw data matrix $X$ and centers it internally. Let $\mu$ be the column-wise mean of $X$ and let $X_c=X-\mu$. Then `pca.mean_` stores $\mu$, and the SVD underlying PCA is applied to the centered matrix $X_c=UDV^\top$. Therefore, `pca.transform(X)` gives $X_cV_m=U_mD_m$. 
+
+In other words, to reconstruct the original $X$ (as discussed in the following sections), you need to add $\mu$ back afterward.
+:::
 
 
 ## PCA as Reconstruction
