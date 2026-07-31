@@ -747,7 +747,7 @@ X
 \longrightarrow
 \text{observation-space eigenvector coordinates}.
 \]</span></p>
-<p>This is useful when the structure is better described by connectivity than by distance to a single center. Spectral clustering uses the same embedding and then applies a label-assignment method such as K-means.</p>
+<p>This is useful when the structure is better described by connectivity than by distances to cluster centers. Spectral clustering follows the same general workflow: it constructs a spectral representation and then assigns labels using a method such as K-means.</p>
 <section id="mathematical-idea" class="level3" data-number="14.1.1">
 <h3 data-number="14.1.1" class="anchored" data-anchor-id="mathematical-idea"><span class="header-section-number">14.1.1</span> Mathematical Idea</h3>
 <p>Let <span class="math inline">\(W=\mqty[W_{ij}]\in\mathbb R^{n\times n}\)</span> be a symmetric weighted adjacency matrix. A large <span class="math inline">\(W_{ij}\)</span> means observations <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> are strongly connected. Define the degree matrix</p>
@@ -818,8 +818,8 @@ y_i\approx y_j.
 \text{ and }
 y\perp \mathbf 1.
 \]</span></p>
-<p>The constraints remove trivial solutions. Without them, <span class="math inline">\(y=0\)</span> minimizes the objective. Even with a nonzero vector, the constant coordinate <span class="math inline">\(y_1=\cdots=y_n\)</span> makes every coordinate difference zero, so it does not separate observations. The constraint <span class="math inline">\(\norm{y}^2=1\)</span> fixes the scale, and <span class="math inline">\(y\perp \mathbf 1\)</span> removes the constant coordinate.</p>
-<p>This optimization problem leads to eigenvectors because <span class="math inline">\(L\)</span> is symmetric. Write its orthonormal eigen-decomposition as</p>
+<p>The constraints remove trivial solutions. Without them, <span class="math inline">\(y=0\)</span> minimizes the objective. Even with a nonzero vector, the constant coordinate <span class="math inline">\(y_1=\cdots=y_n\)</span> makes every coordinate difference zero, so it does not separate observations. The constraint <span class="math inline">\(\norm{y}^2=1\)</span> fixes the scale, and <span class="math inline">\(y\perp \mathbf 1\)</span> removes the constant coordinate. This formulation assumes that the graph is connected. If the graph has several connected components, the entire null space of <span class="math inline">\(L\)</span>, not only the direction <span class="math inline">\(\mathbf 1\)</span>, must be removed.</p>
+<p>This optimization problem leads to eigenvectors because <span class="math inline">\(L\)</span> is symmetric and positive semidefinite. In this case all its eigenvalues are real and nonnegative. Write its orthonormal eigen-decomposition as</p>
 <p><span class="math display">\[
 L=V\Lambda V^\top.
 \]</span></p>
@@ -835,7 +835,7 @@ y^\top Ly
 =
 \sum_{k=1}^n \lambda_k a_k^2.
 \]</span></p>
-<p>Thus <span class="math inline">\(y^\top Ly\)</span> is a weighted average of the eigenvalues. To make it small, we put weight on eigenvectors with small eigenvalues. For a graph Laplacian, the smallest eigenvalue is usually <span class="math inline">\(0\)</span>, with a constant eigenvector on each connected component. That eigenvector has zero graph roughness, but it gives every observation the same coordinate. After removing this constant direction, the first useful one-dimensional spectral coordinate is the eigenvector corresponding to the smallest positive eigenvalue:</p>
+<p>Thus <span class="math inline">\(y^\top Ly\)</span> is a weighted average of the eigenvalues. To make it small, we put weight on eigenvectors with small eigenvalues. For a graph Laplacian, <span class="math inline">\(0\)</span> is always an eigenvalue, and its multiplicity equals the number of connected components. If the graph is connected, its null space is spanned by the constant vector, which has zero graph roughness but gives every observation the same coordinate. After removing the null space, the first useful one-dimensional spectral coordinate is an eigenvector corresponding to the smallest positive eigenvalue:</p>
 <p><span class="math display">\[
 Lv=\lambda v,
 \qquad
@@ -852,7 +852,7 @@ v^\top Lv
 <p>the smallest positive eigenvalue gives the nonconstant coordinate with the smallest graph roughness. Therefore strongly connected observations tend to receive similar values. Additional spectral coordinates come from the next smallest positive eigenvalues.</p>
 <hr>
 </details>
-<p>Consider the eigenvectors of the graph Laplacian <span class="math inline">\(v_1,\ldots, v_n\)</span>, ordered by ascending eigenvalues. Each selected eigenvector gives one coordinate column for all observations. For an <span class="math inline">\(m\)</span>-dimensional spectral embedding, we place the first <span class="math inline">\(m\)</span> nonconstant eigenvectors side by side:</p>
+<p>Assume for now that the graph is connected. Consider the eigenvectors of the graph Laplacian <span class="math inline">\(v_1,\ldots, v_n\)</span>, ordered by ascending eigenvalues. Each selected eigenvector gives one coordinate column for all observations. For an <span class="math inline">\(m\)</span>-dimensional spectral embedding, we place the first <span class="math inline">\(m\)</span> nonconstant eigenvectors side by side:</p>
 <p><span class="math display">\[
 Z
 =
@@ -927,11 +927,12 @@ x_4\mapsto -0.547.
 <ol type="1">
 <li>Choose the number of nearest neighbors, <code>n_neighbors</code>.</li>
 <li>For each point, find its <code>n_neighbors</code> nearest neighbors.</li>
-<li>Set <span class="math inline">\(W_{ij}=1\)</span> if points <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> are connected, and <span class="math inline">\(W_{ij}=0\)</span> otherwise.</li>
+<li>Form a directed connectivity matrix <span class="math inline">\(A\)</span> by setting <span class="math inline">\(A_{ij}=1\)</span> if observation <span class="math inline">\(j\)</span> is a selected neighbor of observation <span class="math inline">\(i\)</span>, and <span class="math inline">\(A_{ij}=0\)</span> otherwise.</li>
+<li>In <code>sklearn</code> the matrix will be symmetrized as <span class="math inline">\(W=\frac12(A+A^\top)\)</span>.</li>
 </ol>
 <p>This produces a sparse connectivity matrix <span class="math inline">\(W\)</span>, which is then used to compute the graph Laplacian and the spectral embedding.</p>
 <p>In <code>SpectralEmbedding</code>, this construction is specified by <code>affinity="nearest_neighbors"</code> together with the parameter <code>n_neighbors</code>. In practice, choosing an appropriate neighborhood size or a different way of constructing the connectivity graph is often more important than choosing the embedding dimension.</p>
-<p>The formulas above use the unnormalized graph Laplacian <span class="math inline">\(L=D-W\)</span> for exposition. The <code>sklearn</code> implementation uses a normalized graph Laplacian. The interpretation is the same at this level: the embedding favors coordinates that vary smoothly over the graph, but the exact matrix used in the computation is different.</p>
+<p>The formulas above use the unnormalized graph Laplacian <span class="math inline">\(L=D-W\)</span> for exposition. The <code>sklearn</code> implementation uses a normalized graph Laplacian and rescales its eigenvectors by the vertex degrees when constructing the output coordinates. The interpretation is the same at this level. The embedding favors coordinates that vary smoothly over the graph. However the exact matrix, constraints, and coordinates differ from the simplified derivation above.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -942,7 +943,7 @@ x_4\mapsto -0.547.
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A common use of spectral embedding is to apply a clustering algorithm, such as KMeans, to the embedded coordinates. You can do this manually by combining <code>SpectralEmbedding</code> with <code>KMeans</code>, or you can use <code>SpectralClustering</code> from <code>sklearn.cluster</code>, which performs these two steps automatically.</p>
+<p>A common use of spectral embedding is to apply a clustering algorithm, such as <code>KMeans</code>, to the embedded coordinates. You can do this manually by combining <code>SpectralEmbedding</code> with <code>KMeans</code>, or you can use <code>SpectralClustering</code> from <code>sklearn.cluster</code>, which performs these two steps automatically.</p>
 <p>If you want to visualize the embedding itself, however, you should use <code>SpectralEmbedding</code> directly and then apply the clustering algorithm manually.</p>
 </div>
 </div>
@@ -951,7 +952,7 @@ x_4\mapsto -0.547.
 <p>We generate a dataset consisting of two concentric circles and add a small number of bridge points connecting them. The outer circle has uneven density, meaning that the point density varies along its perimeter.</p>
 <p>Although the bridge points connect the two circles geometrically, we still regard the data as containing two clusters: the inner circle and the outer circle. The bridge points are treated as noise rather than evidence that the two circles belong to the same cluster.</p>
 <p>The dataset is generated manually using NumPy because <code>sklearn.datasets.make_circles</code> cannot generate circles with non-uniform point density. The dataset is visualized after generating.</p>
-<div id="59d40870" class="cell" data-execution_count="1">
+<div id="9a52b080" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1023,7 +1024,7 @@ x_4\mapsto -0.547.
 </div>
 <p>Now we apply the four clustering methods and compare their results. Since the true labels are available, we use the adjusted Rand index (ARI) to evaluate the clustering performance.</p>
 <p>For all methods, the hyperparameters were only tuned lightly rather than exhaustively. Better performance may be achievable with more careful tuning, but the overall conclusions are unlikely to change. The purpose of this example is not to compare the best possible performance of each algorithm, but to illustrate their typical behavior on this dataset.</p>
-<div id="8410d388" class="cell" data-execution_count="2">
+<div id="267c54b3" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans, AgglomerativeClustering, DBSCAN</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.manifold <span class="im">import</span> SpectralEmbedding</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1036,7 +1037,7 @@ x_4\mapsto -0.547.
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> SpectralEmbedding(n_components<span class="op">=</span><span class="dv">2</span>, n_neighbors<span class="op">=</span><span class="dv">15</span>, random_state<span class="op">=</span><span class="dv">0</span>).fit_transform(X)</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>spectral_labels <span class="op">=</span> KMeans(n_clusters<span class="op">=</span><span class="dv">2</span>, random_state<span class="op">=</span><span class="dv">0</span>, n_init<span class="op">=</span><span class="dv">10</span>).fit_predict(Z)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="c0b939cf" class="cell" data-execution_count="3">
+<div id="579d4060" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> adjusted_rand_score</span>
@@ -1074,12 +1075,12 @@ x_4\mapsto -0.547.
 <ul>
 <li>KMeans: Fails. KMeans partitions the data according to the distance to cluster centroids. Since the two circles share the same center, the algorithm cannot separate them into inner and outer circles. Instead, it splits the data into two roughly equal halves.</li>
 <li>Agglomerative (Ward): Performs slightly better but still fails. Ward linkage merges clusters to minimize the increase in within-cluster variance. This favors compact, approximately spherical clusters rather than ring-shaped clusters, so it also tends to cut across the circles instead of preserving their circular structure.</li>
-<li>DBSCAN: Performs reasonably well but is affected by the bridge points. Since DBSCAN defines clusters through density connectivity, the bridge creates a path between the two circles, causing some points to be merged incorrectly. Furthermore, because DBSCAN uses a single density threshold, it struggles with the uneven density of the outer circle and fails to identify it as one cluster.</li>
+<li>DBSCAN: With these parameters, DBSCAN keeps the two circles largely separate but splits part of the uneven-density outer circle, producing three clusters. The sparse bridge does not provide enough core points to merge the circles, although it affects the assignment of some nearby points.</li>
 <li>Spectral Clustering: Correctly recovers the two circles. Instead of clustering the original coordinates directly, it first constructs a similarity graph and computes a spectral embedding. In this new representation, points belonging to the same circle become much closer, while the weak bridge has little influence. A simple clustering algorithm such as KMeans can then easily separate the two clusters.</li>
 </ul>
 <p>The key idea is that spectral clustering does not rely on Euclidean geometry in the original feature space. Instead, it transforms the data into a new space where the cluster structure becomes much easier to identify.</p>
 <p>The figure below shows the two-dimensional spectral embedding. Although the circles are not linearly separable in the original space, they become well separated after the embedding, making KMeans sufficient to recover the correct clusters.</p>
-<div id="ac53c673" class="cell" data-execution_count="4">
+<div id="43f26e96" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(Z[:, <span class="dv">0</span>], Z[:, <span class="dv">1</span>], c<span class="op">=</span>y, s<span class="op">=</span><span class="dv">8</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Spectral Embedding"</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>plt.xticks([])</span>
@@ -1223,7 +1224,7 @@ H(p_{\cdot\mid i})
 <p>The direction of the KL divergence matters.</p>
 <ul>
 <li>The term <span class="math inline">\(p_{ij}\log(p_{ij}/q_{ij})\)</span> strongly penalizes the case where <span class="math inline">\(p_{ij}\)</span> is large but <span class="math inline">\(q_{ij}\)</span> is small. Thus, if two observations are close neighbors in the original space, t-SNE tries hard to keep them close in the plot.</li>
-<li>The converse is weaker: if two points appear close in the t-SNE plot, they were not necessarily close in the original space. Pairs with very small <span class="math inline">\(p_{ij}\)</span> contribute little directly to the objective, so t-SNE is less strict about the exact arrangement of points that were already far apart.</li>
+<li>The converse is weaker: if two points appear close in the t-SNE plot, they were not necessarily close in the original space. Pairs with very small <span class="math inline">\(p_{ij}\)</span> receive a weaker direct pairwise penalty, although they still affect the objective indirectly through the normalization of <span class="math inline">\(Q\)</span> and the arrangement of other points.</li>
 </ul>
 <p>Thus t-SNE preserves local neighborhood probabilities, not the original coordinates, not the original Euclidean distances, and not the meanings of the original features. In plain language:</p>
 <ul>
@@ -1243,9 +1244,9 @@ H(p_{\cdot\mid i})
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The main use of t-SNE is visualization after dimension reduction. It is not usually used as a feature representation for a downstream model. Instead, it helps us inspect whether patterns found by other methods are visible in local neighborhood structure.</p>
+<p>The main use of t-SNE is to visualize high-dimensional data. It is not usually used as a feature representation for a downstream model. Instead, it helps us inspect whether patterns found by other methods are visible in local neighborhood structure.</p>
 <p>For example, after fitting a clustering algorithm in the original feature space, we can color a t-SNE plot by the cluster labels. If the colors form well-separated local patches, then the clustering is consistent with the neighborhood structure shown by t-SNE. If the colors are heavily mixed, then the clustering may be failing to capture local structure, or the data may not contain clearly separated groups.</p>
-<p>This is a diagnostic check, not a proof. t-SNE can make separation look stronger than it really is, and the apparent distance between colored patches is not a quantitative cluster separation. Quantitative measures such as nearest-neighbor overlap, trustworthiness, silhouette score, or adjusted Rand index should be used when a formal comparison is needed. The plot is useful because it makes possible problems visible quickly.</p>
+<p>This is a diagnostic check, not proof. The plot is useful because it makes possible problems visible quickly. Any hypothesis suggested by the visualization should be checked against the original observations, distances, or nearest-neighbor relationships.</p>
 </div>
 </div>
 </section>
@@ -1287,7 +1288,7 @@ H(p_{\cdot\mid i})
 <section id="digits-example" class="level3" data-number="14.2.4">
 <h3 data-number="14.2.4" class="anchored" data-anchor-id="digits-example"><span class="header-section-number">14.2.4</span> Digits example</h3>
 <p>We use the handwritten digits data from <code>sklearn</code> as an example. The data have 64 pixel features. We standardize the features, reduce them to 30 PCA coordinates, and then run t-SNE. The labels are used only for coloring the final plot.</p>
-<div id="ac98c682" class="cell" data-execution_count="5">
+<div id="0d9743f9" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_digits</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
@@ -1308,7 +1309,7 @@ H(p_{\cdot\mid i})
 <span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>Z_tsne <span class="op">=</span> tsne.fit_transform(X_digits_pca)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="f27f9fa3" class="cell" data-execution_count="6">
+<div id="77c86673" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -1328,13 +1329,13 @@ H(p_{\cdot\mid i})
 </div>
 </div>
 </div>
-<p>In this example, we use <code>perplexity=30</code>, a common starting point for a moderate-size dataset. This value should be treated as a tuning choice rather than a fixed default.</p>
+<p>We use <code>perplexity=30</code> here as a common starting point for a moderate-size dataset, not a fixed default.</p>
 <p>In practice, choose <code>perplexity</code> by comparing several reasonable values. For a moderate-size dataset, values such as <code>5</code>, <code>10</code>, <code>30</code>, and <code>50</code> are common candidates. Use smaller values when you want to emphasize very local neighborhoods, and larger values when you want a smoother display based on broader neighborhoods. The chosen <code>perplexity</code> should be well below the sample size. The result can also depend on initialization and random seed, so a pattern is more credible when it persists across several reasonable <code>perplexity</code> values and random seeds.</p>
 </section>
 <section id="more-about-perplexity" class="level3" data-number="14.2.5">
 <h3 data-number="14.2.5" class="anchored" data-anchor-id="more-about-perplexity"><span class="header-section-number">14.2.5</span> More about <code>perplexity</code></h3>
 <p>The plots below use the same preprocessed digits data and the same random seed, but change <code>perplexity</code>.</p>
-<div id="54d38da5" class="cell" data-execution_count="7">
+<div id="a1e6d544" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>perplexities <span class="op">=</span> [<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">30</span>, <span class="dv">50</span>]</span>
@@ -1426,14 +1427,14 @@ X
 <div id="callout-10" class="callout-10-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>UMAP first finds the nearest neighbors of each observation according to the chosen distance metric. The parameter <code>n_neighbors</code> controls the size of these local neighborhoods. For each point <span class="math inline">\(x_i\)</span>, UMAP uses only its selected nearest neighbors as candidate directed edges from <span class="math inline">\(i\)</span>. Points outside this selected neighbor set usually have directed weight <span class="math inline">\(a_{ij}=0\)</span> from the point of view of <span class="math inline">\(i\)</span>.</p>
-<p>After the candidate neighbors are selected, UMAP assigns a local distance offset <span class="math inline">\(\rho_i\)</span> and a local scale <span class="math inline">\(\sigma_i\)</span> for each point. The offset <span class="math inline">\(\rho_i\)</span> is usually the distance from <span class="math inline">\(x_i\)</span> to its nearest neighbor. This makes the nearest neighbor receive weight <span class="math inline">\(1\)</span>. The scale <span class="math inline">\(\sigma_i\)</span> controls how quickly the remaining selected neighbors lose weight as distance increases. Both <span class="math inline">\(\rho_i\)</span> and <span class="math inline">\(\sigma_i\)</span> are chosen automatically by the algorithm for each point; they are not tuning parameters set by the user.</p>
+<p>After the candidate neighbors are selected, UMAP assigns a local distance offset <span class="math inline">\(\rho_i\)</span> and a local scale <span class="math inline">\(\sigma_i\)</span> for each point. Under the usual default setting, <span class="math inline">\(\rho_i\)</span> is based on the distance from <span class="math inline">\(x_i\)</span> to its nearest nonzero-distance neighbor. This makes the nearest such neighbor receive weight <span class="math inline">\(1\)</span>. The scale <span class="math inline">\(\sigma_i\)</span> controls how quickly the remaining selected neighbors lose weight as distance increases. It is calibrated so that the total local connection strength reaches a target determined by <code>n_neighbors</code>. Both <span class="math inline">\(\rho_i\)</span> and <span class="math inline">\(\sigma_i\)</span> are chosen automatically for each point rather than set directly by the user.</p>
 <p>A simplified version of the directed neighbor weight from <span class="math inline">\(i\)</span> to <span class="math inline">\(j\)</span> is</p>
 <p><span class="math display">\[
 a_{ij}
 =
 \exp\qty(
 -\frac{\max\{0,d(x_i,x_j)-\rho_i\}}{\sigma_i}
-).
+)\quad\text{ for $j$ in the selected neighbor set, otherwise $a_{ij}=0$.}.
 \]</span></p>
 <p>Thus the construction is</p>
 <p><span class="math display">\[
@@ -1490,8 +1491,8 @@ r_{ij}
 =
 \frac{1}{1+\alpha\norm{z_i-z_j}^{2\beta}},
 \]</span></p>
-<p>Here <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> are not usually chosen directly by the user. They are fitted internally from UMAP’s display parameters, especially <code>min_dist</code>. If two plotted points are close, <span class="math inline">\(r_{ij}\)</span> is large; if they are far apart, <span class="math inline">\(r_{ij}\)</span> is small.</p>
-<p>UMAP then moves the coordinates so that <span class="math inline">\(R(Z)\)</span> resembles <span class="math inline">\(W\)</span>. This is done by minimizing a cross-entropy loss of the form</p>
+<p>Here <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> are not usually chosen directly by the user. They are fitted internally from UMAP’s display parameters, especially <code>min_dist</code> and <code>spread</code>. If two plotted points are close, <span class="math inline">\(r_{ij}\)</span> is large; if they are far apart, <span class="math inline">\(r_{ij}\)</span> is small.</p>
+<p>UMAP then moves the coordinates so that <span class="math inline">\(R(Z)\)</span> resembles <span class="math inline">\(W\)</span>. Up to terms that depend only on <span class="math inline">\(W\)</span> and therefore do not affect the optimization over <span class="math inline">\(Z\)</span>, this gives a cross-entropy loss of the form</p>
 <p><span class="math display">\[
 \operatorname{CE}(W,R)
 =
@@ -1502,7 +1503,7 @@ w_{ij}\log r_{ij}
 (1-w_{ij})\log(1-r_{ij})
 \right].
 \]</span></p>
-<p>The first term encourages pairs with large <span class="math inline">\(w_{ij}\)</span> to stay close in the plot. The second term discourages weakly connected pairs from all collapsing into the same place. In practice, UMAP optimizes the low-dimensional coordinates by stochastic gradient descent: sampled edges from <span class="math inline">\(W\)</span> pull connected points together, while randomly sampled non-edges push unrelated points apart.</p>
+<p>The first term encourages pairs with large <span class="math inline">\(w_{ij}\)</span> to stay close in the plot. The second term discourages weakly connected pairs from all collapsing into the same place. In practice, UMAP approximates this full-pair objective using sampled edges and negative samples by stochastic gradient descent: sampled edges from <span class="math inline">\(W\)</span> pull connected points together, while randomly sampled non-edges push unrelated points apart.</p>
 </div>
 </div>
 </div>
@@ -1517,13 +1518,13 @@ w_{ij}\log r_{ij}
 </div>
 <div class="callout-body-container callout-body">
 <p>The parameter <code>min_dist</code> is the effective minimum distance between nearby points in the low-dimensional embedding. It is not a hard constraint that all plotted points must be at least this far apart. Instead, it defines the distance scale at which the low-dimensional similarity should begin to decay.</p>
-<p>UMAP does not usually ask the user to choose <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> directly. Instead, it fits <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> from <code>min_dist</code> so that</p>
+<p>UMAP does not usually ask the user to choose <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> directly. Instead, it fits <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> from <code>min_dist</code> and <code>spread</code> so that</p>
 <p><span class="math display">\[
 \frac{1}{1+\alpha d^{2\beta}}
 \]</span></p>
 <p>has a shape similar to a target curve: the curve stays near <span class="math inline">\(1\)</span> for distances below <code>min_dist</code>, then decreases after that. Thus the tuning chain is</p>
 <p><span class="math display">\[
-\texttt{min\_dist}
+\qty(\texttt{min\_dist},\texttt{spread})
 \longrightarrow
 (\alpha,\beta)
 \longrightarrow
@@ -1540,6 +1541,7 @@ R(Z).
 <li>Smaller <code>min_dist</code> allows points that are strongly connected in <span class="math inline">\(W\)</span> to be placed closer together in the low-dimensional embedding. This usually produces tighter visual clusters.</li>
 <li>Larger <code>min_dist</code> keeps strongly connected points more spread out. This can make continuous structure and within-group variation easier to see, but the plot may look less clustered.</li>
 <li>A tight island in a UMAP plot does not automatically mean that the original data have high density there. It may simply reflect a small <code>min_dist</code>.</li>
+<li><code>spread</code> controls the overall distance scale of the low-dimensional similarity curve. It is usually left at its default value of <code>1.0</code>, so we focus mainly on <code>min_dist</code>.</li>
 </ul>
 </div>
 </div>
@@ -1552,7 +1554,6 @@ R(Z).
 <li>If two observations are nearest neighbors in the original representation, UMAP tries to keep them close or connected in the plot.</li>
 <li>If two groups are connected by many nearest-neighbor edges, UMAP may place them near each other even if the original geometry is curved or nonlinear.</li>
 <li>Distances between faraway islands, island sizes, axis directions, and visual densities should not be treated as exact quantitative information.</li>
-<li>Compared with t-SNE, UMAP often keeps a little more broad structure, but this depends strongly on <code>n_neighbors</code> and should still be checked.</li>
 </ul>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1564,8 +1565,7 @@ R(Z).
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>UMAP is useful when we want to inspect whether local nearest-neighbor relationships reveal structure that a linear plot such as PCA misses. Like t-SNE, it is mainly a visualization and diagnostic tool: visible groups are hypotheses to investigate, not automatic cluster definitions.</p>
-<p>UMAP can also be useful after clustering. If cluster labels form coherent local regions in a UMAP plot, then the clustering is consistent with the nearest-neighbor graph shown by UMAP. If labels are heavily mixed, the clustering may not match local structure, or the data may not contain clearly separated groups. Formal evaluation should still use criteria tied to the analysis goal, such as nearest-neighbor overlap, silhouette score, or adjusted Rand index when labels are available.</p>
+<p>As with t-SNE (see the note above on t-SNE as a diagnostic plot), a UMAP plot is a hypothesis to check, not proof of structure.</p>
 </div>
 </div>
 </section>
@@ -1574,7 +1574,7 @@ R(Z).
 <p>The standard implementation is provided by <code>umap-learn</code>. If it is not installed, you may install it directly.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> add umap-learn</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>We use the same standardized digits data and the same 30-dimensional PCA preprocessing as in the t-SNE example.</p>
-<div id="5ef9621c" class="cell" data-execution_count="8">
+<div id="f1f70681" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> umap</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>umap_model <span class="op">=</span> umap.UMAP(</span>
@@ -1587,7 +1587,7 @@ R(Z).
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>Z_umap <span class="op">=</span> umap_model.fit_transform(X_digits_pca)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>In this example, <code>n_neighbors=15</code> sets a moderate local neighborhood size, and <code>min_dist=0.1</code> allows fairly compact visual groups. These are tuning choices, not universal defaults.</p>
+<p>Here, <code>n_neighbors=15</code> gives a moderate local neighborhood size and <code>min_dist=0.1</code> allows fairly compact visual groups — tuning choices, not universal defaults.</p>
 <ul>
 <li>The parameter <code>n_neighbors</code> controls the construction of the high-dimensional graph <span class="math inline">\(W\)</span>: it determines how many nearby observations each point uses when UMAP builds the weighted nearest-neighbor graph. A small value, such as <code>5</code> or <code>10</code>, makes UMAP focus on very local neighborhoods. This can reveal fine structure, but it can also break continuous structure into many small islands. A larger value, such as <code>30</code> or <code>50</code>, asks UMAP to use broader neighborhoods. This often gives a smoother layout and may preserve more large-scale relationships, but it can hide small local differences.</li>
 <li>The parameter <code>metric</code> defines distance in the original feature space, so it determines which observations count as nearest neighbors before UMAP does any embedding. For standardized numeric features, <code>"euclidean"</code> is a common starting point. For sparse counts or text-like features, cosine distance is often more appropriate. Changing <code>metric</code> can change the graph <span class="math inline">\(W\)</span> itself, so it can change the embedding more fundamentally than changing only the visual display parameters.</li>
@@ -1607,7 +1607,7 @@ R(Z).
 </div>
 </div>
 <p>We plot the result from the above code.</p>
-<div id="d0e703e5" class="cell" data-execution_count="9">
+<div id="1e71aaa9" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
@@ -1633,7 +1633,7 @@ R(Z).
 </div>
 </div>
 <p>We will try different combinations of <code>n_neighbors</code> and <code>min_dist</code>.</p>
-<div id="20453fe3" class="cell" data-execution_count="10">
+<div id="6b39b058" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>n_neighbors_values <span class="op">=</span> [<span class="dv">5</span>, <span class="dv">15</span>, <span class="dv">50</span>]</span>
@@ -1679,13 +1679,13 @@ R(Z).
 </div>
 <p>Some observations from the plots are:</p>
 <ul>
-<li>The overall class structure is relatively stable across all parameter settings. Most digit classes remain recognizable, indicating that the underlying local neighborhood structure is robust.</li>
+<li>The overall class structure is similar across the parameter settings displayed here. Most digit classes remain recognizable, suggesting that much of the local neighborhood structure persists across these settings.</li>
 <li>Digits <code>0</code> and <code>6</code> remain well separated from most other classes in all embeddings, suggesting that these digits have distinctive local pixel patterns.</li>
 <li>Several groups of digits remain in neighboring regions across different parameter settings, although their relative positions change as the hyperparameters vary.</li>
-<li>Some digit classes appear as multiple disconnected regions when <code>n_neighbors</code> is small. This suggests that the class may contain several distinct local neighborhoods in the original feature space, although these should not automatically be interpreted as true subtypes.</li>
+<li>As with t-SNE, small <code>n_neighbors</code> can fragment a class into several local neighborhoods — not necessarily true subtypes.</li>
 <li>Increasing <code>min_dist</code> primarily changes the compactness of the embedding. Smaller values produce tighter clusters, whereas larger values spread nearby points farther apart.</li>
 <li>Increasing <code>n_neighbors</code> generally produces a smoother and more stable overall layout by incorporating broader neighborhood information during graph construction.</li>
-<li>Although the global layout changes noticeably across parameter settings, the major local neighborhoods remain largely consistent.</li>
+<li>Although the global layout changes noticeably, the major local neighborhoods remain similar across the displayed settings. A stronger stability claim would also require varying random seeds, metrics, and preprocessing.</li>
 </ul>
 <p>These patterns can also guide inspection of the original data. For example, if several digit classes remain connected or neighboring in the UMAP plot, we can examine those images to understand which strokes or handwriting styles make the classes similar.</p>
 </section>
@@ -1700,13 +1700,45 @@ R(Z).
 <p>t-SNE and UMAP are both nonlinear visualization methods based on local relationships. They both start from high-dimensional distances, but they preserve different objects.</p>
 <p>For t-SNE, distances are converted into neighbor probabilities. The high-dimensional probability distribution is <span class="math inline">\(P=(p_{ij})\)</span>, the low-dimensional probability distribution is <span class="math inline">\(Q=(q_{ij})\)</span>, and t-SNE moves the plotted points so that <span class="math inline">\(Q\)</span> matches <span class="math inline">\(P\)</span>. The main tuning parameter is <code>perplexity</code>, which controls the effective neighborhood size used to construct <span class="math inline">\(P\)</span>.</p>
 <p>For UMAP, distances are converted into a weighted nearest-neighbor graph. The high-dimensional graph is <span class="math inline">\(W=(w_{ij})\)</span>, the low-dimensional graph is <span class="math inline">\(R(Z)=(r_{ij})\)</span>, and UMAP moves the plotted points so that <span class="math inline">\(R(Z)\)</span> resembles <span class="math inline">\(W\)</span>. The parameter <code>n_neighbors</code> controls the neighborhood scale used to build <span class="math inline">\(W\)</span>, while <code>min_dist</code> controls how tightly connected points may be packed in the display.</p>
-<p>This difference affects how we read the plots. In a t-SNE plot, a continuous bridge made of many nearby points is meaningful: it suggests that the original data may contain a chain of local neighbor relationships connecting the two regions. But a large empty distance between two t-SNE islands should not be interpreted as a reliable measurement of how far apart the groups are in the original space. UMAP has a more direct graph interpretation: connected regions in the plot often reflect connections in the nearest-neighbor graph <span class="math inline">\(W\)</span>, although that graph still depends on the chosen <code>metric</code> and <code>n_neighbors</code>.</p>
-<p>So t-SNE is especially useful for inspecting very local neighborhoods. UMAP is especially useful for inspecting nearest-neighbor graph structure, comparing neighborhood scales, and sometimes reusing a fitted embedding for new observations. Neither method should be used to make strict claims about global distances, island sizes, densities, or axis meanings.</p>
+<p>For static interpretation, the practical difference between the two methods is often small because both primarily visualize local neighborhood information. At comparable neighborhood scales:</p>
+<ul>
+<li>A stable bridge can suggest a chain of local neighbor relationships.</li>
+<li>A stable island can suggest a group with relatively strong internal relationships and relatively weak external relationships.</li>
+</ul>
+<p>Here, “stable” means that the structure persists across reasonable choices of neighborhood parameters, random initializations, metrics, and preprocessing.</p>
+<p>When t-SNE and UMAP disagree, the disagreement should be treated as evidence that the apparent structure is sensitive to the neighborhood representation, neighborhood scale, or optimization—not as evidence that one method is necessarily correct. If they disagree about a separation, that separation has not yet been shown to be a method-independent feature of the data.</p>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span>Apparent clusters are not proof of clusters
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Visible separation in an embedding is a diagnostic clue, not a cluster definition by itself. A gap, island, or bridge should be checked against the structure the method is designed to preserve and, when needed, against quantitative criteria tied to the analysis goal.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Out-of-sample transformation
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Another practical difference between t-SNE and UMAP concerns new observations. Common UMAP implementations provide an approximate out-of-sample procedure that embeds a new observation using its relationships to the fitted data. The new observation is connected to nearby training observations in the fitted nearest-neighbor graph, and the resulting edge strengths are used to initialize and optimize its low-dimensional coordinates relative to the existing embedding. The original training coordinates are generally kept fixed during this procedure.</p>
+<p>Classical t-SNE, by contrast, produces a joint layout of the observations included during fitting. Because its low-dimensional probabilities are globally normalized over pairs of observations, adding a new observation changes the joint objective. Classical t-SNE therefore does not naturally define a simple fixed out-of-sample transformation. Extensions and approximate procedures can provide such mappings, but they are not part of the classical algorithm.</p>
+</div>
+</div>
 <section id="mnist" class="level4" data-number="14.4.1.1">
 <h4 data-number="14.4.1.1" class="anchored" data-anchor-id="mnist"><span class="header-section-number">14.4.1.1</span> MNIST</h4>
 <p>We compare the methods on the famous <a href="https://www.openml.org/search?type=data&amp;sort=runs&amp;id=554">MNIST handwritten digit</a> dataset. MNIST has 70,000 images, and each image is represented by <span class="math inline">\(28\times 28=784\)</span> pixel features. Since the original data are 784-dimensional, we cannot directly visualize the original feature space as a scatter plot. Instead, we first inspect a few raw digit images, and then visualize two-dimensional embeddings.</p>
 <p>We use <code>fetch_openml("mnist_784")</code> to load the dataset. For speed, the embedding examples below use a fixed random subset of 3000 images.</p>
-<div id="2f62a99f" class="cell" data-execution_count="11">
+<div id="214423a1" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> fetch_openml</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1722,7 +1754,7 @@ R(Z).
 <span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>X_mnist <span class="op">=</span> StandardScaler().fit_transform(X_mnist_raw)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Here are some sample images from MNIST. As with the <code>digits</code> dataset, we use <code>imshow()</code> to display each digit as a matrix of pixel intensities.</p>
-<div id="3f15f049" class="cell" data-execution_count="12">
+<div id="da119ed5" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -1744,7 +1776,7 @@ R(Z).
 </div>
 </div>
 <p>Now we compare t-SNE and UMAP in two ways on this subset. The first row uses the standardized 784-dimensional pixel features directly. The second row first reduces the data to 50 principal components and then applies t-SNE or UMAP. The colors are the digit labels, used only after fitting to interpret the plots.</p>
-<div id="ff038db9" class="cell" data-execution_count="13">
+<div id="af4ffd6d" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.manifold <span class="im">import</span> TSNE</span>
@@ -1810,15 +1842,14 @@ R(Z).
 <p>t-SNE versus UMAP</p>
 <ul>
 <li>Both methods recover clear local neighborhoods for the handwritten digits. Images with the same label tend to occupy nearby regions, although several visually similar digit classes still overlap.</li>
-<li>With these settings, the UMAP embeddings show several groups of similar digits as relatively well-separated neighboring regions. For example, groups of visually similar digits, such as 3, 5, and 8 or 4, 7, and 9, tend to occupy neighboring regions, reflecting similarities in their handwritten shapes.</li>
-<li>With these settings, the t-SNE embeddings connect these similar digit classes through more gradual transitions. Instead of forming clearly separated islands, neighboring classes blend through intermediate handwriting styles, giving the overall layout a more continuous appearance.</li>
+<li>With these settings, the UMAP embeddings show several groups of similar digits as relatively well-separated neighboring regions. For example, groups of visually similar digits, such as 3, 5, and 8 or 4, 7, and 9, tend to occupy neighboring regions, reflecting similarities in their handwritten shapes. This separation is a diagnostic pattern to investigate, not a final definition of the underlying clusters.</li>
+<li>With these settings, the t-SNE embeddings display more gradual visual transitions between some similar digit classes. Rather than forming clearly separated islands, observations from neighboring classes overlap through possible intermediate handwriting styles, giving the layout a more continuous appearance. Likewise, this pattern suggests a possible chain of local similarities to investigate rather than a settled conclusion — it should be verified by inspecting the original images and their high-dimensional nearest-neighbor relationships.</li>
 </ul>
-<p>These differences should be read as differences in the visualization objectives, not as proof that one method has found the true geometry. UMAP’s clearer separation and t-SNE’s smoother transitions are both diagnostic patterns to investigate, not final cluster definitions.</p>
 </section>
 </section>
 <section id="four-method-comparison" class="level3" data-number="14.4.2">
 <h3 data-number="14.4.2" class="anchored" data-anchor-id="four-method-comparison"><span class="header-section-number">14.4.2</span> Four-method comparison</h3>
-<p>PCA, spectral embedding, t-SNE, and UMAP all create low-dimensional coordinates, but they answer different diagnostic questions. PCA is the linear baseline. Spectral embedding is graph-based and focuses on connectivity. t-SNE focuses on local neighbor probabilities. UMAP focuses on a weighted nearest-neighbor graph.</p>
+<p>PCA, spectral embedding, t-SNE, and UMAP all create low-dimensional coordinates, but they answer different diagnostic questions. The table below summarizes what each method mainly preserves.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -1862,7 +1893,7 @@ R(Z).
 </tbody>
 </table>
 <p>We now apply all four methods to the same MNIST subset. PCA and spectral embedding are applied to the standardized pixel features, while t-SNE and UMAP are applied after PCA preprocessing to 50 dimensions.</p>
-<div id="1620e897" class="cell" data-execution_count="14">
+<div id="55e78a73" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.manifold <span class="im">import</span> SpectralEmbedding</span>
@@ -1917,7 +1948,7 @@ R(Z).
 <li>Spectral embedding reveals nonlinear organization that is not visible in the PCA projection. Because the embedding is constructed from a nearest-neighbor graph, the resulting layout depends strongly on the chosen graph.</li>
 <li>PCA50 + t-SNE and PCA50 + UMAP recover many of the same local neighborhoods, but organize them differently because they optimize different objective functions.</li>
 </ul>
-<p>The four methods should therefore be interpreted differently because each is designed to preserve a different aspect of the original data. PCA asks whether a low-dimensional linear projection already captures the dominant variation. Spectral embedding asks whether a neighborhood graph reveals meaningful connected structure. t-SNE asks whether local neighborhoods remain coherent after embedding. UMAP asks whether the nearest-neighbor graph exhibits stable graph-connected regions. None of these methods provides a geometrically faithful map of the original feature space. Their interpretation should therefore always be based on the structure each method is designed to preserve.</p>
+<p>The four methods should therefore be interpreted differently because each is designed to preserve a different aspect of the original data, as summarized in the table above. None of them provides a geometrically faithful map of the original feature space; their interpretation should always be based on the structure each method is designed to preserve.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1954,25 +1985,11 @@ Figure&nbsp;14.2: Four-method comparison on all 70,000 MNIST images
 <li>The main qualitative conclusions are broadly similar. The 3,000-image subset already captures many of the important neighborhood relationships among the handwritten digits.</li>
 <li>The plots become visually denser with 70,000 images because many more intermediate handwriting styles are included.</li>
 <li>PCA changes the least: the dominant linear directions remain similar, and the larger dataset mainly increases sampling density.</li>
-<li>Spectral embedding becomes smoother because the nearest-neighbor graph is constructed from many more observations, making graph branches more complete and less affected by sampling variability.</li>
+<li>In these figures, the larger sample fills in more intermediate observations, and the spectral embedding appears smoother. These are empirical patterns in this example, not general consequences of increasing the sample size.</li>
 <li>The t-SNE embedding becomes substantially denser. Many apparent gaps between neighboring digit groups are filled by intermediate observations, producing smoother local transitions.</li>
 <li>The UMAP embedding also becomes denser while retaining more clearly segmented graph-connected regions.</li>
-<li>Increasing the sample size improves the completeness and stability of the visualizations, but it does not make global distances, region sizes, or visual densities quantitatively reliable.</li>
 <li>Running t-SNE and UMAP on all 70,000 images is substantially more computationally expensive than using a representative 3,000-image subset.</li>
 </ul>
-</div>
-</div>
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Caution</span>Apparent clusters are not proof of clusters
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Visible separation in an embedding is a diagnostic clue, not a cluster definition by itself. A gap, island, or bridge should be checked against the structure the method is designed to preserve and, when needed, against quantitative criteria tied to the analysis goal.</p>
 </div>
 </div>
 
