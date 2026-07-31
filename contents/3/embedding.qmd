@@ -62,11 +62,7 @@ $$
 
 ## Spectral Embedding
 
-Spectral embedding starts by replacing the original data matrix with a graph.
-The rows $x_i\in\mathbb R^p$ are observations in feature space. Spectral
-embedding keeps the same observations, but represents their relationships by
-a graph: the vertices are observations, and edges connect observations that
-are similar, often nearest neighbors.
+Spectral embedding starts by replacing the original data matrix with a graph. The rows $x_i\in\mathbb R^p$ are observations in feature space. Spectral embedding keeps the same observations, but represents their relationships by a graph: the vertices are observations, and edges connect observations that are similar, often nearest neighbors.
 
 The main idea is:
 
@@ -80,7 +76,7 @@ X
 \text{observation-space eigenvector coordinates}.
 $$
 
-This is useful when the structure is better described by connectivity than by distance to a single center. Spectral clustering uses the same embedding and then applies a label-assignment method such as K-means.
+This is useful when the structure is better described by connectivity than by distances to cluster centers. Spectral clustering follows the same general workflow: it constructs a spectral representation and then assigns labels using a method such as K-means.
 
 ### Mathematical Idea
 
@@ -309,7 +305,8 @@ As discussed earlier, spectral embedding starts by constructing a local connecti
 
 1. Choose the number of nearest neighbors, `n_neighbors`.
 2. For each point, find its `n_neighbors` nearest neighbors.
-3. Set $W_{ij}=1$ if points $i$ and $j$ are connected, and $W_{ij}=0$ otherwise.
+3. Form a directed connectivity matrix $A$ by setting $A_{ij}=1$ if observation $j$ is a selected neighbor of observation $i$, and $A_{ij}=0$ otherwise.
+4. In `sklearn` the matrix will be symmetrized as $W=\frac12(A+A^\top)$.
 
 This produces a sparse connectivity matrix $W$, which is then used to compute the graph Laplacian and the spectral embedding.
 
@@ -320,7 +317,7 @@ The formulas above use the unnormalized graph Laplacian $L=D-W$ for exposition. 
 ::: {.callout-note}
 ## `SpectralClustering`
 
-A common use of spectral embedding is to apply a clustering algorithm, such as KMeans, to the embedded coordinates. You can do this manually by combining `SpectralEmbedding` with `KMeans`, or you can use `SpectralClustering` from `sklearn.cluster`, which performs these two steps automatically.
+A common use of spectral embedding is to apply a clustering algorithm, such as `KMeans`, to the embedded coordinates. You can do this manually by combining `SpectralEmbedding` with `KMeans`, or you can use `SpectralClustering` from `sklearn.cluster`, which performs these two steps automatically.
 
 If you want to visualize the embedding itself, however, you should use `SpectralEmbedding` directly and then apply the clustering algorithm manually.
 
@@ -451,7 +448,7 @@ The results illustrate the different assumptions made by the clustering algorith
 
 - KMeans: Fails. KMeans partitions the data according to the distance to cluster centroids. Since the two circles share the same center, the algorithm cannot separate them into inner and outer circles. Instead, it splits the data into two roughly equal halves.
 - Agglomerative (Ward): Performs slightly better but still fails. Ward linkage merges clusters to minimize the increase in within-cluster variance. This favors compact, approximately spherical clusters rather than ring-shaped clusters, so it also tends to cut across the circles instead of preserving their circular structure.
-- DBSCAN: Performs reasonably well but is affected by the bridge points. Since DBSCAN defines clusters through density connectivity, the bridge creates a path between the two circles, causing some points to be merged incorrectly. Furthermore, because DBSCAN uses a single density threshold, it struggles with the uneven density of the outer circle and fails to identify it as one cluster.
+- DBSCAN: With these parameters, DBSCAN keeps the two circles largely separate but splits part of the uneven-density outer circle, producing three clusters. The sparse bridge does not provide enough core points to merge the circles, although it affects the assignment of some nearby points.
 - Spectral Clustering: Correctly recovers the two circles. Instead of clustering the original coordinates directly, it first constructs a similarity graph and computes a spectral embedding. In this new representation, points belonging to the same circle become much closer, while the weak bridge has little influence. A simple clustering algorithm such as KMeans can then easily separate the two clusters.
 
 The key idea is that spectral clustering does not rely on Euclidean geometry in the original feature space. Instead, it transforms the data into a new space where the cluster structure becomes much easier to identify.
@@ -824,7 +821,7 @@ a_{ij}
 =
 \exp\qty(
 -\frac{\max\{0,d(x_i,x_j)-\rho_i\}}{\sigma_i}
-).
+)\quad\text{ for $j$ in the selected neighbor set, otherwise $a_{ij}=0$.}.
 $$
 
 Thus the construction is
@@ -901,7 +898,7 @@ w_{ij}\log r_{ij}
 \right].
 $$
 
-The first term encourages pairs with large $w_{ij}$ to stay close in the plot. The second term discourages weakly connected pairs from all collapsing into the same place. In practice, UMAP optimizes the low-dimensional coordinates by stochastic gradient descent: sampled edges from $W$ pull connected points together, while randomly sampled non-edges push unrelated points apart.
+The first term encourages pairs with large $w_{ij}$ to stay close in the plot. The second term discourages weakly connected pairs from all collapsing into the same place. In practice, UMAP approximates this full-pair objective using sampled edges and negative samples by stochastic gradient descent: sampled edges from $W$ pull connected points together, while randomly sampled non-edges push unrelated points apart.
 :::
 
 ::: {.callout-note}
@@ -1110,9 +1107,8 @@ For static interpretation, the practical difference between the two methods is o
 
 - A stable bridge can suggest a chain of local neighbor relationships.
 - A stable island can suggest a group with relatively strong internal relationships and relatively weak external relationships.
-- A stable cluster can suggest a locally coherent group.
 
-Here, "stable" means that the structure persists across reasonable choices of neighborhood parameters, random initializations, metrics, and preprocessing. These patterns provide hypotheses about the original data, not proof, and should be checked using the original distances or nearest-neighbor relationships.
+Here, "stable" means that the structure persists across reasonable choices of neighborhood parameters, random initializations, metrics, and preprocessing.
 
 When t-SNE and UMAP disagree, the disagreement should be treated as evidence that the apparent structure is sensitive to the neighborhood representation, neighborhood scale, or optimization—not as evidence that one method is necessarily correct. If they disagree about a separation, that separation has not yet been shown to be a method-independent feature of the data.
 
@@ -1307,7 +1303,7 @@ The four methods provide different views of the same high-dimensional image subs
 - Spectral embedding reveals nonlinear organization that is not visible in the PCA projection. Because the embedding is constructed from a nearest-neighbor graph, the resulting layout depends strongly on the chosen graph.
 - PCA50 + t-SNE and PCA50 + UMAP recover many of the same local neighborhoods, but organize them differently because they optimize different objective functions.
 
-The four methods should therefore be interpreted differently because each is designed to preserve a different aspect of the original data. PCA asks whether a low-dimensional linear projection already captures the dominant variation. Spectral embedding asks whether a neighborhood graph reveals meaningful connected structure. t-SNE asks whether local neighborhoods remain coherent after embedding. UMAP asks whether the nearest-neighbor graph exhibits stable graph-connected regions. None of these methods provides a geometrically faithful map of the original feature space. Their interpretation should therefore always be based on the structure each method is designed to preserve.
+The four methods should therefore be interpreted differently because each is designed to preserve a different aspect of the original data, as summarized in the table above. None of them provides a geometrically faithful map of the original feature space; their interpretation should always be based on the structure each method is designed to preserve.
 
 ::: {.callout-note}
 ## Using all 70,000 MNIST images
