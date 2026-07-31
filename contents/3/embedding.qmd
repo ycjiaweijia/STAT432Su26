@@ -165,9 +165,9 @@ $$
 y\perp \mathbf 1.
 $$
 
-The constraints remove trivial solutions. Without them, $y=0$ minimizes the objective. Even with a nonzero vector, the constant coordinate $y_1=\cdots=y_n$ makes every coordinate difference zero, so it does not separate observations. The constraint $\norm{y}^2=1$ fixes the scale, and $y\perp \mathbf 1$ removes the constant coordinate.
+The constraints remove trivial solutions. Without them, $y=0$ minimizes the objective. Even with a nonzero vector, the constant coordinate $y_1=\cdots=y_n$ makes every coordinate difference zero, so it does not separate observations. The constraint $\norm{y}^2=1$ fixes the scale, and $y\perp \mathbf 1$ removes the constant coordinate. This formulation assumes that the graph is connected. If the graph has several connected components, the entire null space of $L$, not only the direction $\mathbf 1$, must be removed.
 
-This optimization problem leads to eigenvectors because $L$ is symmetric. Write its orthonormal eigen-decomposition as
+This optimization problem leads to eigenvectors because $L$ is symmetric and positive semidefinite. In this case all its eigenvalues are real and nonnegative. Write its orthonormal eigen-decomposition as
 
 $$
 L=V\Lambda V^\top.
@@ -189,7 +189,7 @@ y^\top Ly
 \sum_{k=1}^n \lambda_k a_k^2.
 $$
 
-Thus $y^\top Ly$ is a weighted average of the eigenvalues. To make it small, we put weight on eigenvectors with small eigenvalues. For a graph Laplacian, the smallest eigenvalue is usually $0$, with a constant eigenvector on each connected component. That eigenvector has zero graph roughness, but it gives every observation the same coordinate. After removing this constant direction, the first useful one-dimensional spectral coordinate is the eigenvector corresponding to the smallest positive eigenvalue:
+Thus $y^\top Ly$ is a weighted average of the eigenvalues. To make it small, we put weight on eigenvectors with small eigenvalues. For a graph Laplacian, $0$ is always an eigenvalue, and its multiplicity equals the number of connected components. If the graph is connected, its null space is spanned by the constant vector, which has zero graph roughness but gives every observation the same coordinate. After removing the null space, the first useful one-dimensional spectral coordinate is an eigenvector corresponding to the smallest positive eigenvalue:
 
 $$
 Lv=\lambda v,
@@ -213,7 +213,7 @@ the smallest positive eigenvalue gives the nonconstant coordinate with the small
 
 </details>
 
-Consider the eigenvectors of the graph Laplacian $v_1,\ldots, v_n$, ordered by ascending eigenvalues. Each selected eigenvector gives one coordinate column for all observations. For an $m$-dimensional spectral embedding, we place the first $m$ nonconstant eigenvectors side by side:
+Assume for now that the graph is connected. Consider the eigenvectors of the graph Laplacian $v_1,\ldots, v_n$, ordered by ascending eigenvalues. Each selected eigenvector gives one coordinate column for all observations. For an $m$-dimensional spectral embedding, we place the first $m$ nonconstant eigenvectors side by side:
 
 $$
 Z
@@ -315,7 +315,7 @@ This produces a sparse connectivity matrix $W$, which is then used to compute th
 
 In `SpectralEmbedding`, this construction is specified by `affinity="nearest_neighbors"` together with the parameter `n_neighbors`. In practice, choosing an appropriate neighborhood size or a different way of constructing the connectivity graph is often more important than choosing the embedding dimension.
 
-The formulas above use the unnormalized graph Laplacian $L=D-W$ for exposition. The `sklearn` implementation uses a normalized graph Laplacian. The interpretation is the same at this level: the embedding favors coordinates that vary smoothly over the graph, but the exact matrix used in the computation is different.
+The formulas above use the unnormalized graph Laplacian $L=D-W$ for exposition. The `sklearn` implementation uses a normalized graph Laplacian and rescales its eigenvectors by the vertex degrees when constructing the output coordinates. The interpretation is the same at this level. The embedding favors coordinates that vary smoothly over the graph. However the exact matrix, constraints, and coordinates differ from the simplified derivation above.
 
 ::: {.callout-note}
 ## `SpectralClustering`
@@ -619,7 +619,7 @@ Minimizing $\operatorname{KL}(P\Vert Q)$ tries to make these two probability pat
 The direction of the KL divergence matters.
 
 - The term $p_{ij}\log(p_{ij}/q_{ij})$ strongly penalizes the case where $p_{ij}$ is large but $q_{ij}$ is small. Thus, if two observations are close neighbors in the original space, t-SNE tries hard to keep them close in the plot.
-- The converse is weaker: if two points appear close in the t-SNE plot, they were not necessarily close in the original space. Pairs with very small $p_{ij}$ contribute little directly to the objective, so t-SNE is less strict about the exact arrangement of points that were already far apart.
+- The converse is weaker: if two points appear close in the t-SNE plot, they were not necessarily close in the original space. Pairs with very small $p_{ij}$ receive a weaker direct pairwise penalty, although they still affect the objective indirectly through the normalization of $Q$ and the arrangement of other points.
 
 Thus t-SNE preserves local neighborhood probabilities, not the original coordinates, not the original Euclidean distances, and not the meanings of the original features. In plain language:
 
@@ -633,11 +633,11 @@ So t-SNE answers a local question: "which observations are neighbors of which ot
 ::: {.callout-note}
 ## t-SNE as a diagnostic plot
 
-The main use of t-SNE is visualization after dimension reduction. It is not usually used as a feature representation for a downstream model. Instead, it helps us inspect whether patterns found by other methods are visible in local neighborhood structure.
+The main use of t-SNE is to visualize high-dimensional data. It is not usually used as a feature representation for a downstream model. Instead, it helps us inspect whether patterns found by other methods are visible in local neighborhood structure.
 
 For example, after fitting a clustering algorithm in the original feature space, we can color a t-SNE plot by the cluster labels. If the colors form well-separated local patches, then the clustering is consistent with the neighborhood structure shown by t-SNE. If the colors are heavily mixed, then the clustering may be failing to capture local structure, or the data may not contain clearly separated groups.
 
-This is a diagnostic check, not a proof. t-SNE can make separation look stronger than it really is, and the apparent distance between colored patches is not a quantitative cluster separation. Quantitative measures such as nearest-neighbor overlap, trustworthiness, silhouette score, or adjusted Rand index should be used when a formal comparison is needed. The plot is useful because it makes possible problems visible quickly.
+This is a diagnostic check, not proof. The plot is useful because it makes possible problems visible quickly. Any hypothesis suggested by the visualization should be checked against the original observations, distances, or nearest-neighbor relationships.
 :::
 
 
@@ -717,7 +717,7 @@ ax.set_title("Digits t-SNE")
 ax.legend(*scatter.legend_elements(), title="digit", ncol=2)
 ```
 
-In this example, we use `perplexity=30`, a common starting point for a moderate-size dataset. This value should be treated as a tuning choice rather than a fixed default.
+We use `perplexity=30` here as a common starting point for a moderate-size dataset, not a fixed default.
 
 In practice, choose `perplexity` by comparing several reasonable values. For a moderate-size dataset, values such as `5`, `10`, `30`, and `50` are common candidates. Use smaller values when you want to emphasize very local neighborhoods, and larger values when you want a smoother display based on broader neighborhoods. The chosen `perplexity` should be well below the sample size. The result can also depend on initialization and random seed, so a pattern is more credible when it persists across several reasonable `perplexity` values and random seeds.
 
@@ -815,7 +815,7 @@ Thus UMAP does not try to reconstruct the original features. It tries to preserv
 
 UMAP first finds the nearest neighbors of each observation according to the chosen distance metric. The parameter `n_neighbors` controls the size of these local neighborhoods. For each point $x_i$, UMAP uses only its selected nearest neighbors as candidate directed edges from $i$. Points outside this selected neighbor set usually have directed weight $a_{ij}=0$ from the point of view of $i$.
 
-After the candidate neighbors are selected, UMAP assigns a local distance offset $\rho_i$ and a local scale $\sigma_i$ for each point. The offset $\rho_i$ is usually the distance from $x_i$ to its nearest neighbor. This makes the nearest neighbor receive weight $1$. The scale $\sigma_i$ controls how quickly the remaining selected neighbors lose weight as distance increases. Both $\rho_i$ and $\sigma_i$ are chosen automatically by the algorithm for each point; they are not tuning parameters set by the user.
+After the candidate neighbors are selected, UMAP assigns a local distance offset $\rho_i$ and a local scale $\sigma_i$ for each point. Under the usual default setting, $\rho_i$ is based on the distance from $x_i$ to its nearest nonzero-distance neighbor. This makes the nearest such neighbor receive weight $1$. The scale $\sigma_i$ controls how quickly the remaining selected neighbors lose weight as distance increases. It is calibrated so that the total local connection strength reaches a target determined by `n_neighbors`. Both $\rho_i$ and $\sigma_i$ are chosen automatically for each point rather than set directly by the user.
 
 A simplified version of the directed neighbor weight from $i$ to $j$ is
 
@@ -886,9 +886,9 @@ r_{ij}
 \frac{1}{1+\alpha\norm{z_i-z_j}^{2\beta}},
 $$
 
-Here $\alpha$ and $\beta$ are not usually chosen directly by the user. They are fitted internally from UMAP's display parameters, especially `min_dist`. If two plotted points are close, $r_{ij}$ is large; if they are far apart, $r_{ij}$ is small.
+Here $\alpha$ and $\beta$ are not usually chosen directly by the user. They are fitted internally from UMAP's display parameters, especially `min_dist` and `spread`. If two plotted points are close, $r_{ij}$ is large; if they are far apart, $r_{ij}$ is small.
 
-UMAP then moves the coordinates so that $R(Z)$ resembles $W$. This is done by minimizing a cross-entropy loss of the form
+UMAP then moves the coordinates so that $R(Z)$ resembles $W$. Up to terms that depend only on $W$ and therefore do not affect the optimization over $Z$, this gives a cross-entropy loss of the form
 
 $$
 \operatorname{CE}(W,R)
@@ -909,7 +909,7 @@ The first term encourages pairs with large $w_{ij}$ to stay close in the plot. T
 
 The parameter `min_dist` is the effective minimum distance between nearby points in the low-dimensional embedding. It is not a hard constraint that all plotted points must be at least this far apart. Instead, it defines the distance scale at which the low-dimensional similarity should begin to decay.
 
-UMAP does not usually ask the user to choose $\alpha$ and $\beta$ directly. Instead, it fits $\alpha$ and $\beta$ from `min_dist` so that
+UMAP does not usually ask the user to choose $\alpha$ and $\beta$ directly. Instead, it fits $\alpha$ and $\beta$ from `min_dist` and `spread` so that
 
 $$
 \frac{1}{1+\alpha d^{2\beta}}
@@ -918,7 +918,7 @@ $$
 has a shape similar to a target curve: the curve stays near $1$ for distances below `min_dist`, then decreases after that. Thus the tuning chain is
 
 $$
-\texttt{min\_dist}
+\qty(\texttt{min\_dist},\texttt{spread})
 \longrightarrow
 (\alpha,\beta)
 \longrightarrow
@@ -936,6 +936,7 @@ The practical interpretation is:
 - Smaller `min_dist` allows points that are strongly connected in $W$ to be placed closer together in the low-dimensional embedding. This usually produces tighter visual clusters.
 - Larger `min_dist` keeps strongly connected points more spread out. This can make continuous structure and within-group variation easier to see, but the plot may look less clustered.
 - A tight island in a UMAP plot does not automatically mean that the original data have high density there. It may simply reflect a small `min_dist`.
+- `spread` controls the overall distance scale of the low-dimensional similarity curve. It is usually left at its default value of `1.0`, so we focus mainly on `min_dist`.
 :::
 
 ### What structure does UMAP preserve?
@@ -947,15 +948,13 @@ In plain language:
 - If two observations are nearest neighbors in the original representation, UMAP tries to keep them close or connected in the plot.
 - If two groups are connected by many nearest-neighbor edges, UMAP may place them near each other even if the original geometry is curved or nonlinear.
 - Distances between faraway islands, island sizes, axis directions, and visual densities should not be treated as exact quantitative information.
-- Compared with t-SNE, UMAP often keeps a little more broad structure, but this depends strongly on `n_neighbors` and should still be checked.
 
 ::: {.callout-note}
 ## UMAP as a diagnostic plot
 
-UMAP is useful when we want to inspect whether local nearest-neighbor relationships reveal structure that a linear plot such as PCA misses. Like t-SNE, it is mainly a visualization and diagnostic tool: visible groups are hypotheses to investigate, not automatic cluster definitions.
-
-UMAP can also be useful after clustering. If cluster labels form coherent local regions in a UMAP plot, then the clustering is consistent with the nearest-neighbor graph shown by UMAP. If labels are heavily mixed, the clustering may not match local structure, or the data may not contain clearly separated groups. Formal evaluation should still use criteria tied to the analysis goal, such as nearest-neighbor overlap, silhouette score, or adjusted Rand index when labels are available.
+As with t-SNE (see the note above on t-SNE as a diagnostic plot), a UMAP plot is a hypothesis to check, not proof of structure.
 :::
+
 
 
 ### UMAP in Python
@@ -983,7 +982,7 @@ umap_model = umap.UMAP(
 Z_umap = umap_model.fit_transform(X_digits_pca)
 ```
 
-In this example, `n_neighbors=15` sets a moderate local neighborhood size, and `min_dist=0.1` allows fairly compact visual groups. These are tuning choices, not universal defaults.
+Here, `n_neighbors=15` gives a moderate local neighborhood size and `min_dist=0.1` allows fairly compact visual groups — tuning choices, not universal defaults.
 
 - The parameter `n_neighbors` controls the construction of the high-dimensional graph $W$: it determines how many nearby observations each point uses when UMAP builds the weighted nearest-neighbor graph. A small value, such as `5` or `10`, makes UMAP focus on very local neighborhoods. This can reveal fine structure, but it can also break continuous structure into many small islands. A larger value, such as `30` or `50`, asks UMAP to use broader neighborhoods. This often gives a smoother layout and may preserve more large-scale relationships, but it can hide small local differences.
 - The parameter `metric` defines distance in the original feature space, so it determines which observations count as nearest neighbors before UMAP does any embedding. For standardized numeric features, `"euclidean"` is a common starting point. For sparse counts or text-like features, cosine distance is often more appropriate. Changing `metric` can change the graph $W$ itself, so it can change the embedding more fundamentally than changing only the visual display parameters.
@@ -1055,13 +1054,13 @@ fig.tight_layout(rect=[0, 0, 0.9, 1]);
 
 Some observations from the plots are:
 
-- The overall class structure is relatively stable across all parameter settings. Most digit classes remain recognizable, indicating that the underlying local neighborhood structure is robust.
+- The overall class structure is similar across the parameter settings displayed here. Most digit classes remain recognizable, suggesting that much of the local neighborhood structure persists across these settings.
 - Digits `0` and `6` remain well separated from most other classes in all embeddings, suggesting that these digits have distinctive local pixel patterns.
 - Several groups of digits remain in neighboring regions across different parameter settings, although their relative positions change as the hyperparameters vary.
-- Some digit classes appear as multiple disconnected regions when `n_neighbors` is small. This suggests that the class may contain several distinct local neighborhoods in the original feature space, although these should not automatically be interpreted as true subtypes.
+- As with t-SNE, small `n_neighbors` can fragment a class into several local neighborhoods — not necessarily true subtypes.
 - Increasing `min_dist` primarily changes the compactness of the embedding. Smaller values produce tighter clusters, whereas larger values spread nearby points farther apart.
 - Increasing `n_neighbors` generally produces a smoother and more stable overall layout by incorporating broader neighborhood information during graph construction.
-- Although the global layout changes noticeably across parameter settings, the major local neighborhoods remain largely consistent.
+- Although the global layout changes noticeably, the major local neighborhoods remain similar across the displayed settings. A stronger stability claim would also require varying random seeds, metrics, and preprocessing.
 
 These patterns can also guide inspection of the original data. For example, if several digit classes remain connected or neighboring in the UMAP plot, we can examine those images to understand which strokes or handwriting styles make the classes similar.
 
@@ -1105,9 +1104,37 @@ For t-SNE, distances are converted into neighbor probabilities. The high-dimensi
 
 For UMAP, distances are converted into a weighted nearest-neighbor graph. The high-dimensional graph is $W=(w_{ij})$, the low-dimensional graph is $R(Z)=(r_{ij})$, and UMAP moves the plotted points so that $R(Z)$ resembles $W$. The parameter `n_neighbors` controls the neighborhood scale used to build $W$, while `min_dist` controls how tightly connected points may be packed in the display.
 
-This difference affects how we read the plots. In a t-SNE plot, a continuous bridge made of many nearby points is meaningful: it suggests that the original data may contain a chain of local neighbor relationships connecting the two regions. But a large empty distance between two t-SNE islands should not be interpreted as a reliable measurement of how far apart the groups are in the original space. UMAP has a more direct graph interpretation: connected regions in the plot often reflect connections in the nearest-neighbor graph $W$, although that graph still depends on the chosen `metric` and `n_neighbors`.
 
-So t-SNE is especially useful for inspecting very local neighborhoods. UMAP is especially useful for inspecting nearest-neighbor graph structure, comparing neighborhood scales, and sometimes reusing a fitted embedding for new observations. Neither method should be used to make strict claims about global distances, island sizes, densities, or axis meanings.
+
+For static interpretation, the practical difference between the two methods is often small because both primarily visualize local neighborhood information. At comparable neighborhood scales:
+
+- A stable bridge can suggest a chain of local neighbor relationships.
+- A stable island can suggest a group with relatively strong internal relationships and relatively weak external relationships.
+- A stable cluster can suggest a locally coherent group.
+
+Here, "stable" means that the structure persists across reasonable choices of neighborhood parameters, random initializations, metrics, and preprocessing. These patterns provide hypotheses about the original data, not proof, and should be checked using the original distances or nearest-neighbor relationships.
+
+When t-SNE and UMAP disagree, the disagreement should be treated as evidence that the apparent structure is sensitive to the neighborhood representation, neighborhood scale, or optimization—not as evidence that one method is necessarily correct. If they disagree about a separation, that separation has not yet been shown to be a method-independent feature of the data.
+
+
+
+::: {.callout-caution}
+## Apparent clusters are not proof of clusters
+
+Visible separation in an embedding is a diagnostic clue, not a cluster definition by itself. A gap, island, or bridge should be checked against the structure the method is designed to preserve and, when needed, against quantitative criteria tied to the analysis goal.
+:::
+
+::: {.callout-note}
+## Out-of-sample transformation
+Another practical difference between t-SNE and UMAP concerns new observations. Common UMAP implementations provide an approximate out-of-sample procedure that embeds a new observation using its relationships to the fitted data. The new observation is connected to nearby training observations in the fitted nearest-neighbor graph, and the resulting edge strengths are used to initialize and optimize its low-dimensional coordinates relative to the existing embedding. The original training coordinates are generally kept fixed during this procedure.
+
+Classical t-SNE, by contrast, produces a joint layout of the observations included during fitting. Because its low-dimensional probabilities are globally normalized over pairs of observations, adding a new observation changes the joint objective. Classical t-SNE therefore does not naturally define a simple fixed out-of-sample transformation. Extensions and approximate procedures can provide such mappings, but they are not part of the classical algorithm.
+:::
+
+
+
+
+
 
 
 #### MNIST
@@ -1213,17 +1240,15 @@ Raw versus PCA50
 t-SNE versus UMAP
 
 - Both methods recover clear local neighborhoods for the handwritten digits. Images with the same label tend to occupy nearby regions, although several visually similar digit classes still overlap.
-- With these settings, the UMAP embeddings show several groups of similar digits as relatively well-separated neighboring regions. For example, groups of visually similar digits, such as 3, 5, and 8 or 4, 7, and 9, tend to occupy neighboring regions, reflecting similarities in their handwritten shapes.
-- With these settings, the t-SNE embeddings connect these similar digit classes through more gradual transitions. Instead of forming clearly separated islands, neighboring classes blend through intermediate handwriting styles, giving the overall layout a more continuous appearance.
-
-These differences should be read as differences in the visualization objectives, not as proof that one method has found the true geometry. UMAP's clearer separation and t-SNE's smoother transitions are both diagnostic patterns to investigate, not final cluster definitions.
+- With these settings, the UMAP embeddings show several groups of similar digits as relatively well-separated neighboring regions. For example, groups of visually similar digits, such as 3, 5, and 8 or 4, 7, and 9, tend to occupy neighboring regions, reflecting similarities in their handwritten shapes. This separation is a diagnostic pattern to investigate, not a final definition of the underlying clusters.
+- With these settings, the t-SNE embeddings display more gradual visual transitions between some similar digit classes. Rather than forming clearly separated islands, observations from neighboring classes overlap through possible intermediate handwriting styles, giving the layout a more continuous appearance. Likewise, this pattern suggests a possible chain of local similarities to investigate rather than a settled conclusion — it should be verified by inspecting the original images and their high-dimensional nearest-neighbor relationships.
 
 
 
 
 ### Four-method comparison
 
-PCA, spectral embedding, t-SNE, and UMAP all create low-dimensional coordinates, but they answer different diagnostic questions. PCA is the linear baseline. Spectral embedding is graph-based and focuses on connectivity. t-SNE focuses on local neighbor probabilities. UMAP focuses on a weighted nearest-neighbor graph.
+PCA, spectral embedding, t-SNE, and UMAP all create low-dimensional coordinates, but they answer different diagnostic questions. The table below summarizes what each method mainly preserves.
 
 | Method | Mainly preserves | Does not preserve well | Best for checking |
 |---|---|---|---|
@@ -1299,15 +1324,8 @@ Compared with the 3,000-image subset:
 - The main qualitative conclusions are broadly similar. The 3,000-image subset already captures many of the important neighborhood relationships among the handwritten digits.
 - The plots become visually denser with 70,000 images because many more intermediate handwriting styles are included.
 - PCA changes the least: the dominant linear directions remain similar, and the larger dataset mainly increases sampling density.
-- Spectral embedding becomes smoother because the nearest-neighbor graph is constructed from many more observations, making graph branches more complete and less affected by sampling variability.
+- In these figures, the larger sample fills in more intermediate observations, and the spectral embedding appears smoother. These are empirical patterns in this example, not general consequences of increasing the sample size.
 - The t-SNE embedding becomes substantially denser. Many apparent gaps between neighboring digit groups are filled by intermediate observations, producing smoother local transitions.
 - The UMAP embedding also becomes denser while retaining more clearly segmented graph-connected regions.
-- Increasing the sample size improves the completeness and stability of the visualizations, but it does not make global distances, region sizes, or visual densities quantitatively reliable.
 - Running t-SNE and UMAP on all 70,000 images is substantially more computationally expensive than using a representative 3,000-image subset.
-:::
-
-::: {.callout-caution}
-## Apparent clusters are not proof of clusters
-
-Visible separation in an embedding is a diagnostic clue, not a cluster definition by itself. A gap, island, or bridge should be checked against the structure the method is designed to preserve and, when needed, against quantitative criteria tied to the analysis goal.
 :::
